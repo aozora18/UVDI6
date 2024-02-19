@@ -1082,6 +1082,11 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 				bSucc = FALSE;
 			}
 		}
+
+		MvsEncSetPositiveRun(m_handle, 15);
+		Sleep(10);
+		MvsEncSetPositiveRun(m_handle, 0);
+
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
 		m_syncSend.Leave();

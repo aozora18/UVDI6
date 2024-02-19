@@ -75,6 +75,11 @@ extern "C" {
 		return TRUE;
 	}
 
+	API_EXPORT BOOL uvPhilhmi_IsSyncResultLocked()
+	{
+		return g_pPhilhmi->IsSyncResultLocked();
+	}
+	
 	API_EXPORT BOOL uvPhilhmi_Open(LPG_CIEA config, LPG_PPR shmem)
 	{
 		LPG_CTSP pstPhilhmi = NULL;
@@ -343,6 +348,11 @@ extern "C" {
 	API_EXPORT BOOL uvPhilhmi_Send_C2P_EVENT_NOTIFY_ACK(STG_PP_C2P_EVENT_NOTIFY_ACK& stSend)
 	{
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_EVENT_NOTIFY_ACK(stSend);
+	}
+
+	API_EXPORT BOOL uvPhilhmi_Send_C2P_INITIAL_EXECUTE_ACK(STG_PP_C2P_INITIAL_EXECUTE_ACK& stSend)
+	{
+		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_INITIAL_EXECUTE_ACK(stSend);
 	}
 
 	API_EXPORT BOOL uvPhilhmi_Send_C2P_EVENT_STATUS_ACK(STG_PP_C2P_EVENT_STATUS_ACK& stSend)

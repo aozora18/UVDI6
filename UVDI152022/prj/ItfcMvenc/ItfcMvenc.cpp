@@ -398,7 +398,8 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOneOnly(UINT8 cam_id, UINT8 lamp_type)
 		else				bSucc = g_pMvencThread->ReqWriteTrigOutOne(0x00000001);	break;
 	}
 #endif
-	return bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
+	//return bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
+	return bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
 }
 
 /*
@@ -432,7 +433,9 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id, UINT8 lamp_type, BOOL enabl)
 		}
 	}
 #else
-	bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
+	//bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
+	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
+
 #endif
 	/* Trigger & Strobe : Disabled */
 	if (bSucc && enabl)	bSucc = uvMvenc_ReqTriggerStrobe(FALSE);

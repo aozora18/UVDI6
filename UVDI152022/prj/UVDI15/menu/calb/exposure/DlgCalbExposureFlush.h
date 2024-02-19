@@ -86,7 +86,11 @@ public:
 	enum EN_EXPOSURE_FLUSH_DEFINES
 	{
 		DEF_MODEL_FIND_COUNT = 2,
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		DEF_PH_MEASURE_COUNT = 4,		// Photohead 당 측정할 수 있는 구간 개수
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+		DEF_PH_MEASURE_COUNT = 27,		// Photohead 당 측정할 수 있는 구간 개수
+#endif
 		DEF_DEFAULT_GRID_ROW_SIZE = 40,	// 일반적인 grid 셀 높이
 		DEF_DEFAULT_GRID_COL_SIZE = 80,	// 일반적인 grid 셀 너비
 	};

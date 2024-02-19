@@ -21,6 +21,7 @@
 #define WM_MAIN_RECIPE_CREATE					WM_USER + 1004
 #define WM_MAIN_RECIPE_DELETE					WM_USER + 1005
 #define WM_MAIN_RECIPE_CHANGE					WM_USER + 1006
+#define WM_MAIN_PHIL_MSG						WM_USER + 1007
 
 #define WM_IDD_KBDM								WM_USER + 2001
 #define WM_IDD_KBDT								WM_USER + 2002
@@ -204,14 +205,15 @@ enum EN_USER_MSG
 	eMSG_ACCR_MEASURE_REPORT,
 };
 
-/*1:Initial 2:Manual 3:Auto 4:PM*/
+/*1:Auto 2:Stop 3:Pause 4:Alarm 5:PM*/
 enum EN_PHILHMI_MODE
 {
-	en_menu_phil_mode_none		= 0x00,
-	en_menu_phil_mode_init		= 0x01,
-	en_menu_phil_mode_manual	= 0x02,
-	en_menu_phil_mode_auto		= 0x03,
-	en_menu_phil_mode_pm		= 0x04,
+	en_menu_phil_mode_none	= 0x00,
+	en_menu_phil_mode_auto	= 0x01,
+	en_menu_phil_mode_stop	= 0x02,
+	en_menu_phil_mode_pause = 0x03,
+	en_menu_phil_mode_alarm = 0x04,
+	en_menu_phil_mode_pm	= 0x05,
 };
 
 enum EN_PHILHMI_MOVE
@@ -219,6 +221,7 @@ enum EN_PHILHMI_MOVE
 	en_menu_phil_move_none = 0x00,
 	en_menu_phil_move_abs = 0x01,
 	en_menu_phil_move_rel = 0x02,
+	en_menu_phil_move_char = 0x03,
 };
 
 
@@ -301,6 +304,9 @@ typedef struct __st_cmps_expo_log_after_completion
 	DOUBLE				expo_energy;					/* 노광 에너지 (unit: mJ)							*/
 
 	UINT8				align_type;						/* Align Mark Array(Global, Local) Type				*/
+
+
+
 	UINT8				mark_type;						/* Mark 구분 즉, 0 : Geomatrix, 1 : Pattern Image	*/
 	UINT8				lamp_type;						/* 램프 조명 타입 (0:Ring, 1:Coaxial)				*/
 	UINT8				gain_level[2];					/* Align Camera에 대한 Gain Level 값 (0 ~ 255)      */

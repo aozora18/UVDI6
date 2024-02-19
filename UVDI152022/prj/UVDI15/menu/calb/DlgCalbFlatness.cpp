@@ -1263,9 +1263,21 @@ VOID CDlgCalbFlatness::OnClickButtonSaveData()
 
 VOID CDlgCalbFlatness::OnClickButtonRemeasurement()
 {
+	
+	if (m_cellOldPos.row == eNONE || m_cellOldPos.col == eNONE)
+	{
+		AfxMessageBox(L"재측정 위치가 설정되지 않았습니다. 그리드에서 위치를 선택하십시오.", MB_OK);
+		return;
+	}
+
 	if (0 >= m_dVctData.size())
 	{
-		return;
+		auto sel = AfxMessageBox(L"기존 측정이력이 존재하지 않습니다. 측정데이터를 초기화 하시겠습니까?", MB_YESNO);
+		
+		if (sel == IDNO)
+			return;
+
+		m_dVctData = std::vector<double>(100, 0.0f);
 	}
 
 	LPG_CMAF pParam = &uvEng_GetConfig()->measure_flat;

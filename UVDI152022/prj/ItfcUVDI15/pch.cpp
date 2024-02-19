@@ -13,6 +13,7 @@ LOGFONT				g_lf								= {NULL};
 BOOL				g_bEngineInited						= FALSE;
 TCHAR				g_tzPEngine[MAX_FILE_LEN]			= {NULL};
 
+BOOL terminated = FALSE;
 
 #if (MC2_DRIVE_2SET == 0)
 /* MC2 Global Parameter */

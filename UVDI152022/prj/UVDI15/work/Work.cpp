@@ -7,7 +7,7 @@
 #include "../MainApp.h"
 #include "Work.h"
 #include "../mesg/DlgMesg.h"
-
+#include "../../UVDI15/GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -286,12 +286,12 @@ VOID CWork::SetStepName(PTCHAR name)
 	/* 가장 최근 값 임시 저장 */
 	m_u8StepLast	= m_u8StepIt;
 
-	STG_PP_P2C_PROCESS_STEP		stProcessStep;
-	stProcessStep.Reset();
-	sprintf_s(stProcessStep.szGlassName, DEF_MAX_GLASS_NAME_LENGTH, "%d", m_u8StepIt);
-	sprintf_s(stProcessStep.szProcessStepName, DEF_MAX_SUBPROCESS_NAME_LENGTH, "%s", name);
 
-	uvEng_Philhmi_Send_P2C_PROCESS_STEP(stProcessStep);
+	//STG_PP_P2C_PROCESS_STEP		stProcessStep;
+	//stProcessStep.Reset();
+	//sprintf_s(stProcessStep.szGlassName, DEF_MAX_GLASS_NAME_LENGTH, "%d", m_u8StepIt);
+	//sprintf_s(stProcessStep.szProcessStepName, DEF_MAX_SUBPROCESS_NAME_LENGTH, "%s", name);
+	//uvEng_Philhmi_Send_P2C_PROCESS_STEP(stProcessStep);
 }
 
 /*
@@ -321,9 +321,9 @@ BOOL CWork::IsGerberCheck(UINT8 flag)
 BOOL CWork::IsValidMarkCount()
 {
 	if (uvEng_Luria_GetMarkCount(ENG_AMTF::en_global) != 4)	return FALSE;
-	if (uvEng_Luria_GetMarkCount(ENG_AMTF::en_local))
+	if (uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
 	{
-		if (uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 16)	return FALSE;
+		if (uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) % 2 != 0)	return FALSE;
 	}
 
 	return TRUE;
@@ -349,14 +349,23 @@ BOOL CWork::IsGerberMarkValidCheck()
 	/* 마크 유효성 검증 */
 	if (!IsValidMarkCount())	return FALSE;
 
-	if (uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) == 16)
+	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+
+	int localCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+
+	if (localCnt != 0)
 	{
+		
+		auto cam1_1st =  status.markMapConst[0][1].tgt_id;
+		auto cam1_2nd = status.markMapConst[0][2].tgt_id;
+		auto cam2_1st = status.markPoolForCam[2].begin()->tgt_id;
+
 		/* 4th & 11th Mark 간의 값 얻어와 X 축 넓이 얻기 */
-		if (!uvEng_Luria_GetLocalMark(3, &stPosX[0]))	return FALSE;
-		if (!uvEng_Luria_GetLocalMark(11,&stPosX[1]))	return FALSE;
+		if (!uvEng_Luria_GetLocalMark(cam1_1st, &stPosX[0]))	return FALSE;
+		if (!uvEng_Luria_GetLocalMark(cam2_1st,&stPosX[1]))	return FALSE;
 		/* 1th & 2th Mark 간의 값 얻어와 Y 축 길이 얻기 */
-		if (!uvEng_Luria_GetLocalMark(0, &stPosY[0]))	return FALSE;
-		if (!uvEng_Luria_GetLocalMark(1, &stPosY[1]))	return FALSE;
+		if (!uvEng_Luria_GetLocalMark(cam1_1st, &stPosY[0]))	return FALSE;
+		if (!uvEng_Luria_GetLocalMark(cam1_2nd, &stPosY[1]))	return FALSE;
 		/* -------------------------------------------------------------------------------------------- */
 		/* Align Camera 간의 물리적 떨어진 간격 값이 거버에 등록된 Mark 간의 넓이 값보다 큰 경우에 문제 */
 		/* 거버에 등록된 2개의 Mark 넓이 (폭) 값이 물리적으로 떨어진 2대의 Align Camera보다 작다면 문제 */
@@ -418,54 +427,19 @@ BOOL CWork::GetLocalLeftRightTopMarkIndex(UINT8 scan, UINT8 &left, UINT8 &right)
 	LPG_RAAF pstRecipe	= uvEng_Mark_GetSelectAlignRecipe();
 	if (!pstRecipe)	return FALSE;
 
-	switch (pstRecipe->align_type)
-	{
-		/* Normal Mark Type */
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	/* Global (4) points / Local Division (2 x 2) (16) points */
-		//abh1000 0417
-		// 		if (0x00 == scan)	{	left = 0;	right = 4;	}
-		// 		else				{	left = 8;	right = 12;	}
-		if (0x00 == scan) { left = 0;	right = 8; }
-		else { left = 4;	right = 12; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	/* Global (4) points / Local Division (3 x 2) (24) points */
-		// 		if (0x00 == scan)	{	left = 0;	right = 6;	}
-		// 		else				{	left = 17;	right = 18;	}
-		if (0x00 == scan) { left = 0;	right = 12; }
-		else { left = 6;	right = 18; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	/* Global (4) points / Local Division (4 x 2) (32) points */
-		// 		if (0x00 == scan)	{	left = 0;	right = 8;	}
-		// 		else				{	left = 23;	right = 24;	}
-		if (0x00 == scan) { left = 0;	right = 16; }
-		else { left = 8;	right = 24; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	/* Global (4) points / Local Division (5 x 2) (40) points */
-		// 		if (0x00 == scan)	{	left = 0;	right = 10;	}
-		// 		else				{	left = 29;	right = 30;	}
-		if (0x00 == scan) { left = 0;	right = 20; }
-		else { left = 10;	right = 30; }
-		break;
-		/* Shared Mark Type */
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	/* Global (4) points / Local Division (2 x 2) (13) points */
-		if (0x00 == scan) { left = 0;	right = 3; }
-		else { left = 3;	right = 6; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	/* Global (4) points / Local Division (3 x 2) (16) points */
-		if (0x00 == scan) { left = 0;	right = 4; }
-		else { left = 4;	right = 8; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	/* Global (4) points / Local Division (4 x 2) (19) points */
-		if (0x00 == scan) { left = 0;	right = 5; }
-		else { left = 5;	right = 10; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	/* Global (4) points / Local Division (5 x 2) (22) points */
-		if (0x00 == scan) { left = 0;	right = 6; }
-		else { left = 6;	right = 12; }
-		break;
-	default:	return FALSE;
-	}
 
+	
+	//스캔은 각 캠 중앙에서 이루어진다. 
+
+	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+
+	
+	int centerCol = status.GetCenterColumn();
+
+	left = status.markMapConst[scan].front().tgt_id; //1캠
+	right = status.markMapConst[centerCol + scan].front().tgt_id; //2캠
+
+ 
 	return TRUE;
 }
 
@@ -482,53 +456,37 @@ BOOL CWork::GetLocalLeftRightBottomMarkIndex(UINT8 scan, UINT8 &left, UINT8 &rig
 	LPG_RAAF pstRecipe = uvEng_Mark_GetSelectAlignRecipe();
 	if (!pstRecipe)	return FALSE;
 
-	switch (pstRecipe->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	/* Global (4) points / Local Division (2 x 2) (16) points */
-		//abh1000 0417
-		// 		if (0x00 == scan)	{	left = 3;	right = 7;	}
-		// 		else				{	left = 11;	right = 15;	}
-		if (0x00 == scan) { left = 3;	right = 11; }
-		else { left = 7;	right = 15; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	/* Global (4) points / Local Division (3 x 2) (24) points */
-		// 		if (0x00 == scan)	{	left = 5;	right = 11;	}
-		// 		else				{	left = 17;	right = 23;	}
-		if (0x00 == scan) { left = 5;	right = 17; }
-		else { left = 11;	right = 23; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	/* Global (4) points / Local Division (4 x 2) (32) points */
-		// 		if (0x00 == scan)	{	left = 7;	right = 15;	}
-		// 		else				{	left = 23;	right = 31;	}
-		if (0x00 == scan) { left = 7;	right = 23; }
-		else { left = 15;	right = 31; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	/* Global (4) points / Local Division (5 x 2) (40) points */
-		// 		if (0x00 == scan)	{	left = 9;	right = 19;	}
-		// 		else				{	left = 29;	right = 39;	}
-		if (0x00 == scan) { left = 9;	right = 29; }
-		else { left = 19;	right = 39; }
-		break;
 
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	/* Global (4) points / Local Division (2 x 2) (13) points */
-		if (0x00 == scan) { left = 2;	right = 5; }
-		else { left = 5;	right = 8; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	/* Global (4) points / Local Division (3 x 2) (16) points */
-		if (0x00 == scan) { left = 3;	right = 7; }
-		else { left = 7;	right = 11; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	/* Global (4) points / Local Division (4 x 2) (19) points */
-		if (0x00 == scan) { left = 4;	right = 9; }
-		else { left = 9;	right = 14; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	/* Global (4) points / Local Division (5 x 2) (22) points */
-		if (0x00 == scan) { left = 5;	right = 11; }
-		else { left = 11;	right = 17; }
-		break;
+	//스캔은 횟수이자. 방향을 의미 
+	//스캔이 2로 나누어 떨어지면 돌아오는 타이밍인걸 의미 
 
-	default:	LOG_ERROR(ENG_EDIC::en_podis, L"Failed to find for lower left and right marks");	return FALSE;
-	}
+	/*
+	아래 코드를 보자. 
+
+	scan이 0일땐 3 11을 반환하잖나? 즉 위로 올라갈때이다. 
+	1일땐 7 15
+	
+	*/
+
+	//스캔은 각 캠 중앙에서 이루어진다. 
+
+	auto alType = pstRecipe->align_type;
+
+	
+
+	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+
+	if (status.gerberColCnt <= 0 || status.gerberRowCnt <= 0) return FALSE;
+
+	int centerCol = status.GetCenterColumn();
+
+	left = status.markMapConst[scan].back().tgt_id; //1캠
+	right = status.markMapConst[centerCol + scan].back().tgt_id; //2캠
+	
+
+	return true;
+
+
 
 	return TRUE;
 }
@@ -765,6 +723,9 @@ INT32 CWork::GetLocalMarkMotionPosY(UINT8 index)
 		mark_diff_y	- [in]  거버 내의 좌표에서 Left와 Right의 마크 간의 Y 높이 오차 값 (단위: 0.1 um or 100 nm)
  retn : TRUE or FALSE
 */
+
+#define ALLNEWLOGIC
+
 BOOL CWork::SetTrigPosCalcSaved(INT32 acam_diff_y/*, INT32 mark_diff_y*/)
 {
 	// by sysandj : 함수없음(수정)
@@ -838,6 +799,57 @@ BOOL CWork::SetTrigPosCalcSaved(INT32 acam_diff_y/*, INT32 mark_diff_y*/)
 	i32EndStartPosY = i32StageUnloadY - INT32(m_dbAlignStageY * 10000.0f);
 
 	/* Local Mark가 인식될 Trigger Position 값 등록 */
+#ifdef ALLNEWLOGIC
+
+	if (!IsMarkTypeOnlyGlobal())
+	{
+		if (u8ScanMarks < 0x01)
+		{
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the local mark for one scan");
+			return FALSE;
+		}
+
+		const int WANG_BOCK = 2;
+		auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+		auto scans = status.gerberColCnt / WANG_BOCK;
+		auto centerCol = status.GetCenterColumn();
+		/* Align Camera <1, 2> 번에 해당되는 Local Fiducial Mark 처리 (역방향 이동하면서 마크 인식)  세상에... 이건아니잖아. */
+		//이거 좀 문제가 있었네 
+
+
+		bool backward = true;
+		int markOrder = 0;
+		for (int scan = 0; scan < scans; scan++)
+		{
+			for (i = 0; i < u8ScanMarks; i++, markOrder++)
+			{
+				//UINT32 camLocalMark[] = { status.markPoolForCam[1][markOrder].tgt_id , status.markPoolForCam[2][markOrder].tgt_id };
+				UINT32 camLocalMark[] = { status.markMapConst[scan][i].tgt_id , status.markMapConst[centerCol+scan][i].tgt_id };
+
+				i32AlignCam1[0] = i32Mark2TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x00, camLocalMark[0]) * 10000.0f, 0) + (backward ? i32EndStartPosY : 0); //0 4
+				i32AlignCam2[0] = i32Mark4TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x01, camLocalMark[1]) * 10000.0f, 0) + (backward ? i32EndStartPosY : 0); //0 4
+				i32AlignCam2[0] += acam_diff_y;	/* (-) 음수 부호 값을 넣으면 안됨. 최초 트리거 발생 지점 기준이므로 */
+
+				/* Global Mark 2와 Mark 4번 기준으로 Local Mark가 떨어진 거리 값 구한 후 Trigger Pos에 합산 */
+				/* Align Camera 1 & 2번의 설치 오차 값 반영 */
+				
+				/* 메모리에 임시로 트리거가 발생될 위치 등록 */
+				uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 1, markOrder, i32AlignCam1[0] + (backward ? pstTrigSet->trig_backward : pstTrigSet->trig_forward));
+				uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 2, markOrder, i32AlignCam2[0] + (backward ? pstTrigSet->trig_backward : pstTrigSet->trig_forward));
+
+				/* Align Camera 2D 보정 여부 */
+				if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+				{
+					/* Align Mark가 측정될 모션 Y 축의 실제 위치 값 */
+					uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_local, 0x01, markOrder, GetLocalMarkMotionPosY(camLocalMark[0]) / 10000.0f);
+					uvEng_ACamCali_AddMarkPos(2, ENG_AMTF::en_local, 0x01, markOrder, (GetLocalMarkMotionPosY(camLocalMark[1]) - acam_diff_y) / 10000.0f);
+				}
+				
+			}
+			backward = !backward;
+		}
+	}
+#else
 	if (!IsMarkTypeOnlyGlobal())
 	{
 		if (u8ScanMarks < 0x01)
@@ -846,42 +858,40 @@ BOOL CWork::SetTrigPosCalcSaved(INT32 acam_diff_y/*, INT32 mark_diff_y*/)
 			return FALSE;
 		}
 		/* Align Camera <1, 2> 번에 해당되는 Local Fiducial Mark 처리 (역방향 이동하면서 마크 인식) */
-		for (i=0,j=0,k=0; i<u8ScanMarks; i++,k++)
+		for (i = 0, j = 0, k = 0; i < u8ScanMarks; i++, k++)
 		{
 			/* Global Mark 2와 Mark 4번 기준으로 Local Mark가 떨어진 거리 값 구한 후 Trigger Pos에 합산 */
 			j = i;
-			i32AlignCam1[0]	= i32Mark2TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x00, j) * 10000.0f, 0) + i32EndStartPosY;
+			i32AlignCam1[0] = i32Mark2TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x00, j) * 10000.0f, 0) + i32EndStartPosY; 0 4 16 20 
 			j = i + u8ScanMarks;
-			i32AlignCam2[0]	= i32Mark4TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x01, j) * 10000.0f, 0) + i32EndStartPosY;
+			i32AlignCam2[0] = i32Mark4TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x01, j) * 10000.0f, 0) + i32EndStartPosY; 8 12
 			/* Align Camera 1 & 2번의 설치 오차 값 반영 */
-			i32AlignCam2[0]	+= acam_diff_y;	/* (-) 음수 부호 값을 넣으면 안됨. 최초 트리거 발생 지점 기준이므로 */
+			i32AlignCam2[0] += acam_diff_y;	/* (-) 음수 부호 값을 넣으면 안됨. 최초 트리거 발생 지점 기준이므로 */
 			/* 메모리에 임시로 트리거가 발생될 위치 등록 */
-			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 1, k, i32AlignCam1[0]+pstTrigSet->trig_backward);
-			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 2, k, i32AlignCam2[0]+pstTrigSet->trig_backward);
-#if 0
-			TRACE(L"Local Trig Pos (Inverse) : [k=%2u] cam=1 : %u, cam=2 : %u\n", k, i32AlignCam1[0], i32AlignCam2[0]);
-#endif
+			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 1, k, i32AlignCam1[0] + pstTrigSet->trig_backward);
+			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 2, k, i32AlignCam2[0] + pstTrigSet->trig_backward);
+
 			/* Align Camera 2D 보정 여부 */
 			if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 			{
 				/* Align Mark가 측정될 모션 Y 축의 실제 위치 값 */
-				uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_local, 0x01, k, GetLocalMarkMotionPosY(i)/10000.0f);
-				uvEng_ACamCali_AddMarkPos(2, ENG_AMTF::en_local, 0x01, k, (GetLocalMarkMotionPosY(i + u8ScanMarks) - acam_diff_y)/10000.0f);
+				uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_local, 0x01, k, GetLocalMarkMotionPosY(i) / 10000.0f);
+				uvEng_ACamCali_AddMarkPos(2, ENG_AMTF::en_local, 0x01, k, (GetLocalMarkMotionPosY(i + u8ScanMarks) - acam_diff_y) / 10000.0f);
 			}
 		}
 		/* Align Camera <1, 2> 번에 해당되는 Local Fiducial Mark 처리 (정방향 이동하면서 마크 인식) */
-		for (i=0, j=0; i<u8ScanMarks; i++,k++)
+		for (i = 0, j = 0; i < u8ScanMarks; i++, k++)
 		{
 			/* Global Mark 2와 Mark 4번 기준으로 Local Mark가 떨어진 거리 값 구한 후 Trigger Pos에 합산 */
 			j = i + (u8ScanMarks * pstConfig->set_cams.acam_count);
-			i32AlignCam1[0]	= i32Mark2TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x00, j) * 10000.0f, 0);
+			i32AlignCam1[0] = i32Mark2TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x00, j) * 10000.0f, 0);
 			j = j + u8ScanMarks;
-			i32AlignCam2[0]	= i32Mark4TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x01, j) * 10000.0f, 0);
+			i32AlignCam2[0] = i32Mark4TrigPos - (INT32)ROUNDED(uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x01, j) * 10000.0f, 0);
 			/* Align Camera 1 & 2번의 설치 오차 값 반영 */
-			i32AlignCam2[0]	+= acam_diff_y;	/* (-) 음수 부호 값을 넣으면 안됨. 최초 트리거 발생 지점 기준이므로 */
+			i32AlignCam2[0] += acam_diff_y;	/* (-) 음수 부호 값을 넣으면 안됨. 최초 트리거 발생 지점 기준이므로 */
 			/* 메모리에 임시로 트리거가 발생될 위치 등록 */
-			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 1, k, i32AlignCam1[0]+pstTrigSet->trig_forward);
-			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 2, k, i32AlignCam2[0]+pstTrigSet->trig_forward);
+			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 1, k, i32AlignCam1[0] + pstTrigSet->trig_forward);
+			uvEng_Trig_SetTrigger(ENG_AMTF::en_local, 2, k, i32AlignCam2[0] + pstTrigSet->trig_forward);
 #if 0
 			TRACE(L"Local Trig Pos (Normal) : [k=%2u] cam=1 : %u, cam=2 : %u\n", k, i32AlignCam1[0], i32AlignCam2[0]);
 #endif
@@ -889,11 +899,12 @@ BOOL CWork::SetTrigPosCalcSaved(INT32 acam_diff_y/*, INT32 mark_diff_y*/)
 			if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 			{
 				/* Align Mark가 측정될 모션 Y 축의 실제 위치 값 */
-				uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_local, 0x01, k, GetLocalMarkMotionPosY(i)/10000.0f);
-				uvEng_ACamCali_AddMarkPos(2, ENG_AMTF::en_local, 0x01, k, (GetLocalMarkMotionPosY(i + u8ScanMarks) - acam_diff_y)/10000.0f);
+				uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_local, 0x01, k, GetLocalMarkMotionPosY(i) / 10000.0f);
+				uvEng_ACamCali_AddMarkPos(2, ENG_AMTF::en_local, 0x01, k, (GetLocalMarkMotionPosY(i + u8ScanMarks) - acam_diff_y) / 10000.0f);
 			}
 		}
 	}
+#endif
 
 	/* Align Camera 2D 보정 여부 */
 	if (!uvEng_GetConfig()->set_align.use_2d_cali_data)	return TRUE;
@@ -914,7 +925,12 @@ BOOL CWork::SetAlignACamCaliX()
 	INT32 i32ScanMark			= 0;	/* 1 Scan 기준 - 저장된 Fiducial 개수 */
 	DOUBLE dbPosACam[2]			= {NULL};
 	DOUBLE dbMark2OrgGerbX		= uvEng_GetConfig()->set_align.mark2_org_gerb_xy[0];
-	STG_XMXY stMarkLocal[2]		= {NULL}, stMarkGlobal	= {NULL};
+	
+	LPG_XMXY stMarkLocal = {nullptr};
+	
+	//STG_XMXY stMarkLocal[2] = { NULL };
+	//STG_XMXY	stMarkGlobal	= {NULL};
+
 	INT32 i32ACamVertX			= 0;	/* 단위: 0.1 um or 100 nm */
 	LPG_CIEA pstConfig			= uvEng_GetConfig();
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
@@ -947,33 +963,42 @@ BOOL CWork::SetAlignACamCaliX()
 		/* 추후 Grabbed Image에 Mark 위치 별로 별도 오차 값을 적용 해야 함 */
 		uvEng_ACamCali_SetAlignACamVertGX(2, 1, -i32ACamVertX);
 	}
+	const int WANGBOK = 2;
 	/* 현재 Local Mark가지 존재한다면 */
 	if (!IsMarkTypeOnlyGlobal())
 	{
 		/* --------------------------------------------------------------------------- */
 		/* [Local] Luria의 Fiducial 값에 넣어 줄때, 값에 부호를 설정하는데 상당히 중요 */
 		/* --------------------------------------------------------------------------- */
-		i32ScanMark	= uvEng_Luria_GetLocalMarkCountPerScan();
-		if (!uvEng_Luria_GetGlobalMark(0x01, &stMarkGlobal))	return FALSE;	// Get the Left/Bottom Mark for Global
+		i32ScanMark = (INT32)GlobalVariables::getInstance()->GetAlignMotion().status.gerberRowCnt;  // uvEng_Luria_GetLocalMarkCountPerScan();
+		auto columnCnt = (INT32)GlobalVariables::getInstance()->GetAlignMotion().status.gerberColCnt;
+		int scanCnt = columnCnt / WANGBOK;
+		
+		stMarkLocal = new STG_XMXY[scanCnt];
+		std::unique_ptr<STG_XMXY[]> uniquePtrStMarkLocal(stMarkLocal);
+
+		//if (!uvEng_Luria_GetGlobalMark(0x01, &stMarkGlobal))	return FALSE;	// Get the Left/Bottom Mark for Global
 		/* Camera 1 & 2에 저장될 시작 배열 인덱스 값 구하기 */
-		for (i=0,k=0,n=0; i<2; i++)	/* Scan 횟수 : 2회 */
+		for (i=0,k=0,n=0; i< scanCnt; i++)	/* Scan 횟수 : 2회 에서 무제한으로 변경해야함.*/
 		{
 			/* Scan 1 or 2일 때, 각 카메라 별 Left or Right / Bottom의 X 축 기준으로 나머진 X 축들 간의 오차 값 얻기 */
 			if (uvEng_Luria_GetLocalMarkDiffVertX(i, lstCam1, lstCam2))
 			{
 				/* Gerber에서 Local Fiducial 중 Camera 1 & 2번에 해당되는 Left or Right / Bottom의 Mark 정보 */
-				if (!uvEng_Luria_GetLocalBottomMark(i, 1, &stMarkLocal[0]) ||
-					!uvEng_Luria_GetLocalBottomMark(i, 2, &stMarkLocal[1]))
+				if (!uvEng_Luria_GetLocalBottomMark(i, 1, &uniquePtrStMarkLocal[0]) ||
+					!uvEng_Luria_GetLocalBottomMark(i, 2, &uniquePtrStMarkLocal[1]))
 				{
 					return FALSE;
 				}
 				/* Local Mark의 Left/Bottom 위치에 해당되는 1번 카메라의 모션 드라이브 실제 위치 얻기 */
 				/* Global Left/Bottom 위치와 Local Left/Bottom 의 떨어진 간격으로 실제 모션 위치 얻기 */
-				dbPosACam[0] = pstCaliThick->mark2_acam_x[0] + (stMarkLocal[0].mark_x - dbMark2OrgGerbX);	/* mm */
+				dbPosACam[0] = pstCaliThick->mark2_acam_x[0] + (uniquePtrStMarkLocal[0].mark_x - dbMark2OrgGerbX);	/* mm */
 				/* Align Camera 1기준으로 Align Camera 1번과 2번 간의 기본 물리적인 거리도 감안하고,  거버의 마크 간에 떨어진 위치도 고려해야 함 */
-				dbPosACam[1] = pstCaliThick->mark2_acam_x[1] + (stMarkLocal[1].mark_x - dbMark2OrgGerbX);	/* mm */
+				dbPosACam[1] = pstCaliThick->mark2_acam_x[1] + (uniquePtrStMarkLocal[1].mark_x - dbMark2OrgGerbX);	/* mm */
 				/* 추후, Grabbed Image에서 측정된 오차 값에 해당 Calibration 값을 추가로 해줘야 최종 Mark 오차 값이 됨 */
-				for (j=0; j<i32ScanMark; j++,n++)
+				
+				
+				for (j=0; j<i32ScanMark; j++,n++) 
 				{
 					/* Offset 값 지정 - Camera 1 */
 					uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_local, 0x00, n, dbPosACam[0]);
@@ -1421,7 +1446,8 @@ BOOL CWork::IsWorkError()
 */
 DOUBLE CWork::GetACamMark2MotionX(UINT16 mark_no)
 {
-	UINT8 u8ACamCount	= uvEng_GetConfig()->set_cams.acam_count;
+	//UINT8 u8ACamCount	= uvEng_GetConfig()->set_cams.acam_count;
+	UINT8 u8ACamCount = 2;
 	UINT8 u8MarkCount	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);	/* Global Mark 개수 */
 	INT32 i32Mark2ACamX	= 0;
 	DOUBLE dbMark2ACamX	= 0.0f;

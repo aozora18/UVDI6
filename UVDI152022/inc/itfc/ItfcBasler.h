@@ -137,10 +137,15 @@ API_IMPORT UINT16 uvBasler_GetGrabbedCount();
 API_IMPORT BOOL uvBasler_IsScoreValidAll(DOUBLE set_score);
 /*
  desc : 검색된 마크 이미지가 포함된 구조체 포인터 반환
- parm : cam_id	- [in]  Camera Index (1 or 2)
-		img_id	- [in]  Camera Grabbed Image Index (0 or Later) (if img_id == 0xff then Calibration Method)
  retn : 구조체 포인터 반환
 */
+API_IMPORT CAtlList <LPG_ACGR>*  uvBasler_GetGrabbedMarkAll();
+
+API_IMPORT BOOL uvBasler_TryEnterCS();
+
+API_IMPORT void uvBasler_ExitCS();
+
+
 API_IMPORT LPG_ACGR uvBasler_GetGrabbedMark(UINT8 cam_id, UINT8 img_id);
 /*
  desc : Grabbed Image의 데이터 반환
@@ -676,6 +681,7 @@ API_IMPORT VOID uvBasler_SetDispType(UINT8 dispType);
 API_IMPORT VOID uvBasler_MilSetMarkROI(UINT8 cam_id, CRect fi_rectSearhROI);
 API_IMPORT BOOL uvBasler_RegistPat(UINT8 cam_id, CRect fi_rectArea, CString fi_filename, UINT8 mark_no);
 API_IMPORT BOOL uvBasler_RegistMod(UINT8 cam_id, CRect fi_rectArea, CString fi_filename, UINT8 mark_no);
+API_IMPORT BOOL uvBasler_RegistMMPM_AutoCenter(CRect fi_rectArea, UINT8 cam_id, UINT8 img_id);
 API_EXPORT VOID uvBasler_InitSetMarkSizeOffset(UINT8 cam_id, TCHAR* file, UINT8 fi_findType, UINT8 fi_No);
 API_EXPORT VOID uvBasler_PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHAR* file, int fi_findType);
 API_EXPORT BOOL uvBasler_PutSetMarkDisp(HWND hwnd, RECT draw, UINT8 cam_id, TCHAR* file, int fi_findType, DOUBLE fi_dRate);
@@ -690,7 +696,7 @@ API_EXPORT VOID uvBasler_SetMarkSize(UINT8 cam_id, CPoint fi_MarkSize, int setMo
 API_EXPORT VOID uvBasler_SetMarkOffset(UINT8 cam_id, CPoint fi_MarkCenter, int setOffsetMode, int fi_No);
 API_EXPORT VOID uvBasler_MaskClear_MOD(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no);
 API_EXPORT VOID uvBasler_MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no);
-API_EXPORT VOID uvBasler_MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound);
+API_EXPORT VOID uvBasler_CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode);
 API_EXPORT VOID uvBasler_SaveMask_MOD(UINT8 cam_id, UINT8 mark_no);
 API_EXPORT VOID uvBasler_SaveMask_PAT(UINT8 cam_id, UINT8 mark_no);
 API_EXPORT VOID uvBasler_PatMarkSave(UINT8 cam_id, CString fi_strFileName, UINT8 mark_no);
@@ -698,7 +704,9 @@ API_EXPORT VOID uvBasler_ModMarkSave(UINT8 cam_id, CString fi_strFileName, UINT8
 API_EXPORT VOID uvBasler_SetDispMark(CWnd* pWnd);
 API_EXPORT VOID uvBasler_SetDispRecipeMark(CWnd* pWnd[2]);
 API_EXPORT VOID uvBasler_SetDispMarkSet(CWnd* pWnd);
-API_EXPORT VOID uvBasler_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode);
+API_EXPORT VOID uvBasler_SetDispMMPM_AutoCenter(CWnd* pWnd);
+//API_EXPORT VOID uvBasler_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode);
+API_EXPORT VOID uvBasler_SetDisp(CWnd** pWnd, UINT8 fi_Mode);
 API_EXPORT VOID uvBasler_SetDispMMPM(CWnd* pWnd);
 API_EXPORT VOID uvBasler_SetDispExpo(CWnd* pWnd[4]);
 API_EXPORT VOID uvBasler_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
@@ -708,7 +716,7 @@ API_EXPORT VOID uvBasler_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi
 API_EXPORT VOID uvBasler_OverlayAddLineList(int fi_iDispType, int fi_iNo, int fi_iSx, int fi_iSy, int fi_iEx, int fi_iEy, int fi_iStyle, int fi_color);
 API_EXPORT VOID uvBasler_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, UINT8 mark_no);
 API_EXPORT VOID uvBasler_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
-API_EXPORT VOID uvBasler_InitMask();
+API_EXPORT VOID uvBasler_InitMask(UINT8 cam_id);
 API_EXPORT VOID uvBasler_CloseSetMark();
 API_EXPORT VOID uvBasler_MilZoomIn(int fi_iDispType, int cam_id, CRect rc);
 API_EXPORT BOOL uvBasler_MilZoomOut(int fi_iDispType, int cam_id, CRect rc);

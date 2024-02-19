@@ -5,6 +5,7 @@
 #include "DlgConfTeach.h"
 #include "afxdialogex.h"
 #include <locale.h>
+#include "../../mesg/DlgMesg.h"
 
 #define DEF_UI_MAX_TEACH_ROW 15
 /*
@@ -612,6 +613,9 @@ VOID CDlgConfTeach::SaveSettingTeach()
 	}
 	ConfigToTeachFile(FALSE);
 	uvEng_SaveConfig();
+
+	CDlgMesg dlgMesg;
+	dlgMesg.MyDoModal(L"Teach Save succeed", 0x01);
 }
 
 BOOL CDlgConfTeach::ConfigToTeachFile(BOOL bLoadSave)
@@ -647,6 +651,7 @@ BOOL CDlgConfTeach::ConfigToTeachFile(BOOL bLoadSave)
 			if (bLoadSave)m_dTeachData[i] = pstCfg->luria_svc.ph_z_focus[1];
 			else pstCfg->luria_svc.ph_z_focus[1] = m_dTeachData[i];
 			break;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		case EN_SETTING_TEACH::PH_Z_AXIS_FOCUS_3:
 			if (bLoadSave)m_dTeachData[i] = pstCfg->luria_svc.ph_z_focus[2];
 			else pstCfg->luria_svc.ph_z_focus[2] = m_dTeachData[i];
@@ -663,6 +668,7 @@ BOOL CDlgConfTeach::ConfigToTeachFile(BOOL bLoadSave)
 			if (bLoadSave)m_dTeachData[i] = pstCfg->luria_svc.ph_z_focus[5];
 			else pstCfg->luria_svc.ph_z_focus[5] = m_dTeachData[i];
 			break;
+#endif
 		case EN_SETTING_TEACH::ACAM_Z_FOCUS_1:
 			if (bLoadSave)m_dTeachData[i] = pstCfg->acam_spec.acam_z_focus[0];
 			else pstCfg->acam_spec.acam_z_focus[0] = m_dTeachData[i];
@@ -706,6 +712,7 @@ BOOL CDlgConfTeach::GetConfigToTeachFile(int nIndex, double &dPosition)
 	case EN_SETTING_TEACH::PH_Z_AXIS_FOCUS_2:
 		dPosition = pstCfg->luria_svc.ph_z_focus[1];
 		break;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 	case EN_SETTING_TEACH::PH_Z_AXIS_FOCUS_3:
 		dPosition = pstCfg->luria_svc.ph_z_focus[2];
 		break;
@@ -718,6 +725,7 @@ BOOL CDlgConfTeach::GetConfigToTeachFile(int nIndex, double &dPosition)
 	case EN_SETTING_TEACH::PH_Z_AXIS_FOCUS_6:
 		dPosition = pstCfg->luria_svc.ph_z_focus[5];
 		break;
+#endif
 	case EN_SETTING_TEACH::ACAM_Z_FOCUS_1:
 		dPosition = pstCfg->acam_spec.acam_z_focus[0];
 		break;

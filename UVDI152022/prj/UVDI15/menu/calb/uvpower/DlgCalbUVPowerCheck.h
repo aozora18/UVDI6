@@ -73,6 +73,15 @@ public:
 		eQUEST,
 	};
 
+	enum CALIMODE
+	{
+		MATCH_PH, //포토헤드간 가장 낮은 출력 램프기준
+		MATCH_LAMP, //포토헤드의 각 램프간 출력기준.
+
+	};
+
+	CALIMODE			caliMode = CALIMODE::MATCH_PH; //캘리브레이션 모드
+
 	/* 생성자 / 파괴자 */
 	CDlgCalbUVPowerCheck(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgCalbUVPowerCheck();
@@ -122,6 +131,8 @@ protected:
 	VOID				MakeMaxRecipe();
 
 	VOID				UpdateRecipeData();
+	VOID				CalculatePowerEachPH(STG_PLPI& stData, double dRate); //포토헤드간 출력으로 조정 
+	VOID				CalculatePowerEachLED(STG_PLPI& stData, double dRate); //포토헤드 led간 출력으로 조정
 
 	COLORREF			CompareParam(double dParam1, double dParam2);
 

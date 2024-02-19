@@ -742,6 +742,11 @@ typedef struct __st_config_measure_auto_flatness__
 	UINT8 u8CountOfMeasure;						/* 한 위치 측정 시 측정 횟수 */
 	UINT16 u16DelayTime;						/* 각 측정 시 지연 시간 */
 
+	BOOL bThieckOnOff;							/*LDS 측정 동작 실행 On/Off*/
+	BOOL bThickCheck;							/*LED 측정 동작 유무 확인*/
+	DOUBLE dMeasureYPos;						/*LDS 측정 Y축 좌표*/
+	DOUBLE dAlignMeasure;						/*LDS 측정 값*/
+
 }	STG_CMAF, * LPG_CMAF;
 
 
@@ -756,6 +761,8 @@ typedef struct __st_config_philhmi_set_parameter__
 /* Strobe Lamp Set Parameter */
 typedef struct __st_config_strobe_lamp_set_parameter__
 {
+	UINT16 u16StrobeValue[8];
+	UINT16 u16BufferValue[8];
 
 
 }	STG_CSSP, * LPG_CSSP;

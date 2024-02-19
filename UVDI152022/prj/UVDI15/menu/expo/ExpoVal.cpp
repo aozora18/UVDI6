@@ -37,12 +37,17 @@ CExpoVal::CExpoVal(HWND *h_wnd, HWND* h_wndPgr)
 	m_hTact[1]	= h_wnd[1];
 	m_hCount	= h_wnd[2];
 	//m_hMark		= h_wnd[5];	// by sys&j : MainDlg로 이동
-	m_hTempDI[0]= h_wnd[3];
-	m_hTempDI[1]= h_wnd[4];
-	m_hTempDI[2]= h_wnd[5];
-	m_hTempDI[3]= h_wnd[6];
-	m_hTempPH[0]= h_wnd[7];
-	m_hTempPH[1]= h_wnd[8];
+	//m_hTempDI[0]= h_wnd[3];
+	//m_hTempDI[1]= h_wnd[4];
+	//m_hTempDI[2]= h_wnd[5];
+	//m_hTempDI[3]= h_wnd[6];
+	m_hTempPH[0]= h_wnd[3];
+	m_hTempPH[1]= h_wnd[4];
+
+	m_hTempPH[2] = h_wnd[5];
+	m_hTempPH[3] = h_wnd[6];
+	m_hTempPH[4] = h_wnd[7];
+	m_hTempPH[5] = h_wnd[8];
 	m_hRate		= h_wndPgr[0];
 
 	/* 내부 멤버 변수 초기화 */
@@ -213,12 +218,26 @@ VOID CExpoVal::DrawValue()
 							UINT32(ENG_PIOA::en_internal_monitoring_temp_3_only_4th),
 							UINT32(ENG_PIOA::en_internal_monitoring_temp_4_only_4th) };
 	UINT32 i = 0;
+	UINT8 u8Index1 = 0x00, u8Index2 = 0x00, u8Index3 = 0x00;
+	CMyStatic* pTxt = NULL;
+	COLORREF clrText[2] = { RGB(50, 255, 50), RGB(255, 0, 0) };
 
-	/* DI 내부 온도 출력 */
-	// by sysandj : MCQ대체 추가 필요	
+	//UINT16 u16MinLed[8] = { NULL }, u16MaxLed[8] = { NULL };
+	//UINT16 u16MinBD[8] = { NULL }, u16MaxBD[8] = { NULL };
+	UINT16 u16MinLed, u16MaxLed, u16MinBD, u16MaxBD;
+	DOUBLE dbLEDTempMin = 0.0f, dbLEDTempMax = 0.0f;
+	DOUBLE dbBDTempMin = 0.0f, dbBDTempMax = 0.0f;
+	LPG_DITR pstTemp = &uvEng_GetConfig()->temp_range;
+	LPG_LDDP pstDirectPh = &uvEng_ShMem_GetLuria()->directph;
 
+
+	dbLEDTempMin = pstTemp->GetTempDeg(0x01, 0x02);
+	dbLEDTempMax = pstTemp->GetTempDeg(0x02, 0x02);
+	dbBDTempMin = pstTemp->GetTempDeg(0x01, 0x03);
+	dbBDTempMax = pstTemp->GetTempDeg(0x02, 0x03);
 	/* PH 내부 온도 출력 */
-	for (i=0; i<2; i++)
+	//for (i=0; i<6; i++)
+	for (i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 		pPhTempLed	= uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_led[i];
 		pPhTempBoard= uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_board[i];
@@ -229,8 +248,27 @@ VOID CExpoVal::DrawValue()
 			memcpy(m_u16TempLed[i], pPhTempLed, sizeof(UINT16) * 4);
 			/* 현재 광학계의 가장 높은 온도를 가진 Led와 Board 값 얻기 */
 			uvEng_ShMem_GetLuria()->directph.GetMaxTempLedBD(i+1, u16TempLed, u16TempBoard);
-			swprintf_s(tzValue, 32, L"L:%3.1f / B:%3.1f °C", u16TempLed/10.0f, u16TempBoard/2.0f);
+			swprintf_s(tzValue, 32, L"PH%d L:%3.1f / B:%3.1f °C",i+1, u16TempLed/10.0f, u16TempBoard/2.0f);
 			((CMyStatic*)CWnd::FromHandle(m_hTempPH[i]))->SetTextToStr(tzValue);
 		}
+
+		pstDirectPh->GetMinTempLedBD(i+1, u16MinLed, u16MinBD);
+		pstDirectPh->GetMaxTempLedBD(i+1, u16MaxLed, u16MaxBD);
+
+		/*LED 온도가 범위안 인지 확인*/
+		u8Index1 = (dbLEDTempMin <= u16MinLed / 10.0f && dbLEDTempMax >= u16MaxLed / 10.0f) ? 0x00 : 0x01;
+		/*LED 보드의 온도가 범위안 인지 확인*/
+		u8Index2 = (dbBDTempMin <= u16MinBD / 2.0f && dbBDTempMax >= u16MaxBD / 2.0f) ? 0x00 : 0x01;
+
+		/*LED와 보드중 하나라도 온도 범위가 넘어가면 빨간색 표시*/
+		u8Index3 = (u8Index1||u8Index2) ? 0x01 : 0x00;
+
+		pTxt = (CMyStatic*)CWnd::FromHandle(m_hTempPH[i]);
+
+		ASSERT(pTxt);
+		pTxt->SetRedraw(FALSE);
+		pTxt->SetTextColor(clrText[u8Index3]);
+		pTxt->SetRedraw(TRUE);
+		pTxt->Invalidate(TRUE);
 	}
 }

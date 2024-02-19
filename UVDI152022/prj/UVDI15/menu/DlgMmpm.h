@@ -30,7 +30,7 @@ enum EnMmpmChk
 enum EnMmpmBtn
 {
 	eMMPM_BTN_HORZ_LEFT		,
-	eMMPM_BTN_HORZ_RIGHT		,
+	eMMPM_BTN_HORZ_RIGHT	,
 	eMMPM_BTN_VERT_UP		,
 	eMMPM_BTN_VERT_DOWN		,
 	eMMPM_BTN_UNDO			,
@@ -38,7 +38,8 @@ enum EnMmpmBtn
 	eMMPM_BTN_NEXT			,
 	eMMPM_BTN_CHECK			,
 	eMMPM_BTN_APPLY			,
-	eMMPM_BTN_CANCEL			,
+	eMMPM_BTN_CANCEL		,
+	eMMPM_BTN_AUTO_CENTER	,
 	eMMPM_BTN_MAX
 };
 
@@ -120,7 +121,7 @@ protected:
 
 	VOID				Restore();
 
-	VOID				InitDispMark();
+	VOID				InitDispMMPM();
 	VOID				DispResize(CWnd* pWnd);
 	BOOL				ZoomFlag;
 	BOOL				OldZoomFlag;
@@ -128,9 +129,9 @@ protected:
 	void				MenuZoomIn();
 	void				MenuZoomOut();
 	void				MenuZoomFit();
-	int					menuPart; // menu 선택, 1:zoom, 2,3,4:3point set, 5:measure, 99 : 아무것도 선택안된 상태
+	int					menuPart; // menu 선택, 1:zoom, 2,3,4:3point set, 5:measure, 6:AutoCenter, 99 : 아무것도 선택안된 상태
 	double				tgt_rate; // 비율
-
+	VOID				AutoCenter();
 /* 공용 함수 */
 public:
 

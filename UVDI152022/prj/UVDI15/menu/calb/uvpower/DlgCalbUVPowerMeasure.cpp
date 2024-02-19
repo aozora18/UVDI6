@@ -1006,10 +1006,21 @@ void CDlgCalbUVPowerMeasure::ManualUvOn()
 	m_btn_ctl[eCALB_UVPOWER_MEASURE_BTN_MANUAL_OFF].SetBgColor(DEF_COLOR_BTN_PAGE_NORMAL);
 	Invalidate(FALSE);
 
+
+	CGridCtrl* pGrid = &m_grd_ctl[eCALB_UVPOWER_MEASURE_GRD_MANUAL];
+	auto manualPower = _ttoi(pGrid->GetItemText(eGRD_ROW_MANUAL_POWER_INDEX, eGRD_COL_MANUAL_PARAM));
+
+
+	//메뉴얼 파워의 경우는 config 이 아닌 입력된 메뉴얼 광량을 기준으로 작동하게 한다. (수정)
 	CPowerMeasureMgr::GetInstance()->PhotoLedOnOff(m_nSelectedHead + 1,
 		m_cmb_ctl[eCALB_UVPOWER_MEASURE_CMB_WAVELENGTH].GetCurSel() + 1,
-		uvEng_GetConfig()->led_power.manual_power_index,
+		manualPower,
 		TRUE);
+
+	/*CPowerMeasureMgr::GetInstance()->PhotoLedOnOff(m_nSelectedHead + 1,
+		m_cmb_ctl[eCALB_UVPOWER_MEASURE_CMB_WAVELENGTH].GetCurSel() + 1,
+		uvEng_GetConfig()->led_power.manual_power_index,
+		TRUE);*/
 
 	m_ullTimeManualON = GetTickCount64();
 	SetTimer(eCALB_UVPOWER_MEASURE_TIMER_UV_ON, 1000, NULL);

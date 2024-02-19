@@ -102,7 +102,7 @@ typedef struct __st_align_camera_grab_result__
 	DOUBLE				move_mm_x;
 	DOUBLE				move_mm_y;
 	PUINT8				grab_data;				/* Grabbed Image Buffer */
-
+	DWORD				grabTime;
 	BOOL IsEqualData(LPG_AMDR data)
 	{
 		return (move_mm_x == data->move_mm_x &&
@@ -465,6 +465,7 @@ typedef struct __st_recipe_align_additional_function_
 	UINT8				save_count;						/* 레시피에 등록된 전체 모델 개수					*/
 	UINT8				mark_type;						/* Mark 구분 즉, 0 : Geomatrix, 1 : Pattern Image	*/
 	UINT8				align_type;						/* Align Mark Array(Global, Local) Type				*/
+
 	UINT8				lamp_type;						/* 램프 조명 타입 (0:Ring, 1:Coaxial)					*/
 	UINT8				gain_level[2];					/* Align Camera에 대한 Gain Level 값 (0 ~ 255)      */
 	UINT8				search_type;					/* [ENG_MMSM] Mark 검색 방법(0~5) single, cent_side, multi_only, ring_cirecle, ph_step [mark_model]*/
@@ -502,6 +503,7 @@ typedef struct __st_recipe_align_additional_function_
 		save_count	= cnt;	/* 등록된 모델 개수 저장 */
 		align_type	= 0x01;
 		lamp_type	= 0x01;
+
 		gain_level[0] = 0x00;
 		gain_level[1] = 0x00;
 		search_type = 0x01;
@@ -589,10 +591,10 @@ typedef struct __st_measurement_strip_marker_result__
 /* ROI */
 typedef struct __st_config_roi_data__
 {
-	INT32				roi_Left[2];	/* ROI LEFT 위치 */
-	INT32				roi_Right[2];	/* ROI RIGHT 위치 */
-	INT32				roi_Top[2];		/* ROI TOP 위치 */
-	INT32				roi_Bottom[2];	/* ROI BOTTOM 위치 */
+	INT32				roi_Left[3];	/* ROI LEFT 위치 */ // lk91 CAM 3개
+	INT32				roi_Right[3];	/* ROI RIGHT 위치 */
+	INT32				roi_Top[3];		/* ROI TOP 위치 */
+	INT32				roi_Bottom[3];	/* ROI BOTTOM 위치 */
 
 }	STG_CRD, * LPG_CRD;
 

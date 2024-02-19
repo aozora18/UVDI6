@@ -7,7 +7,7 @@
 #include "MainApp.h"
 #include "CamThread.h"
 #include "CamMain.h"
-
+#include <timeapi.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -175,7 +175,8 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 	{
 		// Grabbed Image가 존재하는 경우만 처리
 		pstGrab	= m_pCamMain[cam_id-1]->GetGrabbedImage();
-
+		pstGrab->grabTime = timeGetTime();
+		
 		// 현재 Grabbed Image가 존재한다면 ...
 		if (pstGrab && pstGrab->grab_data)
 		{
@@ -446,6 +447,18 @@ LPG_ACGR CCamThread::GetGrabbedMark(UINT8 cam_id, UINT8 img_id)
 	}
 
 	return pstGrab;
+}
+
+/*
+ desc : Grabbed Image의 데이터 반환
+ parm : cam_id	- [in]  카메라 번호 (1 or 2)
+		img_id	- [in]  Camera Grabbed Image Index (0 or Later)
+		data	- [out] 반환될 구조체 참조 변수
+ retn : TRUE or FALSE
+*/
+CAtlList <LPG_ACGR>* CCamThread::GetGrabbedMarkAll()
+{
+	return GetGrabImage();
 }
 
 /*

@@ -704,9 +704,12 @@ VOID CDlgCalbExposureFlush::InitGridOption()
 }
 
 
-VOID CDlgCalbExposureFlush::InitDispMark()
+VOID CDlgCalbExposureFlush::InitDispMark() // lk91 cam 3개 적용시 변경해야함...
 {
-	CWnd* pWnd[2];
+	//CWnd* pWnd[2];
+	//CWnd** pWnd = new CWnd*[uvEng_GetConfig()->set_cams.acam_count];
+	CWnd** pWnd = new CWnd*[2];
+	//for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) { 
 	for (int i = 0; i < 2; i++) {
 		pWnd[i] = GetDlgItem(IDC_CALB_EXPOSURE_FLUSH_PIC_MARK1 + i);
 	}
@@ -715,6 +718,13 @@ VOID CDlgCalbExposureFlush::InitDispMark()
 	//DispResize(pWnd[1]);
 
 	uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_CALB_EXPO, 0);
+
+	//for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
+	//for (int i = 0; i < 2; i++)
+	//{
+	//	delete[] pWnd[i];
+	//}
+	delete[] pWnd;
 }
 
 /* desc: Frame Control을 이미지 사이즈 비율로 재조정 */
@@ -1247,7 +1257,11 @@ void CDlgCalbExposureFlush::OnTimer(UINT_PTR nIDEvent)
 VOID CDlgCalbExposureFlush::UpdateMatchGrid(int nStep, double dStepX, double dStepY, double dLeftX, double dLeftY,	double dRightX, double dRightY)
 {
 	DOUBLE dbValue		= 0.0f;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 	ENG_MMDI enDrvID = ENG_MMDI::en_align_cam1;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	ENG_MMDI enDrvID = ENG_MMDI::en_stage_x;
+#endif
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_EXPOSURE_FLUSH_GRD_RESULT];
 
 	/* 현재 카메라의 절대 위치 값과 이전에 측정한 위치 값 비교해서 다른 경우만 (5 um 수준에서 비교) */

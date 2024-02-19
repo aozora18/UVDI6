@@ -5,8 +5,11 @@
 
 #include "pch.h"
 #include "MarkUVDI15.h"
-
-
+#include "../../prj/UVDI15/GlobalVariables.h"
+#include "../../inc/itfe/EItfcLuria.h"
+#include <queue>
+#include <string>
+using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -24,7 +27,8 @@ CMarkUVDI15::CMarkUVDI15(PTCHAR work_dir)
 {
 	m_pstSelected	= NULL;
 	m_pstROI = (LPG_CRD)::Alloc(sizeof(STG_CRD));
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < GetConfig()->set_cams.acam_count; i++) { // lk91 UI Cam 3개로 변경시 수정
+
 		m_pstROI->roi_Left[i] = 5;
 		m_pstROI->roi_Right[i] = ACA1920_SIZE_X - 5;
 		m_pstROI->roi_Top[i] = 5;
@@ -184,6 +188,7 @@ BOOL CMarkUVDI15::LoadFile()
 	return TRUE;
 }
 
+
 /*
  desc : Model 분석 및 등록 진행
  parm : data	- [in]  Model 정보가 저장된 문자열 버퍼
@@ -192,15 +197,26 @@ BOOL CMarkUVDI15::LoadFile()
 */
 BOOL CMarkUVDI15::ParseModel(PCHAR data, UINT32 size)
 {
+
 	UINT32 u32Find	= 0, i = 0;
 	CHAR *pData		= data, *pFind, szValue[256];
 	LPG_CMPV pstData= {NULL};
 
-	/* 일단, 주어진 문자열 중에서 콤마(',') 개수가 9개인지 확인 */
-	for (; i<size; i++)
+	vector<string> tokens;
+	string temp = string(data);
+	string delimiter = ",";
+	int pos = 0;
+	while ((pos = temp.find(",")) != string::npos)
 	{
-		if (',' == data[i])	u32Find++;
+		tokens.push_back(temp.substr(0, pos));
+		temp.erase(0, pos + delimiter.length());
+		u32Find++;
 	}
+	if (temp.empty() == false)
+		tokens.push_back(temp);
+
+	
+	///* 일단, 주어진 문자열 중에서 콤마(',') 개수가 7개인지 확인 */
 	if (u32Find != 7)
 	{
 		AfxMessageBox(L"Failed to analyse the value from model <mark_model> file", MB_ICONSTOP|MB_TOPMOST);
@@ -212,129 +228,36 @@ BOOL CMarkUVDI15::ParseModel(PCHAR data, UINT32 size)
 	ASSERT(pstData);
 	/* 메모리 할당 및 초기화 */
 	pstData->Reset();
-	/* 00.model name */
-	pFind	= strchr(pData, ',');
-	if (pFind)
+	
+	enum DataIndex
 	{
-		memcpy(pstData->name, pData, pFind - pData);
-		pData = ++pFind;
-	}
-	/* 01.model type */
-	memset(szValue, 0x00, 256);
-	pFind	= strchr(pData, ',');
-	if (pFind)
-	{
-		memcpy(szValue, pData, pFind - pData);
-		pData = ++pFind;
-		pstData->type	= (UINT32)atoi(szValue);
-	}
+		name=0,
+		type,
+	};
 
-	/* 01. find type */
-	//memset(szValue, 0x00, 256);
-	//pFind = strchr(pData, ',');
-	//if (pFind)
-	//{
-	//	memcpy(szValue, pData, pFind - pData);
-	//	pData = ++pFind;
-	//	pstData->find_type = (UINT32)atoi(szValue);
-	//}
+	memcpy(pstData->name, tokens[DataIndex::name].c_str(), tokens[DataIndex::name].length());
+
+	pstData->type = (UINT32)stoi(tokens[DataIndex::type]);  // (UINT32)atoi(tokens[DataIndex::type].c_str());
 
 	/* 모델 형식이 MMF 파일이 아닌 경우 */
 	//if (pstData->find_type == 0 && ENG_MMDT(pstData->type) != ENG_MMDT::en_image)
 	if (ENG_MMDT(pstData->type) != ENG_MMDT::en_image)
 	{
-		/* 02.param - 1 */
-		memset(szValue, 0x00, 256);
-		pFind	= strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->param[0]	= (DOUBLE)atof(szValue);
-		}
-		/* 03.param - 2 */
-		memset(szValue, 0x00, 256);
-		pFind	= strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->param[1]	= (DOUBLE)atof(szValue);
-		}
-		/* 04.param - 3 */
-		memset(szValue, 0x00, 256);
-		pFind	= strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->param[2]	= (DOUBLE)atof(szValue);
-		}
-		/* 05.param - 4 */
-		memset(szValue, 0x00, 256);
-		pFind	= strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->param[3]	= (DOUBLE)atof(szValue);
-		}
-		/* 06.param - 5 */
-		memset(szValue, 0x00, 256);
-		pFind	= strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->param[4]	= (DOUBLE)atof(szValue);
-		}
+		const int param1 = 2, param2 = 3, param3 = 4, param4 = 5, param5 = 6;
+		pstData->param[0] = stod(tokens[param1]);
+		pstData->param[1] = stod(tokens[param2]);
+		pstData->param[2] = stod(tokens[param3]);
+		pstData->param[3] = stod(tokens[param4]);
+		pstData->param[4] = stod(tokens[param5]);
 	}
 	else
 	{
-		/* 02.mmf,pat file name (확장자 제외) */
-		memset(szValue, 0x00, 256);
-		pFind	= strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(pstData->file, pData, pFind - pData);
-			pData = ++pFind;
-		}
-		/* 03.Mark Size x */
-		memset(szValue, 0x00, 256);
-		pFind = strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->iSizeP.x = (UINT32)atof(szValue);
-		}
-		/* 04.Mark Size y */
-		memset(szValue, 0x00, 256);
-		pFind = strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->iSizeP.y = (UINT32)atof(szValue);
-		}
-		/* 05.Mark Center x */
-		memset(szValue, 0x00, 256);
-		pFind = strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->iOffsetP.x = (UINT32)atof(szValue);
-		}
-		/* 06.Mark Center y */
-		memset(szValue, 0x00, 256);
-		pFind = strchr(pData, ',');
-		if (pFind)
-		{
-			memcpy(szValue, pData, pFind - pData);
-			pData = ++pFind;
-			pstData->iOffsetP.y = (UINT32)atof(szValue);
-		}
+		const int name = 2, markSizeX = 3, markSizeY = 4, markCenterX = 5, markCenterY = 6;
+		memcpy(pstData->file, tokens[name].c_str(), tokens[name].length());
+		pstData->iSizeP.x = stoi(tokens[markSizeX]);
+		pstData->iSizeP.y = stoi(tokens[markSizeY]);
+		pstData->iOffsetP.x = stoi(tokens[markCenterX]);
+		pstData->iOffsetP.y = stoi(tokens[markCenterY]);
 	}
 
 	/* 메모리에 분석된 Model 데이터 등록 */
@@ -356,6 +279,7 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	CHAR *pData			= data, *pFind, szValue[32], szName[MARK_MODEL_NAME_LENGTH] = {NULL};
 	STG_RAAF stTempRecipe;
 	LPG_RAAF pstRecipe = { NULL };
+	const char token = ',';
 
 	if (NULL == data)
 	{
@@ -363,48 +287,61 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	}
 
 	/* 일단, 주어진 문자열 중에서 콤마(',') 개수가 9개인지 확인 */
-	for (; i<size; i++)
+	/*for (; i<size; i++)
 	{
 		if (',' == data[i])	u32Find++;
-	}
+	}*/
+
+	string temp = data;
+	
+	u32Find = std::count(temp.begin(), temp.end(), token);
+
 	if (u32Find < 4)
 	{
 		AfxMessageBox(L"Failed to analyse the value from model <mark_recipe> file", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
 	}
-
+	
 	/* 순서대로 읽어서 구조체에 저장 */
 	stTempRecipe.Init(2);
 	pstRecipe	= (LPG_RAAF)::Alloc(sizeof(STG_RAAF));
 	ASSERT(pstRecipe);
-	
+	auto find =  temp.find(token);
+
 	/* 00.recipe name */
-	pFind	= strchr(pData, ',');
+	 pFind	= strchr(pData, token);
 	if (pFind)
 	{
 		memcpy(stTempRecipe.align_name, pData, pFind - pData);
 		pData = ++pFind;
 	}
 
-	/* flip series*/
-	for (i = 0; i < 10; i++)
+	int itemOrder = 0;
+	std::queue<std::function<void(char*)>> commandList;
+	
+	commandList.push([&](char* szValue) { stTempRecipe.save_count = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.mark_type = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.align_type = (UINT8)std::atoi(szValue); });
+
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_type = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.gain_level[0] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.gain_level[1] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.search_type = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.search_count = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.mark_area[0] = (UINT32)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.mark_area[1] = (UINT32)std::atoi(szValue); });
+
+	if (commandList.size() > u32Find)
+		throw new exception("over sized!");
+	
+	while(!commandList.empty())
 	{
-		pFind = strchr(pData, ',');
+		pFind = strchr(pData, token);
 		memset(szValue, 0x00, _countof(szValue));
 		memcpy(szValue, pData, pFind - pData);
-		switch (i)
-		{
-		case 0x00:	stTempRecipe.save_count		= (UINT8)atoi(szValue);	break;
-		case 0x01:	stTempRecipe.mark_type		= (UINT8)atoi(szValue);	break;
-		case 0x02:	stTempRecipe.align_type		= (UINT8)atoi(szValue);	break;
-		case 0x03:	stTempRecipe.lamp_type		= (UINT8)atoi(szValue);	break;
-		case 0x04:	stTempRecipe.gain_level[0]	= (UINT8)atoi(szValue);	break;
-		case 0x05:	stTempRecipe.gain_level[1]	= (UINT8)atoi(szValue);	break;
-		case 0x06:	stTempRecipe.search_type	= (UINT8)atoi(szValue);	break;
-		case 0x07:	stTempRecipe.search_count	= (UINT8)atoi(szValue);	break;
-		case 0x08:	stTempRecipe.mark_area[0]	= (UINT32)atoi(szValue);	break;
-		case 0x09:	stTempRecipe.mark_area[1]	= (UINT32)atoi(szValue);	break;
-		}
+
+		commandList.front()(szValue); // 람다 호출
+		commandList.pop();
 		pData = ++pFind;
 	}
 
@@ -769,6 +706,8 @@ BOOL CMarkUVDI15::SaveAlignRecipe()
 			/* Align Mark Array(Global, Local) Type */
 			sprintf_s(szData, 256, "%u,", pstRecipe->align_type);
 			fputs(szData, fp);
+
+
 			/* 램프 조명 타입(ring, coaxial) */
 			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_type);
 			fputs(szData, fp);
@@ -835,6 +774,9 @@ VOID CMarkUVDI15::CopyAlignRecipe(LPG_RAAF source, LPG_RAAF target)
 	target->save_count		= source->save_count;
 	target->mark_type		= source->mark_type;
 	target->align_type		= source->align_type;
+
+
+
 	target->lamp_type		= source->lamp_type;
 	target->gain_level[0]	= source->gain_level[0];
 	target->gain_level[1]	= source->gain_level[1];
@@ -1226,7 +1168,7 @@ BOOL CMarkUVDI15::SaveROI()
 	/* 주석 입력 */
 	fputs("; ROI_LEFT, ROI_RIGHT, ROI_TOP, ROI_BOTTOM,,,\n", fp);
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < GetConfig()->set_cams.acam_count; i++) {
 		sprintf_s(szData, 256, "%d,%d,%d,%d,\n",
 			m_pstROI->roi_Left[i],
 			m_pstROI->roi_Right[i],
@@ -1314,20 +1256,9 @@ BOOL CMarkUVDI15::ParseSearchROI(PCHAR data, UINT32 size, UINT8 cnt)
 */
 BOOL CMarkUVDI15::IsRecipeSharedType()
 {
-	if (!m_pstSelected)	return FALSE;
-	switch (m_pstSelected->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_0x0_n_point:
-	case ENG_ATGL::en_global_3_local_0x0_n_point:
-	case ENG_ATGL::en_global_2_local_0x0_n_point:
+	return FALSE; //아래보면 사실상 그냥 FALSE반환이다.
 
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-		return FALSE;
-	}
-	return TRUE;
+
 }
 
 /*
@@ -1338,20 +1269,10 @@ BOOL CMarkUVDI15::IsRecipeSharedType()
 BOOL CMarkUVDI15::IsExistLocalMark()
 {
 	if (!m_pstSelected)	return FALSE;
-	switch (m_pstSelected->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_0x0_n_point:
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-	case ENG_ATGL::en_global_4_local_2x2_s_point:
-	case ENG_ATGL::en_global_4_local_3x2_s_point:
-	case ENG_ATGL::en_global_4_local_4x2_s_point:
-	case ENG_ATGL::en_global_4_local_5x2_s_point:
-		return TRUE;
-	}
-	return FALSE;
+	auto fiducial =  uvEng_Luria_GetLocalFiducial();
+	return fiducial->GetCount() != 0 ? TRUE : FALSE;
+
+
 }
 
 /*
@@ -1362,23 +1283,10 @@ BOOL CMarkUVDI15::IsExistLocalMark()
 UINT8 CMarkUVDI15::GetSelectRecipeLocalMarkCount()
 {
 	if (!m_pstSelected)	return 0x00;
-	switch (m_pstSelected->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_0x0_n_point:
-	case ENG_ATGL::en_global_3_local_0x0_n_point:
-	case ENG_ATGL::en_global_2_local_0x0_n_point:	return 0;
 
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	return 16;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	return 24;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	return 32;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	return 40;
+	auto fiducial = uvEng_Luria_GetLocalFiducial();
+	return fiducial->GetCount(); // != 0 ? TRUE : FALSE;
 
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	return 9;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	return 12;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	return 15;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	return 18;
-	}
-	return 0x00;
 }
 
 /*
@@ -1396,6 +1304,10 @@ BOOL CMarkUVDI15::GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id
 	/* 값 초기화 (반드시 Max 값으로 초기화) */
 	cam_id = 0xff;
 	img_id = 0xff;
+
+
+	//이쪽 아래 반드시 파괴해야함. 
+
 
 	UINT8 u8Coun4 = u8Count / 4;
 
@@ -1567,19 +1479,12 @@ BOOL CMarkUVDI15::GetImageToStageDirect(UINT8 img_id)
 */
 UINT8 CMarkUVDI15::GetScanLocalMarkCount()
 {
-	switch (m_pstSelected->align_type)
-	{
-		/* Normal Type */
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	return 0x04;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	return 0x06;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	return 0x08;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	return 0x0a;
-		/* Shared Type */
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	return 0x03;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	return 0x04;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	return 0x05;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	return 0x06;
-	}
+	if (alignMotion == nullptr)
+		return 0x00;
+
+	return alignMotion->status.gerberRowCnt;
+
+
 
 	return 0x00;
 }

@@ -507,6 +507,15 @@
     <ClInclude Include="work\Calibration\AccuracyMgr.h">
       <Filter>04.작업 파일\보정 작업</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalVariables.h">
+      <Filter>02.메인 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="param\RecvPhil.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgMMPMAutoCenter.h">
+      <Filter>02.메인 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -889,6 +898,12 @@
     </ClCompile>
     <ClCompile Include="work\Calibration\AccuracyMgr.cpp">
       <Filter>04.작업 파일\보정 작업</Filter>
+    </ClCompile>
+    <ClCompile Include="param\RecvPhiI.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgMMPMAutoCenter.cpp">
+      <Filter>01.기본 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

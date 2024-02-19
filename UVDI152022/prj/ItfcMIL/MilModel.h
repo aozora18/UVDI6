@@ -36,8 +36,8 @@ protected:
 
 #ifndef _NOT_USE_MIL_
 	MIL_ID				m_mlEdgeID;
-	MIL_ID				m_mlModelID[3];		/* 검색하고자 하는 모델 ID */
-	MIL_ID				m_mlPATID[3];			/* 검색하고자 하는 모델 ID - PAT 추가 */
+	MIL_ID				m_mlModelID[3];		/* 검색하고자 하는 모델 ID - Global, Local, TMP */
+	MIL_ID				m_mlPATID[3];		/* 검색하고자 하는 모델 ID - Global, Local, TMP */
 	MIL_ID				m_mlModelID_D;		/* Draw에 사용하는 MMF ID */ // lk91 필요한가?
 	MIL_ID				m_mlPATID_D;		/* Draw에 사용하는 PAT ID */
 	MIL_ID				m_mlLineID;			/* Line Detection ID */
@@ -199,7 +199,7 @@ public:
 	VOID SetMarkOffset(CPoint fi_MarkCenter, int setOffsetMode, int fi_No);
 	VOID MaskClear_MOD(CPoint fi_iSizeP, UINT8 mark_no);
 	VOID MaskClear_PAT(CPoint fi_iSizeP, UINT8 mark_no);
-	VOID MarkSetCenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound);
+	VOID CenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode);
 
 	VOID SaveMask_MOD(UINT8 mark_no);
 	VOID SaveMask_PAT(UINT8 mark_no);

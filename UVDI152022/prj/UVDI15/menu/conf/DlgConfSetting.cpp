@@ -494,16 +494,16 @@ void CDlgConfSetting::SaveSettingParam()
 
 void CDlgConfSetting::SaveSettingParamMatch()
 {
-	for (int i=0; i < EN_SETTING_OPTION::MAX; i++)
-	{
-		switch (i)
-		{
-		case EN_SETTING_OPTION::LOG_FILE_SAVED:
-			break;
-		default:
-			break;
-		}
-	}
+	//for (int i=0; i < EN_SETTING_OPTION::MAX; i++)
+	//{
+	//	switch (i)
+	//	{
+	//	case EN_SETTING_OPTION::LOG_FILE_SAVED:
+	//		break;
+	//	default:
+	//		break;
+	//	}
+	//}
 }
 
 VOID CDlgConfSetting::OnGrdSettingBasicParamClick(NMHDR* pNotifyStruct, LRESULT* pResult)
@@ -588,7 +588,7 @@ VOID CDlgConfSetting::OnGrdSettingBasicParamClick(NMHDR* pNotifyStruct, LRESULT*
 	}
 	else if (DEF_DATA_TYPE_DOUBLE == stParam.strDataType) //Num
 	{
-		if (PopupKBDN(ENM_DITM::en_float, _T(""), strValue, stParam.dMin, stParam.dMax))
+		if (PopupKBDN(ENM_DITM::en_float, _T(""), strValue, stParam.dMin, stParam.dMax,3))
 		{
 			double dValueOld = _ttof(strValueOld);
 			double dValue = _ttof(strValue);
@@ -735,7 +735,7 @@ VOID CDlgConfSetting::OnGrdSettingBasicParamClick2(NMHDR* pNotifyStruct, LRESULT
 	}
 	else if (DEF_DATA_TYPE_DOUBLE == stParam.strDataType) //Num
 	{
-		if (PopupKBDN(ENM_DITM::en_float, _T(""), strValue, stParam.dMin, stParam.dMax, 6))
+		if (PopupKBDN(ENM_DITM::en_float, _T(""), strValue, stParam.dMin, stParam.dMax, 3))
 		{
 			double dValueOld = _ttof(strValueOld);
 			double dValue = _ttof(strValue);
@@ -1059,6 +1059,10 @@ VOID CDlgConfSetting::LoadConfig()
 	LoadLuria(pstCfg);
 	LoadTrigGrab(pstCfg);
 	LoadTransformation(pstCfg);
+
+	LoadSetupAlign(pstCfg);
+	LoadMarkFind(pstCfg);
+	LoadStrobeLamp(pstCfg);
 #if 0	/* Not currently in use */
 	LoadMarkFind(pstCfg);
 #endif
@@ -1079,11 +1083,18 @@ VOID CDlgConfSetting::SaveConfig()
 	SaveLuria(pstCfg);
 	SaveTrigGrab(pstCfg);
 	SaveTransformation(pstCfg);
+
+	SaveSetupAlign(pstCfg);
+	SeveMarkFind(pstCfg);
+	SaveStrobeLamp(pstCfg);
 #if 0	/* Not currently in use */
 	SaveMarkFind(pstCfg);
 #endif
 	/* 전체 환경 파일 저장 */
 	uvEng_SaveConfig();
+
+	CDlgMesg dlgMesg;
+	dlgMesg.MyDoModal(L"Config Save succeed", 0x01);
 }
 
 /*
@@ -1093,33 +1104,17 @@ VOID CDlgConfSetting::SaveConfig()
 */
 VOID CDlgConfSetting::LoadCommon(LPG_CIEA conf)
 {
-	UINT8 u8Check = 0x00;
-	LPG_CCGS pstConf = &conf->set_comn;
-	LPG_CIPC pstUvdi15 = &conf->set_uvdi15;
+	//UINT8 u8Check = 0x00;
+	//LPG_CCGS pstConf = &conf->set_comn;
+	//LPG_CIPC pstUvdi15 = &conf->set_uvdi15;
 
-	/* Gerber path */
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GERBER_PATH, (LPCTSTR)pstConf->gerber_path);
-	/* Strobe Type */
-	//항목에 없으므로 패스
-	//m_chk_ctl[eCONF_CHK_LAMP_TYPE_1].SetCheck(!pstConf->strobe_lamp_type);
-	//m_chk_ctl[eCONF_CHK_LAMP_TYPE_2].SetCheck(pstConf->strobe_lamp_type);
-	/* Align Camera Type */
-	//항목에 없으므로 패스
-	//u8Check = ENG_VCPK(pstConf->align_camera_kind) == ENG_VCPK::en_camera_basler_ipv4 ? 1 : 0;
-	//m_chk_ctl[eCONF_CHK_CAMERA_BASLER].SetCheck(u8Check);
-	//u8Check = ENG_VCPK(pstConf->align_camera_kind) == ENG_VCPK::en_camera_ids_ph ? 1 : 0;
-	//m_chk_ctl[eCONF_CHK_CAMERA_IDS].SetCheck(u8Check);
-	/* Whether to save mark grabbed file */
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GRAB_MARK_SAVED, pstConf->grab_mark_saved);
-	/* Whether to save log file */
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_FILE_SAVED, pstConf->log_file_saved);
-	/* Run Recipe Homing */
-	//항목에 없으므로 패스
-	//m_chk_ctl[eCONF_CHK_RUN_RECIPE_HOMING].SetCheck(pstUvdi15->load_recipe_homing);
-	/* Material Detecting */
-	//항목에 없으므로 패스
-	//m_chk_ctl[eCONF_CHK_MATERIAL_DETECT].SetCheck(pstConf->run_material_detect);
-	
+	///* Gerber path */
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GERBER_PATH, (LPCTSTR)pstConf->gerber_path);
+	///* Whether to save mark grabbed file */
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GRAB_MARK_SAVED, pstConf->grab_mark_saved);
+	///* Whether to save log file */
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_FILE_SAVED, pstConf->log_file_saved);
+
 }
 
 /*
@@ -1129,36 +1124,23 @@ VOID CDlgConfSetting::LoadCommon(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::SaveCommon(LPG_CIEA conf)
 {
-	UINT8 u8Check = 0x00;
-	LPG_CCGS pstConf = &conf->set_comn;
-	LPG_CIPC pstUvdi15 = &conf->set_uvdi15;
-	CUniToChar csCnv;
-	CString strValue;
-	/* Gerber path */
-	wmemset(pstConf->gerber_path, 0x00, MAX_PATH_LEN);
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GERBER_PATH);
-	_tcscpy_s(pstConf->gerber_path, MAX_PATH_LEN, strValue.GetBuffer());
-	strValue.ReleaseBuffer();
-	/* Strobe Type */
-	//항목에 없으므로 패스
-	//pstConf->strobe_lamp_type = (UINT8)m_chk_ctl[eCONF_CHK_LAMP_TYPE_2].GetCheck();
-	/* Align Camera Type */
-	//항목에 없으므로 패스
-// 	pstConf->align_camera_kind = 0x00;
-// 	if (m_chk_ctl[eCONF_CHK_CAMERA_BASLER].GetCheck())	pstConf->align_camera_kind = (UINT8)ENG_VCPK::en_camera_basler_ipv4;
-// 	if (m_chk_ctl[eCONF_CHK_CAMERA_IDS].GetCheck())	pstConf->align_camera_kind = (UINT8)ENG_VCPK::en_camera_ids_ph;
-	/* Whether to save mark grabbed file */
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GRAB_MARK_SAVED);
-	pstConf->grab_mark_saved = _ttoi(strValue);
-	/* Whether to save log file */
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_FILE_SAVED);
-	pstConf->log_file_saved = _ttoi(strValue);
-	/* Run recipe homing */
-	//항목에 없으므로 패스
-	//pstUvdi15->load_recipe_homing = (UINT8)m_chk_ctl[eCONF_CHK_RUN_RECIPE_HOMING].GetCheck();
-	/* Material Detecting */
-	//항목에 없으므로 패스
-	//pstConf->run_material_detect = (UINT8)m_chk_ctl[eCONF_CHK_MATERIAL_DETECT].GetCheck();
+	//UINT8 u8Check = 0x00;
+	//LPG_CCGS pstConf = &conf->set_comn;
+	//LPG_CIPC pstUvdi15 = &conf->set_uvdi15;
+	//CUniToChar csCnv;
+	//CString strValue;
+	///* Gerber path */
+	//wmemset(pstConf->gerber_path, 0x00, MAX_PATH_LEN);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GERBER_PATH);
+	//_tcscpy_s(pstConf->gerber_path, MAX_PATH_LEN, strValue.GetBuffer());
+	//strValue.ReleaseBuffer();
+
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GRAB_MARK_SAVED);
+	//pstConf->grab_mark_saved = _ttoi(strValue);
+	///* Whether to save log file */
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_FILE_SAVED);
+	//pstConf->log_file_saved = _ttoi(strValue);
+
 }
 
 /*
@@ -1168,21 +1150,7 @@ VOID CDlgConfSetting::SaveCommon(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::SetAnalogGain()
 {
-#if 0
-	LPG_CCDB pstBasler = &uvEng_GetConfig()->set_basler;
-	/* Analog Gain */
-	pstBasler->cam_gain_level[0] = (UINT8)m_edt_int[eCONF_EDT_INT_ACAM_ANALOG_GAIN_1].GetTextToNum();
-	pstBasler->cam_gain_level[1] = (UINT8)m_edt_int[eCONF_EDT_INT_ACAM_ANALOG_GAIN_2].GetTextToNum();
 
-	/* 얼라인 카메라의 파라미터 값 다시 적용하기 위한 호출 */
-	if (!uvEng_Camera_UpdateSetParam())
-	{
-		AfxMessageBox(L"Failed to set the parameter for align camera", MB_ICONSTOP | MB_TOPMOST);
-	}
-#else
- 	//uvEng_Camera_SetGainLevel(0x01, (UINT8)m_edt_int[eCONF_EDT_INT_ACAM_ANALOG_GAIN_1].GetTextToNum());
- 	//uvEng_Camera_SetGainLevel(0x02, (UINT8)m_edt_int[eCONF_EDT_INT_ACAM_ANALOG_GAIN_2].GetTextToNum());
-#endif
 }
 
 /*
@@ -1205,25 +1173,27 @@ VOID CDlgConfSetting::LoadAlignCamera(LPG_CIEA conf)
 	LPG_CSCI pstCams = &conf->set_cams;
 	LPG_CASI pstSpec = &conf->acam_spec;
 	LPG_CCDB pstBasler = &conf->set_basler;
-	/* ACam Width / Height */
-	//항목에 없으므로 패스
-	//m_edt_int[eCONF_EDT_INT_ACAM_SPEC_HORZ].SetTextToNum(pstCams->acam_size[0]);
-	//m_edt_int[eCONF_EDT_INT_ACAM_SPEC_VERT].SetTextToNum(pstCams->acam_size[1]);
-	/* 스펙 검사를 위한 좌/우 이동 거리 */
-	//항목에 없으므로 패스
-	//m_edt_flt[eCONF_EDT_FLOAT_ACAM_POINT_DIST].SetTextToNum(pstSpec->point_dist, 4);
-	/* Install Angle */
-	//항목에 없으므로 패스
-	//m_chk_ctl[eCONF_CHK_ACAM_ROTATE_INST].SetCheck(pstCams->acam_inst_angle);
+
 	/* Analog Gain */
 	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_1_GAIN_LEVEL, pstBasler->cam_gain_level[0]);
 	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_2_GAIN_LEVEL, pstBasler->cam_gain_level[1]);
 
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_REVERSE_X, pstBasler->cam_reverse_x);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_REVERSE_Y, pstBasler->cam_reverse_y);
- 	
-	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_IPv4_1, pstBasler->cam_ip[0]);
- 	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_IPv4_2, pstBasler->cam_ip[1]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_GRAB_1, (int)pstBasler->grab_times[0]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_STEP_1, (int)pstBasler->step_times[0]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_GRAB_2, (int)pstBasler->grab_times[1]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_STEP_2, (int)pstBasler->step_times[1]);
+
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_REVERSE_X, pstBasler->cam_reverse_x);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_REVERSE_Y, pstBasler->cam_reverse_y);
+
+
+#if(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_3_GAIN_LEVEL, pstBasler->cam_gain_level[2]);
+
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_GRAB_3, (int)pstBasler->grab_times[2]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_STEP_3, (int)pstBasler->step_times[2]);
+#endif
+
 }
 
 /*
@@ -1237,16 +1207,7 @@ VOID CDlgConfSetting::SaveAlignCamera(LPG_CIEA conf)
 	LPG_CASI pstSpec = &conf->acam_spec;
 	LPG_CCDB pstBasler = &conf->set_basler;
 	CString strValue;
-	/* ACam Width / Height */
-	//항목에 없으므로 패스
-	//pstCams->acam_size[0] = (UINT16)m_edt_int[eCONF_EDT_INT_ACAM_SPEC_HORZ].GetTextToNum();
-	//pstCams->acam_size[1] = (UINT16)m_edt_int[eCONF_EDT_INT_ACAM_SPEC_VERT].GetTextToNum();
-	/* 스펙 검사를 위한 좌/우 이동 거리 */
-	//항목에 없으므로 패스
-	//pstSpec->point_dist = m_edt_flt[eCONF_EDT_FLOAT_ACAM_POINT_DIST].GetTextToDouble();
-	/* Install Angle */
-	//항목에 없으므로 패스
-	//pstCams->acam_inst_angle = (UINT8)m_chk_ctl[eCONF_CHK_ACAM_ROTATE_INST].GetCheck();
+
 	/* Analog Gain */
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_1_GAIN_LEVEL);
 	pstBasler->cam_gain_level[0] = _ttoi(strValue);
@@ -1254,8 +1215,38 @@ VOID CDlgConfSetting::SaveAlignCamera(LPG_CIEA conf)
 	uvEng_Camera_SetGainLevel(0x01, pstBasler->cam_gain_level[0]);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_2_GAIN_LEVEL);
 	pstBasler->cam_gain_level[1] = _ttoi(strValue);
-	//SAVE 시 바로 셋 하도록 추가
 	uvEng_Camera_SetGainLevel(0x02, pstBasler->cam_gain_level[1]);	
+
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	if (conf->set_cams.acam_count == 3)
+	{
+		strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::CAM_3_GAIN_LEVEL);
+		pstBasler->cam_gain_level[2] = _ttoi(strValue);
+		uvEng_Camera_SetGainLevel(0x02, pstBasler->cam_gain_level[2]);
+	}
+#endif
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_GRAB_1);
+	pstBasler->grab_times[0] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_STEP_1);
+	pstBasler->step_times[0] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_GRAB_2);
+	pstBasler->grab_times[1] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_STEP_2);
+	pstBasler->step_times[1] = _ttoi(strValue);
+
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	if (conf->set_cams.acam_count == 3)
+	{
+		strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_GRAB_3);
+		pstBasler->grab_times[2] = _ttoi(strValue);
+		strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TIME_STEP_3);
+		pstBasler->step_times[2] = _ttoi(strValue);
+	}
+#endif
+
 }
 
 /*
@@ -1265,15 +1256,6 @@ VOID CDlgConfSetting::SaveAlignCamera(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::LoadTempRange(LPG_CIEA conf)
 {
-// 	LPG_DITR pstConf = &conf->temp_range;
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_HOTAIR_SET].SetTextToNum(pstConf->hot_air[0], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_HOTAIR_RANGE].SetTextToNum(pstConf->hot_air[1], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_DI_SET].SetTextToNum(pstConf->di_internal[0], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_DI_RANGE].SetTextToNum(pstConf->di_internal[1], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_LED_SET].SetTextToNum(pstConf->optic_led[0], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_LED_RANGE].SetTextToNum(pstConf->optic_led[1], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_BD_SET].SetTextToNum(pstConf->optic_board[0], 1);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TEMP_BD_RANGE].SetTextToNum(pstConf->optic_board[1], 1);
 }
 
 /*
@@ -1283,15 +1265,6 @@ VOID CDlgConfSetting::LoadTempRange(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::SaveTempRange(LPG_CIEA conf)
 {
-// 	LPG_DITR pstConf = &conf->temp_range;
-// 	pstConf->hot_air[0] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_HOTAIR_SET].GetTextToDouble();
-// 	pstConf->hot_air[1] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_HOTAIR_RANGE].GetTextToDouble();
-// 	pstConf->di_internal[0] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_DI_SET].GetTextToDouble();
-// 	pstConf->di_internal[1] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_DI_RANGE].GetTextToDouble();
-// 	pstConf->optic_led[0] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_LED_SET].GetTextToDouble();
-// 	pstConf->optic_led[1] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_LED_RANGE].GetTextToDouble();
-// 	pstConf->optic_board[0] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_BD_SET].GetTextToDouble();
-// 	pstConf->optic_board[1] = m_edt_flt[eCONF_EDT_FLOAT_TEMP_BD_RANGE].GetTextToDouble();
 }
 
 /*
@@ -1319,12 +1292,10 @@ VOID CDlgConfSetting::SaveEtc(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::LoadLuria(LPG_CIEA conf)
 {
-	// 모터 TEACH 값은 TEACH 메뉴에서 처리
-// 	LPG_LDSM pstLuria = uvEng_ShMem_GetLuria();
-// 	m_edt_flt[eCONF_EDT_FLOAT_EXPO_START_X].SetTextToNum(pstLuria->machine.table_expo_start_xy[0].x / 1000.0f, 3);
-// 	m_edt_flt[eCONF_EDT_FLOAT_EXPO_START_Y].SetTextToNum(pstLuria->machine.table_expo_start_xy[0].y / 1000.0f, 3);
-// 	m_edt_flt[eCONF_EDT_FLOAT_EXPO_START_X].Invalidate();
-// 	m_edt_flt[eCONF_EDT_FLOAT_EXPO_START_Y].Invalidate();
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AF,			conf->luria_svc.use_af);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_GAIN,			conf->luria_svc.af_gain);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MIN,		conf->luria_svc.af_work_range_all[0]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MAX,		conf->luria_svc.af_work_range_all[1]);
 }
 
 /*
@@ -1334,26 +1305,16 @@ VOID CDlgConfSetting::LoadLuria(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::SaveLuria(LPG_CIEA conf)
 {
-	// 모터 TEACH 값은 TEACH 메뉴에서 처리
-// 	LPG_LDSM pstLuria = uvEng_ShMem_GetLuria();
-// 	conf->luria_svc.table_expo_start_xy[0][0] = pstLuria->machine.table_expo_start_xy[0].x / 1000.0f;
-// 	conf->luria_svc.table_expo_start_xy[0][1] = pstLuria->machine.table_expo_start_xy[0].y / 1000.0f;
-// }
-// 
-// /*
-//  desc : 노광 시작 위치 설정
-//  parm : None
-//  retn : None
-// */
-// VOID CDlgConfSetting::SetExpoStartXY()
-// {
-// 	DOUBLE dbStartX = m_edt_flt[eCONF_EDT_FLOAT_EXPO_START_X].GetTextToDouble();
-// 	DOUBLE dbStartY = m_edt_flt[eCONF_EDT_FLOAT_EXPO_START_Y].GetTextToDouble();
-// 
-// 	/* 노광 시작 위치 설정 */
-// 	uvEng_Luria_ReqSetTableExposureStartPos(0x01,
-// 		(UINT32)ROUNDED(dbStartX * 1000.0f, 0),
-// 		(UINT32)ROUNDED(dbStartY * 1000.0f, 0));
+	CString strValue;
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AF);
+	conf->luria_svc.use_af = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_GAIN);
+	conf->luria_svc.af_gain = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MIN);
+	conf->luria_svc.af_work_range_all[0] = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MAX);
+	conf->luria_svc.af_work_range_all[1] = _ttof(strValue);
 }
 
 /*
@@ -1363,38 +1324,8 @@ VOID CDlgConfSetting::SaveLuria(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::LoadTrigGrab(LPG_CIEA conf)
 {
-	UINT8 i = 0x03;
-
-	/* Trigger On Time */
-	//항목에 없으므로 패스
-	//m_edt_int[eCONF_EDT_INT_TRIG_ON_TIME_1].SetTextToNum((UINT32)conf->trig_grab.trig_on_time[0]);
-	//m_edt_int[eCONF_EDT_INT_TRIG_ON_TIME_2].SetTextToNum((UINT32)conf->trig_grab.trig_on_time[1]);
-	/* Strobe On Time */
-	//항목에 없으므로 패스
-	//m_edt_int[eCONF_EDT_INT_STROBE_ON_TIME_1].SetTextToNum((UINT32)conf->trig_grab.strob_on_time[0]);
-	//m_edt_int[eCONF_EDT_INT_STROBE_ON_TIME_2].SetTextToNum((UINT32)conf->trig_grab.strob_on_time[1]);
-	/* Trigger Delay Time */
-	//항목에 없으므로 패스
-	//m_edt_int[eCONF_EDT_INT_TRIG_DELAY_TIME_1].SetTextToNum((UINT32)conf->trig_grab.trig_delay_time[0]);
-	//m_edt_int[eCONF_EDT_INT_TRIG_DELAY_TIME_2].SetTextToNum((UINT32)conf->trig_grab.trig_delay_time[1]);
-	/* Trigger Plus Time */
-#if 0
-	m_edt_int[eCONF_EDT_INT_TRIG_PLUS_1].SetTextToNum((UINT32)conf->trig_set.trig_plus[0]);
-	m_edt_int[eCONF_EDT_INT_TRIG_PLUS_2].SetTextToNum((UINT32)conf->trig_grab.trig_plus[1]);
-#else
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_FORWARD, conf->trig_grab.trig_forward);
-	//	m_edt_int[eCONF_EDT_INT_TRIG_PLUS_2].SetTextToNum(conf->trig_grab.trig_forward);
-#endif
-	/* Trigger Minus Time */
-#if 0
-	m_edt_int[eCONF_EDT_INT_TRIG_MINUS_1].SetTextToNum(conf->trig_grab.trig_plus[0]);
-	//	m_edt_int[eCONF_EDT_INT_TRIG_MINUS_2].SetTextToNum(conf->trig_grab.trig_plus[1]);
-#else
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_BACKWARD, conf->trig_grab.trig_backward);
-	//	m_edt_int[eCONF_EDT_INT_TRIG_MINUS_2].SetTextToNum(conf->trig_grab.trig_backward);
-#endif
-	// refresh는 다른곳에서 하므로 주석
-	//for (; i < eCONF_EDT_INT_MAX; i++)	m_edt_int[i].Invalidate();
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_FORWARD, conf->trig_grab.trig_forward);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_BACKWARD, conf->trig_grab.trig_backward);
 }
 
 /*
@@ -1405,37 +1336,14 @@ VOID CDlgConfSetting::LoadTrigGrab(LPG_CIEA conf)
 VOID CDlgConfSetting::SaveTrigGrab(LPG_CIEA conf)
 {
 	CString strValue;
-	/* Trigger On Time */
-	//항목에 없으므로 패스
-	//conf->trig_grab.trig_on_time[0] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_ON_TIME_1].GetTextToNum();
-	//conf->trig_grab.trig_on_time[1] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_ON_TIME_2].GetTextToNum();
-	/* Strobe On Time */
-	//항목에 없으므로 패스
-	//conf->trig_grab.strob_on_time[0] = (UINT32)m_edt_int[eCONF_EDT_INT_STROBE_ON_TIME_1].GetTextToNum();
-	//conf->trig_grab.strob_on_time[1] = (UINT32)m_edt_int[eCONF_EDT_INT_STROBE_ON_TIME_2].GetTextToNum();
-	/* Trigger Delay Time */
-	//항목에 없으므로 패스
-	//conf->trig_grab.trig_delay_time[0] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_DELAY_TIME_1].GetTextToNum();
-	//conf->trig_grab.trig_delay_time[1] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_DELAY_TIME_2].GetTextToNum();
-#if 0
-	/* Trigger Plus Time */
-	conf->trig_grab.trig_plus[0] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_PLUS_1].GetTextToNum();
-	conf->trig_grab.trig_plus[1] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_PLUS_2].GetTextToNum();
-	conf->trig_grab.trig_plus[2] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_PLUS_1].GetTextToNum();
-	conf->trig_grab.trig_plus[3] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_PLUS_2].GetTextToNum();
-	/* Trigger Minus Time */
-	conf->trig_grab.trig_minus[0] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_MINUS_1].GetTextToNum();
-	conf->trig_grab.trig_minus[1] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_MINUS_2].GetTextToNum();
-	conf->trig_grab.trig_minus[2] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_MINUS_1].GetTextToNum();
-	conf->trig_grab.trig_minus[3] = (UINT32)m_edt_int[eCONF_EDT_INT_TRIG_MINUS_2].GetTextToNum();
-#else
-	/* Trigger Plus count */
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_FORWARD);
-	conf->trig_grab.trig_forward = _ttoi(strValue);
-	/* Trigger Minus count */
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_BACKWARD);
-	conf->trig_grab.trig_backward = _ttoi(strValue);
-#endif
+
+	///* Trigger Plus count */
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_FORWARD);
+	//conf->trig_grab.trig_forward = _ttoi(strValue);
+	///* Trigger Minus count */
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::TRIG_BACKWARD);
+	//conf->trig_grab.trig_backward = _ttoi(strValue);
+
 }
 
 /*
@@ -1445,41 +1353,23 @@ VOID CDlgConfSetting::SaveTrigGrab(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::LoadTransformation(LPG_CIEA conf)
 {
-	CString strTemp;
-	BOOL bEnable = TRUE;
+	//CString strTemp;
+	//BOOL bEnable = TRUE;
 
-	//m_chk_ctl[eCONF_CHK_GLOBAL_RECT].SetCheck(conf->global_trans.use_rectangle);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_RECTANGLE, conf->global_trans.use_rectangle);
-	//m_chk_ctl[eCONF_CHK_GLOBAL_ROTATION].SetCheck(conf->global_trans.use_rotation_mode);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_ROTATION, conf->global_trans.use_rotation_mode);
-	//m_chk_ctl[eCONF_CHK_GLOBAL_SCALE].SetCheck(conf->global_trans.use_scaling_mode);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_SCALING, conf->global_trans.use_scaling_mode);
-	//m_chk_ctl[eCONF_CHK_GLOBAL_OFFSET].SetCheck(conf->global_trans.use_offset_mode);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_OFFSET, conf->global_trans.use_offset_mode);
-	//m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_ROTATE].SetTextToNum(conf->global_trans.rotation / 1000.0f, 3);
-	strTemp.Format(_T("%.3f"), conf->global_trans.rotation / 1000.0f);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_ROTATION, strTemp);
-	//m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_SCALE_X].SetTextToNum(conf->global_trans.scaling[0] / 1000000.0f, 6);
-	strTemp.Format(_T("%.6f"), conf->global_trans.scaling[0] / 1000000.0f);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_X, strTemp);
-	//m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_SCALE_Y].SetTextToNum(conf->global_trans.scaling[1] / 1000000.0f, 6);
-	strTemp.Format(_T("%.6f"), conf->global_trans.scaling[1] / 1000000.0f);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_Y, strTemp);
-	//m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_X].SetTextToNum(conf->global_trans.offset[0] / 1000000.0f, 6);
-	strTemp.Format(_T("%.6f"), conf->global_trans.offset[0] / 1000000.0f);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_X, strTemp);
-	//m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_Y].SetTextToNum(conf->global_trans.offset[1] / 1000000.0f, 6);
-	strTemp.Format(_T("%.6f"), conf->global_trans.offset[1] / 1000000.0f);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_Y, strTemp);
-
-// 	bEnable = m_chk_ctl[eCONF_CHK_GLOBAL_ROTATION].GetCheck() == 1;
-// 	m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_ROTATE].EnableWindow(bEnable);
-// 	bEnable = m_chk_ctl[eCONF_CHK_GLOBAL_SCALE].GetCheck() == 1;
-// 	m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_SCALE_X].EnableWindow(bEnable);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_SCALE_Y].EnableWindow(bEnable);
-// 	bEnable = m_chk_ctl[eCONF_CHK_GLOBAL_OFFSET].GetCheck() == 1;
-// 	m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_X].EnableWindow(bEnable);
-// 	m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_Y].EnableWindow(bEnable);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_RECTANGLE, conf->global_trans.use_rectangle);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_ROTATION, conf->global_trans.use_rotation_mode);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_SCALING, conf->global_trans.use_scaling_mode);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_OFFSET, conf->global_trans.use_offset_mode);
+	//strTemp.Format(_T("%.3f"), conf->global_trans.rotation / 1000.0f);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_ROTATION, strTemp);
+	//strTemp.Format(_T("%.6f"), conf->global_trans.scaling[0] / 1000000.0f);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_X, strTemp);
+	//strTemp.Format(_T("%.6f"), conf->global_trans.scaling[1] / 1000000.0f);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_Y, strTemp);
+	//strTemp.Format(_T("%.6f"), conf->global_trans.offset[0] / 1000000.0f);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_X, strTemp);
+	//strTemp.Format(_T("%.6f"), conf->global_trans.offset[1] / 1000000.0f);
+	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_Y, strTemp);
 }
 
 /*
@@ -1489,33 +1379,123 @@ VOID CDlgConfSetting::LoadTransformation(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::SaveTransformation(LPG_CIEA conf)
 {
-	CString strValue;
-	//conf->global_trans.use_rectangle = (UINT8)m_chk_ctl[eCONF_CHK_GLOBAL_RECT].GetCheck();
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_RECTANGLE);
-	conf->global_trans.use_rectangle = _ttoi(strValue);
-	//conf->global_trans.use_rotation_mode = (UINT8)m_chk_ctl[eCONF_CHK_GLOBAL_ROTATION].GetCheck();
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_ROTATION);
-	conf->global_trans.use_rotation_mode = _ttoi(strValue);
-	//conf->global_trans.use_scaling_mode = (UINT8)m_chk_ctl[eCONF_CHK_GLOBAL_SCALE].GetCheck();
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_SCALING);
-	conf->global_trans.use_scaling_mode = _ttoi(strValue);
-	//conf->global_trans.use_offset_mode = (UINT8)m_chk_ctl[eCONF_CHK_GLOBAL_OFFSET].GetCheck();
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_OFFSET);
-	conf->global_trans.use_offset_mode = _ttoi(strValue);
+	//CString strValue;
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_RECTANGLE);
+	//conf->global_trans.use_rectangle = _ttoi(strValue);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_ROTATION);
+	//conf->global_trans.use_rotation_mode = _ttoi(strValue);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_SCALING);
+	//conf->global_trans.use_scaling_mode = _ttoi(strValue);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_OFFSET);
+	//conf->global_trans.use_offset_mode = _ttoi(strValue);
 
-	//conf->global_trans.rotation = (INT32)ROUNDED(m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_ROTATE].GetTextToDouble() * 1000.0f, 0);
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_ROTATION);
-	conf->global_trans.rotation = (INT32)ROUNDED(_ttof(strValue) * 1000.0f, 0);
-	//conf->global_trans.scaling[0] = (UINT32)ROUNDED(m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_SCALE_X].GetTextToDouble() * 1000000.0f, 0);
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_X);
-	conf->global_trans.scaling[0] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
-	//conf->global_trans.scaling[1] = (UINT32)ROUNDED(m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_SCALE_Y].GetTextToDouble() * 1000000.0f, 0);
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_Y);
-	conf->global_trans.scaling[1] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
-	//conf->global_trans.offset[0] = (UINT32)ROUNDED(m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_X].GetTextToDouble() * 1000000.0f, 0);
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_X);
-	conf->global_trans.offset[0] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
-	//conf->global_trans.offset[1] = (UINT32)ROUNDED(m_edt_flt[eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_Y].GetTextToDouble() * 1000000.0f, 0);
-	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_Y);
-	conf->global_trans.offset[1] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_ROTATION);
+	//conf->global_trans.rotation = (INT32)ROUNDED(_ttof(strValue) * 1000.0f, 0);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_X);
+	//conf->global_trans.scaling[0] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_SCALING_Y);
+	//conf->global_trans.scaling[1] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_X);
+	//conf->global_trans.offset[0] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
+	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::VAL_OFFSET_Y);
+	//conf->global_trans.offset[1] = (INT32)ROUNDED(_ttof(strValue) * 1000000.0f, 0);
+}
+
+/*
+ desc : 환경 설정 파일 적재 - Setup Align
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::LoadSetupAlign(LPG_CIEA conf)
+{
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_2D_CALI_DATA,		conf->set_align.use_2d_cali_data);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::MARK2_ORG_GERB_X,		conf->set_align.mark2_org_gerb_xy[0]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::MARK2_ORG_GERB_Y,		conf->set_align.mark2_org_gerb_xy[1]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::MARK2_STAGE_X,		conf->set_align.mark2_stage_x);
+}
+
+/*
+ desc : 환경 설정 파일 저장 - Setip Align
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::SaveSetupAlign(LPG_CIEA conf)
+{
+	CString strValue;
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_2D_CALI_DATA);
+	conf->set_align.use_2d_cali_data = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::MARK2_ORG_GERB_X);
+	conf->set_align.mark2_org_gerb_xy[0] = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::MARK2_ORG_GERB_Y);
+	conf->set_align.mark2_org_gerb_xy[1] = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::MARK2_STAGE_X);
+	conf->set_align.mark2_stage_x = _ttof(strValue);
+
+}
+
+/*
+ desc : 환경 설정 파일 적재 - Mark Find
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::LoadMarkFind(LPG_CIEA conf)
+{
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::SCORE_RATE, conf->mark_find.score_rate);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::SCALE_RATE, conf->mark_find.scale_rate);
+}
+
+/*
+ desc : 환경 설정 파일 저장 - Mark Find
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::SeveMarkFind(LPG_CIEA conf)
+{
+	CString strValue;
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::SCORE_RATE);
+	conf->mark_find.score_rate = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::SCALE_RATE);
+	conf->mark_find.scale_rate = _ttof(strValue);
+}
+
+/*
+ desc : 환경 설정 파일 적재 - Strobe Lamp
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::LoadStrobeLamp(LPG_CIEA conf)
+{
+
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_1, conf->set_strobe_lamp.u16StrobeValue[0]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_2, conf->set_strobe_lamp.u16StrobeValue[1]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_3, conf->set_strobe_lamp.u16StrobeValue[2]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_4, conf->set_strobe_lamp.u16StrobeValue[3]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_5, conf->set_strobe_lamp.u16StrobeValue[4]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_6, conf->set_strobe_lamp.u16StrobeValue[5]);
+}
+
+/*
+ desc : 환경 설정 파일 저장 - Strobe Lamp
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::SaveStrobeLamp(LPG_CIEA conf)
+{
+	CString strValue;
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_1);
+	conf->set_strobe_lamp.u16StrobeValue[0] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_2);
+	conf->set_strobe_lamp.u16StrobeValue[1] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_3);
+	conf->set_strobe_lamp.u16StrobeValue[2] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_4);
+	conf->set_strobe_lamp.u16StrobeValue[3] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_5);
+	conf->set_strobe_lamp.u16StrobeValue[4] = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_6);
+	conf->set_strobe_lamp.u16StrobeValue[5] = _ttoi(strValue);
+
 }

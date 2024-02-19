@@ -155,30 +155,30 @@ API_EXPORT BOOL uvEng_Mvenc_ReqWriteAreaTrigPos(BOOL direct,
 
 	if (!uvMvenc_IsConnected() && GetConfig()->IsRunDemo())	return TRUE;
 
-	for (; i<count1; i++)
-	{
-		i32Trig[0][i]	= pos1[i];	/* Align Camera 1 */
-		i32Trig[1][i]	= pos2[i];	/* Align Camera 2 */
-	}
+	//for (; i<count1; i++)
+	//{
+	//	i32Trig[0][i]	= pos1[i];	/* Align Camera 1 */
+	//	i32Trig[1][i]	= pos2[i];	/* Align Camera 2 */
+	//}
 
-	vector <INT32> vNum1;
-	vector <INT32> vNum2;
-	for (; i < count1; i++)
-	{
-		vNum1.push_back(pos1[i]);
-		vNum2.push_back(pos2[i]);
-	}
-	/* Vector에 등록된 값 기준으로 오름차순 / 내림차순 정렬 */
-	if (enable == ENG_TEED::en_positive)
-	{
-		sort(vNum1.begin(), vNum1.end());
-		sort(vNum2.begin(), vNum2.end());
-	}
-	else
-	{
-		sort(vNum1.begin(), vNum1.end(), greater<INT32>());
-		sort(vNum2.begin(), vNum2.end(), greater<INT32>());
-	}
+	//vector <INT32> vNum1;
+	//vector <INT32> vNum2;
+	//for (; i < count1; i++)
+	//{
+	//	vNum1.push_back(pos1[i]);
+	//	vNum2.push_back(pos2[i]);
+	//}
+	///* Vector에 등록된 값 기준으로 오름차순 / 내림차순 정렬 */
+	//if (enable == ENG_TEED::en_positive)
+	//{
+	//	sort(vNum1.begin(), vNum1.end());
+	//	sort(vNum2.begin(), vNum2.end());
+	//}
+	//else
+	//{
+	//	sort(vNum1.begin(), vNum1.end(), greater<INT32>());
+	//	sort(vNum2.begin(), vNum2.end(), greater<INT32>());
+	//}
 
 	//for (; i < count1; i++)
 	//{

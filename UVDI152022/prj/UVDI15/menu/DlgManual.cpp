@@ -530,37 +530,47 @@ BOOL CDlgManual::InitObject()
 	m_stJob.Init();
 	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe();
 
-	m_stJob.material_thick = pJob->material_thick;
-	m_stJob.expo_energy = pJob->expo_energy;
-	m_stJob.expo_speed = pJob->expo_speed;
-	m_stJob.step_size = pJob->step_size;
-
-	CUniToChar	csCnv;
-	UINT8 i = 0, j = 0;
-	DOUBLE dbTotal = 0.0f, dbPowerWatt[MAX_LED] = { NULL }, dbSpeed = 0.0f;
-	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pJob->expo_recipe));
-	LPG_PLPI	pstPowerI = uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
-	/* 광량 계산 */
-	for (; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+	try
 	{
-		for (j = 0; j < MAX_LED; j++)	dbPowerWatt[j] = pstPowerI->led_watt[i][j];
-		dbTotal += uvCmn_Luria_GetEnergyToSpeed(pJob->step_size, pJob->expo_energy,
-			pstExpoRecipe->led_duty_cycle, dbPowerWatt);
+		if (pJob == nullptr) 
+			return FALSE;
 
+		m_stJob.material_thick = pJob->material_thick;
+		m_stJob.expo_energy = pJob->expo_energy;
+		m_stJob.expo_speed = pJob->expo_speed;
+		m_stJob.step_size = pJob->step_size;
+
+		CUniToChar	csCnv;
+		UINT8 i = 0, j = 0;
+		DOUBLE dbTotal = 0.0f, dbPowerWatt[MAX_LED] = { NULL }, dbSpeed = 0.0f;
+		LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pJob->expo_recipe));
+		LPG_PLPI	pstPowerI = uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
+		/* 광량 계산 */
+		for (; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+		{
+			for (j = 0; j < MAX_LED; j++)	dbPowerWatt[j] = pstPowerI->led_watt[i][j];
+			dbTotal += uvCmn_Luria_GetEnergyToSpeed(pJob->step_size, pJob->expo_energy,
+				pstExpoRecipe->led_duty_cycle, dbPowerWatt);
+
+		}
+		m_stJob.frame_rate = (UINT16)(dbTotal / DOUBLE(i));
+
+
+		strcpy_s(m_stJob.job_name, RECIPE_NAME_LENGTH, pJob->job_name);
+		strcpy_s(m_stJob.gerber_path, MAX_PATH_LEN, pJob->gerber_path);
+		strcpy_s(m_stJob.gerber_name, MAX_GERBER_NAME, pJob->gerber_name);
+		strcpy_s(m_stJob.align_recipe, RECIPE_NAME_LENGTH, pJob->align_recipe);
+		strcpy_s(m_stJob.expo_recipe, RECIPE_NAME_LENGTH, pJob->expo_recipe);
+
+		if (m_stJob.IsValid())
+		{
+			m_pDrawPrev->LoadMark(uvEng_JobRecipe_GetSelectRecipe());
+			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+		}
 	}
-	m_stJob.frame_rate = (UINT16)(dbTotal / DOUBLE(i));
-
-
-	strcpy_s(m_stJob.job_name, RECIPE_NAME_LENGTH, pJob->job_name);
-	strcpy_s(m_stJob.gerber_path, MAX_PATH_LEN, pJob->gerber_path);
-	strcpy_s(m_stJob.gerber_name, MAX_GERBER_NAME, pJob->gerber_name);
-	strcpy_s(m_stJob.align_recipe, RECIPE_NAME_LENGTH, pJob->align_recipe);
-	strcpy_s(m_stJob.expo_recipe, RECIPE_NAME_LENGTH, pJob->expo_recipe);
-
-	if (m_stJob.IsValid())
+	catch(exception e)
 	{
-		m_pDrawPrev->LoadMark(uvEng_JobRecipe_GetSelectRecipe());
-		m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+		return FALSE;
 	}
 	
 	return TRUE;
@@ -665,6 +675,8 @@ void CDlgManual::UpdateGridInformation()
 	int	nGridIndex = eGRD_INFORMATION;
 	CUniToChar csCnv;
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	if (pstRecipe == nullptr) return;
+
 	LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 
 
@@ -1359,9 +1371,20 @@ BOOL CDlgManual::MarkZero()
 	pstGrab[2] = uvEng_Camera_GetGrabbedMark(0x02, 0x00);
 	pstGrab[3] = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
 
+
+
 	//int x, y;
 	TCHAR tzMesg[128] = { NULL };
 	DOUBLE derrorX[2], derrorY[2];
+
+
+
+	/* 현재 거버가 적재되어 있는지 확인 */
+	if (pstGrab[0] == nullptr || pstGrab[1] == nullptr || pstGrab[2] == nullptr || pstGrab[3] == nullptr)
+	{
+		AfxMessageBox(L"make zero calibration need all marks are grab first.", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
 
 
 	/* 현재 거버가 적재되어 있는지 확인 */

@@ -462,18 +462,23 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 														, L"Global 4 Local 3_2" , L"Global 4 Local 4_2" , L"Global 4 Local 5_2" };
 	TCHAR tzMarkType[2][20] = { L"Geomatrix", L"Pattern Image" };
 	TCHAR tzLampType[2][8] = { L"Ring", L"Coaxial" };
+
+ 
 	swprintf_s(tzResult, 1024, L"%s,%d,%.2f,%s,%s,%s,%d,%d,",
 		csCnv1.Ansi2Uni(pstJobRecipe->gerber_name), pstJobRecipe->material_thick, pstJobRecipe->expo_energy, tzAlignType[pstAlignRecipe->align_type],
 		tzMarkType[pstAlignRecipe->mark_type], tzLampType[pstAlignRecipe->lamp_type], pstAlignRecipe->gain_level[0], pstAlignRecipe->gain_level[1]);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-
-	
+ 
+ 
+	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
 	/*ExpoLog 기록*/
 	memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);
 	m_stExpoLog.material_thick	= pstJobRecipe->material_thick;
 	m_stExpoLog.expo_energy		= pstJobRecipe->expo_energy;
+
 	m_stExpoLog.align_type		= pstAlignRecipe->align_type;
+
 	m_stExpoLog.mark_type		= pstAlignRecipe->mark_type;
 	m_stExpoLog.lamp_type		= pstAlignRecipe->lamp_type;
 	m_stExpoLog.gain_level[0]	= pstAlignRecipe->gain_level[0];
@@ -500,69 +505,69 @@ VOID CWorkExpoOnly::SetPhilProcessCompelet()
 
 	/*노광 결과 파라미터값*/
 	stProcessComp.usCount = 15;
-	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "CHAR");
-	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Data");
-	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.data);
+	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "CHAR");
+	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Data");
+	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.data);
 
-	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT64");
-	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Time");
-	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%lld", m_stExpoLog.expo_time);
+	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT64");
+	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Time");
+	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%lld", m_stExpoLog.expo_time);
 
-	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Mode");
-	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "Direct");
+	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Mode");
+	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "Direct");
 
-	sprintf_s(stProcessComp.stVar[3].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[3].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Succ");
-	sprintf_s(stProcessComp.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
+	sprintf_s(stProcessComp.stVar[3].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[3].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Succ");
+	sprintf_s(stProcessComp.stVar[3].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
 
-	sprintf_s(stProcessComp.stVar[4].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT32");
-	sprintf_s(stProcessComp.stVar[4].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Real Scale");
-	sprintf_s(stProcessComp.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", m_stExpoLog.real_scale);
+	sprintf_s(stProcessComp.stVar[4].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT32");
+	sprintf_s(stProcessComp.stVar[4].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Real Scale");
+	sprintf_s(stProcessComp.stVar[4].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.1f", m_stExpoLog.real_scale);
 
-	sprintf_s(stProcessComp.stVar[5].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "INT32");
-	sprintf_s(stProcessComp.stVar[5].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Real Rotain");
-	sprintf_s(stProcessComp.stVar[5].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", m_stExpoLog.real_rotaion);
+	sprintf_s(stProcessComp.stVar[5].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "INT32");
+	sprintf_s(stProcessComp.stVar[5].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Real Rotain");
+	sprintf_s(stProcessComp.stVar[5].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.1f", m_stExpoLog.real_rotaion);
 
-	sprintf_s(stProcessComp.stVar[6].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "PCHAR");
-	sprintf_s(stProcessComp.stVar[6].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Name");
-	sprintf_s(stProcessComp.stVar[6].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.gerber_name);
+	sprintf_s(stProcessComp.stVar[6].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "PCHAR");
+	sprintf_s(stProcessComp.stVar[6].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gerber Name");
+	sprintf_s(stProcessComp.stVar[6].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.gerber_name);
 
-	sprintf_s(stProcessComp.stVar[7].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT32");
-	sprintf_s(stProcessComp.stVar[7].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Material Thick");
-	sprintf_s(stProcessComp.stVar[7].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.material_thick);
+	sprintf_s(stProcessComp.stVar[7].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT32");
+	sprintf_s(stProcessComp.stVar[7].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Material Thick");
+	sprintf_s(stProcessComp.stVar[7].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.material_thick);
 
-	sprintf_s(stProcessComp.stVar[8].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "float");
-	sprintf_s(stProcessComp.stVar[8].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Energy");
-	sprintf_s(stProcessComp.stVar[8].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, " %.1f", m_stExpoLog.expo_energy);
+	sprintf_s(stProcessComp.stVar[8].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "float");
+	sprintf_s(stProcessComp.stVar[8].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Expo Energy");
+	sprintf_s(stProcessComp.stVar[8].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, " %.1f", m_stExpoLog.expo_energy);
 
-	sprintf_s(stProcessComp.stVar[9].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[9].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Align Type");
-	sprintf_s(stProcessComp.stVar[9].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.align_type);
+	sprintf_s(stProcessComp.stVar[9].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[9].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Align Type");
+	sprintf_s(stProcessComp.stVar[9].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.align_type);
 
-	sprintf_s(stProcessComp.stVar[10].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[10].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Mark Type");
-	sprintf_s(stProcessComp.stVar[10].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.mark_type);
+	sprintf_s(stProcessComp.stVar[10].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[10].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Mark Type");
+	sprintf_s(stProcessComp.stVar[10].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.mark_type);
 
-	sprintf_s(stProcessComp.stVar[11].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[11].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Lamp Type");
-	sprintf_s(stProcessComp.stVar[11].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.lamp_type);
+	sprintf_s(stProcessComp.stVar[11].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[11].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Lamp Type");
+	sprintf_s(stProcessComp.stVar[11].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.lamp_type);
 
-	sprintf_s(stProcessComp.stVar[12].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[12].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gain Level1");
-	sprintf_s(stProcessComp.stVar[12].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.gain_level[0]);
+	sprintf_s(stProcessComp.stVar[12].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[12].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gain Level1");
+	sprintf_s(stProcessComp.stVar[12].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.gain_level[0]);
 
-	sprintf_s(stProcessComp.stVar[13].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[13].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gain Level2");
-	sprintf_s(stProcessComp.stVar[13].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.gain_level[1]);
+	sprintf_s(stProcessComp.stVar[13].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[13].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gain Level2");
+	sprintf_s(stProcessComp.stVar[13].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.gain_level[1]);
 
-	sprintf_s(stProcessComp.stVar[14].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "PCHAR");
-	sprintf_s(stProcessComp.stVar[14].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Power Name");
-	sprintf_s(stProcessComp.stVar[14].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.power_name);
+	sprintf_s(stProcessComp.stVar[14].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "PCHAR");
+	sprintf_s(stProcessComp.stVar[14].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Power Name");
+	sprintf_s(stProcessComp.stVar[14].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.power_name);
 
-	sprintf_s(stProcessComp.stVar[15].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[15].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Led Duty Cycle");
-	sprintf_s(stProcessComp.stVar[15].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.led_duty_cycle);
+	sprintf_s(stProcessComp.stVar[15].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[15].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Led Duty Cycle");
+	sprintf_s(stProcessComp.stVar[15].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.led_duty_cycle);
 
 	if (!m_stExpoLog.expo_succ)
 	{

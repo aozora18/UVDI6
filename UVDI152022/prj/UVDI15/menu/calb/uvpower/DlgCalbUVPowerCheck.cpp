@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 #include <afxtaskdialog.h>
-
+#include <map>
 /*
  desc : 생성자
  parm : id		- [in]  자신의 윈도 ID
@@ -577,7 +577,11 @@ VOID CDlgCalbUVPowerCheck::MakeRecipe()
 		{
 			fWatt = (float)_ttof(stVctParam[nLed].strValue);
 			u16Index = CPowerMeasureMgr::GetInstance()->GetPowerIndex(nPH + 1, nLed, (double)fWatt);
-
+			if (u16Index == -1)
+			{
+				AfxMessageBox(_T("저장 실패!현재 측정된 power index내에서 범위를 유추할수 없는 출력값입니다."));
+				return;
+			}
 			stData.led_watt[nPH][nLed - 1] = fWatt;
 			stData.led_index[nPH][nLed - 1] = u16Index;
 		}
@@ -590,7 +594,6 @@ VOID CDlgCalbUVPowerCheck::MakeRecipe()
 
 	uvEng_LedPower_LoadPower();
 }
-
 
 
 VOID CDlgCalbUVPowerCheck::MakeMaxRecipe()
@@ -644,44 +647,23 @@ VOID CDlgCalbUVPowerCheck::MakeMaxRecipe()
 	stData.led_name = strA.GetBuffer();
 
 	dRate = _ttof(stVctParam[1].strValue) / 100;
-
 	
-	for (int nLed = 1; nLed <= uvEng_GetConfig()->luria_svc.led_count; nLed++)
+	caliMode = CALIMODE::MATCH_LAMP;
+
+	switch (caliMode)
 	{
-		for (int nPH = 0; nPH < uvEng_GetConfig()->luria_svc.ph_count; nPH++)
-		{
-			if (FALSE == CPowerMeasureMgr::GetInstance()->GetMaxValue(nPH + 1, nLed, u16Index, dWatt))
-			{
-				continue;
-			}
-
-			dMinWatt = (dMinWatt > dWatt) ? dWatt : dMinWatt;
-		}
-
-		dMinWatt *= dRate;
-
-		for (int nPH = 0; nPH < uvEng_GetConfig()->luria_svc.ph_count; nPH++)
-		{
-			u16Index = CPowerMeasureMgr::GetInstance()->GetPowerIndex(nPH + 1, nLed, dMinWatt);
-
-			stData.led_watt[nPH][nLed - 1] = (float)dMinWatt;
-			stData.led_index[nPH][nLed - 1] = u16Index;
-		}
+	case CALIMODE::MATCH_PH:
+	{
+		CalculatePowerEachPH(stData, dRate);
 	}
+	break;
 
-// 	for (int nPH = 0; nPH < uvEng_GetConfig()->luria_svc.ph_count; nPH++)
-// 	{
-// 		for (int nLed = 1; nLed <= uvEng_GetConfig()->luria_svc.led_count; nLed++)
-// 		{
-// 			if (FALSE == CPowerMeasureMgr::GetInstance()->GetMaxValue(nPH + 1, nLed, u16Index, dWatt))
-// 			{
-// 				continue;
-// 			}
-// 
-// 			stData.led_watt[nPH][nLed - 1] = (float)dWatt;
-// 			stData.led_index[nPH][nLed - 1] = u16Index;
-// 		}
-// 	}
+	case CALIMODE::MATCH_LAMP:
+	{
+		CalculatePowerEachLED(stData, dRate);
+	}
+	break;
+	}
 
 	uvEng_LedPower_SavePowerEx(&stData);
 	strA.ReleaseBuffer();
@@ -691,6 +673,94 @@ VOID CDlgCalbUVPowerCheck::MakeMaxRecipe()
 	uvEng_LedPower_LoadPower();
 }
 
+VOID CDlgCalbUVPowerCheck::CalculatePowerEachLED(STG_PLPI& stData, double dRate)
+{
+
+	struct Rank
+	{
+		int phIndex;
+		int LEDIndex;
+		UINT16 u16Index;
+		double dPower;
+	};
+
+
+	auto measureTable = CPowerMeasureMgr::GetInstance()->GetPowerTable();
+
+	//  헤드     led     값
+	map<int, map<int, ST_LED_VALUE>> tempSort;
+
+	for (int led = 0; led < uvEng_GetConfig()->luria_svc.led_count; led++)
+	{
+		for (int ph = 0; ph < uvEng_GetConfig()->luria_svc.ph_count; ph++)
+		{
+			auto copyClone = measureTable[ph][led];
+			std::sort(copyClone.begin(), copyClone.end(), [](ST_LED_VALUE& a, ST_LED_VALUE& b) { return a.dPower > b.dPower; }); //내림차순
+			tempSort[ph][led] = *copyClone.begin(); //젤 높은값
+		}
+	} //각 포토헤드별 램프별 가장 높은값을 모음
+
+
+	map<int, Rank> tempResult;
+	for (int led = 0; led < uvEng_GetConfig()->luria_svc.led_count; led++)
+	{
+		vector<Rank> tempRank;
+		for (int ph = 0; ph < uvEng_GetConfig()->luria_svc.ph_count; ph++)
+		{
+			Rank temp;
+			temp.LEDIndex = led;
+			temp.phIndex = ph;
+			temp.u16Index = tempSort[ph][led].u16Index;
+			temp.dPower = tempSort[ph][led].dPower;
+			tempRank.push_back(temp);
+		}
+		std::sort(tempRank.begin(), tempRank.end(), [](Rank& a, Rank& b) {return a.dPower < b.dPower; }); // 오름차순
+		tempResult[led] = *tempRank.begin();
+	}
+
+	for (int ph = 0; ph < uvEng_GetConfig()->luria_svc.ph_count; ph++)
+	for (int led = 0; led < uvEng_GetConfig()->luria_svc.led_count; led++)
+	{
+		float destPower = tempResult[led].dPower * dRate;
+		UINT16 pIdx = CPowerMeasureMgr::GetInstance()->GetPowerIndex(ph + 1, led+1, destPower);
+		
+		stData.led_watt[ph][led] = destPower;
+		stData.led_index[ph][led] = pIdx;
+	}
+}
+
+
+VOID CDlgCalbUVPowerCheck::CalculatePowerEachPH(STG_PLPI& stData, double dRate)
+{
+	//기존것.
+	double dWatt = 0.0;
+	double dMinWatt = 99.99;
+	UINT16 u16Index = 0;
+
+	for (int nPH = 0; nPH < uvEng_GetConfig()->luria_svc.ph_count; nPH++)
+	{
+		for (int nLed = 1; nLed <= uvEng_GetConfig()->luria_svc.led_count; nLed++)
+		{
+			if (FALSE == CPowerMeasureMgr::GetInstance()->GetMaxValue(nPH + 1, nLed, u16Index, dWatt))
+			{
+				continue;
+			}
+			dMinWatt = (dMinWatt > dWatt) ? dWatt : dMinWatt;
+		}
+	}
+
+	dMinWatt *= dRate;
+
+	for (int nPH = 0; nPH < uvEng_GetConfig()->luria_svc.ph_count; nPH++)
+	{
+		for (int nLed = 1; nLed <= uvEng_GetConfig()->luria_svc.led_count; nLed++)
+		{
+			u16Index = CPowerMeasureMgr::GetInstance()->GetPowerIndex(nPH + 1, nLed, dMinWatt);
+			stData.led_watt[nPH][nLed - 1] = (float)dMinWatt;
+			stData.led_index[nPH][nLed - 1] = u16Index;
+		}
+	}
+}
 
 VOID CDlgCalbUVPowerCheck::UpdateRecipeData()
 {
@@ -809,6 +879,7 @@ VOID CDlgCalbUVPowerCheck::OnBtnClick(UINT32 id)
 		CheckStart();
 		break;
 	case eCALB_UVPOWER_CHECK_BTN_STOP:
+		CPowerMeasureMgr::GetInstance()->AllPhotoLedOff();
 		CheckStop();
 		break;
 	case eCALB_UVPOWER_CHECK_BTN_OPEN_CTRL_PANEL:

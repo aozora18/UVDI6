@@ -23,7 +23,7 @@ protected:
 	HWND				m_hCount;				/* Exposure Count 윈도 핸들 */
 	//HWND				m_hMark;				/* Mark Recipe 윈도 핸들 */				=> MainDlg 이동
 	HWND				m_hTempDI[4];			/* DI 내부 온도 윈도 핸들 */
-	HWND				m_hTempPH[2];			/* PH 내부 온도 윈도 핸들 */
+	HWND				m_hTempPH[6];			/* PH 내부 온도 윈도 핸들 */
 	HWND				m_hRate;				/* 작업 진척도 윈도 핸들 */
 
 	CString				m_strProcess;

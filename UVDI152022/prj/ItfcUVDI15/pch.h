@@ -20,7 +20,7 @@ extern LOGFONT				g_lf;
 /* 엔진 초기화 되었는지 여부에 따라 */
 extern BOOL					g_bEngineInited;
 extern TCHAR				g_tzPEngine[MAX_FILE_LEN];
-
+extern BOOL terminated;
 #if (MC2_DRIVE_2SET == 0)
 /* MC2 Global Parameter */
 extern UINT8				g_u8DrvDoneToggled[MAX_MC2_DRIVE];

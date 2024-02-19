@@ -303,6 +303,7 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 	m_pstCfg->luria_svc.ph_rotate					= GetConfigUint8(L"PH_ROTATE");
 	m_pstCfg->luria_svc.use_announcement			= GetConfigUint8(L"USE_ANNOUNCEMENT");
 	m_pstCfg->luria_svc.use_hw_inited				= GetConfigUint8(L"USE_HW_INITED");
+	m_pstCfg->luria_svc.use_af						= GetConfigUint8(L"USE_AF");
 	m_pstCfg->luria_svc.motion_control_type			= GetConfigUint8(L"MOTION_CONTROL_TYPE");
 	m_pstCfg->luria_svc.hys_type_1_scroll_mode		= GetConfigUint8(L"HYS_TYPE_1_SCROLL_MODE");
 	m_pstCfg->luria_svc.hys_type_1_negative_offset	= GetConfigUint8(L"HYS_TYPE_1_NEGATIVE_OFFSET");
@@ -474,6 +475,8 @@ BOOL CConfComn::SaveConfigLuriaSvc()
 	SetConfigUint32(L"OPTIC_VER_MAJOR",				m_pstCfg->luria_svc.luria_ver_major);
 	SetConfigUint32(L"OPTIC_VER_MINOR",				m_pstCfg->luria_svc.luria_ver_minor);
 	SetConfigUint32(L"OPTIC_VER_BUILD",				m_pstCfg->luria_svc.luria_ver_build);
+
+	SetConfigUint32(L"USE_AF",						m_pstCfg->luria_svc.use_af);
 
 	SetConfigDouble(L"MAX_Y_MOTION_SPEED",			m_pstCfg->luria_svc.max_y_motion_speed,			3);
 	SetConfigDouble(L"X_MOTION_SPEED",				m_pstCfg->luria_svc.x_motion_speed,				3);

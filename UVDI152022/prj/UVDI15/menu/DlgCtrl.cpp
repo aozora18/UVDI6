@@ -1235,10 +1235,10 @@ void CDlgCtrl::StrobeLampSampleFunction()
 	uint8_t  mode = 0;				//	Spec ( 0 ~ 5	)
 
 	//	Ex Send 1. 
-	uvEng_StrobeLamp_Send_ChannelDelayControl(page, channel, delayValue);
+//	uvEng_StrobeLamp_Send_ChannelDelayControl(page, channel, delayValue);
  
 // 	//	Ex Send 2. 
-// 	uvEng_StrobeLamp_Send_ChannelStrobeControl(page, channel, strobeValue);
+ 	uvEng_StrobeLamp_Send_ChannelStrobeControl(page, channel, strobeValue);
 // 
 // 	//	Ex Send 3. 
 // 	uvEng_StrobeLamp_Send_ChannelWrite(page, channel, delayValue, strobeValue);

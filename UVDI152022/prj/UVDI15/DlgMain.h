@@ -103,13 +103,15 @@ protected:
 /* 로컬 변수 */
 protected:
 
-	BOOL				m_bLDSMeasure;
 	UINT8				m_u8NextReqCmd;		/* 다음의 상태 정보 요청 순서 값 */
 	UINT8				m_u8MsgLogNext;		/* 다음에 출력될 메시지 인덱스 */
 
 	UINT64				m_u64TickPeriod;	/* 주기적으로 갱신한 최근 시간 저장 */
 	UINT64				m_u64ReqCmdTime;	/* 가장 최근의 상태 정보 요청 시간 임시 저장 */
 	UINT64				m_u64MsgLogTime;	/* 에러 로그 출력하는데 일정시간 대기 하기 위함 */
+
+	UINT64				m_u64DelayTimeHMI;
+	UINT64				m_u64StartTimeHMI;			/* 작업 시작 시간 저장 */
 
 	CMainThread			*m_pMainThread;
 	/* Logo Images 출력 */
@@ -151,6 +153,7 @@ protected:
 	VOID				ResetErrorMessage();
 	VOID				UpdateCommState();
 	VOID				UpdateLDSMeasure();
+	VOID				UpdateSafePosCheck();
 	VOID				UpdatePhilState();
 
 	BOOL				CreateMenu(UINT32 id);
@@ -158,6 +161,9 @@ protected:
 
 	VOID				ExitApp();
 	void				CreateUserFont();
+
+	CString				m_strLog;
+	VOID				txtWrite(CString msg);
 
 /* 공용 함수 */
 public:
@@ -168,16 +174,25 @@ public:
 	BOOL				IsBusyWorkJob();
 	ENG_BWOK			GetWorkJobID();
 
-	VOID				PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendDelectRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendMove(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendDelectRecipe(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount);
+	VOID				PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv);
+	//VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendSubProcessExecute(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendEventNotify(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendInterruptStop(STG_PP_PACKET_RECV* stRecv);
+
 /* 사용자 메시지 함수 */
 protected:
 	LRESULT				OnOpenMotorConsole(WPARAM wParam, LPARAM lParam);
@@ -194,6 +209,7 @@ protected:
 	afx_msg LRESULT		OnMsgMainProcessUpdate(WPARAM wparam, LPARAM lparam);
 	// by sysandj : philhmi 관련 메세지 요청
 	afx_msg LRESULT		OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT		OnMsgMainPhilMsg(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT		OnMsgMainStrobeLamp(WPARAM wparam, LPARAM lparam);
 	// by sysandj : philhmi 관련 메세지 요청
 	afx_msg LRESULT		OnMsgMainRecipeCreate(WPARAM wparam, LPARAM lparam);

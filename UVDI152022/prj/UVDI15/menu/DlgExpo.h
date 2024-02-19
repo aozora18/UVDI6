@@ -15,11 +15,11 @@ enum EnExpoGrp
 	eEXPO_GRP_TACT_TIME		,
 	eEXPO_GRP_ALIGN_MARK	,
 	eEXPO_GRP_EXPO_INFO		,
-	eEXPO_GRP_EQUIPMENT		,
+	//eEXPO_GRP_EQUIPMENT		,
 	eEXPO_GRP_DIST_ERROR	,
 	eEXPO_GRP_DI_TEMP		,
-	eEXPO_GRP_LB_TEMP		,
-	eEXPO_GRP_TEMP_ALARM	,
+	//eEXPO_GRP_LB_TEMP		,
+	//eEXPO_GRP_TEMP_ALARM	,
 	eEXPO_GRP_MARK_PAGE		,
 	eEXPO_GRP_MAX,
 };
@@ -87,12 +87,16 @@ enum EnExpoVal
 	eEXPO_TXT_TACT_LAST,
 	eEXPO_TXT_TACT_AVERAGE,
 	eEXPO_TXT_EXPO_COUNT,
-	eEXPO_TXT_DI_TEMP1,
-	eEXPO_TXT_DI_TEMP2,
-	eEXPO_TXT_DI_TEMP3,
-	eEXPO_TXT_DI_TEMP4,
+	//eEXPO_TXT_DI_TEMP1,
+	//eEXPO_TXT_DI_TEMP2,
+	//eEXPO_TXT_DI_TEMP3,
+	//eEXPO_TXT_DI_TEMP4,
 	eEXPO_TXT_LB_TEMP1,
 	eEXPO_TXT_LB_TEMP2,
+	eEXPO_TXT_LB_TEMP3,
+	eEXPO_TXT_LB_TEMP4,
+	eEXPO_TXT_LB_TEMP5,
+	eEXPO_TXT_LB_TEMP6,
 	eEXPO_TXT_VAL_MAX
 };
 
@@ -170,14 +174,14 @@ protected:
 	CMacProgress		m_pgr_ctl[eEXPO_PGR_MAX];
 
 	CMyStatic			m_txt_ctl[eEXPO_TXT_CTL_MAX];	/* Text - Normal */
-	CMyStatic			m_txt_dev[eEXPO_TXT_DEV_MAX];	/* Text - Device Status (TCP/IP or Power) */
+	//CMyStatic			m_txt_dev[eEXPO_TXT_DEV_MAX];	/* Text - Device Status (TCP/IP or Power) */
 	CMyStatic			m_txt_mak[eEXPO_TXT_MAK_MAX];	/* Text - Mark Search Results */
 	CMyStatic			m_txt_val[eEXPO_TXT_VAL_MAX];	/* Text - Data Value */
 	CMyStatic			m_txt_dst[eEXPO_TXT_DST_MAX];	/* Text - Distance between marks */
-	CMyStatic			m_txt_tmp[eEXPO_TXT_TMP_MAX];	/* Text - Temperature Alarm */
+	//CMyStatic			m_txt_tmp[eEXPO_TXT_TMP_MAX];	/* Text - Temperature Alarm */
 
 	CMyStatic			m_pic_mak[eEXPO_PIC_MAK_MAX];	/* Picture - Mark Search Results */
-	CMyStatic			m_pic_dev[eEXPO_PIC_DEV_MAX];	/* Picture - Device Status (TCP/IP or Power) */
+	//CMyStatic			m_pic_dev[eEXPO_PIC_DEV_MAX];	/* Picture - Device Status (TCP/IP or Power) */
 
 	CDrawMark			*m_pDrawMark;	/* Mark Search Results Object */
 	CDrawDev			*m_pDrawDev;	/* TCP/IP or Power Status for Device */

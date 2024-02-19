@@ -15,4 +15,8 @@ COLORREF								g_clrBtnSelColor			= DEF_COLOR_BTN_PAGE_SELECT;
 COLORREF								g_clrBtnSelTextColor		= DEF_COLOR_BTN_PAGE_SELECT_TEXT;
 UINT									g_u8Romote					= 0;
 UINT16									g_u16PhilCommand			= 0;
-UINT									g_loginLevel				= (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_UNKNOWN;
+#ifdef _DEBUG
+UINT									g_loginLevel				= (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_ADMIN;
+#else
+UINT									g_loginLevel = (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_UNKNOWN;  
+#endif

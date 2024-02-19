@@ -81,9 +81,9 @@ CMilModel::~CMilModel()
 	if (theApp.clMilMain.MilEdgeContext)	MedgeFree(theApp.clMilMain.MilEdgeContext);
 	theApp.clMilMain.MilEdgeContext = M_NULL;
 #endif
-	for (int i = 2; i >= 0; i--) {
+	for (int i = 2; i >= 0; i--) { // Global, Local, TMP_MARK 3개
 		/* 현재 설정된 모델 초기화 */
-		for (int j = 0; j < 2; j++) {
+		for (int j = 0; j < 2; j++) { // PAT, MOD 2개
 			ReleaseMarkModel(i, j);
 		}
 	}
@@ -1934,7 +1934,7 @@ BOOL CMilModel::RegistPat(PUINT8 img_src, CRect fi_rectArea, CString fi_filename
 	/* Define a unique model*/
 	//MpatDefine(m_mlPATID, M_REGULAR_MODEL, theApp.clMilMain.m_mImg[0], fi_rectArea.left, fi_rectArea.top, width, height, M_DEFAULT); 
 	MpatDefine(m_mlPATID[mark_no], M_REGULAR_MODEL, theApp.clMilMain.m_mImgProc[m_camid - 1], fi_rectArea.left, fi_rectArea.top, width, height, M_DEFAULT);
-
+	MbufSave(_T("D:\\klk\\1_pat.bmp"), theApp.clMilMain.m_mImgProc[m_camid - 1]); //lk91 tmp
 	if (m_mlPATID[mark_no]) {
 		MpatSave(fi_filename, m_mlPATID[mark_no], M_DEFAULT);
 	}
@@ -2484,7 +2484,7 @@ VOID CMilModel::MaskClear_PAT(CPoint fi_iSizeP, UINT8 mark_no)
 }
 
 /* desc : Find Center (Mark Set에서만 사용) */
-VOID CMilModel::MarkSetCenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound)
+VOID CMilModel::CenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode)
 {
 	MIL_ID MilTmpResult = M_NULL;
 	MIL_ID MilTmpEdgeContext = M_NULL;
@@ -2613,17 +2613,20 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		dlg_id = DISP_TYPE_MARK_LIVE;
 	
 	// lk91 ProcImage() 사용..
-	theApp.clMilMain.ProcImage(m_camid-1, 0);
+	//theApp.clMilMain.ProcImage(m_camid-1, 0);
 	
-	if (img_proc == 1)// lk91 이미지 처리 전역 변수 추가
-	{
-		theApp.clMilMain.ProcImage(m_camid-1, 1);
-	}
-	else {
-		theApp.clMilMain.ProcImage(m_camid-1, 0);
-	}
+	theApp.clMilMain.ProcImage(m_camid - 1, img_proc == 1 ? 1 : 0);
 
-	if(m_findMode[mark_no] == 1){
+	//if (img_proc == 1)// lk91 이미지 처리 전역 변수 추가
+	//{
+	//	theApp.clMilMain.ProcImage(m_camid-1, 1);
+	//}
+	//else {
+	//	theApp.clMilMain.ProcImage(m_camid-1, 0);
+	//}
+
+	if(m_findMode[mark_no] == 1)
+	{
 		bool brtn = RunPATFind(graph_id, theApp.clMilMain.m_mImgProc[m_camid - 1], angle, img_id, dlg_id, mark_no, useMilDisp);
 		return brtn;
 	}
@@ -3311,54 +3314,53 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 		}
 	}
 	else if (useMilDisp && dispType == DISP_TYPE_CALB_EXPO) {
-		for (int j = 0; j < 2; j++) {
-			if (bSucc)
-			{
-				theApp.clMilDisp.DrawOverlayDC(false, dispType, j);
-				for (i = 0; i < miPatResults; i++) {
-					CRect	rectArea;
-					rectArea.left = (int)(m_pFindPosX[i] - m_pstMarkModel[mark_no].iOffsetP.x);
-					rectArea.top = (int)(m_pFindPosY[i] - m_pstMarkModel[mark_no].iOffsetP.y);
-					rectArea.right = (int)(rectArea.left + m_pstMarkModel[mark_no].iSizeP.x);
-					rectArea.bottom = (int)(rectArea.top + m_pstMarkModel[mark_no].iSizeP.y);
-					theApp.clMilDisp.AddCrossList(dispType, m_camid - 1, (int)m_pFindPosX[i] - tmpSearchROI.left, (int)m_pFindPosY[i] - tmpSearchROI.top, 50, 50, COLOR_GREEN);
-					theApp.clMilDisp.AddBoxList(dispType, m_camid - 1, rectArea.left - tmpSearchROI.left, rectArea.top - tmpSearchROI.top,
-						rectArea.right - tmpSearchROI.left, rectArea.bottom - tmpSearchROI.top, PS_SOLID, COLOR_GREEN);
+		if (bSucc)
+		{
+			theApp.clMilDisp.DrawOverlayDC(false, dispType, 0);
+			for (i = 0; i < miPatResults; i++) {
+				CRect	rectArea;
+				rectArea.left = (int)(m_pFindPosX[i] - m_pstMarkModel[mark_no].iOffsetP.x);
+				rectArea.top = (int)(m_pFindPosY[i] - m_pstMarkModel[mark_no].iOffsetP.y);
+				rectArea.right = (int)(rectArea.left + m_pstMarkModel[mark_no].iSizeP.x);
+				rectArea.bottom = (int)(rectArea.top + m_pstMarkModel[mark_no].iSizeP.y);
+				theApp.clMilDisp.AddCrossList(dispType, m_camid - 1, (int)m_pFindPosX[i] - tmpSearchROI.left, (int)m_pFindPosY[i] - tmpSearchROI.top, 50, 50, COLOR_GREEN);
+				theApp.clMilDisp.AddBoxList(dispType, m_camid - 1, rectArea.left - tmpSearchROI.left, rectArea.top - tmpSearchROI.top,
+					rectArea.right - tmpSearchROI.left, rectArea.bottom - tmpSearchROI.top, PS_SOLID, COLOR_GREEN);
 
-					/* 각도 측정 프로그램에서 호출한 경우라면, 아래 카메라 회전 값을 적용한 좌표 값 추출하지 않음 */
-					if (!angle)
-					{
-						/* 얼라인 카메라의 회전 각도에 따라 검색된 마크의 중심 위치가 달라짐 */
-						GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
-					}
-
-					/* Grabbed Image의 중심 좌표에서 검색된 Mark의 중심 좌표 간의 직선의 거리 구하기 */
-					m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-					/* Scale Rate 값의 오차 값을 100 percent 기준으로 환산하여 변경 후 저장 */
-					m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-					/* 검색된 객체의 크기가 등록된 마크 기준 대비 큰 것인지 아닌지 플래그 설정 */
-					if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
-					else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
-					/* --------------------------------------------------------------------------------------- */
-					/* 검색 대상에 부합되는지 확인 */
-					m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
-						m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
-						m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
-						m_pFindPosX[i], m_pFindPosY[i], u8ScaleSize, 0.0);
+				/* 각도 측정 프로그램에서 호출한 경우라면, 아래 카메라 회전 값을 적용한 좌표 값 추출하지 않음 */
+				if (!angle)
+				{
+					/* 얼라인 카메라의 회전 각도에 따라 검색된 마크의 중심 위치가 달라짐 */
+					GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 				}
 
-				theApp.clMilDisp.DrawOverlayDC(true, dispType, j);
-			}
-			else {
-				theApp.clMilDisp.DrawOverlayDC(false, dispType, j);
-				CString sTmp = _T("NG");
-				//AddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag)
-				theApp.clMilDisp.AddTextList(dispType, j, 30, 90, sTmp, eM_COLOR_RED, 10, 20, VISION_FONT_TEXT, true);
-				theApp.clMilDisp.DrawOverlayDC(true, dispType, j);
+				/* Grabbed Image의 중심 좌표에서 검색된 Mark의 중심 좌표 간의 직선의 거리 구하기 */
+				m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
+				/* Scale Rate 값의 오차 값을 100 percent 기준으로 환산하여 변경 후 저장 */
+				m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
+				/* 검색된 객체의 크기가 등록된 마크 기준 대비 큰 것인지 아닌지 플래그 설정 */
+				if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
+				else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
+				/* --------------------------------------------------------------------------------------- */
+				/* 검색 대상에 부합되는지 확인 */
+				m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
+					m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
+					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
+					m_pFindPosX[i], m_pFindPosY[i], u8ScaleSize, 0.0);
 			}
 
+			theApp.clMilDisp.DrawOverlayDC(true, dispType, 0);
 		}
+		else {
+			theApp.clMilDisp.DrawOverlayDC(false, dispType, 0);
+			CString sTmp = _T("NG");
+			//AddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag)
+			theApp.clMilDisp.AddTextList(dispType, j, 30, 90, sTmp, eM_COLOR_RED, 10, 20, VISION_FONT_TEXT, true);
+			theApp.clMilDisp.DrawOverlayDC(true, dispType, 0);
+		}
+		
 	}
+
 	else {
 		if (bSucc)
 		{

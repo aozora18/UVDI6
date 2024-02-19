@@ -260,19 +260,35 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 		}
 	}
 
-	/* Align Camera의 Gain Level 값 설정 */
-	if (!uvEng_Camera_SetGainLevel(0x01, pstAlignRecipe->gain_level[0]))
-	{ 
-		//AfxMessageBox(L"The gerber file registered in the recipe does not exist");
-		//AfxMessageBox(L"Failed to set Gain Level value of Align Camera1");
-		//return FALSE;
-	}
-	if (!uvEng_Camera_SetGainLevel(0x02, pstAlignRecipe->gain_level[1]))
+//카메라 게인레벨 카메라 설정 갯수에 따라서	
+	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 	{
-		//AfxMessageBox(L"The gerber file registered in the recipe does not exist");
-		//AfxMessageBox(L"Failed to set Gain Level value of Align Camera2");
-		//return FALSE;
+		try
+		{
+			uvEng_Camera_SetGainLevel(i + 1, pstAlignRecipe->gain_level[i]);
+		}
+		catch(exception e)
+		{
+
+		}
 	}
+
+
+
+	///* Align Camera의 Gain Level 값 설정 */
+	//if (!uvEng_Camera_SetGainLevel(0x01, pstAlignRecipe->gain_level[0]))
+	//{ 
+	//	//AfxMessageBox(L"The gerber file registered in the recipe does not exist");
+	//	//AfxMessageBox(L"Failed to set Gain Level value of Align Camera1");
+	//	//return FALSE;
+	//}
+	//if (!uvEng_Camera_SetGainLevel(0x02, pstAlignRecipe->gain_level[1]))
+	//{
+	//	//AfxMessageBox(L"The gerber file registered in the recipe does not exist");
+	//	//AfxMessageBox(L"Failed to set Gain Level value of Align Camera2");
+	//	//return FALSE;
+	//}
+
 
 
 	/* 기존 적재된 Recipe 관련 거버 정보 초기화 */
@@ -303,7 +319,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 		return FALSE;
 	}
 
-	for (int index = 0; index < 2; index++)
+	for (int index = 0; index < 2; index++) 
 	{
 		UINT8 u8Speed = (UINT8)uvEng_GetConfig()->mark_find.model_speed;
 		UINT8 u8Level = (UINT8)uvEng_GetConfig()->mark_find.detail_level;
@@ -331,7 +347,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 			{
 				bmmfFile = true;
 				bpatFile = false;
-				for (int i = 0; i < 2; i++) {
+				for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 						pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(pstMark->file),
 						dbScaleMin, dbScaleMax, dbScoreRate);
@@ -349,7 +365,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 				else
 					bmmfFile = false;
 				if (bmmfFile) {
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 							pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(tmpfile),
 							dbScaleMin, dbScaleMax, dbScoreRate);
@@ -366,7 +382,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 				else
 					bpatFile = false;
 				if (bpatFile) {
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 							pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(tmpfile),
 							dbScaleMin, dbScaleMax, dbScoreRate);

@@ -25,6 +25,7 @@ extern "C"
 	API_IMPORT BOOL uvEng_Philhmi_GetRecvDataFromCommand(int nCommand, STG_PP_PACKET_RECV* stRecv);
 	API_IMPORT BOOL uvEng_Philhmi_GetRecvDataFromUniqueID(unsigned int nUniqueID, STG_PP_PACKET_RECV* stRecv);
 	API_IMPORT BOOL uvEng_Philhmi_GetRecvWaitFromUniqueID(unsigned int nUniqueID, STG_PP_PACKET_RECV* stRecv, int nTimeout);
+	API_IMPORT BOOL uvEng_uvPhilhmi_IsSyncResultLocked();
 	API_IMPORT BOOL uvEng_Philhmi_DeleteRecvDataFromUniqueID(unsigned int nUniqueID);
 	API_IMPORT BOOL uvEng_Philhmi_Send_P2C_RCP_CREATE(STG_PP_P2C_RCP_CREATE& stSend, STG_PP_P2C_RCP_CREATE_ACK& stRecv, int nTimeout = 5000);
 	API_IMPORT BOOL uvEng_Philhmi_Send_P2C_RCP_DELETE(STG_PP_P2C_RCP_DELETE& stSend, STG_PP_P2C_RCP_DELETE_ACK& stRecv, int nTimeout = 5000);
@@ -59,6 +60,7 @@ extern "C"
 	API_IMPORT BOOL uvEng_Philhmi_Send_C2P_CHAR_MOVE_ACK(STG_PP_C2P_CHAR_MOVE_ACK& stSend);
 	API_IMPORT BOOL uvEng_Philhmi_Send_C2P_CHAR_MOVE_COMP_ACK(STG_PP_C2P_CHAR_MOVE_COMP_ACK& stSend);
 	API_IMPORT BOOL uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(STG_PP_C2P_PROCESS_EXECUTE_ACK& stSend);
+	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_INITIAL_EXECUTE_ACK(STG_PP_C2P_INITIAL_EXECUTE_ACK& stSend);
 	API_IMPORT BOOL uvEng_Philhmi_Send_C2P_SUBPROCESS_EXECUTE_ACK(STG_PP_C2P_SUBPROCESS_EXECUTE_ACK& stSend);
 	API_IMPORT BOOL uvEng_Philhmi_Send_C2P_STATUS_VALUE_ACK(STG_PP_C2P_STATUS_VALUE_ACK& stSend);
 	API_IMPORT BOOL uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(STG_PP_C2P_MODE_CHANGE_ACK& stSend);

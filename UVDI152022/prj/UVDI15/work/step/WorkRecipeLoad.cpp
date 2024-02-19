@@ -6,7 +6,7 @@
 #include "pch.h"
 #include "../../MainApp.h"
 #include "WorkRecipeLoad.h"
-
+#include "../../../UVDI15/GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -65,6 +65,7 @@ BOOL CWorkRecipeLoad::InitWork()
 */
 VOID CWorkRecipeLoad::DoWork()
 {
+
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
@@ -468,6 +469,14 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to load the xml file for selected recipe");
 		return ENG_JWNS::en_error;
 	}
+
+	
+	
+	GlobalVariables::getInstance()->GetAlignMotion().SetFiducial(uvEng_Luria_GetGlobalFiducial(),uvEng_Luria_GetLocalFiducial(), uvEng_GetConfig()->set_cams.acam_count);
+	GlobalVariables::getInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
+
+
+ 
 
 	/* GerberJobLoaded 대기 시간 및 카운팅 초기화 */
 	m_u64TickLoaded	= GetTickCount64();

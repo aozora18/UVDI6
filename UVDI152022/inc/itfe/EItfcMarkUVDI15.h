@@ -17,7 +17,7 @@ CUSTOM_CODE_HDDI6== DELIVERY_PRODUCT_ID)
 
 #endif
 
-
+class AlignMotion;
 
 #ifdef __cplusplus
 extern "C"
@@ -144,6 +144,7 @@ API_IMPORT VOID uvEng_MarkSelAlignRecipeReset();
 */
 API_IMPORT BOOL uvEng_Mark_SelAlignRecipeName(PTCHAR r_name);
 
+API_IMPORT BOOL uvEng_Mark_SetAlignMotionPtr(AlignMotion& ptr);
 
 /*
  desc : 현재 선택된 Recipe의 Mark 구성 방식이 Shared Type인지 여부

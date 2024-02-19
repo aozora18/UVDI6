@@ -13,14 +13,18 @@
 /*                                           상수 정의                                           */
 /* --------------------------------------------------------------------------------------------- */
 #define		WM_PHILHMI_MSG_THREAD				WM_USER + 3000
-#define		DEF_MAX_RECIPE_NAME_LENGTH			40
+#define		DEF_MAX_RECIPE_NAME_LENGTH			128
 #define		DEF_MAX_RECIPE_COUNT				200
 #define		DEF_MAX_RECIPE_PARAM_TYPE_LENGTH	10
 #define		DEF_MAX_RECIPE_PARAM_NAME_LENGTH	40
-#define		DEF_MAX_RECIPE_PARAM_VALUE_LENGTH	100
+#define		DEF_MAX_RECIPE_PARAM_VALUE_LENGTH	512
 #define		DEF_MAX_RECIPE_PARAM_COUNT			100
+#define		DEF_MAX_POSITION_AXIS_LENGTH		40
 #define		DEF_MAX_POSITION_NAME_LENGTH		20
 #define		DEF_MAX_GLASS_NAME_LENGTH			40
+#define		DEF_MAX_STATE_PARAM_TYPE_LENGTH		10
+#define		DEF_MAX_STATE_PARAM_NAME_LENGTH		40
+#define		DEF_MAX_STATE_PARAM_VALUE_LENGTH	100
 #define		DEF_MAX_PROCESS_PARAM_VALUE_LENGTH	20
 #define		DEF_MAX_SUBPROCESS_NAME_LENGTH		20
 #define		DEF_MAX_EVENT_NAME_LENGTH			40
@@ -49,8 +53,10 @@ ePHILHMI_C2P_RECIPE_CREATE			= 101,
 	ePHILHMI_C2P_CHAR_MOVE_COMPLETE		= 318,	
 	ePHILHMI_C2P_PROCESS_EXECUTE		= 502,	
 	ePHILHMI_C2P_SUB_PROCESS_EXECUTE	= 503,
+	ePHILHMI_C2P_EC_INFORMATION			= 701,
 	ePHILHMI_C2P_STATUS_VALUE			= 702,
-	ePHILHMI_C2P_MODE_CHANGE			= 703,	
+	ePHILHMI_C2P_MODE_CHANGE			= 703,
+	ePHILHMI_C2P_INITIAL_EXECUTE		= 704,
 	ePHILHMI_C2P_EVENT_STATUS			= 710,
 	ePHILHMI_C2P_EVENT_NOTIFY			= 711,	
 	ePHILHMI_C2P_TIME_SYNC				= 712,	
@@ -103,8 +109,9 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_MOTOR_PLM						= 20012,	//	PLM 센서 감지 중
 	ePHILHMI_ERR_MOTOR_NLM						= 20013,	//	NLM 센서 감지 중
 	ePHILHMI_ERR_MOTOR_ALARM					= 20014,	//	모터 알람 상태
-	ePHILHMI_ERR_MOTOR_OFF_LOCK					= 20015,	//	모터 서버 Locked off 상태
-	ePHILHMI_ERR_MOTOR_IO_CHECK					= 20016,	//  모터 동작에 방해하는 IO 상태
+	//ePHILHMI_ERR_MOTOR_OFF_LOCK					= 20015,	//	모터 서버 Locked off 상태
+	ePHILHMI_ERR_MOTOR_RUN_TIMEOUT				= 20015,	//	모터 구동 시간 초과
+	//ePHILHMI_ERR_MOTOR_IO_CHECK					= 20016,	//  모터 동작에 방해하는 IO 상태
 	/* STATUS */
 	ePHILHMI_ERR_STATUS_MODE					= 30001,	//	정의되지 않은 모드
 	ePHILHMI_ERR_STATUS_EVENT					= 30002,	//	정의되지 않은 이벤트
@@ -112,6 +119,7 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_STATUS_COMPLETE				= 30004,	//	주 공정 시퀀스 비정상 완료
 	ePHILHMI_ERR_STATUS_CHANGE					= 30010,	//	모드 변경 불가
 	ePHILHMI_ERR_STATUS_INIT					= 30011,	//	초기화 실패
+	ePHILHMI_ERR_STATUS_INIT_NEED				= 30012,	//	초기화 필요
 
 	/* USER */
 	ePHILHMI_ERR_ACK_TIMEOUT					= 60000,	
@@ -150,7 +158,7 @@ typedef struct __st_phil_packet_header__
 		
 }	STG_PPH, * LPG_PPH;
 
-typedef struct __st_phil_packet_dynamic_var__
+typedef struct __st_phil_packet_dynamic_recipe__
 {
 	void Reset()
 	{
@@ -166,6 +174,23 @@ typedef struct __st_phil_packet_dynamic_var__
 	char			szParameterName[DEF_MAX_RECIPE_PARAM_NAME_LENGTH];  // Parameter 명은 최대 40자		
 	char			szParameterValue[DEF_MAX_RECIPE_PARAM_VALUE_LENGTH];// Parameter 값은 최대 10자		
 }	STG_PP_VAR, * LPG_PP_VAR;
+
+typedef struct __st_phil_packet_dynamic_state__
+{
+	void Reset()
+	{
+		ZeroMemory(this, sizeof(*this));
+	}
+
+	char			szParameterType[DEF_MAX_STATE_PARAM_TYPE_LENGTH];	// Parameter 데이터 타입
+	//	- BOOL
+	//	- INT
+	//	- DOUBLE
+	//	- STRING
+
+	char			szParameterName[DEF_MAX_STATE_PARAM_NAME_LENGTH];  // Parameter 명은 최대 40자		
+	char			szParameterValue[DEF_MAX_STATE_PARAM_VALUE_LENGTH];// Parameter 값은 최대 10자		
+}	STG_PP_STATE, * LPG_PP_STATE;
 
 /* 송/수신 패킷 */
 //////////////////////////////////////////////////////////////////////////
@@ -575,7 +600,7 @@ typedef struct __st_phil_packet_move_info__
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	char szAxisName[DEF_MAX_RECIPE_NAME_LENGTH];        // 사전 협의 된 Axis 이름		
+	char szAxisName[DEF_MAX_POSITION_AXIS_LENGTH];        // 사전 협의 된 Axis 이름		
 	double dPosition;									// 이동 할 절대 Position 값		
 	double dSpeed;										// 이동 할 Speed 값		
 	double dAcc;										// 이동 할 Acc 값		
@@ -589,7 +614,7 @@ typedef struct __st_phil_packet_move_teach__
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	char szAxisName[DEF_MAX_RECIPE_NAME_LENGTH];           // 사전 협의 된 Axis 이름		
+	char szAxisName[DEF_MAX_POSITION_AXIS_LENGTH];           // 사전 협의 된 Axis 이름		
 	char szPositionName[DEF_MAX_POSITION_NAME_LENGTH];       // Position 명은 최대 20자		
 	unsigned short usTimeout;      // 이동 완료 대기 시간		
 
@@ -981,13 +1006,13 @@ typedef struct __st_phil_packet_p2c_process_complete__ : public __st_phil_packet
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 		memset(szGlassID, 0, sizeof(szGlassID));
 		usCount = 0;
-		memset(stVar, 0, sizeof(STG_PP_VAR) * DEF_MAX_RECIPE_PARAM_COUNT);
+		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_RECIPE_PARAM_COUNT);
 	}
 
 	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe 명은 최대 40자		
 	char			szGlassID[DEF_MAX_GLASS_NAME_LENGTH];						// Glass ID는 최대 40자		
 	unsigned short	usCount;													// DV Parameter 개수		
-	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
+	STG_PP_STATE		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 
 }	STG_PP_P2C_PROCESS_COMP, * LPG_PP_P2C_PROCESS_COMP;
@@ -1167,6 +1192,34 @@ typedef struct __st_phil_packet_c2p_mode_change_ack__ : public __st_phil_packet_
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
+/// INITIAL_EXECUTE
+typedef struct __st_phil_packet_c2p_initial_execute__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = ePHILHMI_C2P_INITIAL_EXECUTE;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+
+}	STG_PP_C2P_INITIAL_EXECUTE, * LPG_PP_C2P_INITIAL_EXECUTE;
+
+typedef struct __st_phil_packet_c2p_c2p_initial_execute_ack__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = ePHILHMI_C2P_INITIAL_EXECUTE;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+
+}	STG_PP_C2P_INITIAL_EXECUTE_ACK, * LPG_PP_C2P_INITIAL_EXECUTE_ACK;
+
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
 /// EVENT_STATUS
 typedef struct __st_phil_packet_c2p_event_status__ : public __st_phil_packet_header__
 {
@@ -1246,6 +1299,7 @@ typedef struct __st_phil_packet_c2p_event_notify__ : public __st_phil_packet_hea
 	}
 
 	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event 명은 최대 40자		
+	bool bEventFlag;
 
 }	STG_PP_C2P_EVENT_NOTIFY, * LPG_PP_C2P_EVENT_NOTIFY;
 
@@ -1274,6 +1328,7 @@ typedef struct __st_phil_packet_p2c_event_notify__ : public __st_phil_packet_hea
 	}
 
 	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event 명은 최대 40자		
+	bool bEventFlag;										 //
 
 }	STG_PP_P2C_EVENT_NOTIFY, * LPG_PP_P2C_EVENT_NOTIFY;
 
@@ -1397,12 +1452,12 @@ typedef struct __st_phil_packet_c2p_status_value_ack__ : public __st_phil_packet
 
 		usCount = 0;
 
-		memset(stVar, 0, sizeof(STG_PP_VAR)* DEF_MAX_RECIPE_PARAM_COUNT);
+		memset(stVar, 0, sizeof(STG_PP_STATE)* DEF_MAX_RECIPE_PARAM_COUNT);
 
 	}
 
 	unsigned short	usCount;																				// DV Parameter 개수		
-	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
+	STG_PP_STATE		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 
 }	STG_PP_C2P_STATUS_VALUE_ACK, * LPG_PP_C2P_STATUS_VALUE_ACK;
@@ -1417,11 +1472,11 @@ typedef struct __st_phil_packet_p2c_ec_modify__ : public __st_phil_packet_header
 		usErrorCode = ePHILHMI_ERR_OK;
 
 		usCount = 0;
-		memset(stVar, 0, sizeof(STG_PP_VAR) * DEF_MAX_RECIPE_PARAM_COUNT);
+		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_RECIPE_PARAM_COUNT);
 	}
 
 	unsigned short	usCount;																				// DV Parameter 개수		
-	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
+	STG_PP_STATE		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 }	STG_PP_P2C_EC_MODIFY, * LPG_PP_P2C_EC_MODIFY;
 
@@ -1557,6 +1612,7 @@ typedef union
 	STG_PP_C2P_SUBPROCESS_EXECUTE_ACK	st_c2p_ack_subprocess_execute;
 	STG_PP_C2P_STATUS_VALUE_ACK			st_c2p_ack_status_value;
 	STG_PP_C2P_MODE_CHANGE_ACK			st_c2p_ack_mode_change;
+	STG_PP_C2P_INITIAL_EXECUTE			st_c2p_ack_initial_execute;
 	STG_PP_C2P_EVENT_NOTIFY_ACK			st_c2p_ack_event_notify;
 	STG_PP_C2P_TIME_SYNC_ACK			st_c2p_ack_time_sync;
 	STG_PP_C2P_INTERRUPT_STOP_ACK		st_c2p_ack_interrupt_stop;
@@ -1601,6 +1657,7 @@ typedef union
 	STG_PP_C2P_REL_MOVE_COMP			st_c2p_rel_move_comp;
 	STG_PP_C2P_CHAR_MOVE				st_c2p_char_move;
 	STG_PP_C2P_CHAR_MOVE_COMP			st_c2p_char_move_comp;
+	STG_PP_C2P_INITIAL_EXECUTE			st_c2p_initial_execute;
 	STG_PP_C2P_PROCESS_EXECUTE			st_c2p_process_execute;
 	STG_PP_C2P_SUBPROCESS_EXECUTE		st_c2p_subprocess_execute;
 	STG_PP_C2P_STATUS_VALUE				st_c2p_status_value;

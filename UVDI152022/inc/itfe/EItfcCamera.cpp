@@ -595,6 +595,30 @@ API_EXPORT LPG_ACGR uvEng_Camera_GetGrabbedMark(UINT8 cam_id, UINT8 img_id)
 	return uvBasler_GetGrabbedMark(cam_id, img_id);
 }
 
+
+/*
+ desc : Grabbed Image의 결과 반환
+ retn : grab data 반환
+*/
+API_EXPORT CAtlList <LPG_ACGR>* uvEng_Camera_GetGrabbedMarkAll()
+{
+	return uvBasler_GetGrabbedMarkAll();
+}
+
+API_EXPORT BOOL uvEng_Camera_TryEnterCS()
+{
+	return uvBasler_TryEnterCS();
+}
+
+API_EXPORT VOID uvEng_Camera_ExitCS()
+{
+	uvBasler_ExitCS();
+}
+
+
+
+
+
 /*
  desc : Grabbed Image의 데이터 반환
  parm : index	- [in]  가져오고자 하는 위치 (Zero based)
@@ -818,6 +842,12 @@ API_EXPORT BOOL uvCmn_Camera_RegistMod(UINT8 cam_id, CRect fi_rectArea, CString 
 	return uvBasler_RegistMod(cam_id, fi_rectArea, fi_filename, mark_no);
 }
 
+/* desc: MMPM AutoCenter 이미지 등록 */
+API_EXPORT BOOL uvCmn_Camera_RegistMMPM_AutoCenter(CRect fi_rectArea, UINT8 cam_id, UINT8 img_id)
+{
+	return uvBasler_RegistMMPM_AutoCenter(fi_rectArea, cam_id, img_id);
+}
+
 /* desc: Mark Size, Offset 초기화 */
 API_EXPORT VOID uvCmn_Camera_InitSetMarkSizeOffset(UINT8 cam_id, TCHAR* file, UINT8 fi_findType, UINT8 mark_no)
 {
@@ -891,9 +921,9 @@ API_EXPORT VOID uvCmn_Camera_MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8
 }
 
 /* desc: Find Center (Mark Set에서만 사용) */
-API_EXPORT VOID uvCmn_Camera_MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound)
+API_EXPORT VOID uvCmn_Camera_CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode)
 {
-	return uvBasler_MarkSetCenterFind(cam_id, fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound);
+	return uvBasler_CenterFind(cam_id, fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound, fi_Mode);
 }
 
 /* desc: Set Mark Size */
@@ -933,9 +963,9 @@ API_EXPORT VOID uvCmn_Camera_ModMarkSave(UINT8 cam_id, CString fi_strFileName, U
 }
 
 /* desc: Mask 초기화 */
-API_EXPORT VOID uvCmn_Camera_InitMask()
+API_EXPORT VOID uvCmn_Camera_InitMask(UINT8 cam_id)
 {
-	uvBasler_InitMask();
+	uvBasler_InitMask(cam_id);
 }
 
 /* desc: Mil Main 할당 변수 해제 */
@@ -1015,8 +1045,17 @@ API_EXPORT VOID uvEng_Camera_SetDispMarkSet(CWnd* pWnd)
 	uvBasler_SetDispMarkSet(pWnd);
 }
 
+/* desc: MMPM AutoCenter DISP ID 할당 */
+API_EXPORT VOID uvEng_Camera_SetDispMMPM_AutoCenter(CWnd* pWnd)
+{
+	uvBasler_SetDispMMPM_AutoCenter(pWnd);
+}
+
+
+
 /* desc: LIVE DISP ID 할당 */
-API_EXPORT VOID uvEng_Camera_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode)
+//API_EXPORT VOID uvEng_Camera_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode) // lk91!! 변수를 [2]로 받으면 안됌 수정!!
+API_EXPORT VOID uvEng_Camera_SetDisp(CWnd** pWnd, UINT8 fi_Mode) // lk91!! 변수를 [2]로 받으면 안됌 수정!! 240116
 {
 	uvBasler_SetDisp(pWnd, fi_Mode);
 }

@@ -16,6 +16,7 @@
 #include "./mark/GridMiniMotor.h"
 
 #include "../mesg/DlgMesg.h"
+#include "../GlobalVariables.h"
 
 
 #ifdef	_DEBUG
@@ -70,6 +71,9 @@ VOID CDlgMark::DoDataExchange(CDataExchange* dx)
 	/* groupbox - normal */
 	u32StartID	= IDC_MARK_GRP_MODEL_INFO;
 	for (i=0; i< eMARK_GRP_MAX; i++)	DDX_Control(dx, u32StartID+i,	m_grp_ctl[i]);
+	u32StartID = IDC_MARK_GRP_STROBE_VIEW;
+	for (i = 0; i < eMARK_GRD_MAX; i++)	DDX_Control(dx, u32StartID + i, m_grd_ctl[i]);
+//	DDX_Control(dx, IDC_MARK_GRP_STROBE_VIEW, m_grd_ctl[0]);
 	/* static - picture */
 	//u32StartID	= IDC_MARK_PIC_MODEL_1;
 	//for (i=0; i< eMARK_PIC_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_img[i]);	
@@ -117,8 +121,9 @@ BEGIN_MESSAGE_MAP(CDlgMark, CDlgMenu)
 	ON_NOTIFY(NM_CLICK, IDC_GRID_MARK_MODEL_LIST,										OnGridModelList)
 	ON_NOTIFY(NM_CLICK, IDC_GRID_MARK_MARK_MODEL,										OnGridMarkModel)
  	ON_CONTROL_RANGE(BN_CLICKED, IDC_MARK_EDT_SIZE_1, IDC_MARK_EDT_SIZE_4,				OnTypeClick)
-	ON_CONTROL_RANGE(BN_CLICKED, IDC_MARK_BTN_MODEL_APPEND, IDC_MARK_BTN_CALIB,		OnBtnClick)
+	ON_CONTROL_RANGE(BN_CLICKED, IDC_MARK_BTN_MODEL_APPEND, IDC_MARK_BTN_STROBE_GET,	OnBtnClick)
  	ON_CONTROL_RANGE(BN_CLICKED, IDC_MARK_CHK_MODEL_CIRCLE, IDC_MARK_CHK_LIVE,			OnChkClick)
+	ON_NOTIFY(NM_CLICK, IDC_MARK_GRP_STROBE_VIEW, &CDlgMark::OnClickGridInput)
 	ON_WM_CONTEXTMENU()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
@@ -159,9 +164,12 @@ BOOL CDlgMark::OnInitDlg()
 	LoadTriggerCh();
 	/* MIL DISP 연결 */
 	InitDispMark();
+	/*Strobe 조명값 확인*/
+	InitGridStrobeView();
 
 	m_edt_out[eMARK_EDT_GAIN_LEVEL1].SetTextToNum(uvEng_GetConfig()->set_basler.cam_gain_level[0], 1);
 	m_edt_out[eMARK_EDT_GAIN_LEVEL2].SetTextToNum(uvEng_GetConfig()->set_basler.cam_gain_level[1], 1);
+	m_edt_out[eMARK_EDT_GAIN_LEVEL3].SetTextToNum(uvEng_GetConfig()->set_basler.cam_gain_level[2], 1);
 
 	ZoomFlag = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
 	menuPart = 99;
@@ -178,6 +186,24 @@ BOOL CDlgMark::OnInitDlg()
 	memset(CalibROI_right, 0, sizeof(int) * (calib_row * calib_col));
 	memset(CalibROI_top, 0, sizeof(int) * (calib_row * calib_col));
 	memset(CalibROI_bottom, 0, sizeof(int) * (calib_row * calib_col));
+
+	searchROI_CAM = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
+
+	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+		searchROI_CAM[i] = false;
+	}
+
+	searchROI_ALL = false;
+
+/*
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	GetDlgItem(IDC_MARK_CHK_ACAM_3)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_MARK_TXT_CAM3_GAIN_LEVEL)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_MARK_EDIT_CAM3_GAIN_LEVEL)->ShowWindow(SW_HIDE);
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+
+#endif
+*/
 
 	return TRUE;
 }
@@ -207,6 +233,12 @@ VOID CDlgMark::OnExitDlg()
 
 
 	delete[] ZoomFlag;
+	delete[] searchROI_CAM;
+
+	for (int i = 0; i < _countof(m_grd_ctl); i++)
+	{
+		m_grd_ctl[i].DeleteAllItems();
+	}
 }
 
 /*
@@ -663,10 +695,23 @@ VOID CDlgMark::OnBtnClick(UINT32 id)
 	case IDC_MARK_BTN_EDGE_FIND		:	SetEdgeDetect();							break;
 	case IDC_MARK_BTN_CONTROL_PANEL	:	ShowCtrlPanel();							break;
 	case IDC_MARK_BTN_GAIN_SET		:
-		uvEng_GetConfig()->set_basler.cam_gain_level[0] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL1].GetTextToNum();
+		
+		//설정을 config베이스로
+		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
+		{
+			uvEng_GetConfig()->set_basler.cam_gain_level[i] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL1+i].GetTextToNum();
+			uvEng_Camera_SetGainLevel(i+1, uvEng_GetConfig()->set_basler.cam_gain_level[i]);
+		}
+		
+		/*uvEng_GetConfig()->set_basler.cam_gain_level[0] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL1].GetTextToNum();
 		uvEng_GetConfig()->set_basler.cam_gain_level[1] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL2].GetTextToNum();
+		uvEng_GetConfig()->set_basler.cam_gain_level[2] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL3].GetTextToNum();
+		
+
 		uvEng_Camera_SetGainLevel(0x01, uvEng_GetConfig()->set_basler.cam_gain_level[0]);
 		uvEng_Camera_SetGainLevel(0x02, uvEng_GetConfig()->set_basler.cam_gain_level[1]);
+		uvEng_Camera_SetGainLevel(0x03, uvEng_GetConfig()->set_basler.cam_gain_level[2]);*/
+		
 		uvEng_SaveConfig();
 		break;
 	case IDC_MARK_BTN_MARK_MODE		:	SetMarkFindMode(true);	break;
@@ -676,6 +721,32 @@ VOID CDlgMark::OnBtnClick(UINT32 id)
 		break;
 	case IDC_MARK_BTN_CALIB: VisionCalib();
 		break;
+	case IDC_MARK_BTN_STROBE_SET: 
+		setStrobeValue();
+		break;
+	case IDC_MARK_BTN_STROBE_GET: 
+		/*스트로브에 현재 세팅값 확인 요청*/
+		
+		int strobeRecved = GlobalVariables::getInstance()->ResetCounter("strobeRecved");
+		uvEng_StrobeLamp_Send_PageDataReadRequest(0);
+
+		GlobalVariables::getInstance()->Waiter("strobe", 
+		[] 
+		{
+			return  GlobalVariables::getInstance()->GetCount("strobeRecved") != 0;
+		}, 
+		[this]
+		{
+			UpdataStrobeView();
+			MessageBoxEx(nullptr, _T("Read succeed.\t"), _T("ok"), MB_OK,LANG_ENGLISH);
+		},
+		[]
+		{
+			MessageBoxEx(nullptr, _T("Read failed. timeout\t"), _T("ok"), MB_OK, LANG_ENGLISH);
+		},5000);
+
+		//UpdataStrobeView();
+	break;
 
 	}
 }
@@ -706,11 +777,21 @@ VOID CDlgMark::OnChkClick(UINT32 id)
 		UpdateModelText();
 		break;
 	/* Select align camera */
-	case IDC_MARK_CHK_ACAM_1		:
-	case IDC_MARK_CHK_ACAM_2		:
-		for (i=0x00; i< eMARK_CHK_CAM_ACAM_2+1; i++)	m_chk_cam[i].SetCheck(0);
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	case IDC_MARK_CHK_ACAM_1:
+	case IDC_MARK_CHK_ACAM_2:
+		for (i = 0x00; i < eMARK_CHK_CAM_ACAM_2 + 1; i++)	m_chk_cam[i].SetCheck(0);
 		m_chk_cam[id - IDC_MARK_CHK_ACAM_1].SetCheck(1);
 		break;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	case IDC_MARK_CHK_ACAM_1:
+	case IDC_MARK_CHK_ACAM_2:
+	case IDC_MARK_CHK_ACAM_3:
+		for (i = 0x00; i < eMARK_CHK_CAM_ACAM_3 + 1; i++)m_chk_cam[i].SetCheck(0);
+		m_chk_cam[id - IDC_MARK_CHK_ACAM_1].SetCheck(1);
+		break;
+
+#endif
 	case IDC_MARK_CHK_COLOR_BLACK	:
 		m_chk_clr[eMARK_CHK_CLR_BLACK].SetCheck(1);
 		m_chk_clr[eMARK_CHK_CLR_WHITE].SetCheck(0);
@@ -794,7 +875,8 @@ VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result)
 	LPG_CMPV pstRecipe = m_pGridModel->GetRecipe(pstGrid->iRow);
 	CUniToChar csCnv;
 
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 
 	uvEng_Camera_SetMarkMethod(ENG_MMSM::en_single, 0);
 
@@ -809,8 +891,9 @@ VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result)
 		{
 			m_pDrawModel[i]->ResetModel();
 		}
-		SetMark(0); //  cam 1, mark 1
-		SetMark(1); //  cam 2, mark 1
+		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+			SetMark(i);
+		}
 
 		UINT8 u8Speed = (UINT8)uvEng_GetConfig()->mark_find.model_speed;
 		UINT8 u8Level = (UINT8)uvEng_GetConfig()->mark_find.detail_level;
@@ -833,7 +916,7 @@ VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result)
 			bpatFile = false;
 			stModel.type = (UINT32)m_pDrawModel[0]->GetModelType();		// lk91 m_pDrawModel[0] 고정하는 이유는 mark 탭에서는 한개만 사용(동일한 값)
 			for (int j = 0; j < 5; j++)	stModel.param[j] = m_pDrawModel[0]->GetParam(j);
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 				uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 					&stModel, TMP_MARK, csCnv2.Ansi2Uni(stModel.file),	
 					dbScaleMin, dbScaleMax, dbScoreRate);
@@ -854,7 +937,7 @@ VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result)
 					stModel.type = (UINT32)m_pDrawModel[0]->GetModelType();
 					stModel.iSizeP = m_pDrawModel[0]->GetMarkSizeP();
 					stModel.iOffsetP = m_pDrawModel[0]->GetMarkOffsetP();
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 							&stModel, TMP_MARK, csCnv2.Ansi2Uni(stModel.file),	
 							dbScaleMin, dbScaleMax, dbScoreRate);
@@ -875,7 +958,7 @@ VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result)
 					stModel.type = (UINT32)m_pDrawModel[0]->GetModelType();
 					stModel.iSizeP = m_pDrawModel[0]->GetMarkSizeP();
 					stModel.iOffsetP = m_pDrawModel[0]->GetMarkOffsetP();
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 							&stModel, TMP_MARK, csCnv2.Ansi2Uni(stModel.file),	
 							dbScaleMin, dbScaleMax, dbScoreRate);
@@ -1189,7 +1272,8 @@ VOID CDlgMark::ModelAppend(UINT8 mode)
 			}
 		}
 		if (IsFind) {
-			UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+			//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+			UINT8 u8ACamID = CheckSelectCam();
 			CDPoint tSizeP;
 
 			uvCmn_Camera_InitSetMarkSizeOffset(u8ACamID, tcharFileName, tmpfindType, TMP_MARK);
@@ -1204,7 +1288,7 @@ VOID CDlgMark::ModelAppend(UINT8 mode)
 		uvEng_Mark_ModelAppend(&stRecipe, 0x00);
 
 		// lk91 mmf 파일 저장 추가
-		UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+		UINT8 u8ACamID = CheckSelectCam();
 		TCHAR SaveFileName[1000];
 
 		BOOL IsFind = false;
@@ -1221,7 +1305,7 @@ VOID CDlgMark::ModelAppend(UINT8 mode)
 			bmmfFile = true;
 			bpatFile = false;
 			//for (int j = 0; j < 5; j++)	stRecipe.param[j] = m_pDrawModel[0]->GetParam(j);
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 				uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 					&stRecipe, TMP_MARK, csCnv1.Ansi2Uni(stRecipe.file),
 					dbScaleMin, dbScaleMax, dbScoreRate);
@@ -1770,13 +1854,13 @@ VOID CDlgMark::LoadTriggerCh()
 	ST_IO stIO;
 	CIOManager::GetInstance()->UpdateIO();
 	/*해당 신호 변경*/
-	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("CAMERA_1_IR_RING_LIGHT_CHANGE"), stIO);
+	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("CAMERA 1 IR RING LIGHT CHANGE"), stIO);
 	stIO.bOn = (BOOL)u8ChNo;
 	CIOManager::GetInstance()->SetIO(eIO_OUTPUT, stIO);
-	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("CAMERA_2_IR_RING_LIGHT_CHANGE"), stIO);
+	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("CAMERA 2 IR RING LIGHT CHANGE"), stIO);
 	stIO.bOn = (BOOL)u8ChNo;
 	CIOManager::GetInstance()->SetIO(eIO_OUTPUT, stIO);
-	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("CAMERA_2_IR_RING_LIGHT_CHANGE"), stIO);
+	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("CAMERA 3 IR RING LIGHT CHANGE"), stIO);
 	stIO.bOn = (BOOL)u8ChNo;
 	CIOManager::GetInstance()->SetIO(eIO_OUTPUT, stIO);
 
@@ -1801,12 +1885,12 @@ VOID CDlgMark::LoadTriggerCh()
 VOID CDlgMark::SetTriggerCh()
 {
 	CDlgMesg dlgMesg;
-	/* Live 동작 유무 */
-	if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck())
-	{
-		dlgMesg.MyDoModal(L"Live Mode is currently on", 0x01);
-		return;
-	}
+	///* Live 동작 유무 */
+	//if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck())
+	//{
+	//	dlgMesg.MyDoModal(L"Live Mode is currently on", 0x01);
+	//	return;
+	//}
 
 	UINT8 u8ChNo	= uvEng_GetConfig()->set_comn.strobe_lamp_type;
 	if (!u8ChNo)	uvEng_GetConfig()->set_comn.strobe_lamp_type = 0x01;	/* IR */
@@ -1823,13 +1907,14 @@ VOID CDlgMark::SetTriggerCh()
 */
 VOID CDlgMark::SetLiveView() 
 {
-	UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	BOOL bSucc		= FALSE;
 	UINT32 u32OnOff	= 0x00000000;
 	CDlgMesg dlgMesg;
 
 	
-	if (!u8ACamID)
+			if (!u8ACamID)
 	{
 		dlgMesg.MyDoModal(L"There is no camera selected!", 0x01);
 		return;
@@ -1892,7 +1977,8 @@ VOID CDlgMark::UpdateLiveView()
 	/* Grabbed Image Display */
 	if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck())	/* Live Mode */
 	{
-		UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+		//UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+		UINT8 u8ACamID = CheckSelectCam();
 
 		//RECT rDraw;
 		//GetDlgItem(IDC_MARK_PIC_FIND_GRAB)->GetClientRect(&rDraw);
@@ -1924,7 +2010,8 @@ VOID CDlgMark::UpdateLiveView()
 */
 VOID CDlgMark::SetMatchModel()	
 {
-	UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	TCHAR tzVal[64]	= {NULL};
 	UINT64 u64Tick	= GetTickCount64();
 	LPG_ACGR pstGrab= NULL;
@@ -2048,7 +2135,8 @@ VOID CDlgMark::txtWrite(CString msg)
 */
 VOID CDlgMark::SetEdgeDetect()
 {
-	UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID	= m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	BOOL bSucc				= FALSE;
 	TCHAR tzDiaMeter[32]	= {NULL};
 	UINT32 u32SizeHorz		= 0, u32SizeVert = 0, u32ErrRange = 0;
@@ -2224,7 +2312,8 @@ void CDlgMark::DispResize(CWnd* pWnd)
 /* desc: Image Mark 등록 */
 VOID CDlgMark::RegistMarkImage() 
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	BOOL bSucc = FALSE;
 
 	TCHAR tzName[MARK_MODEL_NAME_LENGTH] = { NULL };
@@ -2294,8 +2383,8 @@ VOID CDlgMark::RegistMarkImage()
 			return;
 		}
 	}
-	
 
+	//uvEng_Camera_SetCamMode(ENG_VCCM::en_image_mode);// lk91!! 240202 tmp
 
 	//uvEng_Camera_SetCamMode(ENG_VCCM::en_live_mode);
 	strFile.Format(_T("%s\\%s\\pat\\%s.pat"), g_tzWorkDir, CUSTOM_DATA_CONFIG, strFileName);
@@ -2340,13 +2429,16 @@ VOID CDlgMark::RegistMarkImage()
 		m_pGridModel->Load();
 		/* 초기화 */
 		RecipeReset(0x00);
+
 	}
+	//uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);// lk91!! 240202 tmp
 }
 
 /* desc: Image 불러오기 */
-void CDlgMark::ImageLoad()	
+void CDlgMark::LoadImageFile()	
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	BOOL bSucc = FALSE;
 
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_image_mode);
@@ -2397,7 +2489,8 @@ void CDlgMark::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 	WINDOWPLACEMENT wndpl;
 	int idNo = IDC_MARK_PIC_FIND_GRAB;
 	GetDlgItem(idNo)->GetWindowPlacement(&wndpl);
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	CRect rectTmp;
 	rectTmp = wndpl.rcNormalPosition;
 	if (fi_pointP.x < rectTmp.left || fi_pointP.x > rectTmp.right
@@ -2433,6 +2526,7 @@ void CDlgMark::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 		pSubMenu->CheckMenuItem(ID_MENU_MARK_ROI, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_1, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_2, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_3, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ALL, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MENU_MEASURE, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MENU_CALIB, MF_BYCOMMAND | MF_UNCHECKED);
@@ -2440,24 +2534,14 @@ void CDlgMark::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 
 	if (menuPart == 2)
 	{
-		if (searchROIPart == 0)
-		{
+		pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ALL, MF_BYCOMMAND | MF_UNCHECKED);
+
+		if(searchROI_CAM[0])
 			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_1, MF_BYCOMMAND | MF_CHECKED);
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_2, MF_BYCOMMAND | MF_UNCHECKED);
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ALL, MF_BYCOMMAND | MF_UNCHECKED);
-		}
-		else if (searchROIPart == 1)
-		{
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_1, MF_BYCOMMAND | MF_UNCHECKED);
+		if (searchROI_CAM[1])
 			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_2, MF_BYCOMMAND | MF_CHECKED);
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ALL, MF_BYCOMMAND | MF_UNCHECKED);
-		}
-		else if (searchROIPart == 2)
-		{
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_1, MF_BYCOMMAND | MF_CHECKED);
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_2, MF_BYCOMMAND | MF_CHECKED);
-			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ALL, MF_BYCOMMAND | MF_UNCHECKED);
-		}
+		if (searchROI_CAM[2])
+			pSubMenu->CheckMenuItem(ID_MENU_SEARCH_ROI_3, MF_BYCOMMAND | MF_CHECKED);
 	}
 
 	int cmd;
@@ -2469,7 +2553,7 @@ void CDlgMark::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 	}
 	if (cmd == ID_MENU_IMAGE_LOAD) { 
 		menuPart = 0;
-		ImageLoad();
+		LoadImageFile();
 		menuPart = 99;
 	}
 	else if (cmd == ID_MENU_MARK_ROI) {
@@ -2478,90 +2562,50 @@ void CDlgMark::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 		else
 			menuPart = 1;
 	}
-	else if (cmd == ID_MENU_SEARCH_ROI_1) {
-		if (menuPart != 2)
-		{
-			searchROIPart = 0;
-			menuPart = 2;
+	else if (cmd == ID_MENU_SEARCH_ROI_1 || cmd == ID_MENU_SEARCH_ROI_2 || cmd == ID_MENU_SEARCH_ROI_3) {
+		if (cmd == ID_MENU_SEARCH_ROI_1) {
+			if (searchROI_CAM[0])
+				searchROI_CAM[0] = false;
+			else
+				searchROI_CAM[0] = true;
 		}
-		else if (searchROIPart == 0)
-		{
-			searchROIPart = 99;
+		else if (cmd == ID_MENU_SEARCH_ROI_2) {
+			if (searchROI_CAM[1])
+				searchROI_CAM[1] = false;
+			else
+				searchROI_CAM[1] = true;
+		}
+		else if (cmd == ID_MENU_SEARCH_ROI_3) {
+			if (searchROI_CAM[2])
+				searchROI_CAM[2] = false;
+			else
+				searchROI_CAM[2] = true;
+		}
+
+		if (!searchROI_CAM[0] && !searchROI_CAM[1] && !searchROI_CAM[2])
 			menuPart = 99;
-		}
-		else if (searchROIPart == 1)
-		{
-			searchROIPart = 2;
+		else
 			menuPart = 2;
-		}
-		else if (searchROIPart == 2)
-		{
-			searchROIPart = 1;
-			menuPart = 2;
-		}
-	}
-	else if (cmd == ID_MENU_SEARCH_ROI_2) {
-		if (menuPart != 2)
-		{
-			searchROIPart = 1;
-			menuPart = 2;
-		}
-		else if (searchROIPart == 0)
-		{
-			searchROIPart = 2;
-			menuPart = 2;
-		}
-		else if (searchROIPart == 1)
-		{
-			searchROIPart = 99;
-			menuPart = 99;
-		}
-		else if (searchROIPart == 2)
-		{
-			searchROIPart = 0;
-			menuPart = 2;
-		}
 	}
 	else if (cmd == ID_MENU_SEARCH_ALL) {
 		CDlgMesg dlgMesg;
+
 		if (menuPart != 2)
 		{
-			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to set cam 1,2 to All search ?", 0x02)) {
+			if (IDOK != dlgMesg.MyDoModal(L"Do you want to set the selected CAM to All SEARCH ?", 0x02)) {
 				return;
 			}
-			searchROIPart = 5;
-			menuPart = 99;
-		}
-		else if (searchROIPart == 0)
-		{
-			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to set cam 1 to All search ?", 0x02)) {
-				return;
-			}
-			searchROIPart = 3;
-			menuPart = 99;
-		}
-		else if (searchROIPart == 1)
-		{
-			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to set cam 2 to All search ?", 0x02)) {
-				return;
-			}
-			searchROIPart = 4;
-			menuPart = 99;
-		}
-		else if (searchROIPart == 2)
-		{
-			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to set cam 1,2 to All search ?", 0x02)) {
-				return;
-			}
-			searchROIPart = 5;
+			searchROI_ALL = TRUE;
 			menuPart = 99;
 		}
 
 		STG_CRD stRoi = { NULL };
 		CRect tmpRoi;
-		if (searchROIPart == 5) 
+		if (searchROI_ALL)
 		{
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+				if (!searchROI_CAM[i])
+					continue;
 				tmpRoi.left		= stRoi.roi_Left[i] = 5;
 				tmpRoi.right	= stRoi.roi_Right[i] = ACA1920_SIZE_X - 5;
 				tmpRoi.top		= stRoi.roi_Top[i] = 5;
@@ -2571,28 +2615,7 @@ void CDlgMark::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 				uvCmn_Camera_MilSetMarkROI(i, tmpRoi);
 			}
 			uvEng_Mark_MarkROISave();
-		}
-		else if (searchROIPart == 3)
-		{
-			tmpRoi.left = stRoi.roi_Left[0] = 5;
-			tmpRoi.right = stRoi.roi_Right[0] = ACA1920_SIZE_X - 5;
-			tmpRoi.top = stRoi.roi_Top[0] = 5;
-			tmpRoi.bottom = stRoi.roi_Bottom[0] = ACA1920_SIZE_Y - 5;
-
-			uvEng_Mark_SetMarkROI(&stRoi, 0);
-			uvCmn_Camera_MilSetMarkROI(0, tmpRoi);
-			uvEng_Mark_MarkROISave();
-		}
-		else if (searchROIPart == 4)
-		{
-			tmpRoi.left = stRoi.roi_Left[1] = 5;
-			tmpRoi.right = stRoi.roi_Right[1] = ACA1920_SIZE_X - 5;
-			tmpRoi.top = stRoi.roi_Top[1] = 5;
-			tmpRoi.bottom = stRoi.roi_Bottom[1] = ACA1920_SIZE_Y - 5;
-
-			uvEng_Mark_SetMarkROI(&stRoi, 1);
-			uvCmn_Camera_MilSetMarkROI(1, tmpRoi);
-			uvEng_Mark_MarkROISave();
+			searchROI_ALL = FALSE;
 		}
 		uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MARK_LIVE, u8ACamID-1);
 		uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MARK_LIVE, u8ACamID-1);
@@ -2646,7 +2669,8 @@ void CDlgMark::OnLButtonDown(UINT nFlags, CPoint point)
 	//ScreenToClient(&rt2);
 	//dRateP.x = (double)ACA1920_SIZE_X / rt1.Width();
 	//dRateP.y = (double)ACA1920_SIZE_Y / rt1.Height();
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 
 	CRect rt;
 	GetDlgItem(IDC_MARK_PIC_FIND_GRAB)->GetWindowRect(&rt);
@@ -2696,7 +2720,7 @@ void CDlgMark::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	//CDPoint	dRateP;
 	int left, right, top, bottom;
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 
 	CRect rt;
 	GetDlgItem(IDC_MARK_PIC_FIND_GRAB)->GetWindowRect(&rt);
@@ -2761,34 +2785,25 @@ void CDlgMark::OnLButtonUp(UINT nFlags, CPoint point)
 			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MARK_LIVE, u8ACamID - 1);
 		}
 		else if (menuPart == 2) {
+			CString sTmp;
+			sTmp.Format(_T("Search ROI"));
+
 			STG_CRD stRoi = { NULL };
-			if (searchROIPart == 0 || searchROIPart == 2)
-			{
-				stRoi.roi_Left[0] = um_rectArea.left;
-				stRoi.roi_Right[0] = um_rectArea.right;
-				stRoi.roi_Top[0] = um_rectArea.top;
-				stRoi.roi_Bottom[0] = um_rectArea.bottom;
-				uvEng_Mark_SetMarkROI(&stRoi, 0);
-				uvCmn_Camera_MilSetMarkROI(0, um_rectArea);
-			}
-			if (searchROIPart == 1 || searchROIPart == 2)
-			{
-				stRoi.roi_Left[1] = um_rectArea.left;
-				stRoi.roi_Right[1] = um_rectArea.right;
-				stRoi.roi_Top[1] = um_rectArea.top;
-				stRoi.roi_Bottom[1] = um_rectArea.bottom;
-				uvEng_Mark_SetMarkROI(&stRoi, 1);
-				uvCmn_Camera_MilSetMarkROI(1, um_rectArea);
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+				if (!searchROI_CAM[i])
+					continue;
+				stRoi.roi_Left[i] = um_rectArea.left;
+				stRoi.roi_Right[i] = um_rectArea.right;
+				stRoi.roi_Top[i] = um_rectArea.top;
+				stRoi.roi_Bottom[i] = um_rectArea.bottom;
+				uvEng_Mark_SetMarkROI(&stRoi, i);
+				uvCmn_Camera_MilSetMarkROI(i, um_rectArea);
+
+				sTmp.Format(_T("%s #%d"), sTmp, i + 1);
 			}
 			uvEng_Mark_MarkROISave();
 
-			CString sTmp;
-			if (searchROIPart == 0)
-				sTmp.Format(_T("Search ROI #1"));
-			else if (searchROIPart == 1)
-				sTmp.Format(_T("Search ROI #2"));
-			else if (searchROIPart == 2)
-				sTmp.Format(_T("Search ROI #1, #2"));
+
 			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MARK_LIVE, u8ACamID - 1);
 			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, PS_SOLID, eM_COLOR_BLUE);
 			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.right - 50, um_rectArea.bottom, sTmp, eM_COLOR_BLUE, 6, 12, VISION_FONT_TEXT, true);
@@ -2798,7 +2813,8 @@ void CDlgMark::OnLButtonUp(UINT nFlags, CPoint point)
 		else if (menuPart == 3) {
 			CString sTmp;
 			//sTmp = "Measure";
-			UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+			//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+			UINT8 u8ACamID = CheckSelectCam();
 			double measX, measY, measLength;
 			measX = uvEng_GetConfig()->acam_spec.GetPixelToMM(u8ACamID - 1) * (double)(um_rectArea.right - um_rectArea.left);
 			measY = uvEng_GetConfig()->acam_spec.GetPixelToMM(u8ACamID - 1) * (double)(um_rectArea.bottom - um_rectArea.top);
@@ -2852,7 +2868,8 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 	ScreenToClient(&rt);
 	//dRateP.x = (double)ACA1920_SIZE_X / rt1.Width();
 	//dRateP.y = (double)ACA1920_SIZE_Y / rt1.Height();
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 
 	double dRate = 1.0 / tgt_rate;
 
@@ -2890,12 +2907,13 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 		}
 		else if (menuPart == 2) {
 			CString sTmp;
-			if(searchROIPart == 0)
-				sTmp.Format(_T("Search ROI#1"));
-			else if (searchROIPart == 1)
-				sTmp.Format(_T("Search ROI#2"));
-			else if (searchROIPart == 2)
-				sTmp.Format(_T("Search ROI#1,#2"));
+			sTmp.Format(_T("Search ROI"));
+
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+				if (!searchROI_CAM[i])
+					continue;
+				sTmp.Format(_T("%s #%d"), sTmp, i + 1);
+			}
 
 			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MARK_LIVE, u8ACamID - 1);
 			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, iBrushStyle, eM_COLOR_BLUE);
@@ -2947,7 +2965,8 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 /* desc: Zoom In */
 void CDlgMark::MenuZoomIn()
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	//RECT rDraw;
 	CWnd* pImageWnd = GetDlgItem(IDC_MARK_PIC_FIND_GRAB);
 	CRect rDraw;
@@ -2959,7 +2978,8 @@ void CDlgMark::MenuZoomIn()
 /* desc: Zoom Out */
 void CDlgMark::MenuZoomOut()
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	CWnd* pImageWnd = GetDlgItem(IDC_MARK_PIC_FIND_GRAB);
 	CRect rDraw;
 	pImageWnd->GetClientRect(rDraw);
@@ -2972,7 +2992,8 @@ void CDlgMark::MenuZoomOut()
 /* desc: Zoom Fit */
 void CDlgMark::MenuZoomFit()
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	uvCmn_Camera_MilAutoScale(DISP_TYPE_MARK_LIVE, u8ACamID);
 	ZoomFlag[u8ACamID] = false;
 }
@@ -2980,7 +3001,8 @@ void CDlgMark::MenuZoomFit()
 /* desc: 마우스 휠 이벤트, Zoom In, Out 사용 */
 BOOL CDlgMark::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	CWnd* pImageWnd = GetDlgItem(IDC_MARK_PIC_FIND_GRAB);
 	CRect rDraw;
 	pImageWnd->GetClientRect(rDraw);
@@ -3020,20 +3042,20 @@ VOID CDlgMark::SetMarkFindMode(BOOL bChg)
 	if (!bpatFile && bmmfFile) {
 		m_btn_ctl[eMARK_BTN_CTL_MARK_FIND_MODE].SetWindowTextW(_T("MOD"));
 		mark_find_mode = 0;
-		for (int i = 0; i < 2; i++) 
+		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 			uvCmn_Camera_SetMarkFindMode(i + 1, mark_find_mode, 2);
 	}
 	else if (bChg) {
 		if (mark_find_mode == 0 && bpatFile) {
 			m_btn_ctl[eMARK_BTN_CTL_MARK_FIND_MODE].SetWindowTextW(_T("PAT"));
 			mark_find_mode = 1;
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 				uvCmn_Camera_SetMarkFindMode(i + 1, mark_find_mode, 2);
 		}
 		else if (mark_find_mode == 1 && bmmfFile) {
 			m_btn_ctl[eMARK_BTN_CTL_MARK_FIND_MODE].SetWindowTextW(_T("MOD"));
 			mark_find_mode = 0;
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 				uvCmn_Camera_SetMarkFindMode(i + 1, mark_find_mode, 2);
 		}
 	}
@@ -3049,7 +3071,8 @@ void CDlgMark::OnLButtonDblClk(UINT nFlags, CPoint point)
 	if (point.x > wndpl.rcNormalPosition.left && point.x<wndpl.rcNormalPosition.right
 		&& point.y>wndpl.rcNormalPosition.top && point.y < wndpl.rcNormalPosition.bottom)
 	{
-		UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+		//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+		UINT8 u8ACamID = CheckSelectCam();
 		//BOOL bSucc = FALSE;
 
 		TCHAR tzName[MARK_MODEL_NAME_LENGTH] = { NULL };
@@ -3117,7 +3140,8 @@ void CDlgMark::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 VOID CDlgMark::ProcImage()
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 
 	if (uvCmn_Camera_ProcImage(u8ACamID, m_chk_img[0].GetCheck())) {
 		uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
@@ -3348,7 +3372,8 @@ VOID CDlgMark::setVisionCalib()
 
 VOID CDlgMark::VisionCalib()
 {
-	UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
+	UINT8 u8ACamID = CheckSelectCam();
 	TCHAR tzVal[64] = { NULL };
 	UINT64 u64Tick = GetTickCount64();
 	CDlgMesg dlgMesg;
@@ -3386,4 +3411,376 @@ VOID CDlgMark::VisionCalib()
 	/* Grabbed Image의 매칭 결과가 존재하는지 여부 확인 */
 	uvEng_Camera_RunModel_VisionCalib(u8ACamID, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, CalibROI_left, CalibROI_right, CalibROI_top, CalibROI_bottom, calib_row, calib_col);
 
+}
+
+/*
+ desc : UI에서 선택한 Cam 번호 확인
+ parm : None
+ retn : None
+*/
+UINT8 CDlgMark::CheckSelectCam()
+{
+	UINT8 u8ACamID;
+
+	/*각 Cam에 해당되는 Check Box 확인하여 선택된 Cam 번호 설정*/
+	if (m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck())			u8ACamID = 0x01;
+	else if (m_chk_cam[eMARK_CHK_CAM_ACAM_2].GetCheck())	u8ACamID = 0x02;
+	else                                                    u8ACamID = 0x03;
+
+	return u8ACamID;
+}
+
+
+VOID CDlgMark::InitGridStrobeView()
+{
+	CResizeUI	clsResizeUI;
+	CRect		rGrid;
+	std::vector <int>			vRowSize(4);
+	std::vector <int>			vColSize(3);
+
+	 uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0];
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	std::vector <std::wstring>	vTitle = { _T("Amber1"), _T("IR1"), _T("Coaxial1") };
+	std::vector <std::wstring>	vTitle2 = { _T("Amber2"), _T("IR2"), _T("Coaxial2") }
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	std::vector <std::wstring>	vTitle = { _T("Amber_IR1"), _T("Amber_IR2"), _T("Amber_IR3") };
+	std::vector <std::wstring>	vTitle2 = { _T("Coaxial1"), _T("Coaxial2"), _T("Coaxial3") }
+#endif
+;
+	std::vector <std::wstring>	vItem = { _T("HEAD"), _T("0.0000"), _T("0.0000"), _T("0.0000"), _T("READ"), _T("MOVE") };
+	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, WHITE_, WHITE_, DEF_COLOR_BTN_PAGE_NORMAL, DEF_COLOR_BTN_PAGE_NORMAL };
+	std::vector <COLORREF>		vColTextColor = { BLACK_, BLACK_, BLACK_, BLACK_, WHITE_, WHITE_ };
+
+	CGridCtrl* pGrid = &m_grd_ctl[eMARK_GRD_STROBE_VIEW];
+
+	clsResizeUI.ResizeControl(this, pGrid);
+	pGrid->GetWindowRect(rGrid);
+	this->ScreenToClient(rGrid);
+
+	int nHeight = 30;
+	int nTotalHeight = 0;
+	int nTotalWidth = 0;
+
+	for (auto& height : vRowSize)
+	{
+		height = nHeight;
+		nTotalHeight += height;
+	}
+
+	if (rGrid.Height() < nTotalHeight)
+	{
+		nTotalHeight = 0;
+
+		for (auto& height : vRowSize)
+		{
+			height = (rGrid.Height() - 1) / (int)vRowSize.size();
+			nTotalHeight += height;
+		}
+	}
+
+	for (auto& width : vColSize)
+	{
+		width = (rGrid.Width() ) / (int)vColSize.size();
+		nTotalWidth += width;
+	}
+
+	vColSize.front() += (rGrid.Width() - 1) - nTotalWidth;
+
+	/* 객체 기본 설정 */
+	pGrid->SetFont(&g_font[eFONT_LEVEL3_BOLD]);
+	pGrid->SetRowCount((int)vRowSize.size());
+	pGrid->SetColumnCount((int)vColSize.size());
+	pGrid->SetFixedColumnCount(0);
+	pGrid->SetGridLineColor(BLACK_);
+	pGrid->SetBkColor(WHITE_);
+	pGrid->SetFixedColumnSelection(0);
+
+	/* 타이틀 (첫 번째 행) */
+	//for (int i = 0; i < (int)vColSize.size(); i++)
+	//{
+	//	pGrid->SetItemFormat(0, i, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	//	pGrid->SetColumnWidth(i, vColSize[i]);
+	//}
+	UINT16 LampValue;
+	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
+	{
+		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
+
+		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
+		{
+			/*첫 번째줄 제목*/
+			if (0 == nRow)
+			{
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%s"), vTitle[nCol].c_str());
+
+				pGrid->SetItemBkColour(nRow, nCol, vColColor[0]);
+				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);
+			}
+			/*두 번째줄 제목*/
+			else if(2 == nRow)
+			{
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%s"), vTitle2[nCol].c_str());
+
+				pGrid->SetItemBkColour(nRow, nCol, vColColor[0]);
+				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);
+			}
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+			// 0 1 2
+			// 0 1 2
+			// 0 1 2
+			// 4 5 6
+			else if (1 == nRow)
+			{
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol]);
+
+				pGrid->SetItemBkColour(nRow, nCol, vColColor[1]);
+				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);
+		}
+			else if (3 == nRow)
+			{
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + vColSize.size()];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + vColSize.size()]);
+
+				pGrid->SetItemBkColour(nRow, nCol, vColColor[1]);
+				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);
+			}
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+			// 0 1 2
+			// 0 1 2
+			// 0 2 4 
+			// 1 3 5
+			else if (1 == nRow)
+			{
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol*2]);
+
+				pGrid->SetItemBkColour(nRow, nCol, vColColor[1]);
+				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);
+			}
+			else if (3 == nRow)
+			{
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + vColSize.size()];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[(nCol * 2) +1]);
+
+				pGrid->SetItemBkColour(nRow, nCol, vColColor[1]);
+				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);
+			}
+#endif
+
+			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		}
+	}
+
+	/* Grid Size 재구성 */
+	rGrid.bottom = rGrid.top + nTotalHeight + 1;
+	pGrid->MoveWindow(rGrid);
+
+	/* 기본 속성 및 갱신 */
+	pGrid->SetBaseGridProp(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	pGrid->EnableSelection(FALSE);
+	pGrid->Refresh();
+}
+
+VOID CDlgMark::UpdataStrobeView()
+{
+	CGridCtrl* pGrid = &m_grd_ctl[eMARK_GRD_STROBE_VIEW];
+
+	UINT16 LampValue;
+	for (int nRow = 0; nRow < (int)pGrid->GetRowCount(); nRow++)
+	{
+		for (int nCol = 0; nCol < (int)pGrid->GetColumnCount(); nCol++)
+		{
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+			// 0 1 2
+			// 0 1 2
+			// 0 1 2
+			// 4 5 6
+			
+			if (1 == nRow)
+			{
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol]);
+
+			}
+			else if (3 == nRow)
+			{
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol + pGrid->GetColumnCount()];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol + pGrid->GetColumnCount()]);
+
+			}
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+			// 0 1 2
+			// 0 1 2
+			// 0 2 4 
+			// 1 3 5
+			auto temp = uvEng_GetConfig()->set_strobe_lamp;
+			if (1 == nRow)
+			{
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), temp.u16StrobeValue[nCol * 2]);
+
+			}
+			else if (3 == nRow)
+			{
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), temp.u16StrobeValue[(nCol * 2) + 1]);
+
+			}
+#endif
+
+			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		}
+	}
+
+	pGrid->Refresh();
+}
+
+VOID CDlgMark::setStrobeValue()
+{
+	CGridCtrl* pGrid = &m_grd_ctl[eMARK_GRD_STROBE_VIEW];
+
+	UINT16 recvStrobeValues[8];
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	/*Cam1*/
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0] = (UINT16)pGrid->GetItemTextToInt(1, 0);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0]);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1] = (UINT16)pGrid->GetItemTextToInt(1, 1);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 1, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1]);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2] = (UINT16)pGrid->GetItemTextToInt(1, 2);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 2, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2]);
+
+	/*Cam2*/
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4] = (UINT16)pGrid->GetItemTextToInt(3, 0);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 4, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4]);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5] = (UINT16)pGrid->GetItemTextToInt(3, 1);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5]);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[6] = (UINT16)pGrid->GetItemTextToInt(3, 2);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[6]);
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+
+	GlobalVariables::getInstance()->ResetCounter("strobeRecved");
+
+	/*Cam1*/
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0] = (UINT16)pGrid->GetItemTextToInt(1, 0);
+	recvStrobeValues[0] = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0];
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0]);
+	Sleep(100);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1] = (UINT16)pGrid->GetItemTextToInt(3, 0);
+	recvStrobeValues[1] = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1];
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 1, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1]);
+	Sleep(100);
+	/*Cam2*/
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2] = (UINT16)pGrid->GetItemTextToInt(1, 1);
+	recvStrobeValues[2] = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2];
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 2, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2]);
+	Sleep(100);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[3] = (UINT16)pGrid->GetItemTextToInt(3, 1);
+	recvStrobeValues[3] = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[3];
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 3, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[3]);
+	Sleep(100);
+	/*Cam3*/
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4] = (UINT16)pGrid->GetItemTextToInt(1, 2);
+	recvStrobeValues[4] = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4];
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 4, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4]);
+	Sleep(100);
+	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5] = (UINT16)pGrid->GetItemTextToInt(3, 2);
+	recvStrobeValues[5] = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5];
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5]);
+	Sleep(100);
+
+	GlobalVariables::getInstance()->Waiter("strobe",
+	[]
+	{
+		return GlobalVariables::getInstance()->GetCount("strobeRecved") == 6;
+	},
+	[]
+	{
+		MessageBoxEx(nullptr, _T("Write succeed.\t"), _T("ok"), MB_OK, LANG_ENGLISH);
+	},
+	[&]
+	{
+		std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::getInstance()->GetCount("strobeRecved")) + L"\t";
+		MessageBoxEx(nullptr, info.c_str(), _T("failed"), MB_OK, LANG_ENGLISH);
+	}
+	);
+
+	#endif
+
+	
+	uvEng_SaveConfig();
+}
+
+void CDlgMark::OnClickGridInput(NMHDR* pNotifyStruct, LRESULT* pResult)
+{
+	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
+
+	CGridCtrl* pGrid = &m_grd_ctl[eMARK_GRD_STROBE_VIEW];
+
+	CString strOutput;
+	CString strInput = pGrid->GetItemText(pItem->iRow, pItem->iColumn);
+	double	dMin = 0;
+	double	dMax = 1000;
+
+	if (1 == pItem->iRow || 3 == pItem->iRow)
+	{
+		if (PopupKBDN(ENM_DITM::en_double, strInput, strOutput, dMin, dMax, 0))
+		{
+			pGrid->SetItemTextFmt(pItem->iRow, pItem->iColumn, _T("%s"), strOutput);
+		}
+	}
+
+	pGrid->Refresh();
+}
+
+BOOL CDlgMark::PopupKBDN(ENM_DITM enType, CString strInput, CString& strOutput, double dMin, double dMax, UINT8 u8DecPts/* = 0*/)
+{
+	TCHAR tzTitle[1024] = { NULL }, tzPoint[512] = { NULL }, tzMinMax[2][32] = { NULL };
+	CDlgKBDN dlg;
+
+	wcscpy_s(tzMinMax[0], 32, L"Min");
+	wcscpy_s(tzMinMax[1], 32, L"Max");
+
+	switch (enType)
+	{
+	case ENM_DITM::en_int8:
+	case ENM_DITM::en_int16:
+	case ENM_DITM::en_int32:
+	case ENM_DITM::en_int64:
+	case ENM_DITM::en_uint8:
+	case ENM_DITM::en_uint16:
+		swprintf_s(tzPoint, 512, L"%s:%%.%df,%s:%%.%df", tzMinMax[0], u8DecPts, tzMinMax[1], u8DecPts);
+		swprintf_s(tzTitle, 1024, tzPoint, dMin, dMax);
+		if (IDOK != dlg.MyDoModal(tzTitle, FALSE, TRUE, dMin, dMax))	return FALSE;	break;
+	case ENM_DITM::en_uint32:
+	case ENM_DITM::en_uint64:
+		swprintf_s(tzPoint, 512, L"%s:%%.%df,%s:%%.%df", tzMinMax[0], u8DecPts, tzMinMax[1], u8DecPts);
+		swprintf_s(tzTitle, 1024, tzPoint, dMin, dMax);
+		if (IDOK != dlg.MyDoModal(tzTitle, FALSE, TRUE, dMin, dMax))	return FALSE;	break;
+	case ENM_DITM::en_float:
+	case ENM_DITM::en_double:
+		swprintf_s(tzPoint, 512, L"%s:%%.%df,%s:%%.%df", tzMinMax[0], u8DecPts, tzMinMax[1], u8DecPts);
+		swprintf_s(tzTitle, 1024, tzPoint, dMin, dMax);
+		if (IDOK != dlg.MyDoModal(tzTitle, TRUE, TRUE, dMin, dMax))	return FALSE;	break;
+	}
+	switch (enType)
+	{
+	case ENM_DITM::en_int8:
+	case ENM_DITM::en_int16:
+	case ENM_DITM::en_int32:
+	case ENM_DITM::en_int64:
+	case ENM_DITM::en_uint8:
+	case ENM_DITM::en_uint16:
+	case ENM_DITM::en_uint32:
+	case ENM_DITM::en_uint64:
+		strOutput.Format(_T("%d"), dlg.GetValueInt32());
+		break;
+	case ENM_DITM::en_float:
+	case ENM_DITM::en_double:
+		swprintf_s(tzPoint, 512, L"%%.%df", u8DecPts);
+		strOutput.Format(tzPoint, dlg.GetValueDouble());
+	}
+
+	return TRUE;
 }

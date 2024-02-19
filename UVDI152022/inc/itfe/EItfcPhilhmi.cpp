@@ -58,6 +58,11 @@ extern "C"
 		return uvPhilhmi_GetRecvWaitFromUniqueID(nUniqueID, stRecv, nTimeout);
 	}
 
+	API_EXPORT BOOL uvEng_uvPhilhmi_IsSyncResultLocked()
+	{
+		return uvPhilhmi_IsSyncResultLocked();
+	}
+
 	API_EXPORT BOOL uvEng_Philhmi_DeleteRecvDataFromUniqueID(unsigned int nUniqueID)
 	{
 		return uvPhilhmi_DeleteRecvDataFromUniqueID(nUniqueID);
@@ -227,7 +232,10 @@ extern "C"
 	{
 		return uvPhilhmi_Send_C2P_PROCESS_EXECUTE_ACK(stSend);
 	}
-
+	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_INITIAL_EXECUTE_ACK(STG_PP_C2P_INITIAL_EXECUTE_ACK& stSend)
+	{
+		return uvPhilhmi_Send_C2P_INITIAL_EXECUTE_ACK(stSend);
+	}
 	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_SUBPROCESS_EXECUTE_ACK(STG_PP_C2P_SUBPROCESS_EXECUTE_ACK& stSend)
 	{
 		return uvPhilhmi_Send_C2P_SUBPROCESS_EXECUTE_ACK(stSend);

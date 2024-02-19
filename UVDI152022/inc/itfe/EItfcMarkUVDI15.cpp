@@ -227,6 +227,17 @@ API_EXPORT BOOL uvEng_Mark_SelAlignRecipeName(PTCHAR r_name)
 	return g_pMark->SelAlignRecipeName(csCnv.Uni2Ansi(r_name));
 }
 
+
+API_EXPORT BOOL uvEng_Mark_SetAlignMotionPtr(AlignMotion& ptr)
+{
+	
+	if (!g_pMark)	return FALSE;
+	 g_pMark->SetAlignMotionPtr(ptr);
+	 return TRUE;
+}
+
+
+
 /* ----------------------------------------------------------------------------------------- */
 /*                                 lk91 VISION 추가 함수                                     */
 /* ----------------------------------------------------------------------------------------- */

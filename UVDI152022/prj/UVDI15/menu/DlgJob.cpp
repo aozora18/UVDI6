@@ -3,15 +3,21 @@
  desc : Gerber Recipe
 */
 
+
+using namespace std;
+
 #include "pch.h"
 #include "../MainApp.h"
 #include "DlgJob.h"
-
+#include <map>
 #include "./gerb/DrawPrev.h"	/* Gerber Preivew File */
 #include "./mark/DrawModel.h"	/* Mark Model Object */
 #include "../pops/DlgSped.h"
 #include "../mesg/DlgMesg.h"
 #include "../../../inc/kybd/DlgKBDT.h"
+#include "../../../inc/conf/conf_comn.h"
+#include "../GlobalVariables.h"
+
 #include <afxtaskdialog.h>
 
 #ifdef	_DEBUG
@@ -881,6 +887,8 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 				else if (stParam.strName == _T("ALIGN_TYPE"))
 				{
 					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
+
+
 
 					CStringArray options;
 					options.Add(_T("Global 0 Local 0_0"));	/*Global(0) points / Local Division(0 x 0) (00) points */
@@ -2511,8 +2519,8 @@ VOID CDlgJob::RecipeSelect()
 	}
 
 	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 2; j++) {
+	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+		for (int j = 0; j < 2; j++) { // global, local 2개
 			uvCmn_Camera_SetMarkFindMode(i + 1, pstAlign->mark_type, j);
 		}
 	}
@@ -2629,7 +2637,7 @@ VOID CDlgJob::SetMark(UINT8 index) // index : Global, Local
 	/* 값 설정 후 화면 갱신 */
 	m_pDrawModel[index]->SetModel(csCnv.Ansi2Uni(pstMark->name), ENG_MMDT(pstMark->type), pstAlign->acam_num[index], pstMark->param);
 	/* 값 설정 후 화면 갱신 */
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 		if (ENG_MMDT::en_image != ENG_MMDT(pstMark->type))
 		{
 			m_pDrawModel[index]->SetModel(csCnv.Ansi2Uni(pstMark->name),
@@ -2658,7 +2666,7 @@ VOID CDlgJob::SetMark(UINT8 index) // index : Global, Local
 VOID CDlgJob::InitDispMark()
 {
 	CWnd* pWnd_Mark[2];
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) { // global, local 2개
 		pWnd_Mark[i] = GetDlgItem(IDC_JOB_PIC_GLOBAL_MARK + i);
 	}
 	uvEng_Camera_SetDispRecipeMark(pWnd_Mark);

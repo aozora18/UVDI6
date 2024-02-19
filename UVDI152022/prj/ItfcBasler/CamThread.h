@@ -55,6 +55,15 @@ protected:
 
 // 공용 함수
 public:
+	CAtlList <LPG_ACGR>* GetGrabImage()
+	{
+		return &m_lstGrab;
+	}
+
+	bool TryEnterCS() { return m_syncGrab.Enter(); }
+	void ExitCS() { m_syncGrab.Leave(); }
+
+
 
 	VOID				Reconnected();
 	// 연결 여부
@@ -71,6 +80,7 @@ public:
 	BOOL				SetGrabbedMarkIndex(UINT8 index, LPG_ACGR data);
 
 	VOID				SetMatchParam(UINT8 rotate, DOUBLE match);
+	CAtlList <LPG_ACGR>* GetGrabbedMarkAll();
 	LPG_ACGR			RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc); // default mode = 0xff
 	BOOL				RunModelStep(UINT8 cam_id, UINT16 count, BOOL angle, LPG_ACGR results, UINT8 dlg_id, UINT8 mark_no, UINT8 img_proc);
 	BOOL				RunModelExam(DOUBLE score, DOUBLE scale, LPG_ACGR results);

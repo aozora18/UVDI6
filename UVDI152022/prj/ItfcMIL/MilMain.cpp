@@ -73,7 +73,9 @@ CMilMain::CMilMain()
 */
 CMilMain::~CMilMain()
 {
-	//CloseMilAlloc();
+	if (terminated)return;
+		CloseMilAlloc();
+	
 }
 
 /*
@@ -145,6 +147,15 @@ BOOL CMilMain::InitMilAlloc(ENG_ERVM run_mode, PTCHAR font_name, UINT8 font_size
 			AfxMessageBox(_T("Failed to Create m_mImgProc Buffer!"));
 			return FALSE;
 		}
+	}
+
+	if (!m_mImg_MPMM_AutoCenter_Proc)
+		MbufAlloc2d(m_mSysID, iSizeX, iSizeY, 8L + M_UNSIGNED, iBufAttri_Disp, &m_mImg_MPMM_AutoCenter_Proc);
+	if (m_mImg_MPMM_AutoCenter_Proc)		MbufClear(m_mImg_MPMM_AutoCenter_Proc, 0L);
+	else
+	{
+		AfxMessageBox(_T("Failed to Create m_mImg_MPMM_AutoCenter_Proc Buffer!"));
+		return FALSE;
 	}
 
 	for (iCamCnt = 0; iCamCnt < CAM_CNT; iCamCnt++)
@@ -271,6 +282,8 @@ VOID CMilMain::CloseMilAlloc()
 {
 	//UINT8 i	= 0x00, j = 0x00;
 
+	if (terminated)return;
+
 	/* 기존 Grabbed Image Object 모두 제거 */
 	ResetGrabAll();
 #ifndef _NOT_USE_MIL_
@@ -287,14 +300,7 @@ VOID CMilMain::CloseMilAlloc()
 			m_mImgDisp_EXPO[i] = M_NULL;
 		}
 	}
-	for (int i = GRABMARK_CNT - 1; i >= 0; i--)
-	{
-		if (m_mImgDisp_Mark[i])
-		{
-			MbufFree(m_mImgDisp_Mark[i]);
-			m_mImgDisp_Mark[i] = M_NULL;
-		}
-	}
+
 	if (m_mImgDisp_Mark_Live)
 	{
 		MbufFree(m_mImgDisp_Mark_Live);
@@ -305,11 +311,7 @@ VOID CMilMain::CloseMilAlloc()
 		MbufFree(m_mImgDisp_MMPM);
 		m_mImgDisp_MMPM = M_NULL;
 	}
-	if (m_mImg_MarkSet_Ori)
-	{
-		MbufFree(m_mImg_MarkSet_Ori);
-		m_mImg_MarkSet_Ori = M_NULL;
-	}
+
 	if (m_mImgDisp_CALI_CAMSPEC)
 	{
 		MbufFree(m_mImgDisp_CALI_CAMSPEC);
@@ -327,6 +329,15 @@ VOID CMilMain::CloseMilAlloc()
 		MbufFree(m_mImgDisp_ACCR);
 		m_mImgDisp_ACCR = M_NULL;
 	}
+	for (int i = GRABMARK_CNT - 1; i >= 0; i--)
+	{
+		if (m_mImgDisp_Mark[i])
+		{
+			MbufFree(m_mImgDisp_Mark[i]);
+			m_mImgDisp_Mark[i] = M_NULL;
+		}
+	}
+
 	/* DispFree */
 	for (int i = GRABMARK_CNT - 1; i >= 0; i--)
 	{
@@ -414,6 +425,23 @@ VOID CMilMain::CloseMilAlloc()
 		m_mGraphID = M_NULL;
 	}
 
+	if (m_mImg_MarkSet)
+	{
+		MbufFree(m_mImg_MarkSet);
+		m_mImg_MarkSet = M_NULL;
+	}
+
+	if (m_mImg_MarkSet_Ori)
+	{
+		MbufFree(m_mImg_MarkSet_Ori);
+		m_mImg_MarkSet_Ori = M_NULL;
+	}
+	if (m_mImg_MPMM_AutoCenter)
+	{
+		MbufFree(m_mImg_MPMM_AutoCenter);
+		m_mImg_MPMM_AutoCenter = M_NULL;
+	}
+
 	for (int i = GRABMARK_CNT - 1; i >= 0; i--)
 	{
 		if (m_mImg_Grab[i]) {
@@ -452,6 +480,10 @@ VOID CMilMain::CloseMilAlloc()
 		}
 	}
 
+	if (m_mImg_MPMM_AutoCenter_Proc) {
+		MbufFree(m_mImg_MPMM_AutoCenter_Proc);
+		m_mImg_MPMM_AutoCenter_Proc = M_NULL;
+	}
 
 	for (int i = CAM_CNT - 1; i >= 0; i--)
 	{
@@ -504,6 +536,7 @@ VOID CMilMain::CloseMilAlloc()
 	free(m_mOverlay_EXPO);
 
 #endif
+	terminated = true;
 }
 
 /*
@@ -1317,8 +1350,8 @@ VOID CMilMain::ResetMarkModel()
 	UINT8 i	= 0x00;
 	for (; i<m_pstConfig->set_cams.acam_count; i++)
 	{
-		for (int j = 0; j < 2; j++) {
-			for (int k = 0; k < 2; k++) {
+		for (int j = 0; j < 2; j++) { // Global, Local 2개
+			for (int k = 0; k < 2; k++) { // PAT, MOD 2개
 				if (m_pMilModel && m_pMilModel[i])	m_pMilModel[i]->ReleaseMarkModel(j, k);
 			}
 		}
@@ -1800,19 +1833,24 @@ VOID CMilMain::InitMilMain(LPG_CIEA config, LPG_VDSM shmem)
 	m_mDisID_MMPM			= M_NULL;
 	m_mDisID_CALI_CAMSPEC	= M_NULL;
 	m_mDisID_ACCR			= M_NULL;
+	m_mDisID_MPMM_AutoCenter	= M_NULL;
 	//m_mGraphID				= M_NULL;
 	m_mOverlay_Mark_Live	= M_NULL;
 	m_mOverlay_MarkSet		= M_NULL;
 	m_mOverlay_MMPM			= M_NULL;
 	m_mOverlay_CALI_CAMSPEC	= M_NULL;
 	m_mOverlay_ACCR			= M_NULL;
+	m_mOverlay_MPMM_AutoCenter = M_NULL;
 	m_mImgDisp_Mark_Live	= M_NULL;
 	m_mImgDisp_MarkSet		= M_NULL;
 	m_mImgDisp_MMPM			= M_NULL;
 	m_mImgDisp_CALI_CAMSPEC	= M_NULL;
 	m_mImgDisp_ACCR			= M_NULL;
+	m_mImgDisp_MPMM_AutoCenter = M_NULL;
 	m_mImg_MarkSet			= M_NULL;
 	m_mImg_MarkSet_Ori		= M_NULL;
+	m_mImg_MPMM_AutoCenter		= M_NULL;
+	m_mImg_MPMM_AutoCenter_Proc = M_NULL;
 
 	MilMask = M_NULL;
 
@@ -1863,18 +1901,18 @@ BOOL CMilMain::RegistMod(UINT8 cam_id, PUINT8 img_src, CRect fi_rectArea, CStrin
 VOID CMilMain::CloseSetMark()
 {
 #ifndef _NOT_USE_MIL_
-	if (m_mDisID_MMPM)
-	{
-		MdispDeselect(m_mDisID_MarkSet, m_mImgDisp_MMPM);
-		MdispFree(m_mDisID_MMPM);
-		m_mDisID_MMPM = M_NULL;
-	}
+	//if (m_mDisID_MMPM)
+	//{
+	//	MdispDeselect(m_mDisID_MarkSet, m_mImgDisp_MMPM);
+	//	MdispFree(m_mDisID_MMPM);
+	//	m_mDisID_MMPM = M_NULL;
+	//}
 
-	if (m_mImgDisp_MMPM)
-	{
-		MbufFree(m_mImgDisp_MMPM);
-		m_mImgDisp_MMPM = M_NULL;
-	}
+	//if (m_mImgDisp_MMPM)
+	//{
+	//	MbufFree(m_mImgDisp_MMPM);
+	//	m_mImgDisp_MMPM = M_NULL;
+	//}
 
 	if (m_mDisID_MarkSet)
 	{
@@ -1911,14 +1949,39 @@ VOID CMilMain::CloseSetMark()
 #endif
 }
 
+/* desc: Mil Main 할당 변수 해제 */
+VOID CMilMain::CloseMMPMAutoCenter()
+{
+#ifndef _NOT_USE_MIL_
+	if (m_mDisID_MPMM_AutoCenter)
+	{
+		MdispDeselect(m_mDisID_MPMM_AutoCenter, m_mImgDisp_MPMM_AutoCenter);
+		MdispFree(m_mDisID_MPMM_AutoCenter);
+		m_mDisID_MPMM_AutoCenter = M_NULL;
+	}
+
+	if (m_mImgDisp_MPMM_AutoCenter)
+	{
+		MbufFree(m_mImgDisp_MPMM_AutoCenter);
+		m_mImgDisp_MPMM_AutoCenter = M_NULL;
+	}
+
+	if (m_mImg_MPMM_AutoCenter)
+	{
+		MbufFree(m_mImg_MPMM_AutoCenter);
+		m_mImg_MPMM_AutoCenter = M_NULL;
+	}
+#endif
+}
+
 /* desc: Mask 초기화 */
-VOID CMilMain::InitMask()
+VOID CMilMain::InitMask(UINT8 cam_id)
 {
 #ifndef _NOT_USE_MIL_
 
 	if (m_pMilModel)	// lk91 처음 마크 등록할때 있는지 체크
 	{
-		theApp.clMilMain.m_MarkSize = m_pMilModel[0]->GetMarkSize(TMP_MARK); // MASKING은 마크 등록에만 사용하니까.. CAM 0으로 고정
+		theApp.clMilMain.m_MarkSize = m_pMilModel[cam_id - 1]->GetMarkSize(TMP_MARK); // MASKING은 마크 등록에만 사용하니까.. CAM 0으로 고정
 		//MbufAlloc2d(m_mSysID, theApp.clMilMain.m_MarkSize.x, theApp.clMilMain.m_MarkSize.y, 8L + M_UNSIGNED, M_IMAGE + M_DISP + M_PROC, &MilMask);
 	}
 
@@ -2082,10 +2145,10 @@ VOID CMilMain::MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no)
 }
 
 /* desc: Find Center (Mark Set에서만 사용) */
-VOID CMilMain::MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound)
+VOID CMilMain::CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode)
 {
 	if (!m_pMilModel)	return;
-	return m_pMilModel[cam_id - 1]->MarkSetCenterFind(fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound);
+	return m_pMilModel[cam_id - 1]->CenterFind(fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound, fi_Mode);
 }
 
 /* desc: Mark 정보 그릴 때 사용하는 MIL 함수 */
@@ -2103,7 +2166,7 @@ VOID CMilMain::Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect
 }
 
 /* desc: EXPO DISP ID 할당 */
-VOID CMilMain::SetDisp_Expo(CWnd* pWnd[4])
+VOID CMilMain::SetDispExpo(CWnd* pWnd[4])
 {
 	//WINDOWPLACEMENT wndpl;
 	//CPoint	iSizeP;
@@ -2151,7 +2214,7 @@ VOID CMilMain::SetDisp_Expo(CWnd* pWnd[4])
 }
 
 /* desc: LIVE DISP ID 할당 */
-VOID CMilMain::SetDisp(CWnd* pWnd[2], UINT8 fi_Mode)
+VOID CMilMain::SetDisp(CWnd** pWnd, UINT8 fi_Mode)
 {
 	WINDOWPLACEMENT wndpl;
 	CPoint	iSizeP;
@@ -2259,6 +2322,7 @@ VOID CMilMain::SetDisp(CWnd* pWnd[2], UINT8 fi_Mode)
 		CALIB_CAMSPEC_DISP_SIZE_Y = iSizeP.y;
 	}
 	else if (fi_Mode == 0x02) { // Calib Exposure(cali step)
+		//for (int i = 0; i < g_pstConfig->set_cams.acam_count; i++) {
 		for (int i = 0; i < 2; i++) {
 			pWnd[i]->GetWindowPlacement(&wndpl);
 
@@ -2437,6 +2501,7 @@ VOID CMilMain::SetDispRecipeMark(CWnd* pWnd[2]) // MIL_ID 이미 만들어 놓은거 사�
 	long lBufAttBuf = M_IMAGE + M_DISP + M_PROC;
 	CString sTmp;
 
+	//for (int i = 0; i < g_pstConfig->set_cams.acam_count; i++) { // lk91 UI 적용되면 CAM 3개 수량 변경
 	for (int i = 0; i < 2; i++) {
 		pWnd[i]->GetWindowPlacement(&wndpl);
 
@@ -2518,9 +2583,34 @@ VOID CMilMain::SetDispMarkSet(CWnd* pWnd)
 #endif
 }
 
+/* desc: MMPM AutoCenter DISP ID 할당 */
+VOID CMilMain::SetDispMMPM_AutoCenter(CWnd* pWnd)
+{
+	//WINDOWPLACEMENT wndpl;
+	CPoint	iSizeP;
+	long lBufAttBuf = M_IMAGE + M_DISP + M_PROC;
+	CString sTmp;
 
-/* desc: LIVE DISP ID 할당 */
-VOID CMilMain::SetDisp_MMPM(CWnd* pWnd)
+#ifndef _NOT_USE_MIL_
+	if (!m_mDisID_MPMM_AutoCenter)
+		m_mDisID_MPMM_AutoCenter = MdispAlloc(m_mSysID, M_DEFAULT, _T("M_DEFAULT"), M_DEFAULT, M_NULL);
+
+	if (m_mDisID_MPMM_AutoCenter)
+	{
+		MIL_INT DisplayType = MdispInquire(m_mDisID_MPMM_AutoCenter, M_DISPLAY_TYPE, M_NULL);
+
+		if ((DisplayType & (M_WINDOWED | M_EXCLUSIVE)) != M_WINDOWED)
+		{
+			AfxMessageBox(_T("Failed to create m_mDisID_MPMM_AutoCenter."));
+			MdispFree(m_mDisID_MPMM_AutoCenter);
+			m_mDisID_MPMM_AutoCenter = (MIL_ID)NULL;
+		}
+	}
+#endif
+}
+
+/* desc: MMPM DISP ID 할당 */
+VOID CMilMain::SetDispMMPM(CWnd* pWnd)
 {
 	WINDOWPLACEMENT wndpl;
 	CPoint	iSizeP;
@@ -2604,83 +2694,90 @@ BOOL CMilMain::RegistMILImg(INT32 cam_id, INT32 width, INT32 height, PUINT8 imag
 		bSucc = FALSE;
 	}
 
-	if (m_mImg_CALI_CAMSPEC[cam_id]) {
-		/* Image Buffer Clear */
-		MbufClear(m_mImg_CALI_CAMSPEC[cam_id], 0L);
-	}
-	else {
-		return FALSE;
-	}
-	/* Put the image to image buffer */
-	//MbufPut2d(m_mImg_CALI_CAMSPEC[cam_id], rectSearhROI_Calb_CamSpec.left, rectSearhROI_Calb_CamSpec.top, 
-	//	m_pstConfig->set_cams.spc_size[0], m_pstConfig->set_cams.spc_size[1], image);
-	if(m_mImgProc[cam_id])
-		MbufClear(m_mImgProc[cam_id], 0L);
-	MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
-	//MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_CamSpec.left, rectSearhROI_Calb_CamSpec.top,
-	//	m_pstConfig->set_cams.spc_size[0], m_pstConfig->set_cams.spc_size[1], &m_mImg_CALI_CAMSPEC[cam_id]);
-	if (MappGetError(M_GLOBAL, M_NULL))
-	{
-		LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the aoi area to m_mImg_CALI_CAMSPEC buffer");
-		bSucc = FALSE;
-	}
+	// lk91 initMilAlloc 이동
+	//if (m_mImg_CALI_CAMSPEC[cam_id]) {
+	//	/* Image Buffer Clear */
+	//	MbufClear(m_mImg_CALI_CAMSPEC[cam_id], 0L);
+	//}
+	//else {
+	//	return FALSE;
+	//}
+	///* Put the image to image buffer */
+	////MbufPut2d(m_mImg_CALI_CAMSPEC[cam_id], rectSearhROI_Calb_CamSpec.left, rectSearhROI_Calb_CamSpec.top, 
+	////	m_pstConfig->set_cams.spc_size[0], m_pstConfig->set_cams.spc_size[1], image);
+	//if(m_mImgProc[cam_id])
+	//	MbufClear(m_mImgProc[cam_id], 0L);
+	//MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
+	////MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_CamSpec.left, rectSearhROI_Calb_CamSpec.top,
+	////	m_pstConfig->set_cams.spc_size[0], m_pstConfig->set_cams.spc_size[1], &m_mImg_CALI_CAMSPEC[cam_id]);
+	//if (MappGetError(M_GLOBAL, M_NULL))
+	//{
+	//	LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the aoi area to m_mImg_CALI_CAMSPEC buffer");
+	//	bSucc = FALSE;
+	//}
 
-	if (m_mImg_CALI_STEP[0]) {
-		/* Image Buffer Clear */
-		MbufClear(m_mImg_CALI_STEP[0], 0L);
-	}
-	else {
-		return FALSE;
-	}
-	if (m_mImg_CALI_STEP[1]) {
-		/* Image Buffer Clear */
-		MbufClear(m_mImg_CALI_STEP[1], 0L);
-	}
-	else {
-		return FALSE;
-	}
-	/* Put the image to image buffer */
-	MbufPut2d(m_mImg_CALI_STEP[cam_id], rectSearhROI_Calb_Step.left, rectSearhROI_Calb_Step.top,
-		m_pstConfig->set_cams.soi_size[0], m_pstConfig->set_cams.soi_size[1], image);
-	if (m_mImgProc)
-		MbufClear(m_mImgProc[cam_id], 0L);
-	MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
-	//MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_Step.left, rectSearhROI_Calb_Step.top,
-	//	m_pstConfig->set_cams.soi_size[0], m_pstConfig->set_cams.soi_size[1], &m_mImg_CALI_STEP[0]);
+	//if (m_mImg_CALI_STEP[0]) {
+	//	/* Image Buffer Clear */
+	//	MbufClear(m_mImg_CALI_STEP[0], 0L);
+	//}
+	//else {
+	//	return FALSE;
+	//}
+	//if (m_mImg_CALI_STEP[1]) {
+	//	/* Image Buffer Clear */
+	//	MbufClear(m_mImg_CALI_STEP[1], 0L);
+	//}
+	//else {
+	//	return FALSE;
+	//}
+	///* Put the image to image buffer */
+	//MbufPut2d(m_mImg_CALI_STEP[cam_id], rectSearhROI_Calb_Step.left, rectSearhROI_Calb_Step.top,
+	//	m_pstConfig->set_cams.soi_size[0], m_pstConfig->set_cams.soi_size[1], image);
+	//if (m_mImgProc)
+	//	MbufClear(m_mImgProc[cam_id], 0L);
+	//MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
+	////MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_Step.left, rectSearhROI_Calb_Step.top,
+	////	m_pstConfig->set_cams.soi_size[0], m_pstConfig->set_cams.soi_size[1], &m_mImg_CALI_STEP[0]);
+
+	//if (m_mImgProc[cam_id])
+	//	MbufClear(m_mImgProc[cam_id], 0L);
+	//MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
+	////MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_Step.left, rectSearhROI_Calb_Step.top,
+	////	m_pstConfig->set_cams.soi_size[0], m_pstConfig->set_cams.soi_size[1], &m_mImg_CALI_STEP[1]);
+	//if (MappGetError(M_GLOBAL, M_NULL))
+	//{
+	//	LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the aoi area to m_mImg_CALI_STEP buffer");
+	//	bSucc = FALSE;
+	//}
+
+	//if (m_mImg_ACCR[cam_id]) {
+	//	/* Image Buffer Clear */
+	//	MbufClear(m_mImg_ACCR[cam_id], 0L);
+	//}
+	//else {
+	//	return FALSE;
+	//}
+	//if (m_mImgProc[cam_id])
+	//	MbufClear(m_mImgProc[cam_id], 0L);
+	//MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
+	////MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_Accr.left, rectSearhROI_Calb_Accr.top,
+	////	m_pstConfig->set_cams.spc_size[0], m_pstConfig->set_cams.spc_size[1], &m_mImg_ACCR[cam_id]);
+	//if (MappGetError(M_GLOBAL, M_NULL))
+	//{
+	//	LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the aoi area to m_mImg_CALI_ACCR buffer");
+	//	bSucc = FALSE;
+	//}
+
 
 	if (m_mImgProc[cam_id])
 		MbufClear(m_mImgProc[cam_id], 0L);
 	MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
-	//MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_Step.left, rectSearhROI_Calb_Step.top,
-	//	m_pstConfig->set_cams.soi_size[0], m_pstConfig->set_cams.soi_size[1], &m_mImg_CALI_STEP[1]);
-	if (MappGetError(M_GLOBAL, M_NULL))
-	{
-		LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the aoi area to m_mImg_CALI_STEP buffer");
-		bSucc = FALSE;
-	}
-
-
-	if (m_mImg_ACCR[cam_id]) {
-		/* Image Buffer Clear */
-		MbufClear(m_mImg_ACCR[cam_id], 0L);
-	}
-	else {
-		return FALSE;
-	}
-	if (m_mImgProc[cam_id])
-		MbufClear(m_mImgProc[cam_id], 0L);
-	MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
-	//MbufChild2d(m_mImgProc[cam_id], rectSearhROI_Calb_Accr.left, rectSearhROI_Calb_Accr.top,
-	//	m_pstConfig->set_cams.spc_size[0], m_pstConfig->set_cams.spc_size[1], &m_mImg_ACCR[cam_id]);
-	if (MappGetError(M_GLOBAL, M_NULL))
-	{
-		LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the aoi area to m_mImg_CALI_ACCR buffer");
-		bSucc = FALSE;
-	}
-
-
-
-
+	if(cam_id == 0)
+		MbufSave(_T("D:\\klk\\cam1.bmp"), m_mImgProc[0]); //lk91 tmp
+	else if(cam_id == 1)
+		MbufSave(_T("D:\\klk\\cam2.bmp"), m_mImgProc[1]); //lk91 tmp
+	else if (cam_id == 2)
+		MbufSave(_T("D:\\klk\\cam3.bmp"), m_mImgProc[2]); //lk91 tmp
 #endif
 	return TRUE;
 }

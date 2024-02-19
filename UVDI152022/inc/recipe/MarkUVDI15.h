@@ -2,6 +2,7 @@
 
 #include "Base.h"
 
+class AlignMotion;
 class CMarkUVDI15 : public CBase
 {
 /* 생성자 & 파괴자 */
@@ -20,7 +21,7 @@ protected:
 	CAtlList <LPG_RAAF>	m_lstAlignRecipe;
 
 	LPG_CRD				m_pstROI; // Search ROI
-
+	AlignMotion* alignMotion = nullptr;
 /* 로컬 함수 */
 protected:
 
@@ -43,7 +44,7 @@ protected:
 
 /* 공용 함수 */
 public:
-
+	VOID				SetAlignMotionPtr(AlignMotion& ptr) { alignMotion = &ptr; }
 	BOOL				SetMarkROI(LPG_CRD data, UINT8 index);
 	BOOL				SaveROI();
 	LPG_CRD				GetMarkROI();

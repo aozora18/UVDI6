@@ -96,10 +96,11 @@ BOOL CDlgSetMark::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
+	um_iSizeP = uvCmn_Camera_GetMarkSize(m_icamNum, TMP_MARK); 
+
 	InitDisp();
 	UpdateInfo();
 
-	um_iSizeP = uvCmn_Camera_GetMarkSize(m_icamNum, TMP_MARK); // 저장 경로, cam_id 0x01 임의 고정
 
 	CFont font;
 	font.CreatePointFont(8, _T("Arial"));
@@ -190,7 +191,7 @@ void CDlgSetMark::UpdateInfo()
 	//uvCmn_Camera_SetMarkOffset(m_icamNum, tmpOffSet, 0, TMP_MARK);
 	//uvCmn_Camera_SetMarkOffset(m_icamNum, tmpOffSet, 1, TMP_MARK);
 
-	uvCmn_Camera_InitMask();
+	uvCmn_Camera_InitMask(m_icamNum);
 	DlgPutSetMarkDisp(1.0);
 	uvCmn_Camera_MaskBufGet();
 
@@ -778,8 +779,8 @@ void CDlgSetMark::OnBnClickedBtnCenterfind()
 	curSmoothness = m_edit_center_smooth;
 	if (curSmoothness < 5)	curSmoothness = 50;
 	
-	
-	uvCmn_Camera_MarkSetCenterFind(m_icamNum, m_edit_length_exclude, curSmoothness, NumEdgeMIN_X, NumEdgeMAX_X, NumEdgeMIN_Y, NumEdgeMAX_Y, &NumEdgeFound);
+	int CenterFindMode = 1;
+	uvCmn_Camera_CenterFind(m_icamNum, m_edit_length_exclude, curSmoothness, NumEdgeMIN_X, NumEdgeMAX_X, NumEdgeMIN_Y, NumEdgeMAX_Y, &NumEdgeFound, CenterFindMode);
 
 	CString Str_List[100];
 	DOUBLE tmpDispRate = uvCmn_Camera_GetMarkSetDispRate();

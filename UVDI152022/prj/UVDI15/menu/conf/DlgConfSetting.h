@@ -116,6 +116,12 @@ protected:
 	VOID				SaveTransformation(LPG_CIEA conf);
 	VOID				SetTempHotAir();
 	VOID				SetAnalogGain();
+	VOID				LoadSetupAlign(LPG_CIEA conf);
+	VOID				SaveSetupAlign(LPG_CIEA conf);
+	VOID				LoadMarkFind(LPG_CIEA conf);
+	VOID				SeveMarkFind(LPG_CIEA conf);
+	VOID				LoadStrobeLamp(LPG_CIEA conf);
+	VOID				SaveStrobeLamp(LPG_CIEA conf);
 
 	/* 공용 함수 */
 public:

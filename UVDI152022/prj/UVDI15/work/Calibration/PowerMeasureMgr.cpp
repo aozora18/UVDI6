@@ -1564,13 +1564,18 @@ BOOL CPowerMeasureMgr::Measurement(HWND hHwnd)
 }
 
 
+#include <timeapi.h>
+
 BOOL CPowerMeasureMgr::CheckRecipe(HWND hHwnd)
 {
-	LPG_CLPI pParam = &uvEng_GetConfig()->led_power;
+	CPowerMeasureMgr::GetInstance()->AllPhotoLedOff();
 
+	LPG_CLPI pParam = &uvEng_GetConfig()->led_power;
+	
 	/* 정지 플래그 초기화 */
 	m_bStop = FALSE;
-
+	const int COOLDOWN_TIME = 5000;
+	DWORD tick = timeGetTime();
 	for (int nHead = 0; nHead < uvEng_GetConfig()->luria_svc.ph_count; nHead++)
 	{
 		/* Move Measure Pos */
@@ -1602,6 +1607,9 @@ BOOL CPowerMeasureMgr::CheckRecipe(HWND hHwnd)
 		}
 
 		Wait(MOTOR_MOVE_DELAY);
+
+		if(timeGetTime() - tick < COOLDOWN_TIME) //최소 5초의 쿨다운타임이 필요.
+			Wait(COOLDOWN_TIME - (timeGetTime() - tick));
 
 		if (FALSE == RecipeMeasure(nHead + 1, hHwnd))
 		{
@@ -1685,14 +1693,22 @@ UINT16 CPowerMeasureMgr::GetPowerIndex(UINT8 u8Head, UINT8 u8Led, double dPower)
 	int nStartIndex = 0;		/* 계산 시작할 순서 값 */
 	double dMinValue = dPower;	/* 최소 오차값 */
 
+	
 	/* 경계 검사 */
 	if (FALSE == BoundsCheckingPowerTable(u8Head, u8Led))
 	{
-		return 0;
+		return -1;
 	}
 
 	/* 포인터 지정 */
 	pVctTable = &m_stVctPowerTable[u8Head - 1][u8Led - 1];
+
+	// 6um Text
+// 	if (pVctTable->begin()->dPower > dPower ||
+// 		pVctTable->end()->dPower < dPower) //현재 스텝내에서 처리할수 없는 상황이다. 
+// 	{
+// 		return 0;
+// 	}
 
 	if (eLAGRANGE_DATA_COUNT + 1 > (int)pVctTable->size())
 	{

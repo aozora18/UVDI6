@@ -8,7 +8,9 @@
 #include "../conf/global.h"
 #include "../conf/define.h"
 #include "../conf/luria.h"
-
+#include "../../prj/ItfcLuria/JobSelectXml.h"
+ 
+class AlignMotion;
 
 #ifdef __cplusplus
 extern "C"
@@ -96,6 +98,9 @@ API_IMPORT DOUBLE uvEng_Luria_GetGlobalMarkDiffVertX(UINT8 type);
  retn : 두 지점의 X 축 간의 떨어진 거리 (unit: 100 nm or 0.1 um)
 */
 API_IMPORT DOUBLE uvEng_Luria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan);
+
+API_IMPORT VOID uvEng_Luria_SetAlignMotionInfo(AlignMotion& motion);
+
 /*
  desc : 두 Mark 간의 상/하 Y 축 떨어진 간격 즉, Y 축 간의 오차 (높이) 값
  parm : mark_y1	- [in]  Y1 축 Mark Number (Zero based)
@@ -132,6 +137,19 @@ API_IMPORT BOOL uvEng_Luria_GetLocalBottomMark(UINT8 scan, UINT8 cam_id, LPG_XMX
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvEng_Luria_LoadSelectJobXML(ENG_ATGL align=ENG_ATGL::en_global_0_local_0x0_n_point);
+
+/*
+ desc : 현재 선택된 거버의 XML 데이터 내 글로벌 피두셜 읽기
+ parm : 
+ retn : CFiducialData*
+*/
+API_IMPORT CFiducialData* uvEng_Luria_GetGlobalFiducial();
+/*
+ desc : 현재 선택된 거버의 XML 데이터 내 로컬피두셜 읽기
+ parm : 
+ retn : CFiducialData*
+*/
+API_IMPORT CFiducialData* uvEng_Luria_GetLocalFiducial();
 
 API_EXPORT BOOL uvEng_Luria_LoadSelectJobXMLEx(PCHAR path, ENG_ATGL align);
 

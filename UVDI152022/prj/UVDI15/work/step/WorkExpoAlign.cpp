@@ -366,17 +366,17 @@ VOID CWorkExpoAlign::SetPhilProcessCompelet()
 
 	/*노광 결과 파라미터값*/
 	stProcessComp.usCount = 3;
-	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "CHAR");
-	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "data");
-	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, m_stExpoLog.data);
+	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "CHAR");
+	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "data");
+	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, m_stExpoLog.data);
 
-	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "UINT64");
-	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "expo_time");
-	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_time);
+	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT64");
+	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "expo_time");
+	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_time);
 
-	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "expo_succ");
-	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
+	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "expo_succ");
+	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
 
 	uvEng_Philhmi_Send_P2C_PROCESS_COMP(stProcessComp, stProcessCompAck);
 }

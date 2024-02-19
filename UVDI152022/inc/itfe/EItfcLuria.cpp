@@ -146,6 +146,11 @@ API_EXPORT DOUBLE uvEng_Luria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 	return uvLuria_GetLocalMarkACam12DistX(mode, scan);
 }
 
+API_EXPORT VOID uvEng_Luria_SetAlignMotionInfo(AlignMotion& motion)
+{
+	uvLuria_SetAlignMotionInfo(motion);
+}
+
 /*
  desc : 두 Mark 간의 상/하 Y 축 떨어진 간격 즉, Y 축 간의 오차 (높이) 값
  parm : mark_y1	- [in]  Y1 축 Mark Number (Zero based)
@@ -192,6 +197,7 @@ API_EXPORT BOOL uvEng_Luria_GetLocalBottomMark(UINT8 scan, UINT8 cam_id, LPG_XMX
 	return uvLuria_GetLocalBottomMark(scan, cam_id, *data);
 }
 
+
 /*
  desc : 현재 선택된 거버의 XML 데이터 읽기
  parm : align	- [in]  Gerber Data에 저장된 Mark Type (ENG_ATGL)
@@ -202,8 +208,35 @@ API_EXPORT BOOL uvEng_Luria_LoadSelectJobXML(ENG_ATGL align)
 	/* 현재 선택된 Job Name (전체 경로 얻기) */
 	if (strlen(GetShMemLuria()->jobmgt.selected_job_name) < 1)	return FALSE;
 	/* 현재 선택된 거버의 XML 파일 적재 */
-	return uvLuria_LoadRegistrationXML(GetShMemLuria()->jobmgt.selected_job_name, align);
+	BOOL res = uvLuria_LoadRegistrationXML(GetShMemLuria()->jobmgt.selected_job_name, align);
+	return res;
 }
+
+
+
+/*
+ desc : 현재 선택된 거버의 XML 내 global fiducial 얻기
+ parm : 
+ retn : TRUE or FALSE
+*/
+API_EXPORT CFiducialData* uvEng_Luria_GetGlobalFiducial()
+{
+	return uvLuria_GetGlobalMarkPtr();	
+}
+
+
+/*
+ desc : 현재 선택된 거버의 XML 내 로컬피듀셜 얻기 
+ parm : 
+ retn : TRUE or FALSE
+*/
+API_EXPORT CFiducialData* uvEng_Luria_GetLocalFiducial()
+{
+	return uvLuria_GetLocalMarkPtr();
+}
+
+
+
 
 API_EXPORT BOOL uvEng_Luria_LoadSelectJobXMLEx(PCHAR path, ENG_ATGL align)
 {

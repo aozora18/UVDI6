@@ -362,6 +362,17 @@ API_IMPORT BOOL uvEng_Camera_GetGrabbedMarkDirect(ENG_GMDD direct, STG_DBXY &dat
 												(5 - 2번 마크와 3번 마크 간의 길이 값)
  retn : X 축의 2개의 마크 떨어진 간격 (단위: mm) 반환
 */
+
+API_IMPORT CAtlList <LPG_ACGR>* uvEng_Camera_GetGrabbedMarkAll();
+
+
+API_IMPORT BOOL uvEng_Camera_TryEnterCS();
+
+API_IMPORT VOID uvEng_Camera_ExitCS();
+
+
+
+
 API_IMPORT DOUBLE uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD direct);
 /*
  desc : Global 4개의 Mark에 대해서 모두 유효한지 검사
@@ -481,6 +492,8 @@ API_EXPORT VOID uvCmn_Camera_MilSetMarkROI(UINT8 cam_id, CRect fi_rectSearhROI);
 
 API_EXPORT BOOL uvCmn_Camera_RegistPat(UINT8 cam_id, CRect fi_rectArea, CString fi_filename, UINT8 mark_no);
 API_EXPORT BOOL uvCmn_Camera_RegistMod(UINT8 cam_id, CRect fi_rectArea, CString fi_filename, UINT8 mark_no);
+API_EXPORT BOOL uvCmn_Camera_RegistMMPM_AutoCenter(CRect fi_rectArea, UINT8 cam_id, UINT8 img_id);
+
 API_EXPORT VOID uvCmn_Camera_InitSetMarkSizeOffset(UINT8 cam_id, TCHAR* file, UINT8 fi_findType, UINT8 mark_no);
 
 API_EXPORT VOID uvCmn_Camera_PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHAR* file, int fi_findType);
@@ -508,12 +521,13 @@ API_EXPORT VOID uvCmn_Camera_ModMarkSave(UINT8 cam_id, CString fi_strFileName, U
 
 API_EXPORT VOID uvCmn_Camera_MaskClear_MOD(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no);
 API_EXPORT VOID uvCmn_Camera_MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no);
-API_EXPORT VOID uvCmn_Camera_MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound);
+API_EXPORT VOID uvCmn_Camera_CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode);// fi_Mode(1:SetMark, 2:ManualAlign)
 
 API_EXPORT VOID uvEng_Camera_SetDispMark(CWnd* pWnd);
 API_EXPORT VOID uvEng_Camera_SetDispRecipeMark(CWnd* pWnd[2]);
 API_EXPORT VOID uvEng_Camera_SetDispMarkSet(CWnd* pWnd);
-API_EXPORT VOID uvEng_Camera_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode); // 0x00:MarkLive, 0x01:CalibCameraSpec, 0x02:CalibExposure
+API_EXPORT VOID uvEng_Camera_SetDispMMPM_AutoCenter(CWnd* pWnd);
+API_EXPORT VOID uvEng_Camera_SetDisp(CWnd** pWnd, UINT8 fi_Mode); // 0x00:MarkLive, 0x01:CalibCameraSpec, 0x02:CalibExposure
 API_EXPORT VOID uvEng_Camera_SetDispMMPM(CWnd* pWnd);
 API_EXPORT VOID uvEng_Camera_SetDispExpo(CWnd* pWnd[4]);
 
@@ -526,7 +540,7 @@ API_EXPORT VOID uvEng_Camera_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, 
 //API_EXPORT VOID uvEng_Camera_Mask_MarkSet(UINT8 cam_id, CPoint fi_point, CRect fi_rect, int fi_iBrushSize);
 API_EXPORT VOID uvEng_Camera_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
 
-API_EXPORT VOID uvCmn_Camera_InitMask();
+API_EXPORT VOID uvCmn_Camera_InitMask(UINT8 cam_id);
 API_EXPORT VOID uvCmn_Camera_CloseSetMark();
 
 API_EXPORT VOID uvCmn_Camera_MilZoomIn(int fi_iDispType, int cam_id, CRect rc);
@@ -536,10 +550,10 @@ API_EXPORT VOID uvCmn_Camera_MilAutoScale(int fi_iDispType, int cam_id);
 API_EXPORT VOID uvCmn_Camera_SetZoomDownP(int fi_iDispType, int cam_id, CPoint fi_point);
 API_EXPORT VOID uvCmn_Camera_MoveZoomDisp(int fi_iDispType, int cam_id, CPoint fi_point, CRect fi_rect);
 API_EXPORT CDPoint uvCmn_Camera_trZoomPoint(int fi_iDispType, int cam_id, CPoint fi_point);
-API_IMPORT BOOL uvEng_Camera_SetModelDefine_tot(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
-		LPG_CMPV model, UINT8 fi_No, TCHAR* file,
-		DOUBLE scale_min = 0.0f, DOUBLE scale_max = 0.0f,
-		DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f);
+//API_IMPORT BOOL uvEng_Camera_SetModelDefine_tot(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
+//		LPG_CMPV model, UINT8 fi_No, TCHAR* file,
+//		DOUBLE scale_min = 0.0f, DOUBLE scale_max = 0.0f,
+//		DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f);
 API_IMPORT BOOL uvEng_Camera_MergeMark(UINT8 cam_id, LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, UINT8 mark_no, TCHAR* file1, TCHAR* file2,
 	TCHAR* RecipeName, DOUBLE scale_min = 0.0f, DOUBLE scale_max = 0.0f,
 	DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f);

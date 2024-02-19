@@ -11,6 +11,7 @@
 #include "MainThread.h"
 
 /* 자식 메뉴 화면 */
+#include "GlobalVariables.h"
 #include "./menu/DlgAuto.h"
 #include "./menu/DlgExpo.h"
 #include "./menu/DlgGerb.h"
@@ -23,13 +24,16 @@
 #include "./menu/DlgCalb.h" //  by sysandj : Calibration Dialog 추가
 #include "./menu/DlgManual.h"
 #include "./menu/DlgPhilhmi.h"
+#include "./menu/DlgMMPMAutoCenter.h"
 #include "./mesg/DlgMesg.h"
 #include "./pops/DlgWait.h"
 #include "./param/RecipeManager.h"
 #include "./param/IOManager.h"
 #include "./param/LogManager.h"
 #include "./param/InterLockManager.h"
+#include "./param/RecvPhil.h"
 #include "./db/DBMgr.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -60,7 +64,6 @@ CDlgMain::CDlgMain(CWnd* parent /*=NULL*/)
 //#ifdef _DEBUG
 	m_bDragMoveWnd	= TRUE;
 	m_bMagnetic		= TRUE;
-	m_bLDSMeasure = FALSE;
 //#endif
 	m_u64TickPeriod	= 0;
 	/* 가장 최근에 선택된 메뉴 다이얼로그 ID */
@@ -111,7 +114,8 @@ BEGIN_MESSAGE_MAP(CDlgMain, CMyDialog)
 	ON_MESSAGE(WM_STROBE_LAMP_MSG_THREAD, OnMsgMainStrobeLamp)
 	ON_MESSAGE(WM_MAIN_RECIPE_CREATE,	OnMsgMainRecipeCreate)
 	ON_MESSAGE(WM_MAIN_RECIPE_DELETE,	OnMsgMainRecipeDelete)
-	ON_MESSAGE(WM_MAIN_RECIPE_CHANGE,	OnMsgMainRecipeChange)
+	ON_MESSAGE(WM_MAIN_RECIPE_CHANGE,	OnMsgMainPhilMsg)
+	ON_MESSAGE(WM_MAIN_PHIL_MSG,		OnMsgMainRecipeChange)
 	ON_WM_SYSCOMMAND()
  	ON_CONTROL_RANGE(BN_CLICKED, IDC_MAIN_BTN_EXIT, IDC_MAIN_BTN_EXIT + eMAIN_BTN_MAX,	OnBtnClicked)
 	ON_MESSAGE(eMSG_MAIN_OPEN_CONSOLE, OnOpenMotorConsole)
@@ -139,19 +143,23 @@ VOID CDlgMain::OnSysCommand(UINT32 id, LPARAM lparam)
 */
 BOOL CDlgMain::OnInitDlg()
 {
+	
 	UINT32 u32Size	= 0, i = 0;
 #if (USE_ENGINE_LIB)
 	/* 라이브러리 초기화 */
 	if (!InitLib())		return FALSE;
 #endif
-
+	uvEng_Luria_SetAlignMotionInfo(GlobalVariables::getInstance()->GetAlignMotion());
+	uvEng_Mark_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
 	// by sysandj : 폰트 적용
 	CreateUserFont();
 	// by sysandj : 폰트 적용
 
+
 	// by sysandj : recipe
 	CRecipeManager::GetInstance()->Init(this->GetSafeHwnd());
 	CIOManager::GetInstance()->Init(this->GetSafeHwnd());
+	CRecvPhil::GetInstance()->Init(this->GetSafeHwnd());
 	// by sysandj : recipe
 
 	// by sysandj : log
@@ -165,8 +173,8 @@ BOOL CDlgMain::OnInitDlg()
 
 	if (nullptr != pstAlign)	// 20230814 mhbaek Add : 경계검사 추가
 	{
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 2; j++) {
+		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+			for (int j = 0; j < 2; j++) { // Global, Local 2개
 				uvCmn_Camera_SetMarkFindMode(i + 1, pstAlign->mark_type, j);
 			}
 		}
@@ -499,6 +507,16 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 		case ENG_BWOK::en_mesg_mark	: ((CDlgExpo*)m_pDlgMenu)->DrawMarkData();		break;
 		}
 	}
+
+	/* 현재 자식 화면이 Auto인 경우, 각종 이벤트 처리 */
+	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_auto)
+	{
+		switch (enWork)
+		{
+		case ENG_BWOK::en_work_init:	RunWorkJob(ENG_BWOK::en_work_init);			break;
+		}
+	}
+
 	/* 프로그램 종료 이벤트 받았는지 여부 */
 	if (enWork == ENG_BWOK::en_app_exit)	PostMessage(WM_CLOSE, 0, 0L);
 
@@ -588,28 +606,58 @@ LRESULT CDlgMain::OnMsgMainProcessUpdate(WPARAM wparam, LPARAM lparam)
 	return 0L;
 }
 
+/*
+desc : PhilHMI에 전송된 데이터를 PhilDlg에 Log 출력 이벤트 처리
+parm : wparam - [in]  Work Process Step String
+	   lparam - [in]  NULL
+retn : 0L
+*/
+LRESULT CDlgMain::OnMsgMainPhilMsg(WPARAM wparam, LPARAM lparam)
+{
+	TCHAR* szTemp = (TCHAR*)wparam;
+	//STG_SLPR_RECV* pstRecv = reinterpret_cast<STG_SLPR_RECV*>(wparam);
+
+	/*DlgPhilhmi 에서 메시지 확인*/
+	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	{
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
+	}
+
+	return 0L;
+}
+
 // by sysandj : philhmi 관련 메세지 요청
 LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 {
+	if (uvEng_Terminated())
+		return 0L;
+
 	STG_PP_PACKET_RECV* pstPhil = (STG_PP_PACKET_RECV*)wparam; 
 	CUniToChar csCnv1;
-
-	CString strRecipe, strAxis, GlassID;
-	int nCount;
+	CString strAxis;
 
 	if (nullptr == pstPhil)
 	{
 		return 0L;
 	}
 
-	if (pstPhil->st_header.nCommand < 0)
+	try
+	{
+		while (uvEng_uvPhilhmi_IsSyncResultLocked())
+			Sleep(10);
+
+		if (pstPhil->st_header.nCommand < 0)
+		{
+			return 0L;
+		}
+	}
+	catch(exception e)
 	{
 		return 0L;
 	}
+	
 
 	UINT8 u8Offset = 0xff;
-	//STG_CPHE stExpo = { NULL };
-	//stExpo.expo_count = 1;
 
 	TCHAR szTemp[512] = { NULL };
 
@@ -619,423 +667,101 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	/// PHILHMI 요청
 	/// </summary>
 	case ePHILHMI_C2P_RECIPE_CREATE:
-		//STG_PP_C2P_RCP_CREATE_ACK stCreateSend;
-		//stCreateSend.Reset();
-		//stCreateSend.ulUniqueID = pstPhil->st_c2p_rcp_create.ulUniqueID;
-		//
-		//strRecipe.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_rcp_create.szRecipeName));
-		//
-		////if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Create"));
-		//
-		//	swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
-		//
-		//stCreateSend.ulUniqueID = pstPhil->st_c2p_rcp_create.ulUniqueID;
-		/////*Recipe 생성 요청 성공*/
-		////if (CRecipeManager::GetInstance()->CreateRecipe(strRecipe))
-		////{
-		//	uvEng_Philhmi_Send_C2P_RCP_CREATE_ACK(stCreateSend);
-		////}
-		/////*Recipe 생성 요청 실패*/
-		////else
-		////{
-		////	stCreateSend.usErrorCode;
-		////	uvEng_Philhmi_Send_C2P_RCP_CREATE_ACK(stCreateSend);
-		////}
-		PhilSendCreateRecipe(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendCreateRecipe(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_RECIPE_DELETE:
-		//STG_PP_C2P_RCP_DELETE_ACK stDeleteSend;
-		//stDeleteSend.Reset();
-		//stDeleteSend.ulUniqueID = pstPhil->st_c2p_rcp_delete.ulUniqueID;
-		//
-		//strRecipe.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_rcp_delete.szRecipeName));
-		//
-		///*DlgPhilhmi 에서 메시지 확인*/
-		//if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Delecte"));
-		//	swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
-		/////*Recipe 삭제 요청 성공*/
-		//if (CRecipeManager::GetInstance()->DeleteRecipe(strRecipe))
-		//{
-		//	uvEng_Philhmi_Send_C2P_RCP_DELETE_ACK(stDeleteSend);
-		//}
-		///*Recipe 삭제 요청 실패*/
-		//else
-		//{
-		//	stDeleteSend.usErrorCode = ePHILHMI_ERR_RECIPE_DELETE;
-		//	uvEng_Philhmi_Send_C2P_RCP_DELETE_ACK(stDeleteSend);
-		//}
-		//break;
-
-		PhilSendDelectRecipe(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendDelectRecipe(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_RECIPE_MODIFY:
-		//STG_PP_C2P_RCP_MODIFY_ACK stModifySend;
-		//stModifySend.Reset();
-		//stModifySend.ulUniqueID = pstPhil->st_c2p_rcp_modify.ulUniqueID;
-		//
-		//strRecipe.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_rcp_modify.szRecipeName));
-		//
-		///*DlgPhilhmi 에서 메시지 확인*/
-		//if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Modify"));
-		//	swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
-		///*Recipe 생성 요청 성공*/
-		////if (CRecipeManager::GetInstance()->UpdateRecipe(strRecipe))
-		////{
-		//	uvEng_Philhmi_Send_C2P_RCP_MODIFY_ACK(stModifySend);
-		////}
-		////*Recipe 생성 요청 실패*/
-		////else
-		////{
-		////	stModifySend.usErrorCode;
-		////	uvEng_Philhmi_Send_C2P_RCP_MODIFY_ACK(stModifySend);
-		////}
-		//break;
-
-		PhilSendModifyRecipe(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendModifyRecipe(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_RECIPE_SELECT:
-		//STG_PP_C2P_RCP_SELECT_ACK stSelectSend;
-		//stSelectSend.Reset();
-		//stSelectSend.ulUniqueID = pstPhil->st_c2p_rcp_select.ulUniqueID;
-		//
-		//strRecipe.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_rcp_select.szRecipeName));
-		//
-		///*DlgPhilhmi 에서 메시지 확인*/
-		//if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Select"));
-		//	swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
-		//
-		///*Recipe 선택 요청 성공*/
-		//if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
-		//{
-		//	UINT8 u8Offset = 0xff;
-		//	//RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
-		//
-		//}
-		///*Recipe 선택 요청 실패*/
-		//else
-		//{
-		//	//stSelectSend.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
-		//}
-		//uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
-		//break;
-
-		PhilSendSelectRecipe(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_RECIPE_LIST:
-		STG_PP_C2P_RCP_LIST_ACK	stStatus;
-		stStatus.Reset();
-		stStatus.ulUniqueID = pstPhil->st_c2p_rcp_list.ulUniqueID;
-
-		/*저장된 레시피 갯수*/
-		nCount = uvEng_JobRecipe_GetCount();
-		stStatus.usCount = nCount;
-
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe List"));
-		}
-
-		// 20230824 mhbaek Add
-		strcpy_s(stStatus.szSelectedRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(uvEng_JobRecipe_GetSelectRecipe()->job_name));
-
-		for (int i = 0; i < nCount; i++)
-		{
-			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeIndex(i);
-			/*레시피 리스트 작성*/
-			strcpy_s(stStatus.szArrRecipeName[i], DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(pstRecipe->job_name));
-
-			if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-			{
-				swprintf_s(szTemp, 512, L"Reicpe Name(%d) : %s",i, strRecipe.GetString());
-				((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-			}
-		}
-		/*Philhmil에 Reicpe list 전송*/
-		uvEng_Philhmi_Send_C2P_RCP_LIST_ACK(stStatus);
+		CRecvPhil::GetInstance()->PhilSendListRecipe(pstPhil);
 		break;
 	case ePHILHMI_C2P_RECIPE_INFORMATION:
-		PhilSendInfoRecipe(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendInfoRecipe(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_ABS_MOVE:
-		//STG_PP_C2P_ABS_MOVE_ACK stAbsAck;
-		//stAbsAck.Reset();
-		//stAbsAck.ulUniqueID = pstPhil->st_c2p_abs_move.ulUniqueID;
-		//
-		//strAxis.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_abs_move.stMove[0].szAxisName));
-		//
-		//if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Abs Move"));
-		//	swprintf_s(szTemp, 512, L"%s Axis Position:%f Speed:%f ", strAxis.GetString(),
-		//		pstPhil->st_c2p_abs_move.stMove[0].dPosition, pstPhil->st_c2p_abs_move.stMove[0].dSpeed);
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
-		//uvEng_Philhmi_Send_C2P_ABS_MOVE_ACK(stAbsAck);
-		/*1:*/
-		PhilSendMove(pstPhil);
+		/*Recv 정상 수신 확인*/
+		PhilSendMoveRecvAck(pstPhil);
+		for (int i = 0; i < pstPhil->st_c2p_abs_move.usCount; i++)
+		{
+			PhilSendMove(pstPhil, i);
+		}
 		break;
 
 	case ePHILHMI_C2P_ABS_MOVE_COMPLETE:
-		// 해당 메세지는 시퀀스 내에서 처리
-		STG_PP_C2P_ABS_MOVE_COMP_ACK stAbsComplete;
-		stAbsComplete.Reset();
-		stAbsComplete.ulUniqueID = pstPhil->st_c2p_abs_move_comp.ulUniqueID;
+		PhilSendMoveComplete(pstPhil);
+		break;
 
-		/*DlgPhilhmi 에서 메시지 확인*/
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	case ePHILHMI_C2P_REL_MOVE:
+		/*Recv 정상 수신 확인*/
+		PhilSendMoveRecvAck(pstPhil);
+		for (int i = 0; i < pstPhil->st_c2p_rel_move.usCount; i++)
 		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Abs Move Complete"));
-
+			PhilSendMove(pstPhil, i);
 		}
-		uvEng_Philhmi_Send_C2P_ABS_MOVE_COMP_ACK(stAbsComplete);
-
-		// by sysandj : 해당 메세지 삭제는 시퀀스에서 확인 후 제거
-		return 0L;
 		break;
 
-	case ePHILHMI_C2P_REL_MOVE				 :
-		//STG_PP_C2P_REL_MOVE_ACK stRelAck;
-		//stRelAck.Reset();
-		//stRelAck.ulUniqueID = pstPhil->st_c2p_rel_move.ulUniqueID;
-		//
-		//strAxis.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_rel_move.stMove[0].szAxisName));
-
-		///*DlgPhilhmi 에서 메시지 확인*/
-		//if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Rel Move"));
-		//	swprintf_s(szTemp, 512, L"%s Axis Position:%f Speed:%f ", strAxis.GetString(),
-		//		pstPhil->st_c2p_rel_move.stMove[0].dPosition, pstPhil->st_c2p_rel_move.stMove[0].dSpeed);
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
-		//uvEng_Philhmi_Send_C2P_REL_MOVE_ACK(stRelAck);
-
-		PhilSendMove(pstPhil);
+	case ePHILHMI_C2P_REL_MOVE_COMPLETE:
+		PhilSendMoveComplete(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_REL_MOVE_COMPLETE		 :
-		STG_PP_C2P_REL_MOVE_COMP_ACK stRelComplete;
-		stRelComplete.Reset();
-		stRelComplete.ulUniqueID = pstPhil->st_c2p_rel_move_comp.ulUniqueID;
-
-		/*DlgPhilhmi 에서 메시지 확인*/
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	case ePHILHMI_C2P_CHAR_MOVE:
+		/*Recv 정상 수신 확인*/
+		PhilSendMoveRecvAck(pstPhil);
+		for (int i = 0; i < pstPhil->st_c2p_char_move.usCount; i++)
 		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Rel Move Complete"));
-
+			PhilSendMove(pstPhil, i);
 		}
-		uvEng_Philhmi_Send_C2P_REL_MOVE_COMP_ACK(stRelComplete);
-		// by sysandj : 해당 메세지 삭제는 시퀀스에서 확인 후 제거
-		return 0L;
 		break;
 
-	case ePHILHMI_C2P_CHAR_MOVE				 :
-		STG_PP_C2P_CHAR_MOVE_ACK stCharAck;
-		stCharAck.Reset();
-		stCharAck.ulUniqueID = pstPhil->st_c2p_char_move.ulUniqueID;
-
-		strAxis.Format(_T("%s"), csCnv1.Ansi2Uni(pstPhil->st_c2p_char_move.stMoveTeach[0].szAxisName));
-
-		/*DlgPhilhmi 에서 메시지 확인*/
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Rel Move"));
-			swprintf_s(szTemp, 512, L"%s Axis", strAxis.GetString());
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		}
-		uvEng_Philhmi_Send_C2P_CHAR_MOVE_ACK(stCharAck);
-		break;
 
 	case ePHILHMI_C2P_CHAR_MOVE_COMPLETE	 :
-		STG_PP_C2P_CHAR_MOVE_COMP_ACK stCharComplete;
-		stCharComplete.Reset();
-		stCharComplete.ulUniqueID = pstPhil->st_c2p_char_move_comp.ulUniqueID;
-
-		/*DlgPhilhmi 에서 메시지 확인*/
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Char Move Complete"));
-
-		}
-		uvEng_Philhmi_Send_C2P_CHAR_MOVE_COMP_ACK(stCharComplete);
-		// by sysandj : 해당 메세지 삭제는 시퀀스에서 확인 후 제거
-		return 0L;
+		PhilSendMoveComplete(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_PROCESS_EXECUTE		 :
-		////STG_PP_C2P_PROCESS_EXECUTE_ACK stProcessExecute;
-		////stProcessExecute.Reset();
-		////stProcessExecute.ulUniqueID = pstPhil->st_c2p_process_execute.ulUniqueID;
-		////
-		/////*DlgPhilhmi 에서 메시지 확인*/
-		////if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		////{
-		////	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Process Execute"));
-		////	swprintf_s(szTemp, 512, L"Process Execute : %S - %S  ",
-		////		pstPhil->st_c2p_process_execute.szRecipeName, pstPhil->st_c2p_process_execute.szGlassID);
-		////	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		////
-		////}
-		/////*노광 조건 저장*/
-		////memcpy(m_stExpoLog.recipe_name, pstPhil->st_c2p_process_execute.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
-		////memcpy(m_stExpoLog.glassID, pstPhil->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
-		////
-		///////*노광 시나리오 동작 싱행[Direct Expose]*/
-		////RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&m_stExpoLog));
-		/////*노광 시나리오 동작 싱행[Align Expose]*/
-		//////RunWorkJob(ENG_BWOK::en_expo_align);
-		////
-		/////*받은 파라미터값 재전송*/
-		////memcpy(stProcessExecute.szRecipeName, pstPhil->st_c2p_process_execute.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
-		////memcpy(stProcessExecute.szGlassID, pstPhil->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
-		////uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 		PhilSendProcessExecute(pstPhil);
-		break;
+		break; 
 
 	case ePHILHMI_C2P_SUB_PROCESS_EXECUTE	 :
-		STG_PP_C2P_SUBPROCESS_EXECUTE_ACK stSubProcessExecute;
-		stSubProcessExecute.Reset();
-		stSubProcessExecute.ulUniqueID = pstPhil->st_c2p_subprocess_execute.ulUniqueID;
-
-		/*DlgPhilhmi 에서 메시지 확인*/
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Sub Process Execute"));
-			swprintf_s(szTemp, 512, L"Sub Process Execute : %S",
-				pstPhil->st_c2p_subprocess_execute.szAckSubProcessName);
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-
-		}
-		/*받은 파라미터값 재전송*/
-		memcpy(stSubProcessExecute.szAckSubProcessName, pstPhil->st_c2p_subprocess_execute.szAckSubProcessName, DEF_MAX_SUBPROCESS_NAME_LENGTH);
-		uvEng_Philhmi_Send_C2P_SUBPROCESS_EXECUTE_ACK(stSubProcessExecute);
+		PhilSendSubProcessExecute(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_STATUS_VALUE:
-		////STG_PP_C2P_STATUS_VALUE_ACK		stStatusValue;
-		////stStatusValue.Reset();
-		////stStatusValue.ulUniqueID = pstPhil->st_c2p_status_value.ulUniqueID;
-		////
-		////sprintf_s(stStatusValue.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "STRING");
-		////sprintf_s(stStatusValue.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Glass");
-		////sprintf_s(stStatusValue.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "1000");
-		////
-		/////*DlgPhilhmi 에서 메시지 확인*/
-		////if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		////{
-		////	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Status Value"));
-		////	swprintf_s(szTemp, 512, L"Type:%S  Name:%S   Value%S",
-		////		stStatusValue.stVar[0].szParameterType,
-		////		stStatusValue.stVar[0].szParameterName,
-		////		stStatusValue.stVar[0].szParameterValue);
-		////	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		////}
-		////uvEng_Philhmi_Send_C2P_STATUS_VALUE_ACK(stStatusValue);
-		PhilSendStatusValue(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendStatusValue(pstPhil); 
 		break;
 
 	case ePHILHMI_C2P_MODE_CHANGE			 :
-		// 		STG_PP_C2P_MODE_CHANGE_ACK stModeChange;
-		// 		stModeChange.Reset();
-		// 		stModeChange.ulUniqueID		= pstPhil->st_c2p_mode_change.ulUniqueID;
-		// 
-		// 		/*모드 변경*/
-		// 		stModeChange.usMode = pstPhil->st_c2p_mode_change.usMode;
-		// 		/*내부 선언*/
-		// 		g_u8Romote = pstPhil->st_c2p_mode_change.usMode;
-		// 
-		// 		/*원격 초기화 동작 실행*/
-		// 		if (g_u8Romote == en_menu_phil_mode_init)
-		// 		{
-		// 			/*장비 초기화 진행*/
-		// 			RunWorkJob(ENG_BWOK::en_work_init);
-		// 		}
-		// 		/*원격 메뉴얼 동작 실행*/
-		// 		else if (g_u8Romote == en_menu_phil_mode_manual)
-		// 		{
-		// 			CreateMenu(IDC_MAIN_BTN_MANUAL);
-		// 		}
-		// 		/*원격 오토 동작 실행*/
-		// 		else if (g_u8Romote == en_menu_phil_mode_auto)	 
-		// 		{
-		// 			CreateMenu(IDC_MAIN_BTN_AUTO); 
-		// 		}
-		// 
-		// 		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		// 		{
-		// 			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Mode Change Ack"));
-		// 			swprintf_s(szTemp, 512, L"Mode : %d", pstPhil->st_c2p_mode_change.usMode);
-		// 			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		// 		}
-		// 		uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(stModeChange);
+		//CRecvPhil::GetInstance()->PhilSendChageMode(pstPhil);
 		PhilSendChageMode(pstPhil);
 		break;
-
+	case ePHILHMI_C2P_INITIAL_EXECUTE:
+		PhilSendInitialExecute(pstPhil);
+		break;
 	case ePHILHMI_C2P_EVENT_STATUS:
 		PhilSendEventStatus(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_EVENT_NOTIFY:
-		STG_PP_C2P_EVENT_NOTIFY_ACK		stEventNotify;
-		stEventNotify.Reset();
-		stEventNotify.ulUniqueID = pstPhil->st_c2p_event_notify.ulUniqueID;
-
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Event Notify"));
-			swprintf_s(szTemp, 512, L"Event : %S", pstPhil->st_c2p_event_notify.szEventName);
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		}
-		uvEng_Philhmi_Send_C2P_EVENT_NOTIFY_ACK(stEventNotify);
+		PhilSendEventNotify(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_TIME_SYNC:
-		STG_PP_C2P_TIME_SYNC_ACK		stTimeSync;
-		stTimeSync.Reset();
-		stTimeSync.ulUniqueID = pstPhil->st_c2p_time_sync.ulUniqueID;
-
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Time sync"));
-			swprintf_s(szTemp, 512, L"Time : %S", pstPhil->st_c2p_time_sync.szSyncTime);
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		}
-		uvEng_Philhmi_Send_C2P_TIME_SYNC_ACK(stTimeSync);
+		PhilSendTimeSync(pstPhil);
 		break;
 
 	case ePHILHMI_C2P_INTERRUPT_STOP:
-		STG_PP_C2P_INTERRUPT_STOP_ACK	stInterruptStop;
-		stInterruptStop.Reset();
-		stInterruptStop.ulUniqueID = pstPhil->st_c2p_interrupt_stop.ulUniqueID;
-
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Interrupt Stop"));
-		}
-		/*장비 정지 진행*/
-		RunWorkJob(ENG_BWOK::en_work_stop);
-		uvEng_Philhmi_Send_C2P_INTERRUPT_STOP_ACK(stInterruptStop);
+		PhilSendInterruptStop(pstPhil);
 		break;
 
 	/// <summary>
@@ -1175,60 +901,88 @@ LRESULT CDlgMain::OnMsgMainStrobeLamp(WPARAM wparam, LPARAM lparam)
 
 	uint8_t recvPage;
 	uint8_t recvChannel;
-	uint8_t recvDelayHighValue;
-	uint8_t recvDelayLowValue;
-	uint8_t recvStrobeHighValue;
-	uint8_t recvStrobeLowValue;
+	
+	uint16_t recvDelayValue;
+	//uint8_t recvDelayLowValue;
+
+	uint16_t recvStrobeValue;
+	//uint8_t recvStrobeLowValue;
 	uint8_t recvMode;
 //	uint8_t	recvReserved;
 	uint8_t recvLoopCount;
 	uint8_t recvLoopDelayValues[4];
 	uint8_t recvMode1;
 	uint8_t recvMode2;
-	uint8_t recvDelayHighValues[8];
+	/*uint8_t recvDelayHighValues[8];
 	uint8_t recvDelayLowValues[8];
 	uint8_t recvStrobeHighValues[8];
-	uint8_t recvStrobeLowValues[8];
+	uint8_t recvStrobeLowValues[8];*/
 
+	uint16_t recvDelayValues[8];
+	uint16_t recvStrobeValues[8];
+
+	const int ITEMS_OF_CHANNEL = 4;
 	switch (pstRecv->header.command)
 	{
 	case eSTROBE_LAMP_CHANNEL_DELAY_CONTROL:	// 개별 채널 Delay 제어
 		recvPage			= pstRecv->body.channelDelayControl.page;
 		recvChannel			= pstRecv->body.channelDelayControl.channel;
-		recvDelayHighValue	= pstRecv->body.channelDelayControl.delayHighValue;
-		recvDelayLowValue	= pstRecv->body.channelDelayControl.delayLowValue;
+		recvDelayValue		= pstRecv->body.channelDelayControl.delayHighValue << 8 | pstRecv->body.channelDelayControl.delayLowValue;
+		//recvDelayHighValue	= pstRecv->body.channelDelayControl.delayHighValue;
+		//recvDelayLowValue	= pstRecv->body.channelDelayControl.delayLowValue;
 		break;
 
 	case eSTROBE_LAMP_CHANNEL_STROBE_CONTROL:	// 개별 채널 Strobe 제어
 		recvPage			= pstRecv->body.channelStrobeControl.page;
 		recvChannel			= pstRecv->body.channelStrobeControl.channel;
-		recvStrobeHighValue = pstRecv->body.channelStrobeControl.strobeHighValue;
-		recvStrobeLowValue	= pstRecv->body.channelStrobeControl.strobeLowValue;
+		recvStrobeValue = pstRecv->body.channelStrobeControl.strobeHighValue << 8 | pstRecv->body.channelStrobeControl.strobeLowValue;
+		GlobalVariables::getInstance()->IncCount("strobeRecved");
+
+		//recvStrobeHighValue = pstRecv->body.channelStrobeControl.strobeHighValue;
+		//recvStrobeLowValue	= pstRecv->body.channelStrobeControl.strobeLowValue;
 		break;
 
 	case eSTROBE_LAMP_CHANNEL_WRITE:			// Individual Channel Write
 		recvPage			= pstRecv->body.channelWrite.page;
 		recvChannel			= pstRecv->body.channelWrite.channel;
-		recvDelayHighValue	= pstRecv->body.channelWrite.delayHighValue;
-		recvDelayLowValue	= pstRecv->body.channelWrite.delayLowValue;
-		recvStrobeHighValue = pstRecv->body.channelWrite.strobeHighValue;
-		recvStrobeLowValue	= pstRecv->body.channelWrite.strobeLowValue;
+		recvDelayValue = pstRecv->body.channelWrite.delayHighValue << 8 | pstRecv->body.channelWrite.delayLowValue;
+		recvStrobeValue = pstRecv->body.channelWrite.strobeHighValue << 8 | pstRecv->body.channelWrite.strobeLowValue;
+			
+		//recvDelayHighValue	= pstRecv->body.channelWrite.delayHighValue;
+		//recvDelayLowValue	= pstRecv->body.channelWrite.delayLowValue;
+		//recvStrobeHighValue = pstRecv->body.channelWrite.strobeHighValue;
+		//recvStrobeLowValue	= pstRecv->body.channelWrite.strobeLowValue;
 		break;
 
 	case eSTROBE_LAMP_PAGE_DATA_WRITE:			// Page Data Write
 		recvPage = pstRecv->body.pageDataWrite.page;
-		memcpy(recvDelayHighValues,  pstRecv->body.pageDataWrite.delayHighValue, 8);
-		memcpy(recvDelayLowValues,   pstRecv->body.pageDataWrite.delayLowValue, 8);
-		memcpy(recvStrobeHighValues, pstRecv->body.pageDataWrite.strobeHighValue, 8);
-		memcpy(recvStrobeLowValues,  pstRecv->body.pageDataWrite.strobeLowValue, 8);
+
+		for (int i = 0, j = 0; i < DEF_MAX_ARRAY_SIZE; i++)
+		{
+			recvDelayValues[i] = pstRecv->body.pageDataReadResponse.rawBody[j] << 8 | pstRecv->body.pageDataReadResponse.rawBody[j + 1];
+			recvStrobeValues[i] = pstRecv->body.pageDataReadResponse.rawBody[j + 2] << 8 | pstRecv->body.pageDataReadResponse.rawBody[j + 3];
+			j += ITEMS_OF_CHANNEL;
+		}
 		break;
 
 	case eSTROBE_LAMP_PAGE_DATA_READ:			// Page Data Read Request or Response
 		recvPage = pstRecv->body.pageDataReadResponse.page;
-		memcpy(recvDelayHighValues,  pstRecv->body.pageDataReadResponse.delayHighValue, 8);
-		memcpy(recvDelayLowValues,   pstRecv->body.pageDataReadResponse.delayLowValue, 8);
-		memcpy(recvStrobeHighValues, pstRecv->body.pageDataReadResponse.strobeHighValue, 8);
-		memcpy(recvStrobeLowValues,  pstRecv->body.pageDataReadResponse.strobeLowValue, 8);
+
+		for (int i = 0,j=0; i < DEF_MAX_ARRAY_SIZE; i++)
+		{
+			recvDelayValues[i] = pstRecv->body.pageDataReadResponse.rawBody[j] << 8 | pstRecv->body.pageDataReadResponse.rawBody[j+1];
+			recvStrobeValues[i] = pstRecv->body.pageDataReadResponse.rawBody[j+2] << 8 | pstRecv->body.pageDataReadResponse.rawBody[j+3];
+			j += ITEMS_OF_CHANNEL;
+
+			/*스트로브에서 읽은 값 임시저장*/
+			uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[i] = recvStrobeValues[i];
+		}
+		GlobalVariables::getInstance()->IncCount("strobeRecved");
+
+		//memcpy(recvDelayHighValues,  pstRecv->body.pageDataReadResponse.delayHighValue, 8);
+		//memcpy(recvDelayLowValues,   pstRecv->body.pageDataReadResponse.delayLowValue, 8);
+		//memcpy(recvStrobeHighValues, pstRecv->body.pageDataReadResponse.strobeHighValue, 8);
+		//memcpy(recvStrobeLowValues,  pstRecv->body.pageDataReadResponse.strobeLowValue, 8);
 		break;
 
 	case eSTROBE_LAMP_PAGE_LOOP_DATA_WRITE:		// Page Loop Data Write
@@ -1247,7 +1001,7 @@ LRESULT CDlgMain::OnMsgMainStrobeLamp(WPARAM wparam, LPARAM lparam)
 		recvLoopDelayValues[2] = pstRecv->body.pageLoopDataReadResponse.loopDelay1Value;
 		recvLoopDelayValues[3] = pstRecv->body.pageLoopDataReadResponse.loopDelay0Value;
 		recvLoopCount		   = pstRecv->body.pageLoopDataReadResponse.loopCount;
-		break;
+	break;
 
 	case eSTROBE_LAMP_STROBE_MODE:				// Strobe Mode
 		recvMode				= pstRecv->body.strobeMode.mode;
@@ -1314,7 +1068,12 @@ VOID CDlgMain::UpdatePeriod(UINT64 tick, BOOL busy)
 	UpdateErrorMessage(tick);
 
 	UpdateCommState();
+	/*LSD 센서 측정 위치가 맞는지 확인*/
 	UpdateLDSMeasure();
+	/*WorkStage가 SafePos 위치 했는지 확인*/
+	UpdateSafePosCheck();
+	/*PhilHMI에서 요청한 Move 동작 완료 확인*/
+	UpdatePhilState();
 }
 
 /*
@@ -1730,7 +1489,6 @@ VOID CDlgMain::ResetErrorMessage()
 	m_txt_ctl[eMAIN_TXT_MESSAGE].SetRedraw(TRUE);
 	m_txt_ctl[eMAIN_TXT_MESSAGE].Invalidate(FALSE);
 
-	m_bLDSMeasure = TRUE;
 }
 
 VOID CDlgMain::UpdateCommState()
@@ -1804,19 +1562,123 @@ VOID CDlgMain::UpdateLDSMeasure()
 	TCHAR tzMsg[256] = { NULL };
 	dCurY = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);
 
-	if (m_bLDSMeasure)
+	const int MEASURE_MIN_Y = 400;
+	const int MEASURE_MAX_Y = 600;
+
+	if (uvEng_GetConfig()->measure_flat.bThickCheck)
 	{
-		if (dCurY > 800 && dCurY < 900)
+		if (dCurY > MEASURE_MIN_Y && MEASURE_MAX_Y < 600)
 		{
 			dValue = uvEng_KeyenceLDS_Measure(0);
-			Sleep(200);
+			//Sleep(200);
+			uvEng_GetConfig()->measure_flat.dMeasureYPos = dCurY;
+			uvEng_GetConfig()->measure_flat.dAlignMeasure = dValue;
 
-
-			swprintf_s(tzMsg, 256, L"Stage_y=%4.1f LDS=%4.1f", dCurY, dValue);
+			swprintf_s(tzMsg, 256, L"Stage_y=%.4ff LDS=%.4f \n", dCurY, dValue);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+			/*Log 기록*/
+			m_strLog.Format(tzMsg);
+			txtWrite(m_strLog);
+			
+			uvEng_GetConfig()->measure_flat.bThickCheck = FALSE;
 		}
-		m_bLDSMeasure = FALSE;
 	}
+
+}
+
+/*
+ desc : SaferPos 위치 확인 
+ parm : None
+ retn : None
+*/
+VOID CDlgMain::UpdateSafePosCheck()
+{
+	double dCurX, dCurY;
+	double dMoveX, dMoveY;
+	TCHAR tzMsg[256] = { NULL };
+
+	dCurX = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_x);
+	dCurY = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);
+
+	dMoveX = abs(dCurX - uvEng_GetConfig()->set_align.table_unloader_xy[0][0]);
+	dMoveY = abs(dCurY - uvEng_GetConfig()->set_align.table_unloader_xy[0][1]);
+
+	if (dMoveX < 0.01 && dMoveY < 0.01)
+	{
+		/*현재 이벤트가 SafePos 되어 있으면 PhilHMI 보낼 필요 없음*/
+		if (m_stPhilStatus.safe_pos == FALSE)
+		{
+			m_stPhilStatus.safe_pos = TRUE;
+
+			swprintf_s(tzMsg, 256, L"Safe Pos Stage_x=%.4ff Stage_y=%.4f \n", dCurX, dCurY);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+			STG_PP_P2C_EVENT_NOTIFY			stP2CEventNotify;
+			STG_PP_P2C_EVENT_NOTIFY_ACK		stEventNotifyAck;
+
+			stP2CEventNotify.Reset();
+			stEventNotifyAck.Reset();
+
+			sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "SAFEPOS");
+			stP2CEventNotify.bEventFlag = m_stPhilStatus.safe_pos;
+
+
+			uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
+		}
+
+	}
+	else
+	{
+		/*현재 이벤트가 SafePos 되어 있으면 PhilHMI 보낼 필요 없음*/
+		if (m_stPhilStatus.safe_pos == TRUE)
+		{
+			m_stPhilStatus.safe_pos = FALSE;
+
+			swprintf_s(tzMsg, 256, L"NO Safe Pos Stage_x=%.4ff Stage_y=%.4f \n", dCurX, dCurY);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+			STG_PP_P2C_EVENT_NOTIFY			stP2CEventNotify;
+			STG_PP_P2C_EVENT_NOTIFY_ACK		stEventNotifyAck;
+
+			stP2CEventNotify.Reset();
+			stEventNotifyAck.Reset();
+
+			sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "SAFEPOS");
+			stP2CEventNotify.bEventFlag = m_stPhilStatus.safe_pos;
+
+
+			uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
+		}
+	}
+}
+
+VOID CDlgMain::txtWrite(CString msg)
+{
+	CStdioFile	imsifile;
+
+	TCHAR tzFile[_MAX_PATH] = { NULL };
+	SYSTEMTIME stTm = { NULL };
+
+	GetLocalTime(&stTm);
+
+	TCHAR tzPath[_MAX_PATH];
+	swprintf_s(tzPath, _MAX_PATH, L"%s\\logs\\expo\\%04d-%02d-%02d LDS_Thick.dat", g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay);
+
+
+	imsifile.Open(tzPath, CFile::modeCreate | CFile::modeNoTruncate | CFile::modeReadWrite);
+
+	imsifile.SeekToEnd();
+
+	swprintf_s(tzFile, L"[%04d-%02d-%02d %02d:%02d:%02d.%03d]  ",
+		(UINT16)stTm.wYear, (UINT16)stTm.wMonth, (UINT16)stTm.wDay,
+		(UINT16)stTm.wHour, (UINT16)stTm.wMinute, (UINT16)stTm.wSecond, (UINT16)stTm.wMilliseconds);
+
+	imsifile.WriteString(tzFile);
+	imsifile.WriteString(msg);
+
+	imsifile.Close();
+
 }
 
 /*
@@ -1831,8 +1693,9 @@ VOID CDlgMain::UpdatePhilState()
 	/*Phil에서 동작 명령 후 이동 완료 신호*/
 	if (m_stPhilStatus.phil_move > en_menu_phil_move_none)
 	{
-		MovePos = uvCmn_MC2_GetDrvAbsPos((ENG_MMDI)m_stPhilStatus.drive_id);
-		if (0.005 < fabs(MovePos - m_stPhilStatus.phil_move))
+		m_u64DelayTimeHMI = GetTickCount64() - m_u64StartTimeHMI;
+		/*대기 시간이 60초 넣으면 에러 처리*/
+		if (m_u64DelayTimeHMI > 60000)
 		{
 			if (m_stPhilStatus.phil_move == en_menu_phil_move_abs)
 			{
@@ -1840,8 +1703,8 @@ VOID CDlgMain::UpdatePhilState()
 				STG_PP_P2C_ABS_MOVE_COMP_ACK stAbsMoveAck;
 				stAbsMove.Reset();
 				stAbsMoveAck.Reset();
-				//stAbsMove.usErrorCode = options;
 
+				stAbsMove.usErrorCode = ePHILHMI_ERR_MOTOR_RUN_TIMEOUT;
 				uvEng_Philhmi_Send_P2C_ABS_MOVE_COMP(stAbsMove, stAbsMoveAck);
 			}
 			else if (m_stPhilStatus.phil_move == en_menu_phil_move_rel)
@@ -1850,12 +1713,58 @@ VOID CDlgMain::UpdatePhilState()
 				STG_PP_P2C_REL_MOVE_COMP_ACK stRelMoveAck;
 				stRelMove.Reset();
 				stRelMoveAck.Reset();
-				//stAbsMove.usErrorCode = options;
 
+				stRelMove.usErrorCode = ePHILHMI_ERR_MOTOR_RUN_TIMEOUT;
 				uvEng_Philhmi_Send_P2C_REL_MOVE_COMP(stRelMove, stRelMoveAck);
 			}
+			else if (m_stPhilStatus.phil_move == en_menu_phil_move_char)
+			{
+				STG_PP_P2C_CHAR_MOVE_COMP stCharMove;
+				STG_PP_P2C_CHAR_MOVE_COMP_ACK stCharMoveAck;
+				stCharMove.Reset();
+				stCharMoveAck.Reset();
 
+				stCharMove.usErrorCode = ePHILHMI_ERR_MOTOR_RUN_TIMEOUT;
+				uvEng_Philhmi_Send_P2C_CHAR_MOVE_COMP(stCharMove, stCharMoveAck);
+			}
+
+			m_stPhilStatus.phil_move = en_menu_phil_move_none;
 		}
+		else
+		{
+			MovePos = uvCmn_MC2_GetDrvAbsPos((ENG_MMDI)m_stPhilStatus.drive_id);
+			if (0.01 < fabs(MovePos - m_stPhilStatus.phil_move))
+			{
+				if (m_stPhilStatus.phil_move == en_menu_phil_move_abs)
+				{
+					STG_PP_P2C_ABS_MOVE_COMP stAbsMove;
+					STG_PP_P2C_ABS_MOVE_COMP_ACK stAbsMoveAck;
+					stAbsMove.Reset();
+					stAbsMoveAck.Reset();
+
+					uvEng_Philhmi_Send_P2C_ABS_MOVE_COMP(stAbsMove, stAbsMoveAck);
+				}
+				else if (m_stPhilStatus.phil_move == en_menu_phil_move_rel)
+				{
+					STG_PP_P2C_REL_MOVE_COMP stRelMove;
+					STG_PP_P2C_REL_MOVE_COMP_ACK stRelMoveAck;
+					stRelMove.Reset();
+					stRelMoveAck.Reset();
+
+					uvEng_Philhmi_Send_P2C_REL_MOVE_COMP(stRelMove, stRelMoveAck);
+				}
+				else if (m_stPhilStatus.phil_move == en_menu_phil_move_char)
+				{
+					STG_PP_P2C_CHAR_MOVE_COMP stCharMove;
+					STG_PP_P2C_CHAR_MOVE_COMP_ACK stCharMoveAck;
+					stCharMove.Reset();
+					stCharMoveAck.Reset();
+					uvEng_Philhmi_Send_P2C_CHAR_MOVE_COMP(stCharMove, stCharMoveAck);
+				}
+				m_stPhilStatus.phil_move = en_menu_phil_move_none;
+			}
+		}
+
 	}
 
 }
@@ -1997,209 +1906,48 @@ void CDlgMain::CreateUserFont()
 	}
 }
 
-
-
-VOID CDlgMain::PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv)
+VOID CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv)
 {
-	STG_PP_C2P_RCP_CREATE_ACK stCreateSend;
-	STG_RJAF stRecipe = { NULL };
-	stCreateSend.Reset();
-	stRecipe.Init();
-	CUniToChar csCnv;
+	unsigned short	ErrorCode = ePHILHMI_ERR_OK;
+	g_u16PhilCommand = stRecv->st_header.nCommand;
 
-	stCreateSend.ulUniqueID = stRecv->st_c2p_rcp_create.ulUniqueID;
 
-	TCHAR szTemp[512] = { NULL };
-	/*DlgPhilhmi 에서 메시지 확인*/
-	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	/*ABS 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
+	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE)
 	{
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Create"));
+		STG_PP_C2P_ABS_MOVE_ACK stAbsAck;
+		stAbsAck.Reset();
+		stAbsAck.ulUniqueID = stRecv->st_c2p_abs_move.ulUniqueID;
+		stAbsAck.usErrorCode = ErrorCode;
 
-		//swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		//swprintf_s(szTemp, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, L"Reicpe Name : %s", stRecipe.job_name);
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
+		uvEng_Philhmi_Send_C2P_ABS_MOVE_ACK(stAbsAck);
 	}
-
-	memcpy(stRecipe.job_name,		stRecv->st_c2p_rcp_create.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.gerber_path,	stRecv->st_c2p_rcp_create.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.gerber_name,	stRecv->st_c2p_rcp_create.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.align_recipe,	stRecv->st_c2p_rcp_create.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.expo_recipe,	stRecv->st_c2p_rcp_create.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	stRecipe.material_thick		= (UINT32)atoi(stRecv->st_c2p_rcp_create.stVar[5].szParameterValue);
-	stRecipe.expo_energy		= (FLOAT)atof(stRecv->st_c2p_rcp_create.stVar[6].szParameterValue);
-
-	///*Recipe 생성 요청 성공*/
-	if (CRecipeManager::GetInstance()->CreateRecipe(stRecipe))
+	/*REL 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
+	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE)
 	{
-		uvEng_Philhmi_Send_C2P_RCP_CREATE_ACK(stCreateSend);
+		STG_PP_C2P_REL_MOVE_ACK stRelAck;
+		stRelAck.Reset();
+		stRelAck.ulUniqueID = stRecv->st_c2p_rel_move.ulUniqueID;
+		stRelAck.usErrorCode = ErrorCode;
+
+		uvEng_Philhmi_Send_C2P_REL_MOVE_ACK(stRelAck);
 	}
-	/*Recipe 생성 요청 실패*/
-	else
+	/*CHAR 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
+	else if (g_u16PhilCommand == ePHILHMI_C2P_CHAR_MOVE)
 	{
-		stCreateSend.usErrorCode = ePHILHMI_ERR_RECIPE_CREATE;
-		uvEng_Philhmi_Send_C2P_RCP_CREATE_ACK(stCreateSend);
+		STG_PP_C2P_CHAR_MOVE_ACK stCharAck;
+		stCharAck.Reset();
+		stCharAck.ulUniqueID = stRecv->st_c2p_char_move.ulUniqueID;
+		stCharAck.usErrorCode = ErrorCode;
+
+		uvEng_Philhmi_Send_C2P_CHAR_MOVE_ACK(stCharAck);
 	}
 }
 
-VOID CDlgMain::PhilSendDelectRecipe(STG_PP_PACKET_RECV* stRecv)
-{
-	STG_PP_C2P_RCP_DELETE_ACK stDeleteSend;
-	stDeleteSend.Reset();
-	stDeleteSend.ulUniqueID = stRecv->st_c2p_rcp_delete.ulUniqueID;
-	CUniToChar csCnv;
-	CString strRecipe;
-	
-	strRecipe.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rcp_delete.szRecipeName));
-	
-	TCHAR szTemp[512] = { NULL };
-	/*DlgPhilhmi 에서 메시지 확인*/
-	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-	{
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Delecte"));
-		swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-	}
-	///*Recipe 삭제 요청 성공*/
-	//BOOL bSuccess = uvEng_JobRecipe_RecipeDelete(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
-	//if (CRecipeManager::GetInstance()->DeleteRecipe(strRecipe))
-	if(uvEng_JobRecipe_RecipeDelete(strRecipe.GetBuffer()))
-	{
-		uvEng_Philhmi_Send_C2P_RCP_DELETE_ACK(stDeleteSend);
-	}
-	/*Recipe 삭제 요청 실패*/
-	else
-	{
-		stDeleteSend.usErrorCode = ePHILHMI_ERR_RECIPE_DELETE;
-		uvEng_Philhmi_Send_C2P_RCP_DELETE_ACK(stDeleteSend);
-	}
 
 
-}
 
-VOID CDlgMain::PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv)
-{
-	STG_PP_C2P_RCP_MODIFY_ACK stModifySend;
-	STG_RJAF stRecipe = { NULL };
-	stModifySend.Reset();
-	stRecipe.Init();
-	CUniToChar csCnv;
-	stModifySend.ulUniqueID = stRecv->st_c2p_rcp_modify.ulUniqueID;
-
-
-	/*DlgPhilhmi 에서 메시지 확인*/
-	TCHAR szTemp[512] = { NULL };
-	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-	{
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Modify"));
-		//swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		//swprintf_s(szTemp, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, L"Reicpe Name : %s", stRecipe.job_name);
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-	}
-
-	/*파라미터 변경*/
-	memcpy(stRecipe.job_name,		stRecv->st_c2p_rcp_create.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.gerber_path,	stRecv->st_c2p_rcp_create.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.gerber_name,	stRecv->st_c2p_rcp_create.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.align_recipe,	stRecv->st_c2p_rcp_create.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	memcpy(stRecipe.expo_recipe,	stRecv->st_c2p_rcp_create.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
-	stRecipe.material_thick =		(UINT32)atoi(stRecv->st_c2p_rcp_create.stVar[5].szParameterValue);
-	stRecipe.expo_energy =			(FLOAT)atof(stRecv->st_c2p_rcp_create.stVar[6].szParameterValue);
-
-	///*Recipe 생성 요청 성공*/
-	//if (CRecipeManager::GetInstance()->UpdateRecipe(stRecipe))
-	if (uvEng_JobRecipe_RecipeModify(&stRecipe))
-	{
-		uvEng_Philhmi_Send_C2P_RCP_MODIFY_ACK(stModifySend);
-	}
-	/*Recipe 생성 요청 실패*/
-	else
-	{
-		stModifySend.usErrorCode = ePHILHMI_ERR_RECIPE_MODIFY;
-		uvEng_Philhmi_Send_C2P_RCP_MODIFY_ACK(stModifySend);
-	}
-}
-
-VOID CDlgMain::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv)
-{
-	STG_PP_C2P_RCP_SELECT_ACK stSelectSend;
-	stSelectSend.Reset();
-	stSelectSend.ulUniqueID = stRecv->st_c2p_rcp_select.ulUniqueID;
-	CUniToChar csCnv;
-	CString strRecipe;
-	
-	strRecipe.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rcp_select.szRecipeName));
-	
-	/*DlgPhilhmi 에서 메시지 확인*/
-	TCHAR szTemp[512] = { NULL };
-	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-	{
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Recipe Select"));
-		swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-	}
-	
-	/*Recipe 선택 요청 성공*/
-	if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
-	{
-		UINT8 u8Offset = 0xff;
-		//RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
-	
-	}
-	/*Recipe 선택 요청 실패*/
-	else
-	{
-		//stSelectSend.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
-	}
-	uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
-
-}
-
-VOID CDlgMain::PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv)
-{
-	STG_PP_C2P_RCP_INFO_ACK	stInfoSend;
-	stInfoSend.Reset();
-	stInfoSend.ulUniqueID = stRecv->st_c2p_rcp_info.ulUniqueID;
-
-	memcpy(stInfoSend.szRecipeName, stRecv->st_c2p_rcp_info.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
-
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-
-	EN_RECIPE_JOB::JOB_NAME;
-
-	/*노광 결과 파라미터값*/
-	stInfoSend.usCount = 7;
-	sprintf_s(stInfoSend.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
-	sprintf_s(stInfoSend.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Job Name");
-	sprintf_s(stInfoSend.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", pstRecipe->job_name);
-
-	sprintf_s(stInfoSend.stVar[1].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
-	sprintf_s(stInfoSend.stVar[1].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Path");
-	sprintf_s(stInfoSend.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", pstRecipe->gerber_path);
-
-	sprintf_s(stInfoSend.stVar[2].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
-	sprintf_s(stInfoSend.stVar[2].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Name");
-	sprintf_s(stInfoSend.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", pstRecipe->gerber_name);
-
-	sprintf_s(stInfoSend.stVar[3].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
-	sprintf_s(stInfoSend.stVar[3].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Align Recipe");
-	sprintf_s(stInfoSend.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", pstRecipe->align_recipe);
-
-	sprintf_s(stInfoSend.stVar[4].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
-	sprintf_s(stInfoSend.stVar[4].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Recipe");
-	sprintf_s(stInfoSend.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", pstRecipe->expo_recipe);
-
-	sprintf_s(stInfoSend.stVar[5].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "INT");
-	sprintf_s(stInfoSend.stVar[5].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Material Thick");
-	sprintf_s(stInfoSend.stVar[5].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", pstRecipe->material_thick);
-
-	sprintf_s(stInfoSend.stVar[6].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "DOUBLE");
-	sprintf_s(stInfoSend.stVar[6].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Energy");
-	sprintf_s(stInfoSend.stVar[6].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", pstRecipe->expo_energy);
-
-	uvEng_Philhmi_Send_C2P_RCP_INFO_ACK(stInfoSend);
-}
-
-VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv)
+VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 {
 	TCHAR szTemp[512] = { NULL };
 	CUniToChar csCnv;
@@ -2208,49 +1956,102 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv)
 	double dTargetPos = 0, dSpeed = 0;
 	unsigned short	ErrorCode = ePHILHMI_ERR_OK;
 
-	//if (mode == en_menu_phil_move_abs)
+
+	/*이동 동작 실행*/
+	g_u16PhilCommand = stRecv->st_header.nCommand;
 	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE)
 	{
 		/*Axis 이름*/
-		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_abs_move.stMove[0].szAxisName));
-		dTargetPos	= stRecv->st_c2p_abs_move.stMove[0].dPosition;
-		dSpeed		= stRecv->st_c2p_abs_move.stMove[0].dSpeed;
+		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_abs_move.stMove[AxisCount].szAxisName));
+		dTargetPos = stRecv->st_c2p_abs_move.stMove[AxisCount].dPosition;
+		dSpeed = stRecv->st_c2p_abs_move.stMove[AxisCount].dSpeed;
 
-		if (_T("STAGE X") == strAxis)			drv_id = ENG_MMDI::en_stage_x;
-		else if (_T("STAGE Y") == strAxis)		drv_id = ENG_MMDI::en_stage_y;
-		else if (_T("Cam1 X") == strAxis)		drv_id = ENG_MMDI::en_align_cam1;
-		else if (_T("Cam2 X") == strAxis)		drv_id = ENG_MMDI::en_align_cam2;
-		else if (_T("PH1 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph1;
-		else if (_T("PH2 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph2;
+		if (_T("STAGE_X") == strAxis)			drv_id = ENG_MMDI::en_stage_x;
+		else if (_T("STAGE_Y") == strAxis)		drv_id = ENG_MMDI::en_stage_y;
+		else if (_T("Cam1_X") == strAxis)		drv_id = ENG_MMDI::en_align_cam1;
+		else if (_T("Cam2_X") == strAxis)		drv_id = ENG_MMDI::en_align_cam2;
+		else if (_T("PH1_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph1;
+		else if (_T("PH2_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph2;
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-		else if (_T("PH3 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph3;
-		else if (_T("PH4 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph4;
-		else if (_T("PH5 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
-		else if (_T("PH6 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
+		else if (_T("PH3_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph3;
+		else if (_T("PH4_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph4;
+		else if (_T("PH5_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
+		else if (_T("PH6_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
 #endif
+		/*완료 확인을 위한 저장*/
+		m_stPhilStatus.phil_move = en_menu_phil_move_abs;
+		m_stPhilStatus.drive_id = (UINT8)drv_id;
+		m_stPhilStatus.move_dist = dTargetPos;
 	}
 	//else if (mode == en_menu_phil_move_rel)
 	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE)
 	{
-		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rel_move.stMove[0].szAxisName));
-		dTargetPos	= stRecv->st_c2p_rel_move.stMove[0].dPosition;
-		dSpeed		= stRecv->st_c2p_rel_move.stMove[0].dSpeed;
+		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rel_move.stMove[AxisCount].szAxisName));
+		dTargetPos = stRecv->st_c2p_rel_move.stMove[AxisCount].dPosition;
+		dSpeed = stRecv->st_c2p_rel_move.stMove[AxisCount].dSpeed;
 
-		if (_T("STAGE X") == strAxis)			drv_id = ENG_MMDI::en_stage_x;
-		else if (_T("STAGE Y") == strAxis)		drv_id = ENG_MMDI::en_stage_y;
-		else if (_T("Cam1 X") == strAxis)		drv_id = ENG_MMDI::en_align_cam1;
-		else if (_T("Cam2 X") == strAxis)		drv_id = ENG_MMDI::en_align_cam2;
-		else if (_T("PH1 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph1;
-		else if (_T("PH2 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph2;
+		if (_T("STAGE_X") == strAxis)			drv_id = ENG_MMDI::en_stage_x;
+		else if (_T("STAGE_Y") == strAxis)		drv_id = ENG_MMDI::en_stage_y;
+		else if (_T("Cam1_X") == strAxis)		drv_id = ENG_MMDI::en_align_cam1;
+		else if (_T("Cam2_X") == strAxis)		drv_id = ENG_MMDI::en_align_cam2;
+		else if (_T("PH1_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph1;
+		else if (_T("PH2_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph2;
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-		else if (_T("PH3 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph3;
-		else if (_T("PH4 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph4;
-		else if (_T("PH5 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
-		else if (_T("PH6 Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
+		else if (_T("PH3_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph3;
+		else if (_T("PH4_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph4;
+		else if (_T("PH5_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
+		else if (_T("PH6_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
 #endif
-
 		// 상대 이동일 경우
 		dTargetPos = uvCmn_MC2_GetDrvAbsPos(drv_id) + dTargetPos;
+
+		/*완료 확인을 위한 저장*/
+		m_stPhilStatus.phil_move = en_menu_phil_move_rel;
+		m_stPhilStatus.drive_id = (UINT8)drv_id;
+		m_stPhilStatus.move_dist = dTargetPos;
+	}
+
+	else if (g_u16PhilCommand == ePHILHMI_C2P_CHAR_MOVE)
+	{
+		//EFEM_POS
+		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szAxisName));
+		stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName;
+
+		if (_T("STAGE_X") == strAxis)			drv_id = ENG_MMDI::en_stage_x;
+		else if (_T("STAGE_Y") == strAxis)		drv_id = ENG_MMDI::en_stage_y;
+		else if (_T("Cam1_X") == strAxis)		drv_id = ENG_MMDI::en_align_cam1;
+		else if (_T("Cam2_X") == strAxis)		drv_id = ENG_MMDI::en_align_cam2;
+		else if (_T("PH1_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph1;
+		else if (_T("PH2_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph2;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		else if (_T("PH3_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph3;
+		else if (_T("PH4_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph4;
+		else if (_T("PH5_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
+		else if (_T("PH6_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
+#endif
+
+		if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, L"EFEM_POS", DEF_MAX_POSITION_NAME_LENGTH))
+		{
+			if (drv_id == ENG_MMDI::en_stage_x)
+			{
+				dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][0];
+				dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
+			}
+			else if (drv_id == ENG_MMDI::en_stage_y)
+			{
+				dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][1];
+				dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
+			}
+			else
+			{
+				ErrorCode = ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT;
+			}
+		}
+
+		/*완료 확인을 위한 저장*/
+		m_stPhilStatus.phil_move = en_menu_phil_move_char;
+		m_stPhilStatus.drive_id = (UINT8)drv_id;
+		m_stPhilStatus.move_dist = dTargetPos;
 	}
 
 	/*Mc2 제어*/
@@ -2262,7 +2063,8 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv)
 	//서버 on 상태 확인
 	else if (FALSE == uvCmn_MC2_IsDevLocked(drv_id))
 	{
-		ErrorCode = ePHILHMI_ERR_MOTOR_OFF_LOCK;
+		//ErrorCode = ePHILHMI_ERR_MOTOR_OFF_LOCK;
+		ErrorCode = ePHILHMI_ERR_MOTOR_ALARM;
 	}
 	// 에러 상태 확인
 	else if (TRUE == uvCmn_MC2_IsDriveError(drv_id))
@@ -2278,7 +2080,8 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv)
 	//스테이지 동작에 
 	else if (CInterLockManager::GetInstance()->CheckMoveInterlock(drv_id, dTargetPos))
 	{
-		ErrorCode = ePHILHMI_ERR_MOTOR_IO_CHECK;
+		//ErrorCode = ePHILHMI_ERR_MOTOR_IO_CHECK;
+		ErrorCode = ePHILHMI_ERR_MOTOR_ALARM;
 	}
 
 	/*동작 거리 확인 하여 Max, Min 확인*/
@@ -2305,139 +2108,87 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv)
 		ErrorCode = ePHILHMI_ERR_MOTOR_NLM;
 	}
 
+
 	/*에러 상황이 없을 경우 동작 실행*/
 	if (ErrorCode == ePHILHMI_ERR_OK)
 	{
+		/*스테이 동작 실행*/
 		uvEng_MC2_SendDevAbsMove(drv_id, dTargetPos, dSpeed);
+		/*이동 동작 시작 시간*/
+		m_u64StartTimeHMI = GetTickCount64();
 	}
-
-	/*ABS 이동 동작 신호*/
-	//if (mode == en_menu_phil_move_abs)
-	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE)
+	/*동작전 에러가 확인이 되면 에러 수신 처리*/
+	else
 	{
-		STG_PP_C2P_ABS_MOVE_ACK stAbsAck;
-		stAbsAck.Reset();
-		stAbsAck.ulUniqueID = stRecv->st_c2p_abs_move.ulUniqueID;
-		stAbsAck.usErrorCode = ErrorCode;
-
-		/*완료 확인을 위한 저장*/
-		m_stPhilStatus.phil_move = en_menu_phil_move_abs;
-		m_stPhilStatus.drive_id = (UINT8)drv_id;
-		m_stPhilStatus.move_dist = dTargetPos;
-
-		uvEng_Philhmi_Send_C2P_ABS_MOVE_ACK(stAbsAck);
-	}
-	/*REL 이동 동작 신호*/
-	//else if (mode == en_menu_phil_move_rel)
-	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE)
-	{
-		STG_PP_C2P_REL_MOVE_ACK stRelAck;
-		stRelAck.Reset();
-		stRelAck.ulUniqueID = stRecv->st_c2p_rel_move.ulUniqueID;
-		stRelAck.usErrorCode = ErrorCode;
-
-		/*완료 확인을 위한 저장*/
-		m_stPhilStatus.phil_move = en_menu_phil_move_rel;
-		m_stPhilStatus.drive_id = (UINT8)drv_id;
-		m_stPhilStatus.move_dist = dTargetPos;
-
-		uvEng_Philhmi_Send_C2P_REL_MOVE_ACK(stRelAck);
-	}
-}
-
-VOID CDlgMain::PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv)
-{
-	STG_PP_C2P_STATUS_VALUE_ACK		stStatusValue;
-	stStatusValue.Reset();
-
-	/*포토헤드 LED 보드 및 LED 온도 측정*/
-	uvEng_Luria_ReqGetPhLedTempAll();
-	UINT16(*pLed)[8] = uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_led;
-	UINT16(*pBoard)[8] = uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_board;
-
-
-	//sprintf_s(stStatusValue.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "UINT16");
-	//sprintf_s(stStatusValue.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Photohead1_1 Led Temp");
-	//sprintf_s(stStatusValue.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_COUNT, "1000");
-
-
-	UINT8 u8Count = 0;
-	/* 광학계 LED / Board 온도 값 저장 */
-	for (int ph = 0; ph < uvEng_GetConfig()->luria_svc.ph_count; ph++)
-	{
-		for (int led = 0x00; led < 0x03 + 1; led++)
+		if (m_stPhilStatus.phil_move == en_menu_phil_move_abs)
 		{
-			sprintf_s(stStatusValue.stVar[u8Count].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "INT");
-			sprintf_s(stStatusValue.stVar[u8Count].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Photohead %d_%d Led Temp", ph + 1, led);
-			sprintf_s(stStatusValue.stVar[u8Count].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", pLed[ph][led] / 10.0f);
-			u8Count++;
-			sprintf_s(stStatusValue.stVar[u8Count].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "UINT16");
-			sprintf_s(stStatusValue.stVar[u8Count].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Photohead %d_%d Board Temp", ph + 1, led);
-			sprintf_s(stStatusValue.stVar[u8Count].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", pBoard[ph][led] / 10.0f);
-			u8Count++;
+			STG_PP_P2C_ABS_MOVE_COMP stAbsMove;
+			STG_PP_P2C_ABS_MOVE_COMP_ACK stAbsMoveAck;
+			stAbsMove.Reset();
+			stAbsMoveAck.Reset();
+			stAbsMove.usErrorCode = ErrorCode;
+
+			uvEng_Philhmi_Send_P2C_ABS_MOVE_COMP(stAbsMove, stAbsMoveAck);
+		}
+		else if (m_stPhilStatus.phil_move == en_menu_phil_move_rel)
+		{
+			STG_PP_P2C_REL_MOVE_COMP stRelMove;
+			STG_PP_P2C_REL_MOVE_COMP_ACK stRelMoveAck;
+			stRelMove.Reset();
+			stRelMoveAck.Reset();
+			stRelMove.usErrorCode = ErrorCode;
+
+			uvEng_Philhmi_Send_P2C_REL_MOVE_COMP(stRelMove, stRelMoveAck);
+		}
+		else if (m_stPhilStatus.phil_move == en_menu_phil_move_char)
+		{
+			STG_PP_P2C_CHAR_MOVE_COMP stCharMove;
+			STG_PP_P2C_CHAR_MOVE_COMP_ACK stCharMoveAck;
+			stCharMove.Reset();
+			stCharMoveAck.Reset();
+			stCharMove.usErrorCode = ErrorCode;
+
+			uvEng_Philhmi_Send_P2C_CHAR_MOVE_COMP(stCharMove, stCharMoveAck);
 		}
 	}
-
-	TCHAR szTemp[512] = { NULL };
-	/*DlgPhilhmi 에서 메시지 확인*/
-	for (int i = 0; i < u8Count; i++)
-	{
-		if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		{
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Status Value"));
-			swprintf_s(szTemp, 512, L"Type:%S  Name:%S   Value%S",
-				stStatusValue.stVar[i].szParameterType,
-				stStatusValue.stVar[i].szParameterName,
-				stStatusValue.stVar[i].szParameterValue);
-			((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		}
-	}
-
-	stStatusValue.ulUniqueID = stRecv->st_c2p_status_value.ulUniqueID;
-	stStatusValue.usCount = u8Count;
-	uvEng_Philhmi_Send_C2P_STATUS_VALUE_ACK(stStatusValue);
 }
 
-VOID CDlgMain::PhilSendChageMode(STG_PP_PACKET_RECV* stRecv)
+
+VOID CDlgMain::PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv)
 {
-	STG_PP_C2P_MODE_CHANGE_ACK stModeChange;
-	stModeChange.Reset();
+	unsigned short	ErrorCode = ePHILHMI_ERR_OK;
+	g_u16PhilCommand = stRecv->st_header.nCommand;
 
-	/*모드 변경*/
-	stModeChange.usMode = stRecv->st_c2p_mode_change.usMode;
-	/*내부 선언*/
-	g_u8Romote = stRecv->st_c2p_mode_change.usMode;
+	/*ABS 이동 완료 동작 신호*/
+	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE_COMPLETE)
+	{
+		STG_PP_C2P_ABS_MOVE_COMP_ACK stAbsComplete;
+		stAbsComplete.Reset();
+		stAbsComplete.ulUniqueID = stRecv->st_c2p_abs_move.ulUniqueID;
+		stAbsComplete.usErrorCode = ErrorCode;
 
-	/*원격 초기화 동작 실행*/
-	if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_init)
-	{
-		/*장비 초기화 진행*/
-		RunWorkJob(ENG_BWOK::en_work_init);
+		uvEng_Philhmi_Send_C2P_ABS_MOVE_COMP_ACK(stAbsComplete);
 	}
-	/*원격 메뉴얼 동작 실행*/
-	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_manual)
+	/*REL 이동 완료 동작 신호*/
+	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE_COMPLETE)
 	{
-		CreateMenu(IDC_MAIN_BTN_MANUAL);
-	}
-	/*원격 오토 동작 실행*/
-	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_auto)
-	{
-		CreateMenu(IDC_MAIN_BTN_AUTO);
-	}
+		STG_PP_C2P_REL_MOVE_COMP_ACK stRelComplete;
+		stRelComplete.Reset();
+		stRelComplete.ulUniqueID = stRecv->st_c2p_rel_move.ulUniqueID;
+		stRelComplete.usErrorCode = ErrorCode;
 
-	TCHAR szTemp[512] = { NULL };
-	/*DlgPhilhmi 에서 메시지 확인*/
-	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-	{
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Mode Change Ack"));
-		swprintf_s(szTemp, 512, L"Mode : %d", stModeChange.ulUniqueID);
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
+		uvEng_Philhmi_Send_C2P_REL_MOVE_COMP_ACK(stRelComplete);
 	}
+	else if (g_u16PhilCommand == ePHILHMI_C2P_CHAR_MOVE_COMPLETE)
+	{
+		STG_PP_C2P_CHAR_MOVE_COMP_ACK stCharComplete;
+		stCharComplete.Reset();
+		stCharComplete.ulUniqueID = stRecv->st_c2p_rel_move.ulUniqueID;
+		stCharComplete.usErrorCode = ErrorCode;
 
-	stModeChange.ulUniqueID = stRecv->st_c2p_mode_change.ulUniqueID;
-	uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(stModeChange);
+		uvEng_Philhmi_Send_C2P_CHAR_MOVE_COMP_ACK(stCharComplete);
+	}
 }
-
 VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv)
 {
 	STG_PP_C2P_PROCESS_EXECUTE_ACK stProcessExecute;
@@ -2462,11 +2213,6 @@ VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv)
 	memcpy(stProcessExecute.szRecipeName, stRecv->st_c2p_process_execute.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
 	memcpy(stProcessExecute.szGlassID, stRecv->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
 
-	///*노광 시나리오 동작 싱행[Direct Expose]*/
-	//RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&m_stExpoLog));
-	/*노광 시나리오 동작 싱행[Align Expose]*/
-	//RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&m_stExpoLog));
-
 	/*레시피의 선택 유무*/
 	BOOL bSelect = uvEng_JobRecipe_GetSelectRecipe() ? TRUE : FALSE;
 	/*레시피 등록 유무*/
@@ -2488,6 +2234,76 @@ VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv)
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }
 
+VOID CDlgMain::PhilSendChageMode(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_MODE_CHANGE_ACK stModeChange;
+	stModeChange.Reset();
+
+	/*모드 변경*/
+	stModeChange.usMode = stRecv->st_c2p_mode_change.usMode;
+	/*내부 선언*/
+	g_u8Romote = stRecv->st_c2p_mode_change.usMode;
+
+	if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_auto)
+	{
+		CreateMenu(IDC_MAIN_BTN_AUTO);
+	}
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_stop)
+	{
+		/*장비 정지 진행*/
+		RunWorkJob(ENG_BWOK::en_work_stop);
+		//CreateMenu(IDC_MAIN_BTN_MANUAL);
+	}
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_pause)
+	{
+		/*장비 정지 진행*/
+		RunWorkJob(ENG_BWOK::en_work_stop);
+	}
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_alarm)
+	{
+	}
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_pm)
+	{
+	}
+
+	stModeChange.ulUniqueID = stRecv->st_c2p_mode_change.ulUniqueID;
+	uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(stModeChange);
+}
+
+VOID CDlgMain::PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_INITIAL_EXECUTE_ACK	stInitialExecuteAck;
+	stInitialExecuteAck.Reset();
+
+	stInitialExecuteAck.ulUniqueID = stRecv->st_c2p_initial_execute.ulUniqueID;
+
+	/*장비 초기화 진행*/
+	RunWorkJob(ENG_BWOK::en_work_init);
+
+	uvEng_Philhmi_Send_C2P_INITIAL_EXECUTE_ACK(stInitialExecuteAck);
+}
+
+VOID CDlgMain::PhilSendSubProcessExecute(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_SUBPROCESS_EXECUTE_ACK stSubProcessExecute;
+	stSubProcessExecute.Reset();
+	stSubProcessExecute.ulUniqueID = stRecv->st_c2p_subprocess_execute.ulUniqueID;
+
+	TCHAR szTemp[512] = { NULL };
+	/*DlgPhilhmi 에서 메시지 확인*/
+	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	{
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Sub Process Execute"));
+		swprintf_s(szTemp, 512, L"Sub Process Execute : %S",
+			stRecv->st_c2p_subprocess_execute.szAckSubProcessName);
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
+
+	}
+	/*받은 파라미터값 재전송*/
+	memcpy(stSubProcessExecute.szAckSubProcessName, stRecv->st_c2p_subprocess_execute.szAckSubProcessName, DEF_MAX_SUBPROCESS_NAME_LENGTH);
+	uvEng_Philhmi_Send_C2P_SUBPROCESS_EXECUTE_ACK(stSubProcessExecute);
+}
+
 VOID CDlgMain::PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv)
 {
 	STG_PP_C2P_EVENT_STATUS_ACK		stEventStatus;
@@ -2497,22 +2313,61 @@ VOID CDlgMain::PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv)
 
 	memcpy(stEventStatus.szEventName, stRecv->st_c2p_event_status.szEventName, DEF_MAX_EVENT_NAME_LENGTH);
 
-	if (memcmp(stEventStatus.szEventName, L"MPSTART", DEF_MAX_EVENT_NAME_LENGTH))
+	// 20240217 mhbaek Modify : 문자열 비교문으로 수정
+	if (0 == strcmp(stEventStatus.szEventName, "MPSTART"))
 	{
 		stEventStatus.bEventFlag = m_stPhilStatus.mp_start;
 	}
-	else if (memcmp(stEventStatus.szEventName, L"SAFEPOS", DEF_MAX_EVENT_NAME_LENGTH))
+	else if (0 == strcmp(stEventStatus.szEventName, "SAFEPOS"))
 	{
 		stEventStatus.bEventFlag = m_stPhilStatus.safe_pos;
 	}
 
+	uvEng_Philhmi_Send_C2P_EVENT_STATUS_ACK(stEventStatus);
+}
+
+VOID CDlgMain::PhilSendEventNotify(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_EVENT_NOTIFY_ACK		stEventNotify;
+	stEventNotify.Reset();
+	stEventNotify.ulUniqueID = stRecv->st_c2p_event_notify.ulUniqueID; 
+
 	TCHAR szTemp[512] = { NULL };
 	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
 	{
-		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Event Status"));
-		swprintf_s(szTemp, 512, L"Event : %S", stRecv->st_c2p_event_status.szEventName);
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Event Notify"));
+		swprintf_s(szTemp, 512, L"Event : %S", stRecv->st_c2p_event_notify.szEventName);
 		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
 	}
-	uvEng_Philhmi_Send_C2P_EVENT_STATUS_ACK(stEventStatus);
+	uvEng_Philhmi_Send_C2P_EVENT_NOTIFY_ACK(stEventNotify);
+}
+VOID CDlgMain::PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_TIME_SYNC_ACK		stTimeSync;
+	stTimeSync.Reset();
+	stTimeSync.ulUniqueID = stRecv->st_c2p_time_sync.ulUniqueID;
 
+	TCHAR szTemp[512] = { NULL };
+	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	{
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Time sync"));
+		swprintf_s(szTemp, 512, L"Time : %S", stRecv->st_c2p_time_sync.szSyncTime);
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
+	}
+	uvEng_Philhmi_Send_C2P_TIME_SYNC_ACK(stTimeSync);
+}
+
+VOID CDlgMain::PhilSendInterruptStop(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_INTERRUPT_STOP_ACK	stInterruptStop;
+	stInterruptStop.Reset();
+	stInterruptStop.ulUniqueID = stRecv->st_c2p_interrupt_stop.ulUniqueID;
+
+	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
+	{
+		((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(_T("C2P Interrupt Stop"));
+	}
+	/*장비 정지 진행*/
+	RunWorkJob(ENG_BWOK::en_work_stop);
+	uvEng_Philhmi_Send_C2P_INTERRUPT_STOP_ACK(stInterruptStop);
 }

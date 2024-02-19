@@ -6,12 +6,12 @@
 #include "pch.h"
 #include "../../MainApp.h"
 #include "WorkMarkTest.h"
-
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
 #undef THIS_FILE
-static char THIS_FILE[]	= __FILE__;
+static char THIS_FILE[] = __FILE__;
 #endif
 
 
@@ -23,7 +23,7 @@ static char THIS_FILE[]	= __FILE__;
 CWorkMarkTest::CWorkMarkTest(LPG_CELA expo)
 	: CWorkStep()
 {
-	m_enWorkJobID	= ENG_BWOK::en_mark_test;
+	m_enWorkJobID = ENG_BWOK::en_mark_test;
 	m_u32ExpoCount = 0;
 
 	m_stExpoLog.Init();
@@ -52,13 +52,16 @@ BOOL CWorkMarkTest::InitWork()
 	/* 전체 작업 단계 */
 #if 1
 	//m_u8StepTotal	= 0x23;
-	m_u8StepTotal = 0x27;
+	m_u8StepTotal = 0x25;
 #else
-	m_u8StepTotal	= 0x0e;
+	m_u8StepTotal = 0x0e;
 #endif
 	/* 총 검색 대상의 마크 개수 얻기 */
-	m_u8MarkCount	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global) +
-					  uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+
+	globalMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
+	localMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+	m_u8MarkCount = globalMarkCnt + localMarkCnt;
+
 	return TRUE;
 }
 
@@ -69,61 +72,90 @@ BOOL CWorkMarkTest::InitWork()
 */
 VOID CWorkMarkTest::DoWork()
 {
+	
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-	case 0x01 : m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);		break;	/* 노광 가능한 상태인지 여부 확인 */
-	case 0x02 : m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
-	case 0x03 : m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
-	case 0x04 : m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
-	case 0x05 : m_enWorkState = SetAlignMovingInit();						break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
-	case 0x06 : m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
+	case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);		break;	/* 노광 가능한 상태인지 여부 확인 */
+	case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
+	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
+	case 0x05: m_enWorkState = SetAlignMovingInit();						break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
+	case 0x06: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
 
 	case 0x07: m_enWorkState = IsAlignMovedInit();							break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
 
-	case 0x08 : m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
-	case 0x09 : m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
+	case 0x08: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
+	case 0x09: m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
 
-	case 0x0a : m_enWorkState = SetAlignMeasMode();							break;
-	case 0x0b : m_enWorkState = IsAlignMeasMode();							break;
+	case 0x0a: m_enWorkState = SetAlignMeasMode();							break;
+	case 0x0b: m_enWorkState = IsAlignMeasMode();							break;
 
-	case 0x0c : m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
-	case 0x0d : m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
+	case 0x0c: m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
+	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
 
-	case 0x0e: m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);			break;	/* Cam None 모드로 변경 */
-	case 0x0f : m_enWorkState = SetAlignMovingLocal(0x00, 0x00);			break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
-	case 0x10 : m_enWorkState = SetTrigRegistLocal(0x00);					break;	/* Trigger (역방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
-	case 0x11 : m_enWorkState = IsTrigRegistLocal(0x00);					break;	/* Trigger (역방향) 발생 위치 등록 확인 */
-	case 0x12 : m_enWorkState = IsAlignMovedLocal(0x00, 0x00);				break;	/* Stage X/Y, Camera 1/2 - Align (Local) 시작 위치 도착 여부 */
-	case 0x13: m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);	break;	/* Cam None 모드로 변경 */
-	case 0x14 : m_enWorkState = SetAlignMovingLocal(0x01, 0x00);			break;	/* Local Mark (역방향) 16 군데 위치 확인 */
-	case 0x15 : m_enWorkState = IsAlignMovedLocal(0x01, 0x00);				break;	/* Local Mark (역방향) 16 군데 측정 완료 여부 */
 
-	case 0x16: m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);			break;	/* Cam None 모드로 변경 */
-	case 0x17 : m_enWorkState = SetAlignMovingLocal(0x00, 0x01);			break;	/* Stage X/Y, Camera 1/2 - Align (Local:정방향) 시작 위치로 이동 */
-	case 0x18 : m_enWorkState = SetTrigRegistLocal(0x01);					break;	/* Trigger (정방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
-	case 0x19 : m_enWorkState = IsTrigRegistLocal(0x01);					break;	/* Trigger (정방향) 발생 위치 등록 확인 */
-	case 0x1a : m_enWorkState = IsAlignMovedLocal(0x00, 0x01);				break;	/* Trigger (정방향) 발생 위치 등록 확인 */
-	case 0x1b: m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);	break;	/* Cam None 모드로 변경 */
-	case 0x1c : m_enWorkState = SetAlignMovingLocal(0x01, 0x01);			break;	/* Local Mark (정방향) 16 군데 위치 확인 */
-	case 0x1d : m_enWorkState = IsAlignMovedLocal(0x01, 0x01);				break;	/* Local Mark (정방향) 16 군데 측정 완료 여부 */
+		//여기까지가 글로벌
+		//타격지점.
 
-	case 0x1e : m_enWorkState = SetTrigEnable(FALSE);						break;
-	case 0x1f : m_enWorkState = IsGrabbedImageCount(m_u8MarkCount,3000);	break;
-	case 0x20 : m_enWorkState = IsSetMarkValidAll(0x01);					break;
-	case 0x21 : m_enWorkState = SetAlignMarkRegist();						break;
-	case 0x22 : m_enWorkState = IsAlignMarkRegist();						break;
-	case 0x23 : m_enWorkState = IsTrigEnabled(FALSE);						break;
-	case 0x24 : m_enWorkState = SetWorkWaitTime(2000);						break;
-	case 0x25 : m_enWorkState = IsWorkWaitTime();							break;
-	case 0x26 : m_enWorkState = SetMovingUnloader();						break;
-	case 0x27 : m_enWorkState = IsMovedUnloader();							break;
-		
-	case 0x28: m_enWorkState = SetHomingACamSide();							break;
-	case 0x29: m_enWorkState = IsHomedACamSide();							break;
+		//이격확보 , 반복구간
+	case 0x0e: 
+	{
+		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
+		CameraSetCamMode(ENG_VCCM::en_none);
+		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
+	}
+
+	case 0x0f: m_enWorkState = SetTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
+	case 0x10: m_enWorkState = IsTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 등록 확인 */
+	case 0x11: m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);		break;	/* Stage X/Y, Camera 1/2 - Align (Local) 시작 위치 도착 여부 */
+	case 0x12:  m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);							break;	/* Cam None 모드로 변경 */
+	case 0x13: m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 위치 확인 */
+	case 0x14: m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 측정 완료 여부 */
+
+	case 0x15:
+		this_thread::sleep_for(chrono::milliseconds(200)); // 잠깐 기다려주는 이유가 바슬러 스레드에서 캠 데이터를 가져가는 스레드 리프레시 타임이 있기때문.
+		m_u8StepIt = GlobalVariables::getInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
+		m_enWorkState = ENG_JWNS::en_forceSet;
+	break;
+
+		//case 0x16: m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);			break;	/* Cam None 모드로 변경 */
+		//case 0x17 : m_enWorkState = SetAlignMovingLocal(0x00, 0x01);			break;	/* Stage X/Y, Camera 1/2 - Align (Local:정방향) 시작 위치로 이동 */
+		//case 0x18 : m_enWorkState = SetTrigRegistLocal(0x01);					break;	/* Trigger (정방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
+		//case 0x19 : m_enWorkState = IsTrigRegistLocal(0x01);					break;	/* Trigger (정방향) 발생 위치 등록 확인 */
+		//case 0x1a : m_enWorkState = IsAlignMovedLocal(0x00, 0x01);				break;	/* Trigger (정방향) 발생 위치 등록 확인 */
+		//case 0x1b: m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);	break;	/* Cam None 모드로 변경 */
+		//case 0x1c : m_enWorkState = SetAlignMovingLocal(0x01, 0x01);			break;	/* Local Mark (정방향) 16 군데 위치 확인 */
+		//case 0x1d : m_enWorkState = IsAlignMovedLocal(0x01, 0x01);				break;	/* Local Mark (정방향) 16 군데 측정 완료 여부 */
+		//이격확보
+
+
+
+
+
+
+		//타격지점. /<-얼라인 종료지점.
+	case 0x16: 
+		GlobalVariables::getInstance()->GetAlignMotion().MatchingGrabIndex(ENG_AMTF::en_local);
+		CameraSetCamMode(ENG_VCCM::en_none);
+	break;	/* Cam None 모드로 변경 */
+
+	case 0x17: m_enWorkState = SetTrigEnable(FALSE);						break;
+	case 0x18: m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);	break;
+	case 0x19: m_enWorkState = IsSetMarkValidAll(0x01);					break;
+	case 0x1a: m_enWorkState = SetAlignMarkRegist();						break;
+	case 0x1b: m_enWorkState = IsAlignMarkRegist();						break;
+	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
+	case 0x1d: m_enWorkState = SetWorkWaitTime(2000);						break;
+	case 0x1e: m_enWorkState = IsWorkWaitTime();							break;
+	case 0x20: m_enWorkState = SetMovingUnloader();						break;
+	case 0x21: m_enWorkState = IsMovedUnloader();							break;
+
+	case 0x22: m_enWorkState = SetHomingACamSide();							break;
+	case 0x23: m_enWorkState = IsHomedACamSide();							break;
 		//case 0x26: m_enWorkState = DoDriveHoming(ENG_MMDI::en_stage_y);			break;
-	case 0x2a: m_enWorkState = SetWorkWaitTime(10000);						break;
-	case 0x2b: m_enWorkState = IsWorkWaitTime();							break;
+	case 0x24: m_enWorkState = SetWorkWaitTime(10000);						break;
+	case 0x25: m_enWorkState = IsWorkWaitTime();							break;
 		//case 0x29: m_enWorkState = IsDrivedHomed(ENG_MMDI::en_stage_y);			break;
 	}
 
@@ -140,8 +172,8 @@ VOID CWorkMarkTest::DoWork()
 */
 VOID CWorkMarkTest::SetWorkNext()
 {
-	UINT8 u8WorkTotal	= IsMarkTypeOnlyGlobal() ? (m_u8StepTotal - 12) : m_u8StepTotal;
-	UINT64 u64JobTime	= GetTickCount64() - m_u64StartTime;
+	UINT8 u8WorkTotal = IsMarkTypeOnlyGlobal() ? (m_u8StepTotal) : m_u8StepTotal;
+	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
@@ -149,35 +181,32 @@ VOID CWorkMarkTest::SetWorkNext()
 	/* 모든 작업이 종료 되었는지 여부 */
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
-		TCHAR tzMesg[128] = {NULL};
+		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-		
-		SaveExpoResult(0x00);
-		//m_u8StepIt = 0x26;
-		m_u8StepIt = 0x01;
 
-		//m_enWorkState = ENG_JWNS::en_comp;
+		SaveExpoResult(0x00);
+		m_u8StepIt = 0x01;
 		m_enWorkState = ENG_JWNS::en_error;
-		//m_enWorkState = ENG_JWNS::en_next;
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
 		/* 작업률 계산 후 임시 저장 */
 		CWork::CalcStepRate();
 		/* 현재 Global Mark까지 인식 했는지 여부 */
-		//if (m_u8StepIt == 0x0d)
 		if (m_u8StepIt == 0x0d)
 		{
 #if 1
 			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
 			//if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1a;
-			if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1e;
+			if (IsMarkTypeOnlyGlobal())	
+				m_u8StepIt = 0x16;
 
 #else
 			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
-			m_u8WorkStep	= 0x1f;
+			m_u8WorkStep = 0x1f;
 #endif
+
 #if 0	/* CWork::SetAlignMarkRegist() 여기서 처리하고 있음 */
 			uvData_Mark_SetMarkLenActive();
 #endif
@@ -207,7 +236,7 @@ VOID CWorkMarkTest::SetWorkNext()
 			m_u8StepIt++;
 		}
 		/* 가장 최근에 Waiting 한 시간 저장 */
-		m_u64DelayTime	= GetTickCount64();
+		m_u64DelayTime = GetTickCount64();
 	}
 }
 
@@ -229,17 +258,17 @@ ENG_JWNS CWorkMarkTest::SetHomingACamSide()
 	//if (!m_bMoveACamSide)
 	//{
 		/* 1번 카메라부터 home */
-		if(!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam1))
-		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (1) to (left)");
-			return  ENG_JWNS::en_wait;
-		}
-		/* 2번 카메라부터 home */
-		if (!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam2))
-		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (2) to (left)");
-			return  ENG_JWNS::en_wait;
-		}
+	if (!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam1))
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (1) to (left)");
+		return  ENG_JWNS::en_wait;
+	}
+	/* 2번 카메라부터 home */
+	if (!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam2))
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (2) to (left)");
+		return  ENG_JWNS::en_wait;
+	}
 	//}
 	///* 홀수일 때, 최대 값 (우측 끝)으로 이동 */
 	//else
@@ -381,3 +410,4 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
 }
+

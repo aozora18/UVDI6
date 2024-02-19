@@ -86,7 +86,8 @@ public:
 	BOOL				GetRecvDataFromUniqueID(unsigned int nUniqueID, STG_PP_PACKET_RECV* pstRecv);
 	BOOL				GetRecvWaitFromUniqueID(unsigned int nUniqueID, STG_PP_PACKET_RECV* pstRecv, int nTimeout = 10000);
 	BOOL				DeleteRecvDataFromUniqueID(unsigned int nUniqueID);
-
+	BOOL				IsSyncResultLocked() {return m_syncResult.IsLockCount() != 0;}
+	
 	int Send_P2C_RCP_CREATE(STG_PP_P2C_RCP_CREATE& stSend, STG_PP_P2C_RCP_CREATE_ACK& stRecv, int nTimeout = 10000);
 	int Send_P2C_RCP_DELETE(STG_PP_P2C_RCP_DELETE& stSend, STG_PP_P2C_RCP_DELETE_ACK& stRecv, int nTimeout = 10000);
 	int Send_P2C_RCP_MODIFY(STG_PP_P2C_RCP_MODIFY& stSend, STG_PP_P2C_RCP_MODIFY_ACK& stRecv, int nTimeout = 10000);
@@ -119,6 +120,7 @@ public:
 	int Send_C2P_REL_MOVE_COMP_ACK(STG_PP_C2P_REL_MOVE_COMP_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_CHAR_MOVE_ACK(STG_PP_C2P_CHAR_MOVE_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_CHAR_MOVE_COMP_ACK(STG_PP_C2P_CHAR_MOVE_COMP_ACK& stSend, int nTimeout = 10000);
+	int Send_C2P_INITIAL_EXECUTE_ACK(STG_PP_C2P_INITIAL_EXECUTE_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_PROCESS_EXECUTE_ACK(STG_PP_C2P_PROCESS_EXECUTE_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_SUBPROCESS_EXECUTE_ACK(STG_PP_C2P_SUBPROCESS_EXECUTE_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_STATUS_VALUE_ACK(STG_PP_C2P_STATUS_VALUE_ACK& stSend, int nTimeout = 10000);

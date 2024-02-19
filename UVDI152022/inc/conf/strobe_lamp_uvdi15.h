@@ -50,6 +50,7 @@ enum CommandCode : uint8_t
 	eSTROBE_LAMP_DATA_SAVE							= 0x1B,
 	eSTROBE_LAMP_DATA_LOAD							= 0x1C,
 	eSTROBE_LAMP_STROBE_TRIGGER_MODE_READ			= 0x20,
+	 
 };
 
 typedef enum __en_strobe_lamp_error_code__
@@ -145,10 +146,12 @@ union Body
 	struct
 	{
 		uint8_t page;
-		uint8_t delayHighValue[DEF_MAX_ARRAY_SIZE];
+		uint8_t rawBody[DEF_MAX_ARRAY_SIZE * 4];
+		/*uint8_t delayHighValue[DEF_MAX_ARRAY_SIZE];
 		uint8_t delayLowValue[DEF_MAX_ARRAY_SIZE];
 		uint8_t strobeHighValue[DEF_MAX_ARRAY_SIZE];
-		uint8_t strobeLowValue[DEF_MAX_ARRAY_SIZE];
+		uint8_t strobeLowValue[DEF_MAX_ARRAY_SIZE];*/
+
 	} pageDataReadResponse;				// Page Date Read Response
 
 	struct
@@ -232,9 +235,25 @@ typedef struct stStrobeLampMessage
 		tail.tail2		= FIX_DATA_TAIL_2;
 	}
 
-	size_t GetSize() const
+
+	size_t GetHeaderSize() const
 	{
-		return sizeof(header) + GetBodyRequestSize() + sizeof(tail);
+		return sizeof(header);
+	}
+
+	size_t GetBodySize() const
+	{
+		return GetBodyRequestSize();
+	}
+
+	size_t GetTailSize() const
+	{
+		return sizeof(tail);
+	}
+
+	size_t GetSize(bool request = true) const
+	{
+		return sizeof(header) + (request ? GetBodyRequestSize() : GetBodyResponseSize()) + sizeof(tail);
 	}
 
 	size_t stStrobeLampMessage::GetBodyRequestSize() const
@@ -254,6 +273,48 @@ typedef struct stStrobeLampMessage
 		case eSTROBE_LAMP_DATA_LOAD:						return sizeof(body.dataLoad);
 		case eSTROBE_LAMP_STROBE_TRIGGER_MODE_READ:			return sizeof(body.strobeTriggerModeReadRequest);
 		default:											return sizeof(body);			
+		}
+	}
+
+
+	static size_t stStrobeLampMessage::GetBodyResponseSize(int command)
+	{
+		switch (command)
+		{
+		case eSTROBE_LAMP_CHANNEL_DELAY_CONTROL:			return sizeof(Body::channelDelayControl); //동일
+		case eSTROBE_LAMP_CHANNEL_STROBE_CONTROL:			return sizeof(Body::channelStrobeControl);//동일 
+		case eSTROBE_LAMP_CHANNEL_WRITE:					return sizeof(Body::channelWrite);//동일 
+		case eSTROBE_LAMP_PAGE_DATA_WRITE:					return sizeof(Body::pageDataWrite); //동일 
+		case eSTROBE_LAMP_PAGE_DATA_READ:					return sizeof(Body::pageDataReadResponse); //다름 
+		case eSTROBE_LAMP_PAGE_LOOP_DATA_WRITE:				return sizeof(Body::pageLoopDataWrite);//동일
+		case eSTROBE_LAMP_PAGE_LOOP_DATA_READ:				return sizeof(Body::pageLoopDataReadResponse); //다름 
+		case eSTROBE_LAMP_STROBE_MODE:						return sizeof(Body::strobeMode);//동일
+		case eSTROBE_LAMP_TRIGGER_MODE:						return sizeof(Body::triggerMode); //동일 
+		case eSTROBE_LAMP_DATA_SAVE:						return sizeof(Body::dataSave);//동일
+		case eSTROBE_LAMP_DATA_LOAD:						return sizeof(Body::dataLoad); //동일
+		case eSTROBE_LAMP_STROBE_TRIGGER_MODE_READ:			return sizeof(Body::strobeTriggerModeReadResponse); //다름
+		default:											return sizeof(Body);
+		}
+	}
+
+
+	size_t stStrobeLampMessage::GetBodyResponseSize() const
+	{
+		switch (header.command)
+		{
+		case eSTROBE_LAMP_CHANNEL_DELAY_CONTROL:			return sizeof(body.channelDelayControl); //동일
+		case eSTROBE_LAMP_CHANNEL_STROBE_CONTROL:			return sizeof(body.channelStrobeControl);//동일 
+		case eSTROBE_LAMP_CHANNEL_WRITE:					return sizeof(body.channelWrite);//동일 
+		case eSTROBE_LAMP_PAGE_DATA_WRITE:					return sizeof(body.pageDataWrite); //동일 
+		case eSTROBE_LAMP_PAGE_DATA_READ:					return sizeof(body.pageDataReadResponse); //다름 
+		case eSTROBE_LAMP_PAGE_LOOP_DATA_WRITE:				return sizeof(body.pageLoopDataWrite);//동일
+		case eSTROBE_LAMP_PAGE_LOOP_DATA_READ:				return sizeof(body.pageLoopDataReadResponse); //다름 
+		case eSTROBE_LAMP_STROBE_MODE:						return sizeof(body.strobeMode);//동일
+		case eSTROBE_LAMP_TRIGGER_MODE:						return sizeof(body.triggerMode); //동일 
+		case eSTROBE_LAMP_DATA_SAVE:						return sizeof(body.dataSave);//동일
+		case eSTROBE_LAMP_DATA_LOAD:						return sizeof(body.dataLoad); //동일
+		case eSTROBE_LAMP_STROBE_TRIGGER_MODE_READ:			return sizeof(body.strobeTriggerModeReadResponse); //다름
+		default:											return sizeof(body);
 		}
 	}
 

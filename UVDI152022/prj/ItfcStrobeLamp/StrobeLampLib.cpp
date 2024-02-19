@@ -6,6 +6,7 @@
 #include "pch.h"
 #include "MainApp.h"
 #include "StrobeLampLib.h"
+#include <condition_variable>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -13,6 +14,7 @@
 static CHAR THIS_FILE[] = __FILE__;
 #endif
 
+std::mutex CStrobeLampLib::lockMutex;
 
 
 CStrobeLampLib::CStrobeLampLib()
@@ -171,9 +173,14 @@ int CStrobeLampLib::GetUniqueID()
 }
 
 
+
+
 void CStrobeLampLib::OnDataReceived(CSocketHandle* pSH, const BYTE* pbData, DWORD dwCount, const SockAddrIn& addr)
 {
-	for (DWORD i = 0; i < dwCount; ++i)
+	STROBELOCK;
+	int cmd = pbData[1];
+	auto bodySize = sizeof(Header) + STG_SLPR_RECV::GetBodyResponseSize(cmd) + sizeof(Tail);
+	for (DWORD i = 0; i < bodySize; ++i)
 	{
 		m_vRecvData.push_back(pbData[i]);
 
@@ -725,7 +732,7 @@ BOOL CStrobeLampLib::RecvData(STG_SLPR_RECV& stRecv)
 	BOOL	bIsRequest = TRUE;
 	int		nEventIndex = 0;
 
-	uint8_t calculatedChecksum = CalculateChecksum(stRecv, stRecv.GetSize());
+	uint8_t calculatedChecksum = CalculateChecksum(stRecv, stRecv.GetSize(false));
 	if (calculatedChecksum != stRecv.tail.checksum)
 	{
 		TRACE(_T("RECV CMD : %d, LENGTH : %d, CHECKSUM : %d \n"), stRecv.header.command, stRecv.GetSize(), stRecv.tail.checksum);
@@ -787,6 +794,7 @@ void CStrobeLampLib::PopPktData()
 	m_syncRecv.Enter();
 	m_qRecvStruct.pop();
 	m_syncRecv.Leave();
+	conditionValue.notify_all();
 }
 
 /*
@@ -799,10 +807,15 @@ BOOL CStrobeLampLib::SendData(STG_SLPR_SEND& stSend, int nSize, int nTimeout)
 	BOOL bSucc = FALSE;
 	int		nEventIndex = -1;
 	/* 동기 진입 */
+
+	std::unique_lock<std::mutex> lock(lockMutex);
+	conditionValue.wait(lock, [&] { return m_qRecvStruct.empty(); }); //만약 처리중인 (수신된) 메세지가 있을경우 스레드 팬딩.
+
 	if (m_syncSend.Enter())
 	{
 		if (IsConnect())
 		{
+
 			m_u64SendTime = GetTickCount64();
 			
 			TRACE(_T("SEND CMD : %d, LENGTH : %d, CHECKSUM : %d, TIMEOUT : %d \n"), stSend.header.command, nSize, stSend.tail.checksum, nTimeout);
@@ -813,6 +826,7 @@ BOOL CStrobeLampLib::SendData(STG_SLPR_SEND& stSend, int nSize, int nTimeout)
 			//DWORD dwSendCount = m_SocketClient.Write(bpData, (DWORD)nSize, NULL);
 
 			/* 데이터 전송 */
+
 			BYTE* bpData = SerializeMessage(stSend);
 			DWORD dwSendCount = m_SocketClient.Write(bpData, (DWORD)nSize, NULL);
 			delete[] bpData; // 메모리 해제

@@ -8,6 +8,9 @@ class CMilMain : public CWnd
 {
 	DECLARE_DYNAMIC(CMilMain, CWnd)
 
+private:
+	bool terminated = false;
+
 /* 생성자 & 파괴자 */
 public:
 	CMilMain();
@@ -37,6 +40,7 @@ public:
 	MIL_ID				m_mDisID_CALI_CAMSPEC;		/* Calib CamSpec DispID*/
 	MIL_ID				*m_mDisID_CALI_STEP;		/* Calib Step DispID*/
 	MIL_ID				m_mDisID_ACCR;		
+	MIL_ID				m_mDisID_MPMM_AutoCenter;		/* Manual Align Auto Center DispID*/
 
 	MIL_ID				m_mGraphID;						/* GraphicContID */
 
@@ -47,6 +51,7 @@ public:
 	MIL_ID				m_mOverlay_CALI_CAMSPEC;		/* Calib CamSpec OverlayID*/
 	MIL_ID				* m_mOverlay_CALI_STEP;			/* Calib Step OverlayID*/
 	MIL_ID				m_mOverlay_ACCR;		
+	MIL_ID				m_mOverlay_MPMM_AutoCenter;		/* Manual Align Auto Center OverlayID*/
 
 	MIL_ID				m_mImgDisp_Mark_Live;			/* Mark Live DispImgID*/
 	MIL_ID				* m_mImgDisp_Mark;				/* Mark DispImgID*/
@@ -54,17 +59,20 @@ public:
 	MIL_ID				m_mImgDisp_MMPM;				/* Manual Align DispImgID*/
 	MIL_ID				m_mImgDisp_CALI_CAMSPEC;		/* Calib CamSpec DispImgID*/
 	MIL_ID				* m_mImgDisp_CALI_STEP;			/* Calib Step DispImgID*/
-	MIL_ID				m_mImgDisp_ACCR;			/* ACCURACY MEASURE DispImgID*/
+	MIL_ID				m_mImgDisp_ACCR;				/* ACCURACY MEASURE DispImgID*/
+	MIL_ID				m_mImgDisp_MPMM_AutoCenter;		/* Manual Align Auto Center DispImgID*/
 
-	MIL_ID				*m_mImg;						/* Cam Live ImgID*/
-	MIL_ID				*m_mImg_Grab;					/* Cam Grab ImgID*/
+	MIL_ID				*m_mImg;						/* Cam Live ImgID 원본*/
+	MIL_ID				*m_mImg_Grab;					/* Cam Grab ImgID 원본*/
 	MIL_ID				*m_mImg_Mark;					/* Mark ImgID*/
 	MIL_ID				m_mImg_MarkSet;					/* Mark Setting ImgID*/
 	MIL_ID				m_mImg_MarkSet_Ori;				/* Mark Setting에서 Edge Find에 사용 (Auto Center) */ 
 	MIL_ID				*m_mImg_CALI_CAMSPEC;			/* Calib CamSpec ImgID*/
 	MIL_ID				*m_mImg_CALI_STEP;				/* Calib Step ImgID*/
 	MIL_ID				*m_mImg_ACCR;			
-	MIL_ID				*m_mImgProc;						/* Imag 변환 */
+	MIL_ID				*m_mImgProc;					/* Imag 변환 */
+	MIL_ID				m_mImg_MPMM_AutoCenter;			/* Manual Align Auto Center ImgID*/
+	MIL_ID				m_mImg_MPMM_AutoCenter_Proc;
 
 	MIL_ID				*m_mDisID_EXPO;
 	MIL_ID				*m_mImgDisp_EXPO;
@@ -88,12 +96,14 @@ public:
 
 	CMilGrab			*m_pLastGrabResult;	/* 가장 최근에 Grabbed Image의 매칭 및 검색 결과 객체 연결 */
 	CMilGrab			***m_pMilGrab;		/* 검색 (Grabbed)된 Mark Image 정보를 저장 및 관리하는 객체 */
-	CMilModel			**m_pMilModel;		/* 패턴 (Mark) 이미지 저장 및 검색, 3개, 0:Global Mark, 1:Local Mark, 2:Mark Test */
+	CMilModel			** m_pMilModel;		/* 패턴 (Mark) 이미지 저장 및 검색, CAM 별 */
 
 	CRect				*rectSearhROI; // Search ROI 
 	CRect				rectSearhROI_Calb_CamSpec; // CamSpec Search ROI 
 	CRect				rectSearhROI_Calb_Step; // Step Search ROI 
 	CRect				rectSearhROI_Calb_Accr; // ROI 
+	CRect				rectSearhROI_MPMM_AutoCenter; // ROI 
+
 /* 로컬 함수 */
 protected:
 
@@ -209,7 +219,7 @@ public:
 	VOID SetMarkOffset(UINT8 cam_id, CPoint fi_MarkCenter, int setOffsetMode, int fi_No);
 	VOID MaskClear_MOD(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no);
 	VOID MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_no);
-	VOID MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound);
+	VOID CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode);
 
 	VOID SaveMask_MOD(UINT8 cam_id,UINT8 mark_no);
 	VOID SaveMask_PAT(UINT8 cam_id,UINT8 mark_no);
@@ -219,14 +229,17 @@ public:
 
 	VOID DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, UINT8 mark_no);
 	VOID Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
-	VOID SetDisp_Expo(CWnd* pWnd[4]);
-	VOID SetDisp(CWnd* pWnd[2], UINT8 fi_Mode);
+	VOID SetDispExpo(CWnd* pWnd[4]);
+	VOID SetDisp(CWnd** pWnd, UINT8 fi_Mode);
 	VOID SetDispMark(CWnd* pWnd);
 	VOID SetDispRecipeMark(CWnd* pWnd[2]);
 	VOID SetDispMarkSet(CWnd* pWnd);
-	VOID SetDisp_MMPM(CWnd* pWnd);
-	VOID InitMask();
+	VOID SetDispMMPM_AutoCenter(CWnd* pWnd);
+	
+	VOID SetDispMMPM(CWnd* pWnd);
+	VOID InitMask(UINT8 cam_id);
 	VOID CloseSetMark();
+	VOID CloseMMPMAutoCenter();
 
 	BOOL RegistMILImg(INT32 cam_id, INT32 width, INT32 height, PUINT8 image);
 	BOOL RegistMILGrabImg(INT32 fi_No, INT32 width, INT32 height, PUINT8 image);
@@ -251,11 +264,14 @@ public:
 	int CALIB_EXPO_DISP_SIZE_Y;
 	int ACCR_DISP_SIZE_X;
 	int ACCR_DISP_SIZE_Y;
+	int MMPM_AUTOCENTER_DISP_SIZE_X;
+	int MMPM_AUTOCENTER_DISP_SIZE_Y;
 
 	double MARK_DISP_RATE;
 	double MARKSET_DISP_RATE;
 	double MMPM_DISP_RATE;
 	double RECIPE_MARK_DISP_RATE;
+	double MMPM_AUTOCENTER_DISP_RATE;
 
 	int CAM_CNT;
 	int GRABMARK_CNT;

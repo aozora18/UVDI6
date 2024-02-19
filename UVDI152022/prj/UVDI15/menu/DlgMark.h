@@ -36,6 +36,11 @@ enum EnMarkGrp
 	eMARK_GRP_CALIB,
 	eMARK_GRP_MAX,
 };
+enum EnLampGrd
+{
+	eMARK_GRD_STROBE_VIEW,
+	eMARK_GRD_MAX,
+};
 
 //enum EnMarkPic
 //{
@@ -60,8 +65,9 @@ enum EnMarkTxt
 	eMARK_TXT_EDGE_WIDTH	  ,
 	eMARK_TXT_EDGE_HEIGHT  ,
 	eMARK_TXT_MODEL_NAME	  ,
-	eMARK_TXT_GAIN_LEVEL1,
-	eMARK_TXT_GAIN_LEVEL2,
+	eMARK_TXT_GAIN_LEVEL1	,
+	eMARK_TXT_GAIN_LEVEL2	,
+	eMARK_TXT_GAIN_LEVEL3	,
 	eMARK_TXT_CALIB_SUB,
 	eMARK_TXT_MAX,
 };
@@ -98,6 +104,7 @@ enum EnMarkEdtOut
 	eMARK_EDT_OUT_EDGE_HEIGHT,
 	eMARK_EDT_GAIN_LEVEL1,
 	eMARK_EDT_GAIN_LEVEL2,
+	eMARK_EDT_GAIN_LEVEL3,
 	eMARK_EDT_CALIB_R,
 	eMARK_EDT_CALIB_C,
 	eMARK_EDT_OUT_MAX
@@ -131,6 +138,8 @@ enum EnMarkBtnRst
 	eMARK_BTN_GAIN_SET,
 	eMARK_BTN_CALIB_SET,
 	eMARK_BTN_CALIB,
+	eMARK_BTN_STROBE_SET,
+	eMARK_BTN_STROBE_GET,
 	eMARK_BTN_RST_MAX,
 };
 
@@ -177,6 +186,7 @@ enum EnMarkChkCam
 {
 	eMARK_CHK_CAM_ACAM_1 ,
 	eMARK_CHK_CAM_ACAM_2 ,
+	eMARK_CHK_CAM_ACAM_3,
 	eMARK_CHK_CAM_LIVE	 ,
 	eMARK_CHK_CAM_MAX
 };
@@ -217,6 +227,7 @@ protected:
 	UINT8				m_u8lamp_type;		/*램프 조명 타입(0:Ring or 1 : Coaxial)*/
 
 	CMyGrpBox			m_grp_ctl[eMARK_GRP_MAX];
+	CGridCtrl			m_grd_ctl[eMARK_GRD_MAX];
 	
 	CMacButton			m_btn_ctl[eMARK_BTN_CTL_MAX];		/* Normal */
 	CMacButton			m_btn_set[eMARK_BTN_SET_MAX];		/* Mark Set */
@@ -303,13 +314,19 @@ protected:
 
 	VOID				setVisionCalib();
 	VOID				VisionCalib();
+	UINT8				CheckSelectCam();
+	VOID				InitGridStrobeView();
+	VOID				UpdataStrobeView();
+	VOID				setStrobeValue();
+
 /* 공용 함수 */
 public:
 	CPoint	ptMenu;
 	CRect	um_rectArea; // Mark ROI Size
 	bool	um_bMoveFlag;
 	int		menuPart; // menu 선택, 0:imageload, 1:markroi, 2:searchroi, 3:measure, 4:zoom, 99 : 아무것도 선택안된 상태
-	int		searchROIPart; // 0:CAM1, 1:CAM2, 2:CAM1+CAM2, 3:CAM1 Search ALL, 4:CAM2 Search ALL, 5:CAM1+CAM2 Search ALL, 99:그외
+	BOOL *searchROI_CAM;
+	BOOL searchROI_ALL; // 전체 영역 : true, 일부 영역 : false
 	int calib_row;
 	int calib_col;
 	int* CalibROI_left; // 동적할당
@@ -325,9 +342,11 @@ protected:
 	afx_msg VOID		OnGridMarkList(NMHDR *nm_hdr, LRESULT *result);
 	afx_msg VOID		OnGridModelList(NMHDR *nm_hdr, LRESULT *result);
 	afx_msg VOID		OnGridMarkModel(NMHDR *nm_hdr, LRESULT *result);
+	afx_msg	void		OnClickGridInput(NMHDR* pNotifyStruct, LRESULT* pResult);
+	BOOL				PopupKBDN(ENM_DITM enType, CString strInput, CString& strOutput, double dMin, double dMax, UINT8 u8DecPts = 0);
 	
 public:
-	afx_msg void ImageLoad();
+	afx_msg void LoadImageFile();
 
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);

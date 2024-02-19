@@ -531,7 +531,18 @@ VOID CMvencThread::SetTrigPos(LPG_TPTS trig_set,
 	/*Cam2 포지션 설정*/
 	memcpy(&trig_set[1].area_trig_pos + start2, pos2, sizeof(UINT32) * count2);
 	/*공용 조명 설정*/
-	memcpy(&trig_set[3].area_trig_pos + start1, pos1, sizeof(UINT32) * count1);
+
+	vector<INT32> sorting;
+
+	for (int i = 0; i < count1; i++)
+		sorting.push_back(pos1[i]);
+	
+	for (int i=0; i < count2; i++)
+		sorting.push_back(pos2[i]);
+	
+	std::sort(sorting.begin(), sorting.end(), [&](INT32& a, INT32& b) {return a < b; });
+	
+	memcpy(&trig_set[3].area_trig_pos + start1, sorting.data(), sizeof(UINT32) * (count1 + count2));
 #endif
 }
 
@@ -1083,9 +1094,11 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 			}
 		}
 
+
 		MvsEncSetPositiveRun(m_handle, 15);
 		Sleep(10);
 		MvsEncSetPositiveRun(m_handle, 0);
+
 
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
@@ -1234,13 +1247,13 @@ BOOL CMvencThread::ReqWirteTrigLive(UINT8 cam_id, BOOL enable)
 			}
 			if (cam_id == 0x02)
 			{
-				//cam2 및 조명(0101) 트리거 실행
-				MvsEncSetPositiveRun(m_handle, 6);
+				//cam2 및 조명(0101) 트리거 실행 => (1010) => 10
+				MvsEncSetPositiveRun(m_handle, 10);
 			}
 			if (cam_id == 0x03)
 			{
-				//cam2 및 조명(0011) 트리거 실행
-				MvsEncSetPositiveRun(m_handle, 3);
+				//cam2 및 조명(0011) 트리거 실행 (1100)
+				MvsEncSetPositiveRun(m_handle, 12);
 			}
 #endif
 
@@ -1308,7 +1321,7 @@ BOOL CMvencThread::SetLiveMode()
 
 			MvsEncSetTriggerPosition0(m_handle, i, 0);
 			MvsEncSetTriggerPosition1(m_handle, i, 100000000);
-			MvsEncSetTriggerGenerator(m_handle, i, 0, 5);
+			MvsEncSetTriggerGenerator(m_handle, i, 0, 1000);
 			MvsEncSetTriggerDelay(m_handle, i, 0);
 
 		}
@@ -1390,6 +1403,8 @@ BOOL CMvencThread::SetPositionTrigMode(ENG_TEED enable)
 			MvsEncSetTriggerDelay(m_handle, 1, 10);
 			MvsEncSetTriggerDelay(m_handle, 2, 0);
 			MvsEncSetTriggerDelay(m_handle, 3, 0);
+
+			MvsEncSetTriggerPulseWidth(m_handle, i, 200);
 
 		}
 

@@ -69,6 +69,8 @@ public:
 class CMilDisp : public CWnd
 {
 	DECLARE_DYNAMIC(CMilDisp, CWnd)
+private:
+	bool terminated = false;
 
 	/* 생성자 & 파괴자 */
 public:

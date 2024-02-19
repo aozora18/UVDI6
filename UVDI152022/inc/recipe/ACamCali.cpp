@@ -270,27 +270,16 @@ UINT8 CACamCali::SetTrigPosCaliApply()
 	if (u8ACamCount != 0x01 && u8ACamCount != 0x02)	return 0x00;
 
 	/* 만약 Align Camera가 1개인 경우 */
-	if (0x01 == u8ACamCount)
+	if (0x03 == u8ACamCount)
 	{
-		for (; i<m_u8MarkCount; i++)
-		{
-			/* 얼라인 카메라가 1개인 경우, 마크 4개까지 Global Position 값임 */
-			if (i < 0x04)	pstCaliData	= m_pstShMem->cali_global[0x00][i];
-			else			pstCaliData	= m_pstShMem->cali_local[0x00][i-0x04];
-			/* 트리거 발생 위치에 해당되는 Calibration XY 오차 값 얻기 */
-			u8MarkSet	= GetCaliPos(0x00,
-									 pstCaliData->acam_motion_x, pstCaliData->stage_motion_y,
-									 pstCaliData->acam_cali_x, pstCaliData->stage_cali_y);
-			if (0x00 == u8MarkSet)	return 0x00;
-			/* If it does not exist the calibration area, increase the number */
-			if (0x02 == u8MarkSet)	u8MarkCnt++;
-		}
+	 
+	 	
 	}
-	else
+	else if (0x02 == u8ACamCount)
 	{
 		TCHAR tzMsg[256] = { NULL };
 		/* 얼라인 카메라가 2개인 경우 */
-		for (; i<m_u8MarkCount/2; i++)
+		for (; i<m_u8MarkCount/ u8ACamCount; i++)
 		{
 			/* 얼라인 카메라 1 or 2번 */
 			if (i < 0x02)	pstCaliData	= m_pstShMem->cali_global[0x00][i];
@@ -532,7 +521,8 @@ VOID CACamCali::AddMarkPos(UINT8 cam_id, ENG_AMTF mark, UINT8 axis, UINT8 idx, D
 	else				pstCali->stage_motion_y	= (INT32)ROUNDED(pos * 10000.0f, 0);
 
 	/* 현재까지 등록된 Mark Position의 개수 설정 */
-	if (0x00 == axis)	m_u8MarkCount++;
+	if (0x00 == axis)	
+		m_u8MarkCount++;
 }
 
 

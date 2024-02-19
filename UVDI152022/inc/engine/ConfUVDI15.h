@@ -95,5 +95,8 @@ public:
 	BOOL				LoadConfigGlobalTrans();
 	BOOL				SaveConfigGlobalTrans();
 
+	BOOL				LoadConfigStrobeLamp();
+	BOOL				SaveConfigStrobeLamp();
+
 
 };

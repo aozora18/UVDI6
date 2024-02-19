@@ -393,8 +393,8 @@ typedef struct __st_material_thick_acam_calibration_position__
 	*/
 	BOOL IsValid()
 	{
-		return mark2_stage_y[0] > 0.0f && mark2_stage_y[1] > 0.0f &&
-			mark2_acam_x[0] > 0.0f && mark2_acam_x[1] > 0.0f;
+		return mark2_stage_y[0] > 0.0f && mark2_stage_y[1] > 0.0f;
+
 	}
 
 	/*

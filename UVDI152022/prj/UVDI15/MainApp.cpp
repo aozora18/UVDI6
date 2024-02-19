@@ -7,6 +7,7 @@
 #include "MainApp.h"
 #include "DlgMain.h"
 #include "WheatyExceptionReport.h"
+#include "GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -68,6 +69,7 @@ BOOL CMainApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
+	GlobalVariables::getInstance()->Init();
 
 	// OLE √ ±‚»≠
 	AfxOleInit();
@@ -91,7 +93,7 @@ BOOL CMainApp::InitInstance()
 		AfxMessageBox(L"Failed to get the current working folder", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
 	}
-
+	 
 	CDlgMain dlg;
 	m_pMainWnd	= &dlg;
 	INT_PTR nResponse = dlg.DoModal();

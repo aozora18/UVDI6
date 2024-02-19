@@ -247,7 +247,7 @@ BOOL CCaliThread::ReadData(CString strSend, char* pchRead, DWORD dwTimeout)
 
 #elif (DEF_COMMUNICATION_TYPE == DEF_SERIAL)
 
-BOOL WaitResponse(char* pchRead, DWORD dwTimeout)
+BOOL CCaliThread::WaitResponse(char* pchRead, DWORD dwTimeout)
 {
 	BYTE byTemp[__SIZE_OF_COMM_BUFFER_] = { 0x00, };
 	BYTE byETX[2] = { (BYTE)ASCII_CR, 0x00 };

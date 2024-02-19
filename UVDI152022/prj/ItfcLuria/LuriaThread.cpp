@@ -964,9 +964,9 @@ VOID CLuriaThread::SetPktError(ENG_LNWE level, UINT8 type, LPG_PCLR data)
 	if (data->user_data_family == (UINT8)ENG_LUDF::en_luria_com_management &&
 		data->user_data_id == (UINT8)ENG_LCCM::en_announce_server_ipaddr)	return;
 #endif
-#ifdef _DEBUG
-	GetConfig()->set_comn.mesg_box_optic	= 0x01;
-#endif
+//#ifdef _DEBUG
+	//GetConfig()->set_comn.mesg_box_optic	= 0x01;
+//#endif
 	if (GetConfig()->set_comn.mesg_box_optic && data->status != 10008)
 	{
 		AfxMessageBox(tzMesg, MB_ICONSTOP|MB_TOPMOST);

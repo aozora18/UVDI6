@@ -20,7 +20,7 @@
 #include "DirectPhComn.h"
 #include "ComManagement.h"
 #include "PhZFocus.h"
-
+#include "../UVDI15/GlobalVariables.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -41,7 +41,7 @@ CLuriaCThread				*g_pLuriaCThread	= NULL;
 CLuriaSThread				*g_pLuriaSThread	= NULL;
 
 CJobSelectXml				*g_pSelJobXml		= NULL;
-
+AlignMotion*				alignMotion			= nullptr;
 CMachineConfig				*g_pPktMC			= NULL;
 CSystem						*g_pPktSS			= NULL;
 CJobManagement				*g_pPktJM			= NULL;
@@ -330,6 +330,7 @@ API_EXPORT BOOL uvLuria_Init(LPG_CIEA config, LPG_LDSM shmem, CCodeToStr *error,
 
 	/* Data Object */
 	g_pSelJobXml= new CJobSelectXml;
+	
 	/* Packet Object */
 	g_pPktMC	= new CMachineConfig(shmem, error);
 	g_pPktSS	= new CSystem(shmem, error);
@@ -1075,15 +1076,6 @@ API_EXPORT DOUBLE uvLuria_GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index)
 	return g_pSelJobXml->GetGlobalBaseMarkLocalDiffY(direct, index);
 }
 
-/*
- desc : 마크 구성 정보를 보고, 입력된 마크 위치(번호)가 정방향에 속하는지 역방향에 속하는지 확인
- parm : mark_no	- [in]  Align Mark Number (0 or Later)
- retn : TRUE (Forward) or FALSE (Backward)
-*/
-API_EXPORT BOOL uvLuria_IsMarkDirectForward(UINT8 mark_no)
-{
-	return g_pSelJobXml->IsMarkDirectForward(mark_no);
-}
 
 /*
  desc : XML 파일로에 설정(저장)된 총 노광 횟수 즉, Stripe 개수
@@ -1311,6 +1303,20 @@ API_EXPORT DOUBLE uvLuria_GetGlobalMarkDist(ENG_GMDD direct)
 	return g_pSelJobXml->GetGlobalMarkDist(direct);
 }
 
+API_EXPORT CFiducialData* uvLuria_GetGlobalMarkPtr()
+{
+	if (!g_pSelJobXml)	return nullptr;
+	return g_pSelJobXml->GetGlobalMark();
+}
+
+API_EXPORT CFiducialData* uvLuria_GetLocalMarkPtr()
+{
+	if (!g_pSelJobXml)	return nullptr;
+	return g_pSelJobXml->GetLocalMark();
+}
+
+
+
 /*
  desc : 두 Mark 간의 좌/우 X 축 떨어진 간격 즉, X 축 간의 오차 (거리) 값
  parm : mark_x1	- [in]  X1 축 Mark Number (1-based. 0x01 ~ 0x04)
@@ -1359,6 +1365,12 @@ API_EXPORT DOUBLE uvLuria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 {
 	return g_pSelJobXml->GetLocalMarkACam12DistX(mode, scan);
 }
+
+API_EXPORT VOID	 uvLuria_SetAlignMotionInfo(AlignMotion& motion)
+{
+	g_pSelJobXml->alignMotion = &motion;
+}
+
 
 /*
  desc : 두 Mark 간의 상/하 Y 축 떨어진 간격 즉, Y 축 간의 오차 (높이) 값

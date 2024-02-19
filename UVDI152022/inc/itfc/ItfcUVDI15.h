@@ -176,6 +176,13 @@ API_IMPORT BOOL uvEng_Init(HWND hWnd, ENG_ERVM e_mode=ENG_ERVM::en_monitoring);
 */
 API_IMPORT VOID uvEng_Close();
 /*
+ desc : UVDI15 Engine DI 해제여부
+ parm : None
+ retn : TRUE or FALSE
+*/
+API_IMPORT BOOL uvEng_Terminated();
+
+/*
  desc : 환경 파일 다시 적재 진행
  parm : None
  retn : TRUE or FALSE
@@ -199,6 +206,12 @@ API_IMPORT LPG_CIEA uvEng_GetConfig();
  parm : None
  retn : TRUE or FALSE
 */
+
+API_IMPORT BOOL uvEng_Camera_SetModelDefine_tot(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
+	LPG_CMPV model, UINT8 fi_No, TCHAR* file,
+	DOUBLE scale_min = 0.0f, DOUBLE scale_max = 0.0f,
+	DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f);
+
 API_IMPORT BOOL uvEng_IsInitedEngine();
 
 // by sysandj : recipe 저장
@@ -323,7 +336,6 @@ API_IMPORT DOUBLE uvEng_PLC_GetTempDIMin(UINT8 index);
  retn : 온도 값 반환
 */
 API_IMPORT DOUBLE uvEng_PLC_GetTempDIMax(UINT8 index);
-
 
 #ifdef __cplusplus
 }

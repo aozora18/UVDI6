@@ -189,7 +189,7 @@ public:
 	double GetStableValue(UINT8 u8Led, double dAccuracy = 0.001, int nTimeOut = 60000);
 
 	BOOL GetMaxValue(UINT8 u8Head, UINT8 u8Led, UINT16 & u16Index, double &dPower);
-
+	VCT_POWER_TABLE	GetPowerTable() { return m_stVctPowerTable; }
 };
 
 UINT PowerMeasureThread(LPVOID lpParam);

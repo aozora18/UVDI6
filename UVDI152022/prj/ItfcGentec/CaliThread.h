@@ -3,7 +3,7 @@
 
 #define DEF_SOCKET	1
 #define DEF_SERIAL	2
-#define DEF_COMMUNICATION_TYPE		DEF_SOCKET
+#define DEF_COMMUNICATION_TYPE		DEF_SERIAL
 
 #include "../../inc/comn/ThinThread.h"
 #include "SerialComm.h"
@@ -53,6 +53,7 @@ class CCaliThread : public CThinThread, CSerialComm
 	// 생성자/파괴자
 public:
 
+	CCaliThread(UINT32 comPort,LPG_PADV shmem, ENG_MDST type);
 	CCaliThread(UINT32 source_ip, UINT32 target_ip, UINT16 u16Port, LPG_PADV shmem, ENG_MDST type);
 	virtual ~CCaliThread();
 
@@ -112,7 +113,14 @@ protected:
 public:
 
 	/* 연결 여부 상태 */
-	BOOL				IsConnected() { return ChkConnect(); };
+	BOOL				IsConnected() 
+	{ 
+#if (DEF_COMMUNICATION_TYPE == DEF_SOCKET)
+		return ChkConnect();
+#elif (DEF_COMMUNICATION_TYPE == DEF_SERIAL)
+		return IsOpen();
+#endif
+	};
 
 	/* 조도 측정 개수가 거의 Full 상태인 경우, 즉, Full - 1인 경우 */
 	BOOL				IsQueFulled() { return m_pArrQue->IsQueFulled(); }

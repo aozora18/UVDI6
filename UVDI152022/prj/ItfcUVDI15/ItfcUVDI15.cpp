@@ -737,7 +737,8 @@ API_EXPORT BOOL uvEng_Init(HWND hWnd, ENG_ERVM e_mode)
 	if (e_mode == ENG_ERVM::en_monitoring)	return FALSE;
 
 	/* Log Library */
-	swprintf_s(tzLogs, MAX_PATH_LEN, L"%s\\logs", g_tzWorkDir);
+	//swprintf_s(tzLogs, MAX_PATH_LEN, L"%s\\logs", g_tzWorkDir);
+	swprintf_s(tzLogs, MAX_PATH_LEN, L"%s\\logs\\DlgFile", g_tzWorkDir);
 	if (!uvLogs_Init(tzLogs,
 						GetConfig()->set_comn.log_file_saved,
 						GetConfig()->set_comn.log_file_type))
@@ -853,8 +854,18 @@ DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 
 	/* 엔진 초기화 되었다고 플래그 설정 */
 	g_bEngineInited	= TRUE;
-
+	terminated = FALSE;
 	return TRUE;
+}
+
+/*
+ desc : UVDI15 Engine DI 종료여부
+ parm : None
+ retn : TRUE or FALSE
+*/
+API_EXPORT BOOL uvEng_Terminated()
+{
+	return terminated;
 }
 
 /*
@@ -941,6 +952,8 @@ API_EXPORT VOID uvEng_Close()
 	}
 	/* 엔진 해제 */
 	g_bEngineInited	= FALSE;
+	
+	terminated = true;
 }
 
 /*

@@ -3,6 +3,7 @@
  desc : 시나리오 단계 (Step) 함수 모음
 */
 
+
 #include "pch.h"
 #include "../MainApp.h"
 #include "WorkStep.h"
@@ -620,11 +621,13 @@ ENG_JWNS CWorkStep::IsJobNameLoaded()
 	return ENG_JWNS::en_next;
 }
 
+
 /*
  desc : Gerber 파일 내에 저장된 Mark (Global & Local)들의 위치에 해당되는 모든 트리거 위치 계산 및 등록
  parm : None
  retn : wait, error, complete or next
 */
+
 ENG_JWNS CWorkStep::SetTrigPosCalcSaved()
 {
 	UINT8 u8MarkGlobal	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
@@ -638,16 +641,31 @@ ENG_JWNS CWorkStep::SetTrigPosCalcSaved()
 	/* Mark 1 (Left/Bottom)과 3 (Right/Bottom) 마크의 높이 차이 값 */
 	/*i32MarkDiffY	= uvEng_Luria_GetGlobalLeftRightBottomDiffY();*/
 	/* Mark 개수에 따라 다르게 처리 */
+
+
 	if (u8MarkGlobal && 0x04 != u8MarkGlobal)
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of global mark is not 4");
 		return ENG_JWNS::en_error;
 	}
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+
+	const int minLocalFiducial = 4;
+
+	if (minLocalFiducial > u8MarkLocal ||  u8MarkLocal % 2 != 0) // 가변피두셜일때는 16개 제한을 두면 안된다. 최소 4점, 짝수이기만 하면 된다.
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of local mark is not acceptable");
+		return ENG_JWNS::en_error;
+	}
+#else
 	if (0x00 != u8MarkLocal && 0x10 != u8MarkLocal)
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of local mark is not 16");
 		return ENG_JWNS::en_error;
 	}
+#endif
+	
 
 	return CWork::SetTrigPosCalcSaved(i32ACamDistXY[1]/*, i32MarkDiffY*/) ?
 									  ENG_JWNS::en_next : ENG_JWNS::en_error;
@@ -751,7 +769,7 @@ ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 {
 	UINT8 u8LampType= 0x00;		/* 0x00 : AMBER(1 ch, 3 ch), 0x01 : IR (2 ch, 4 ch) */
 	UINT8 u8Index	= 0x00, u8Count = 0x00;
-	BOOL bDirect	= (scan % 2) == 0 ? FALSE /* 역방향 (후진) */ : TRUE /* 정방향 (전진) */;
+	BOOL bDirect	= (scan % 2) == 0 ? TRUE /* 역방향 (후진) */ : FALSE /* 정방향 (전진) */;
 	PINT32 p32Trig1, p32Trig2;
 
 	/* 현재 작업 Step Name 설정 */
@@ -776,7 +794,8 @@ ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 	p32Trig2	+= UINT32(u8Index);
 
 	ENG_TEED teed;
-	if(scan== 0x00)
+
+	if(scan % 2 == 0x00)
 	{
 		teed = ENG_TEED::en_positive;
 	}
@@ -943,6 +962,9 @@ ENG_JWNS CWorkStep::IsAlignMovedInit()
 	if (!uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam1))	return ENG_JWNS::en_wait;
 	if (!uvCmn_MC2_IsDrvDoneToggled(m_enVectMoveDrv))			return ENG_JWNS::en_wait;
 
+	/*LDS 센서 온*/
+	uvEng_GetConfig()->measure_flat.bThickCheck = TRUE;
+
 	return ENG_JWNS::en_next;
 }
 
@@ -1004,8 +1026,18 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 */
 ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 {
+
+	//AlignMotionMode : UINT8
+	//{
+	//	toInitialMoving = 0, //최초 스캔을 위해 검사 초기위치로 이동하는 스탭
+	//	toScanMoving = 1,    //스캔을 위해 이동하는 스텝
+	//};
+
+	const int WANGBOKCOUNT = 2;
+
 	UINT8 u8MarkLeft, u8MarkRight;
-	BOOL bStageMoveDirect	= (scan == 0x00) ? FALSE /* 역방향 */ : TRUE /* 정방향 */;
+	BOOL bStageMoveDirect	= (scan % WANGBOKCOUNT == 0x00) ? FALSE /* 역방향 */ : TRUE /* 정방향 */;
+
 	DOUBLE dbACamDistXY[2], dbAlignStageY;
 	DOUBLE dbMarkDist, dbDiffMarkX, dbStageVelo, dbACamVelo;
 	STG_XMXY stPoint		= {NULL};
@@ -1023,12 +1055,15 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 	}
 	else
 	{
-		if (0x00 == scan)	SetStepName(L"Set.Align.Moving.Local (Move:1)");
-		else				SetStepName(L"Set.Moving.Align.Local (Move:2)");
+		if (0x00 == scan)	
+			SetStepName(L"Set.Align.Moving.Local (Move:1)");
+		else				
+			SetStepName(L"Set.Moving.Align.Local (Move:2)");
 		/* 스테이지 이동 방향 설정 */
-		uvEng_Camera_SetMoveStateDirect(bStageMoveDirect);
+		
 	}
 
+	uvEng_Camera_SetMoveStateDirect(bStageMoveDirect);
 	/* 카메라간 떨어진 물리적인 거리 확인 */
 	GetACamCentDistXY(dbACamDistXY[0], dbACamDistXY[1]);
 
@@ -1039,7 +1074,8 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 			return ENG_JWNS::en_error;
 		/* Left와 Right 마크 간의 간격 (넓이) 얻기 */
 		dbMarkDist	= uvEng_Luria_GetLocalMarkACam12DistX(0x00, scan);		/* mm */
-		if (!uvEng_Luria_GetLocalMark(u8MarkLeft, &stPoint))	return ENG_JWNS::en_error;
+		if (!uvEng_Luria_GetLocalMark(u8MarkLeft, &stPoint))	
+			return ENG_JWNS::en_error;
 		dbDiffMarkX	= stPoint.mark_x - pstSetAlign->mark2_org_gerb_xy[0];	/* mm */
 #if 0
 		TRACE(L"dbDiffMarkX = %d\n", dbDiffMarkX);
@@ -1082,10 +1118,12 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 		//uvEng_Mvenc_ResetTrigPosAll();
 
 
-		/* 역방향 Y 축 이동할 때, 멈추고자 하는 위치 값 */
-		if (0x00 == scan)	dbAlignStageY	= pstSetAlign->table_unloader_xy[0][1];
-		/* 정방향 Y 축 이동 */
-		else				dbAlignStageY	= uvCmn_Luria_GetStartY(ENG_MDMD::en_pos_expo_start);
+		
+		if (bStageMoveDirect == false)	/* 역방향 Y 축 이동할 때, 멈추고자 하는 위치 값 */
+			dbAlignStageY	= pstSetAlign->table_unloader_xy[0][1];
+		else				/* 정방향 Y 축 이동 */
+			dbAlignStageY	= uvCmn_Luria_GetStartY(ENG_MDMD::en_pos_expo_start);
+
 		/* 현재 Done Toggled 값 저장 */
 		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
 		/* Stage Y 축 이동 */
@@ -2201,8 +2239,10 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
 	stRecv.Reset();
 
 	stSend.usCount = 2;
-	sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z1");
-	sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z2");
+	//sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z1");
+	//sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z2");
+	sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z1");
+	sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z2");
 	stSend.stMove[0].dPosition = dACamZAxisSet[0] / 10000.0f;
 	stSend.stMove[1].dPosition = dACamZAxisSet[1] / 10000.0f;
 	stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
@@ -2620,6 +2660,13 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 	/* 현재 설정된 Recipe 파워 값 복사 */
 	for (i=0x00; i<uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
+#ifdef _DEBUG
+		const int MAX_ALLOW_POWER_INDEX = 3000;
+		pstLedPower->led_index[i][0] = pstLedPower->led_index[i][0] > MAX_ALLOW_POWER_INDEX ? 100 : pstLedPower->led_index[i][0];
+		pstLedPower->led_index[i][1] = pstLedPower->led_index[i][1] > MAX_ALLOW_POWER_INDEX ? 100 : pstLedPower->led_index[i][1];
+		pstLedPower->led_index[i][2] = pstLedPower->led_index[i][2] > MAX_ALLOW_POWER_INDEX ? 100 : pstLedPower->led_index[i][2];
+		pstLedPower->led_index[i][3] = pstLedPower->led_index[i][3] > MAX_ALLOW_POWER_INDEX ? 100 : pstLedPower->led_index[i][3];
+#endif
 		memcpy(&u16LedPower[i], pstLedPower->led_index[i], sizeof(UINT16) * 4/* Not MAX_LED */);
 	}
 	/* 통신 시간 초기화 */
@@ -3582,7 +3629,7 @@ ENG_JWNS CWorkStep::IsGrabbedImageCount(UINT16 count, UINT64 delay)
 			swprintf_s(tzMesg, 128, L"Timeout waiting for all images to be captured [%d <> %d]",
 				count, u16Grab);
 			LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-			ENG_JWNS::en_error;
+			return ENG_JWNS::en_error;
 		}
 		return ENG_JWNS::en_wait;
 	}

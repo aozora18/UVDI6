@@ -1960,7 +1960,7 @@ API_EXPORT VOID uvMIL_SetMultiMarkArea(UINT32 width, UINT32 height)
 API_EXPORT VOID uvMIL_InitMarkROI(LPG_CRD fi_MarkROI)
 {
 	CRect tmpROI;
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < g_pstConfig->set_cams.acam_count; i++) {
 		tmpROI.left = fi_MarkROI->roi_Left[i];
 		tmpROI.right = fi_MarkROI->roi_Right[i];
 		tmpROI.top = fi_MarkROI->roi_Top[i];
@@ -2140,6 +2140,10 @@ API_EXPORT VOID uvMIL_DrawImageBitmap(int dispType, int Num, LPG_ACGR grab, DOUB
 		MbufClear(theApp.clMilMain.m_mImgDisp_ACCR, 0L);
 		MimResize(theApp.clMilMain.m_mImg_ACCR[cam_id], theApp.clMilMain.m_mImgDisp_ACCR, dRateP.x, dRateP.y, M_DEFAULT);
 	}
+	else if (dispType == DISP_TYPE_MMPM_AUTOCENTER) {	// MMPM AUTO CENTER
+		MbufClear(theApp.clMilMain.m_mImgDisp_MPMM_AutoCenter, 0L);
+		MimResize(theApp.clMilMain.m_mImg_MPMM_AutoCenter, theApp.clMilMain.m_mImgDisp_MPMM_AutoCenter, dRateP.x, dRateP.y, M_DEFAULT);
+	}
 	else {
 		return;
 	}
@@ -2178,6 +2182,39 @@ API_EXPORT BOOL uvMIL_RegistPat(UINT8 cam_id, LPG_ACGR grab, CRect fi_rectArea, 
 API_EXPORT BOOL uvMIL_RegistMod(UINT8 cam_id, LPG_ACGR grab, CRect fi_rectArea, CString fi_filename, UINT8 mark_no)
 {
 	return theApp.clMilMain.RegistMod(cam_id, grab->grab_data, fi_rectArea, fi_filename, mark_no);
+}
+
+/* desc: MMPM Auto Center 이미지 등록 */
+API_EXPORT BOOL uvMIL_RegistMMPM_AutoCenter(CRect fi_rectArea, UINT8 cam_id, UINT8 img_id)
+{
+	LPG_ACGR pstGrab = NULL;
+
+	// if (!g_pMilMain)	return FALSE;
+
+	/* Mark 찾은 결과 값 가져오기 */
+	pstGrab = theApp.clMilMain.GetGrabbedMark(cam_id, img_id);
+	if (!pstGrab)				return FALSE;
+	if (!pstGrab->grab_size)	return FALSE;
+	/* 256 Gray Color 이미지 영역에 출력 (검색 안되더라도 무조건 이미지 출력) */
+	if (pstGrab->grab_width < 1 || pstGrab->grab_height < 1 || !pstGrab->grab_data)	return TRUE;
+
+	INT32 Grab_No = (cam_id - 1) * 2 + img_id;
+	//INT32 Grab_No = (cam_id - 1) * 2 + (img_id - 1); // lk91 OnImageGrabbed() 함수 참고... uvMIL_RegistMILGrabImg((m_u8CamID - 1) * 2 + (m_u8GrabIndex - 1), pstMark->grab_width, pstMark->grab_height, pstMark->grab_data);
+
+	// lk91 여기서 이미지 잘라서 등록하기...
+#ifndef _NOT_USE_MIL_
+	if (theApp.clMilMain.m_mImg_MPMM_AutoCenter_Proc)
+		MbufClear(theApp.clMilMain.m_mImg_MPMM_AutoCenter_Proc, 0L);
+	MbufCopy(theApp.clMilMain.m_mImg_Grab[Grab_No], theApp.clMilMain.m_mImg_MPMM_AutoCenter_Proc);
+
+	if (!theApp.clMilMain.m_mImg_MPMM_AutoCenter)
+		MbufFree(theApp.clMilMain.m_mImg_MPMM_AutoCenter);
+
+	MbufChild2d(theApp.clMilMain.m_mImg_MPMM_AutoCenter_Proc, fi_rectArea.left, fi_rectArea.top,
+		fi_rectArea.right - fi_rectArea.left, fi_rectArea.bottom- fi_rectArea.top, &theApp.clMilMain.m_mImg_MPMM_AutoCenter);
+#endif
+
+	return TRUE;
 }
 
 /* desc: Mark Size, Offset 초기화 */
@@ -2289,9 +2326,9 @@ API_EXPORT VOID uvMIL_MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mark_n
 }
 
 /* desc: Find Center (Mark Set에서만 사용) */
-API_EXPORT VOID uvMIL_MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound)
+API_EXPORT VOID uvMIL_CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode)
 {
-	theApp.clMilMain.MarkSetCenterFind(cam_id, fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound);
+	theApp.clMilMain.CenterFind(cam_id, fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound, fi_Mode);
 }
 
 /* desc: Mil Main 할당 변수 해제 */
@@ -2301,9 +2338,9 @@ API_EXPORT VOID uvMIL_CloseSetMark()
 }
 
 /* desc: Mask 초기화 */
-API_EXPORT VOID uvMIL_InitMask()
+API_EXPORT VOID uvMIL_InitMask(UINT8 cam_id)
 {
-	theApp.clMilMain.InitMask();
+	theApp.clMilMain.InitMask(cam_id);
 }
 
 /* desc: MARK DISP ID 할당 */
@@ -2320,7 +2357,7 @@ API_EXPORT VOID uvMIL_SetDispRecipeMark(CWnd* pWnd[2])
 
 API_EXPORT VOID uvMIL_SetDispExpo(CWnd* pWnd[4])
 {
-	theApp.clMilMain.SetDisp_Expo(pWnd);
+	theApp.clMilMain.SetDispExpo(pWnd);
 }
 /* desc: Mark 정보 그릴 때 사용하는 MIL 함수 */
 API_EXPORT VOID uvMIL_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, UINT8 mark_no)
@@ -2375,8 +2412,15 @@ API_EXPORT VOID uvMIL_SetDispMarkSet(CWnd* pWnd)
 	theApp.clMilMain.SetDispMarkSet(pWnd);
 }
 
+/* desc: MMPM AutoCenter DISP ID 할당 */
+API_EXPORT VOID uvMIL_SetDispMMPM_AutoCenter(CWnd* pWnd)
+{
+	theApp.clMilMain.SetDispMMPM_AutoCenter(pWnd);
+}
+
+
 /* desc: LIVE DISP ID 할당 */
-API_EXPORT VOID uvMIL_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode)
+API_EXPORT VOID uvMIL_SetDisp(CWnd** pWnd, UINT8 fi_Mode)
 {
 	theApp.clMilMain.SetDisp(pWnd, fi_Mode);
 }
@@ -2384,7 +2428,7 @@ API_EXPORT VOID uvMIL_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode)
 /* desc: MMPM DISP ID 할당 */
 API_EXPORT VOID uvMIL_SetDispMMPM(CWnd* pWnd)
 {
-	theApp.clMilMain.SetDisp_MMPM(pWnd);
+	theApp.clMilMain.SetDispMMPM(pWnd);
 }
 
 

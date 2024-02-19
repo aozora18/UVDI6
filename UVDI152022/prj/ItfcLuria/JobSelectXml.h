@@ -3,6 +3,8 @@
 
 #include "../../inc/txml/tinyxml2.h"
 
+class AlignMotion;
+
 /* Panel Data */
 class CFiducialData
 {
@@ -51,6 +53,29 @@ public:
 	{
 		m_lstData.RemoveAll();
 	}
+
+	/*
+ desc : D Code에 해당되는 Panel Data 반환
+ parm : mark	- [in]  Mark Number (Zero based)
+		data	- [out] Gerber XY & Motion XY Position (unit: mm)
+ retn : TRUE or FALSE
+*/
+	BOOL GetTgtMark(UINT16 mark, STG_XMXY& data)
+	{
+		for (int i = 0; i < m_lstData.GetCount(); i++)
+		{
+			auto pPos = m_lstData.FindIndex(i);
+			if (!pPos)	return FALSE;
+			
+			data = m_lstData.GetAt(pPos);
+
+			if (data.tgt_id == mark)
+				return TRUE;
+		}
+		return FALSE;
+		
+	}
+
 
 	/*
 	 desc : D Code에 해당되는 Panel Data 반환
@@ -116,7 +141,7 @@ public:
 
 	CJobSelectXml();
 	virtual ~CJobSelectXml();
-
+	 
 // 가상 함수
 protected:
 
@@ -153,13 +178,15 @@ protected:
 
 // 공용 함수
 public:
-
+	AlignMotion* alignMotion = nullptr;
 	BOOL				LoadRegistrationXML(CHAR *job_name, ENG_ATGL align_type);
 	UINT8				GetMarkCount(ENG_AMTF mark=ENG_AMTF::en_none);
 	UINT8				GetLocalMarkCountPerScan();
 	BOOL				GetGlobalMark(UINT16 index, STG_XMXY &data);
 	BOOL				GetGlobalMark(ENG_GMDD direct, STG_XMXY &data1, STG_XMXY &data2);
 	BOOL				GetLocalMark(UINT16 index, STG_XMXY &data);
+	CFiducialData*		GetGlobalMark(); //소팅되어있는듯함.
+	CFiducialData*		GetLocalMark(); //소팅되어있는듯함.
 
 	UINT8				GetLocalBottomMark(UINT8 scan, UINT8 cam_id);
 	BOOL				GetLocalBottomMark(UINT8 scan, UINT8 cam_id, STG_XMXY &data);
@@ -169,7 +196,7 @@ public:
 	BOOL				IsMarkExistGlobal();
 
 	UINT8				GetStripeCount()	{	return m_u8StripeCount;	}
-	
+ 
 	DOUBLE				GetGlobalLeftRightBottomDiffY();
 	DOUBLE				GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index);
 	/* Only Global */
@@ -184,8 +211,7 @@ public:
 
 	UINT32				GetLocalMarkDiffVertX(UINT8 scan,
 											  CAtlList <DOUBLE> &cam1, CAtlList <DOUBLE> &cam2);
-	BOOL				IsMarkDirectForward(UINT8 mark_no);
-
+ 
 	VOID				GetGerberSize(DOUBLE &width, DOUBLE &height);
 
 	BOOL				IsSharedAlignType(ENG_ATGL align_type);

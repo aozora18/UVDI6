@@ -231,6 +231,7 @@ BOOL CFlushErrorMgr::GrabbedImage(double& dCenterMove)
 		{
 			return FALSE;
 		}
+		//Sleep(4000);
 
 		/* 타이머 초기화 및 시작 */
 		cTime.Init();
@@ -304,15 +305,22 @@ BOOL CFlushErrorMgr::GrabbedImage(double& dCenterMove)
 */
 BOOL CFlushErrorMgr::MoveMotion(double dCenterMove, int nTimeOut/* = 30000*/, double dDiffDistance/* = 0.005*/)
 {
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	ENG_MMDI MoveDrve = ENG_MMDI::en_align_cam1;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	ENG_MMDI MoveDrve = ENG_MMDI::en_stage_x;
+#endif
+
 	CTactTimeCheck cTime;			/* 타이머 */
 	double dDiff = 0.;				/* 위치 오차값 */
-	double dPos = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1);
+	double dPos = uvCmn_MC2_GetDrvAbsPos(MoveDrve);
 	double dOldPos = 0;
 	double dSpeed = 0;
 	double dNextPos = 0;
 	TCHAR tzMesg[1024] = { NULL };
 
-	dOldPos = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1);
+	dOldPos = uvCmn_MC2_GetDrvAbsPos(MoveDrve);
 	dNextPos = uvEng_GetConfig()->ph_step.stripe_width;
 
 	/* 현재 선택된 얼라인 카메라의 이동 속도 값 얻기 */
@@ -325,10 +333,10 @@ BOOL CFlushErrorMgr::MoveMotion(double dCenterMove, int nTimeOut/* = 30000*/, do
 		dPos = dOldPos + (dCenterMove * 0.25f);
 
 		/* 현재 얼라인 카메라의 Toggle 값 저장 */
-		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam1);
+		uvCmn_MC2_GetDrvDoneToggled(MoveDrve);
 
 		/* 카메라를 정해진 위치로 이동 */
-		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, dPos, dSpeed))
+		if (!uvEng_MC2_SendDevAbsMove(MoveDrve, dPos, dSpeed))
 		{
 			AfxMessageBox(L"Failed to move the motion drive of alignment camera", MB_ICONSTOP | MB_TOPMOST);
 			return FALSE;
@@ -352,10 +360,10 @@ BOOL CFlushErrorMgr::MoveMotion(double dCenterMove, int nTimeOut/* = 30000*/, do
 			LOG_MESG(ENG_EDIC::en_ph_step_cali, tzMesg);
 
 			/* 현재 얼라인 카메라의 Toggle 값 저장 */
-			uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam1);
+			uvCmn_MC2_GetDrvDoneToggled(MoveDrve);
 
 			/* 카메라를 정해진 위치로 이동 */
-			if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, dPos, dSpeed))
+			if (!uvEng_MC2_SendDevAbsMove(MoveDrve, dPos, dSpeed))
 			{
 				AfxMessageBox(L"Failed to move the motion drive of alignment camera", MB_ICONSTOP | MB_TOPMOST);
 				return FALSE;
@@ -383,13 +391,13 @@ BOOL CFlushErrorMgr::MoveMotion(double dCenterMove, int nTimeOut/* = 30000*/, do
 			return FALSE;
 		}
 
-		if (TRUE == uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam1))
+		if (TRUE == uvCmn_MC2_IsDrvDoneToggled(MoveDrve))
 		{
 			/* 타겟 위치와 현재위치의 오차를 구한다. */
-			dDiff = dPos - uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1);
+			dDiff = dPos - uvCmn_MC2_GetDrvAbsPos(MoveDrve);
 
 			/* Motor가 타겟위치에 도달하고 정지 상태일 경우 종료 */
-			if (FALSE == uvCmn_MC2_IsDriveBusy(ENG_MMDI::en_align_cam1) &&
+			if (FALSE == uvCmn_MC2_IsDriveBusy(MoveDrve) &&
 				fabs(dDiff) < dDiffDistance)
 			{
 				return TRUE;
@@ -399,10 +407,10 @@ BOOL CFlushErrorMgr::MoveMotion(double dCenterMove, int nTimeOut/* = 30000*/, do
 		else if (nTimeOut * 0.5 <= (int)cTime.GetTactMs())
 		{
 			/* 기동조차 하지 않았다면 */
-			if (dDiffDistance >= fabs(dOldPos - uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1)))
+			if (dDiffDistance >= fabs(dOldPos - uvCmn_MC2_GetDrvAbsPos(MoveDrve)))
 			{
 				/* 재명령 */
-				uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, dPos, dSpeed);
+				uvEng_MC2_SendDevAbsMove(MoveDrve, dPos, dSpeed);
 			}
 		}
 

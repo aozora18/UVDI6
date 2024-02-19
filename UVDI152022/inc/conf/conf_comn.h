@@ -120,10 +120,10 @@ typedef enum class __en_job_work_next_state__ : UINT8
 	en_wait							= 0x02,		/* 현재 대기 */
 	en_next							= 0x03,		/* 다음 동작 */
 	en_comp							= 0x04,		/* 작업 완료 */
-
+	en_forceSet						= 0x05,		/* 임의로 스텝변경 */
 	en_time							= 0xfe,		/* 타임 아웃 */
 	en_error						= 0xff,		/* 에러 발생 */
-
+	
 }	ENG_JWNS;
 
 /* Engine Running Mode (총 31개 넘어가면 안됨) */
@@ -494,6 +494,8 @@ typedef struct __st_config_luria_service_info__
 	UINT8				ph_ipv4[MAX_PH][4];							/* 장비에 설치되어 있는 포토헤드의 IPv4 */
 	UINT8				z_drive_ip[4];								/* z_drive_type == 3인 경우만 유효. MC2가 1 대인 경우, motion_control_ip와 동일, 2대인 경우 다른 IP이어야 함 */
 	UINT8				z_drive_sd2s_ph[MAX_PH];					/* Photohead Z Axis Drive가 Linear Motor Type일 경우, MC2에 연결된 SD2S Drive 번호 */
+
+	UINT8				use_af;										/*Auto Foucs 사용 여부*/
 
 	UINT16				scroll_rate;								/* 포토헤드가 처리할 수 있는 최대 이동 비율 값 (Default: 19000) */
 	UINT16				hys_type_1_negative_offset;					/* HysteresisType1 정보 설정 (단위: Trigger Pulse) */

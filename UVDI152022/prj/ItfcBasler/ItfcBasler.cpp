@@ -461,6 +461,34 @@ API_EXPORT LPG_ACGR uvBasler_GetGrabbedMark(UINT8 cam_id, UINT8 img_id)
 	return g_pCamThread->GetGrabbedMark(cam_id, img_id);
 }
 
+
+/*
+ desc : 검색된 마크 이미지가 포함된 구조체 포인터 반환
+ parm : cam_id	- [in]  Camera Index (1 or 2)
+		img_id	- [in]  Camera Grabbed Image Index (0 or Later) (if img_id == 0xff then Calibration Method)
+ retn : 구조체 포인터 반환
+*/
+API_EXPORT CAtlList <LPG_ACGR>*  uvBasler_GetGrabbedMarkAll()
+{
+	if (!g_pCamThread)	return	NULL;
+	return g_pCamThread->GetGrabbedMarkAll();
+}
+
+
+API_EXPORT BOOL uvBasler_TryEnterCS()
+{
+	if (!g_pCamThread)	return	FALSE;
+	return g_pCamThread->TryEnterCS();
+}
+
+
+API_EXPORT void uvBasler_ExitCS()
+{
+	if (!g_pCamThread)	return;
+	g_pCamThread->ExitCS();
+}
+
+
 /*
  desc : Grabbed Image의 데이터 반환
  parm : index	- [in]  가져오고자 하는 위치 (Zero based)
@@ -912,6 +940,7 @@ API_EXPORT BOOL uvBasler_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UINT8 
 	if (cam_id < 1 || g_pstConfig->set_cams.acam_count < cam_id)	return FALSE;
 	/* 검색된 Mark가 유효한지 여부 */
 	u8FindMark	= IsValidGrabMarkNum(cam_id, img_id) ? 0x01 : 0x00;
+	//u8FindMark = 0x01; // lk91!! 이미지 test 할 때만 사용!! 주석!!!
 	/* Grabbed Image에 대한 Mark 정보 그리기 */
 	return uvMIL_DrawMarkBitmap(hdc, draw, cam_id, img_id, u8FindMark);
 }
@@ -1458,6 +1487,12 @@ API_EXPORT BOOL uvBasler_RegistMod(UINT8 cam_id, CRect fi_rectArea, CString fi_f
 	return uvMIL_RegistMod(cam_id, pstGrab, fi_rectArea, fi_filename, mark_no);
 }
 
+/* desc: MMPM AutoCenter 이미지 등록 */
+API_EXPORT BOOL uvBasler_RegistMMPM_AutoCenter(CRect fi_rectArea, UINT8 cam_id, UINT8 img_id)
+{
+	return uvMIL_RegistMMPM_AutoCenter(fi_rectArea, cam_id, img_id);
+}
+
 /* desc: Mark Size, Offset 초기화 */
 API_EXPORT VOID uvBasler_InitSetMarkSizeOffset(UINT8 cam_id, TCHAR* file, UINT8 fi_findType, UINT8 mark_no)
 {
@@ -1531,9 +1566,9 @@ API_EXPORT VOID uvBasler_MaskClear_PAT(UINT8 cam_id, CPoint fi_iSizeP, UINT8 mar
 }
 
 /* desc: Find Center (Mark Set에서만 사용) */
-API_EXPORT VOID uvBasler_MarkSetCenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound)
+API_EXPORT VOID uvBasler_CenterFind(int cam_id, int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode)
 {
-	return uvMIL_MarkSetCenterFind(cam_id, fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound);
+	return uvMIL_CenterFind(cam_id, fi_length, fi_curSmoothness, fi_NumEdgeMIN_X, fi_NumEdgeMAX_X, fi_NumEdgeMIN_Y, fi_NumEdgeMAX_Y, fi_NumEdgeFound, fi_Mode);
 }
 
 /* desc: Set Mark Size */
@@ -1573,9 +1608,9 @@ API_EXPORT VOID uvBasler_ModMarkSave(UINT8 cam_id, CString fi_strFileName, UINT8
 }
 
 /* desc: Mask 초기화 */
-API_EXPORT VOID uvBasler_InitMask()
+API_EXPORT VOID uvBasler_InitMask(UINT8 cam_id)
 {
-	uvMIL_InitMask();
+	uvMIL_InitMask(cam_id);
 }
 
 /* desc: Mil Main 할당 변수 해제 */
@@ -1656,8 +1691,14 @@ API_EXPORT VOID uvBasler_SetDispMarkSet(CWnd* pWnd)
 	uvMIL_SetDispMarkSet(pWnd);
 }
 
+/* desc: MMPM AutoCenter DISP ID 할당 */
+API_EXPORT VOID uvBasler_SetDispMMPM_AutoCenter(CWnd* pWnd)
+{
+	uvMIL_SetDispMMPM_AutoCenter(pWnd);
+}
+
 /* desc: LIVE DISP ID 할당 */
-API_EXPORT VOID uvBasler_SetDisp(CWnd* pWnd[2], UINT8 fi_Mode)
+API_EXPORT VOID uvBasler_SetDisp(CWnd** pWnd, UINT8 fi_Mode)
 {
 	uvMIL_SetDisp(pWnd, fi_Mode);
 }

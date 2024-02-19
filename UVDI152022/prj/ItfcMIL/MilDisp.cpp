@@ -27,7 +27,9 @@ CMilDisp::CMilDisp()
 */
 CMilDisp::~CMilDisp()
 {
+	if (terminated == true) return;
 
+	CloseMilDisp();
 }
 
 /* desc : Display 관련 변수 초기화 */
@@ -85,6 +87,9 @@ VOID CMilDisp::InitMilDisp()
 /* desc : Display 관련 변수 초기화 */
 VOID CMilDisp::CloseMilDisp()
 {
+	if (terminated)
+		return;
+
 	if (m_fZoomX)		delete m_fZoomX;
 	if (m_fZoomY)		delete m_fZoomY;
 	if (m_fPanX)		delete m_fPanX;
@@ -104,6 +109,7 @@ VOID CMilDisp::CloseMilDisp()
 	free(clCircleList);
 	free(clCrossList);
 	free(clTextList);
+	terminated = true;
 }
 
 /* desc : DispType 별로 Disp-Size/Org-Size 비율 반환 */
@@ -152,6 +158,12 @@ CDPoint CMilDisp::GetRateDispToBuf(int fi_iCamNo, int fi_DispType)
 			(double)(theApp.clMilMain.rectSearhROI_Calb_Accr.right - theApp.clMilMain.rectSearhROI_Calb_Accr.left);
 		dRtnP.y = (double)theApp.clMilMain.ACCR_DISP_SIZE_Y /
 			(double)(theApp.clMilMain.rectSearhROI_Calb_Accr.bottom - theApp.clMilMain.rectSearhROI_Calb_Accr.top);
+	}
+	else if (fi_DispType == DISP_TYPE_MMPM_AUTOCENTER) {
+		dRtnP.x = (double)theApp.clMilMain.MMPM_AUTOCENTER_DISP_SIZE_X /
+			(double)(theApp.clMilMain.rectSearhROI_MPMM_AutoCenter.right - theApp.clMilMain.rectSearhROI_MPMM_AutoCenter.left);
+		dRtnP.y = (double)theApp.clMilMain.MMPM_AUTOCENTER_DISP_SIZE_Y /
+			(double)(theApp.clMilMain.rectSearhROI_MPMM_AutoCenter.bottom - theApp.clMilMain.rectSearhROI_MPMM_AutoCenter.top);
 	}
 	else {
 		dRtnP.x = 1.0;
@@ -606,7 +618,7 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 	int repeat = 1;
 
 	if (fi_iDispType == DISP_TYPE_CALB_EXPO) {
-		repeat = 2;
+		repeat = 2; // lk91 UI 만들어지면 CAM 3수량으로 변경 필요
 		fi_iNo = 0;
 	}
 
@@ -646,7 +658,7 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 		MilBufTmp[0] = theApp.clMilMain.m_mOverlay_CALI_CAMSPEC;
 		MdispControl(theApp.clMilMain.m_mDisID_CALI_CAMSPEC, M_OVERLAY_CLEAR, M_DEFAULT);
 	}
-	else if (fi_iDispType == DISP_TYPE_CALB_EXPO) {
+	else if (fi_iDispType == DISP_TYPE_CALB_EXPO) { // lk91 UI 변경되면 CAM 수량 3개로 변경 (for 문 적용)
 		MilBufTmp[0] = theApp.clMilMain.m_mOverlay_CALI_STEP[0];
 		MilBufTmp[1] = theApp.clMilMain.m_mOverlay_CALI_STEP[1];
 		MdispControl(theApp.clMilMain.m_mDisID_CALI_STEP[0], M_OVERLAY_CLEAR, M_DEFAULT);
@@ -655,6 +667,10 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 	else if (fi_iDispType == DISP_TYPE_CALB_ACCR) {
 		MilBufTmp[0] = theApp.clMilMain.m_mOverlay_ACCR;
 		MdispControl(theApp.clMilMain.m_mDisID_ACCR, M_OVERLAY_CLEAR, M_DEFAULT);
+	}
+	else if (fi_iDispType == DISP_TYPE_MMPM_AUTOCENTER) { 
+		MilBufTmp[0] = theApp.clMilMain.m_mOverlay_MPMM_AutoCenter;
+		MdispControl(theApp.clMilMain.m_mDisID_MPMM_AutoCenter, M_OVERLAY_CLEAR, M_DEFAULT);
 	}
 	else
 		return;
@@ -727,31 +743,36 @@ void CMilDisp::DrawBase(int fi_iDispType, int fi_iNo)
 	if (fi_iDispType == DISP_TYPE_MARK_LIVE) { //LIVE
 		if (fi_iNo == 0)				AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 1"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 		else if (fi_iNo == 1)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 2"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		else if (fi_iNo == 2)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 3"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 
 		//--- Search Area 그리기
 		AddBoxList(fi_iDispType, fi_iNo, 
 			theApp.clMilMain.rectSearhROI[fi_iNo].left, theApp.clMilMain.rectSearhROI[fi_iNo].top,
 			theApp.clMilMain.rectSearhROI[fi_iNo].right, theApp.clMilMain.rectSearhROI[fi_iNo].bottom, PS_SOLID, eM_COLOR_BLUE);
 		CString sTmp;
-		sTmp.Format(_T("Search ROI #%d"), fi_iNo);
+		sTmp.Format(_T("Search ROI #%d"), fi_iNo + 1);
 		AddTextList(fi_iDispType, fi_iNo, theApp.clMilMain.rectSearhROI[fi_iNo].right - 50, 
 			theApp.clMilMain.rectSearhROI[fi_iNo].bottom, sTmp, eM_COLOR_BLUE, 6, 12, VISION_FONT_TEXT, true);
 	}
 	else if (fi_iDispType == DISP_TYPE_MMPM) { // MMPM
-		if (fi_iNo == 0)				AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 1"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
-		else if (fi_iNo == 1)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 2"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		//if (fi_iNo == 0)				AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 1"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		//else if (fi_iNo == 1)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 2"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		//else if (fi_iNo == 2)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 3"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 	}
 	else if (fi_iDispType == DISP_TYPE_CALB_CAMSPEC) { 
 		if (fi_iNo == 0)				AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 1"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 		else if (fi_iNo == 1)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 2"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		//else if (fi_iNo == 2)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 3"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 	}
 	else if (fi_iDispType == DISP_TYPE_CALB_EXPO) { 
 		AddTextList(fi_iDispType, 0, 10, 5, _T("MARK 1"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 		AddTextList(fi_iDispType, 1, 10, 5, _T("MARK 2"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		//AddTextList(fi_iDispType, 2, 10, 5, _T("MARK 3"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true); // lk91 cam 3개 적용시 추가(for문)
 	}
 	else if (fi_iDispType == DISP_TYPE_CALB_ACCR) {
 		if (fi_iNo == 0)				AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 1"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 		else if (fi_iNo == 1)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 2"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
+		//else if (fi_iNo == 2)		AddTextList(fi_iDispType, fi_iNo, 10, 5, _T("CAM 3"), eM_COLOR_WHITE, 10, 25, VISION_FONT_TEXT, true);
 	}
 }
 

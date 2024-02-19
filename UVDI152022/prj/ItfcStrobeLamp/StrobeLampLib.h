@@ -1,22 +1,25 @@
 
 #pragma once
 
+using namespace std;
+
 #include "../../inc/comm/ClientThread.h"
 #include "./Socket/SocketHandle.h"
 #include "./Socket/SocketClientImpl.h"
 #include "./Mcl/Include/CMcl.h"
 #include <queue>
 #include <list>
-
-
+#include <memory>
+#include <atomic>
 
 #define DEF_COUNT_OF_MAX_EVENT		12
 #define DEF_COUNT_OF_MAX_RECVDATA	40
 
 
 
-
 typedef SocketClientImpl<ISocketClientHandler> CSocketClient;
+
+#define STROBELOCK lock_guard<mutex> rLockGuard(CStrobeLampLib::lockMutex);
 
 class CStrobeLampLib : public ISocketClientHandler, CMclThreadHandler
 {
@@ -27,6 +30,10 @@ class CStrobeLampLib : public ISocketClientHandler, CMclThreadHandler
 	virtual void		OnThreadExit(CSocketHandle* pSH);
 	virtual void		OnConnectionDropped(CSocketHandle* pSH);
 	virtual void		OnConnectionError(CSocketHandle* pSH, DWORD dwError);
+
+private:
+	std::condition_variable conditionValue;
+
 
 public:
 	CStrobeLampLib();
@@ -101,7 +108,7 @@ public:
 	BOOL				Open(LPCTSTR LocalIp, LPCTSTR Ip, int nPort);
 	BOOL				IsConnect();
 	BOOL				Close();
-
+	static mutex lockMutex;
 
 
 
@@ -119,12 +126,6 @@ public:
 	int Send_StrobeTriggerModeRead(int nTimeout = 10000);
 
 
-
-
-
-
-
-
 protected:
 	/* 직렬화 */
 	std::vector<BYTE> SerializeMassege(const stStrobeLampMessage& msg)
@@ -139,14 +140,18 @@ protected:
 	/* 직렬화 : 동적 메모리 할당 */
 	BYTE* SerializeMessage(const stStrobeLampMessage& msg)
 	{
-		//	동적 메모리 할당(new)을 사용하였으므로, 개발자가 명시적으로 메모리를 해제(delete)해야 합니다.
+ 
+		//새거.
+		size_t header = msg.GetHeaderSize();
+		size_t body = msg.GetBodySize();
+		size_t tail = msg.GetTailSize();
 
-		size_t size = msg.GetSize();	//sizeof(stStrobeLampMessage);
+		BYTE* serializedData = new BYTE[header + body + tail];
+		
+		memcpy(serializedData, &msg.header, header);
+		memcpy(serializedData + header, &msg.body, body);
+		memcpy(serializedData + header + body, &msg.tail, tail);
 
-		BYTE* serializedData = new BYTE[size];
-
-		std::memcpy(serializedData, &msg, size);
-
-		return serializedData;
+		return serializedData; //각각 따로해야함.
 	}
 };

@@ -13,8 +13,8 @@
 #elif (CUSTOM_CODE_GEN2I == DELIVERY_PRODUCT_ID)
 #include "../conf/conf_gen2i.h"
 #endif
-
-
+#include "../ItfcLuria/JobSelectXml.h"
+#include "../UVDI15/GlobalVariables.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -250,7 +250,7 @@ API_IMPORT DOUBLE uvLuria_GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index)
  parm : mark_no	- [in]  Align Mark Number (0 or Later)
  retn : TRUE (Forward) or FALSE (Backward)
 */
-API_IMPORT BOOL uvLuria_IsMarkDirectForward(UINT8 mark_no);
+//API_IMPORT BOOL uvLuria_IsMarkDirectForward(UINT8 mark_no);
 /*
  desc : XML 파일로에 설정(저장)된 총 노광 횟수 즉, Stripe 개수
  parm : None
@@ -358,6 +358,12 @@ API_IMPORT DOUBLE uvLuria_GetGlobalLeftRightBottomDiffY();
  retn : X 축의 2개의 마크 떨어진 간격 (unit: mm) 반환
 */
 API_IMPORT DOUBLE uvLuria_GetGlobalMarkDist(ENG_GMDD direct);
+
+//retn: 글로벌피듀셜 ptr 반환 
+API_IMPORT CFiducialData* uvLuria_GetGlobalMarkPtr();
+
+//retn: 로컬피듀셜 ptr 반환 
+API_IMPORT CFiducialData* uvLuria_GetLocalMarkPtr();
 /*
  desc : 두 Mark 간의 좌/우 X 축 떨어진 간격 즉, X 축 간의 오차 (거리) 값
  parm : mark_x1	- [in]  X1 축 Mark Number (1-based. 0x01 ~ 0x04)
@@ -394,6 +400,11 @@ API_IMPORT DOUBLE uvLuria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan);
 		mark_y2	- [in]  Y2 축 Mark Number (Zero based)
  retn : 두 지점의 Y 축 간의 높이 차이 (unit: mm)
 */
+
+API_IMPORT VOID uvLuria_SetAlignMotionInfo(AlignMotion& motion);
+
+
+
 API_IMPORT DOUBLE uvLuria_GetLocalMarkDiffY(UINT8 mark_y1, UINT8 mark_y2);
 /*
  desc : Mark 1번과 3번, Mark 2번과 4번의 X 좌표 오차 값을 반환 (수직 오차 값)

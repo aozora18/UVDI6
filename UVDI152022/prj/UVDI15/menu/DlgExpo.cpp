@@ -78,8 +78,8 @@ VOID CDlgExpo::DoDataExchange(CDataExchange* dx)
 	u32StartID	= IDC_EXPO_TXT_EXPO_WORKS;
 	for (i=0; i<eEXPO_TXT_CTL_MAX; i++)			DDX_Control(dx, u32StartID+i,	m_txt_ctl[i]);
 	/* static - device */
-	u32StartID	= IDC_EXPO_TXT_SERVICE;
-	for (i=0; i< eEXPO_TXT_DEV_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_dev[i]);
+	//u32StartID	= IDC_EXPO_TXT_SERVICE;
+	//for (i=0; i< eEXPO_TXT_DEV_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_dev[i]);
 	/* static - mark search result */
 	u32StartID	= IDC_EXPO_TXT_MARK1;
 	for (i=0; i< eEXPO_TXT_MAK_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_mak[i]);
@@ -90,14 +90,14 @@ VOID CDlgExpo::DoDataExchange(CDataExchange* dx)
 	u32StartID	= IDC_EXPO_TXT_MARK_TOP_HORZ;
 	for (i=0; i< eEXPO_TXT_DST_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_dst[i]);
 	/* static - temperature alarm */
-	u32StartID	= IDC_EXPO_TXT_ALARM_DI;
-	for (i=0; i< eEXPO_TXT_TMP_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_tmp[i]);
+	//u32StartID	= IDC_EXPO_TXT_ALARM_DI;
+	//for (i=0; i< eEXPO_TXT_TMP_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_tmp[i]);
 	/* static - mark search result */
 	u32StartID	= IDC_EXPO_PIC_MARK_1;
 	for (i=0; i< eEXPO_PIC_MAK_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_mak[i]);
 	/* static - picture - device */
-	u32StartID	= IDC_EXPO_PIC_SERVICE;
-	for (i=0; i< eEXPO_PIC_DEV_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_dev[i]);
+	//u32StartID	= IDC_EXPO_PIC_SERVICE;
+	//for (i=0; i< eEXPO_PIC_DEV_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_dev[i]);
 }
 
 BEGIN_MESSAGE_MAP(CDlgExpo, CDlgMenu)
@@ -280,16 +280,16 @@ VOID CDlgExpo::InitCtrl()
 		// by sysandj : Resize UI
 	}
 	/* static - Device Status (TCP/IP or Power) */
-	for (i=0; i< eEXPO_TXT_DEV_MAX; i++)
-	{
-		m_txt_dev[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
-		m_txt_dev[i].SetDrawBg(1);
-		m_txt_dev[i].SetBaseProp(0, 1, 0, 0, RGB(254, 254, 254), 0, RGB(0, 0, 0));
+	//for (i=0; i< eEXPO_TXT_DEV_MAX; i++)
+	//{
+	//	m_txt_dev[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
+	//	m_txt_dev[i].SetDrawBg(1);
+	//	m_txt_dev[i].SetBaseProp(0, 1, 0, 0, RGB(254, 254, 254), 0, RGB(0, 0, 0));
 
-		// by sysandj : Resize UI
-		clsResizeUI.ResizeControl(this, &m_txt_dev[i]);
-		// by sysandj : Resize UI
-	}
+	//	// by sysandj : Resize UI
+	//	clsResizeUI.ResizeControl(this, &m_txt_dev[i]);
+	//	// by sysandj : Resize UI
+	//}
 	/* static - mark search result */
 	for (i=0; i< eEXPO_TXT_MAK_MAX; i++)
 	{
@@ -324,16 +324,16 @@ VOID CDlgExpo::InitCtrl()
 		// by sysandj : Resize UI
 	}
 	/* static - temperature alarm */
-	for (i=0; i< eEXPO_TXT_TMP_MAX; i++)
-	{
-		m_txt_tmp[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
-		m_txt_tmp[i].SetDrawBg(1);
-		m_txt_tmp[i].SetBaseProp(0, 1, 0, 0, RGB(254, 254, 254), 0, RGB(0, 0, 0));
+	//for (i=0; i< eEXPO_TXT_TMP_MAX; i++)
+	//{
+	//	m_txt_tmp[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
+	//	m_txt_tmp[i].SetDrawBg(1);
+	//	m_txt_tmp[i].SetBaseProp(0, 1, 0, 0, RGB(254, 254, 254), 0, RGB(0, 0, 0));
 
-		// by sysandj : Resize UI
-		clsResizeUI.ResizeControl(this, &m_txt_tmp[i]);
-		// by sysandj : Resize UI
-	}
+	//	// by sysandj : Resize UI
+	//	clsResizeUI.ResizeControl(this, &m_txt_tmp[i]);
+	//	// by sysandj : Resize UI
+	//}
 	/* progress - normal */
 	for (i=0; i< eEXPO_PGR_MAX; i++)
 	{
@@ -383,16 +383,16 @@ BOOL CDlgExpo::InitObject()
 	m_pDrawMark	= new CDrawMark(hPicMark, hTxtMark, rPicMark); 
 	ASSERT(m_pDrawMark);
 	/* 장비의 통신 혹은 전원 상태 출력 객체 */
-	for (i=0; i< eEXPO_PIC_DEV_MAX; i++)
-	{
-		hPicDev[i]	= m_pic_dev[i].GetSafeHwnd();
+	//for (i=0; i< eEXPO_PIC_DEV_MAX; i++)
+	//{
+	//	hPicDev[i]	= m_pic_dev[i].GetSafeHwnd();
 
-		// by sysandj : Resize UI
-		clsResizeUI.ResizeControl(this, &m_pic_dev[i]);
-		// by sysandj : Resize UI
-	}
-	m_pDrawDev	= new CDrawDev(hPicDev);
-	ASSERT(m_pDrawDev);
+	//	// by sysandj : Resize UI
+	//	clsResizeUI.ResizeControl(this, &m_pic_dev[i]);
+	//	// by sysandj : Resize UI
+	//}
+	//m_pDrawDev	= new CDrawDev(hPicDev);
+	//ASSERT(m_pDrawDev);
 	/* 검색된 마크 간의 거리 오차가 유효한지 여부 */
 	for (i=0; i< eEXPO_TXT_DST_MAX; i++)
 	{
@@ -401,12 +401,12 @@ BOOL CDlgExpo::InitObject()
 	m_pMarkDist	= new CMarkDist(hTxtDist);
 	ASSERT(m_pMarkDist);
 	/* Temperature Alarm */
-	for (i=0; i< eEXPO_TXT_TMP_MAX; i++)
-	{
-		hTxtTemp[i]	= m_txt_tmp[i].GetSafeHwnd();
-	}
-	m_pTempAlarm	= new CTempAlarm(hTxtTemp);
-	ASSERT(m_pTempAlarm);
+	//for (i=0; i< eEXPO_TXT_TMP_MAX; i++)
+	//{
+	//	hTxtTemp[i]	= m_txt_tmp[i].GetSafeHwnd();
+	//}
+	//m_pTempAlarm	= new CTempAlarm(hTxtTemp);
+	//ASSERT(m_pTempAlarm);
 	/* Exposure 화면에서 실시간으로 갱신되는 값 */
 	for (i=0; i< eEXPO_TXT_VAL_MAX; i++)
 	{
@@ -544,7 +544,9 @@ VOID CDlgExpo::VacuumOnOff()
 	ST_IO stIO;
 	CIOManager::GetInstance()->UpdateIO();
 
+
 	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("VACUUM_PUMP_UNIT_STAGE_VACUUM_ON"), stIO);
+
 	stIO.bOn = !stIO.bOn;
 
 	CDlgMesg dlgMesg;

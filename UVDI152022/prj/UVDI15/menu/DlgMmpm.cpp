@@ -7,6 +7,7 @@
 #include "../MainApp.h"
 #include "DlgMmpm.h"
 #include "../mesg/DlgMesg.h"
+#include "DlgMMPMAutoCenter.h"
 
 //#include "DlgEdge.h"
 //#include "DlgSetMark.h"
@@ -133,6 +134,7 @@ BOOL CDlgMmpm::OnInitDlg()
 	/* TOP_MOST & Center */
 	CenterParentTopMost();
 
+	InitDispMMPM();
 	/* Grab.Failed 정보 얻어서 메모리 저장하기 */
 #if 0
 	if (!GetMarkData(0x00))	return FALSE;
@@ -140,7 +142,7 @@ BOOL CDlgMmpm::OnInitDlg()
 	if (!GetMarkData(0x01))	return FALSE;
 #endif
 
-	InitDispMark();
+	//InitDispMark();
 	//DispResize(GetDlgItem(IDC_MMPM_PIC_VIEW));
 
 	/* 현재 가장 첫번째 실패한 정보 얻기 */
@@ -306,6 +308,7 @@ VOID CDlgMmpm::OnBtnClicked(UINT32 id)
 	case IDC_MMPM_BTN_NEXT		:	FindData(0x02);		break;
 	case IDC_MMPM_BTN_APPLY		:	WorkApply();		break;
 	case IDC_MMPM_BTN_CANCEL	:	WorkCancel();		break;
+	case IDC_MMPM_BTN_AUTO_CENTER:	AutoCenter();		break;
 	}
 }
 
@@ -434,7 +437,11 @@ BOOL CDlgMmpm::GetMarkData(UINT8 type)
 	//	///* 검색된 새로운 마크 정보 저장 */
 	//	pstGrab = new STG_ACGR;
 	//	//ASSERT(pstGrab);
-	//	pstTemp = uvEng_Camera_RunModelCali(0x01, 0xff, (UINT8)0x05, 2, TRUE);
+	//	//pstTemp = uvEng_Camera_RunModelCali(0x01, 0xff, (UINT8)0x05, 2, TRUE, uvEng_GetConfig()->mark_find.image_process);
+	//	int tmpCamNo = 1;
+	//	pstTemp = uvEng_Camera_RunModelCali(tmpCamNo, 0xff, DISP_TYPE_MMPM, 2, TRUE, uvEng_GetConfig()->mark_find.image_process);
+	//	// Mark 가 없어서 Mark Find는 넘어가고 해당 이미지만 넘겨주는 형식
+	//	//uvEng_Camera_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc) // default : UINT8 mode=0xff
 	//	memcpy(pstGrab, pstTemp, sizeof(STG_ACGR) - sizeof(PUINT8));
 	//	pstGrab->grab_data = pstTemp->grab_data;
 	//	m_lstGrab.AddTail(pstGrab);
@@ -662,7 +669,7 @@ VOID CDlgMmpm::OnLButtonDown(UINT flags, CPoint point)
 
 	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
 
-	if (rt1.PtInRect(point) && menuPart == 5)
+	if (rt1.PtInRect(point) && (menuPart == 5 || menuPart == 6))
 	{
 		OldZoomFlag = ZoomFlag;
 		ZoomFlag = false;
@@ -753,7 +760,7 @@ VOID CDlgMmpm::OnLButtonUp(UINT flags, CPoint point)
 	double dRate = 1.0 / tgt_rate;
 
 	//if (um_bMoveFlag && rt.PtInRect(point) && (menuPart == 2 || menuPart == 5))
-	if (rt.PtInRect(point) && (menuPart == 2 || menuPart == 3 || menuPart == 4 || (um_bMoveFlag && menuPart == 5)))
+	if (rt.PtInRect(point) && (menuPart == 2 || menuPart == 3 || menuPart == 4 || (um_bMoveFlag && (menuPart == 5 || menuPart == 6))))
 	{
 		UpdateData(TRUE);
 
@@ -878,6 +885,15 @@ VOID CDlgMmpm::OnLButtonUp(UINT flags, CPoint point)
 			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MMPM, 1, um_rectArea.left + 50, um_rectArea.bottom, sTmp, eM_COLOR_MAGENTA, 6, 12, VISION_FONT_TEXT, true);
 			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
 		}
+		else if (menuPart == 6) {
+			CString sTmp;
+			sTmp = "Auto Center ROI";
+
+			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MMPM, 1);
+			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MMPM, 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, PS_SOLID, eM_COLOR_BLUE);
+			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MMPM, 1, um_rectArea.left + 50, um_rectArea.bottom, sTmp, eM_COLOR_BLUE, 6, 12, VISION_FONT_TEXT, true);
+			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
+		}
 		UpdateData(FALSE);
 		ZoomFlag = OldZoomFlag;
 	}
@@ -924,7 +940,7 @@ VOID CDlgMmpm::OnMouseMove(UINT flags, CPoint point)
 
 	double dRate = 1.0 / tgt_rate;
 
-	if (um_bMoveFlag && rt.PtInRect(point) && !ZoomFlag && menuPart == 5)
+	if (um_bMoveFlag && rt.PtInRect(point) && !ZoomFlag && (menuPart == 5 || menuPart == 6))
 	{
 		UpdateData(TRUE);
 
@@ -948,14 +964,23 @@ VOID CDlgMmpm::OnMouseMove(UINT flags, CPoint point)
 		int		iBrushStyle;
 		iBrushStyle = PS_DOT;
 
-		//if (menuPart == 5) {
-		CString sTmp;
-		sTmp = "Measure";
-		uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MMPM, 1);
-		uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MMPM, 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, iBrushStyle, eM_COLOR_MAGENTA);
-		uvEng_Camera_OverlayAddTextList(DISP_TYPE_MMPM, 1, um_rectArea.right - 50, um_rectArea.bottom, sTmp, eM_COLOR_MAGENTA, 6, 12, VISION_FONT_TEXT, true);
-		uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
-		//}
+		if (menuPart == 5) {
+			CString sTmp;
+			sTmp = "Measure";
+			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MMPM, 1);
+			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MMPM, 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, iBrushStyle, eM_COLOR_MAGENTA);
+			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MMPM, 1, um_rectArea.right - 50, um_rectArea.bottom, sTmp, eM_COLOR_MAGENTA, 6, 12, VISION_FONT_TEXT, true);
+			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
+		}
+		else if (menuPart == 6)
+		{
+			CString sTmp;
+			sTmp = "Auto Center ROI";
+			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MMPM, 1);
+			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MMPM, 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, iBrushStyle, eM_COLOR_BLUE);
+			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MMPM, 1, um_rectArea.right - 50, um_rectArea.bottom, sTmp, eM_COLOR_BLUE, 6, 12, VISION_FONT_TEXT, true);
+			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
+		}
 		UpdateData(FALSE);
 	}
 	else if (ZoomFlag && um_bMoveFlag && menuPart == 99)
@@ -1027,7 +1052,7 @@ INT_PTR CDlgMmpm::MyDoModal()
 /* ----------------------------------------------------------------------------------------- */
 
 /* desc: Frame Control을 MIL DISP에 연결 */
-VOID CDlgMmpm::InitDispMark()
+VOID CDlgMmpm::InitDispMMPM()
 {
 	CWnd* pWnd;
 	pWnd = GetDlgItem(IDC_MMPM_PIC_VIEW);
@@ -1152,30 +1177,42 @@ void CDlgMmpm::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 		pSubMenu->CheckMenuItem(ID_3POINTSET_2, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_3, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MMPM_MEASURE, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_AUTOCENTERROI, MF_BYCOMMAND | MF_UNCHECKED);
 	}
 	else if (menuPart == 2) {
 		pSubMenu->CheckMenuItem(ID_3POINTSET_1, MF_BYCOMMAND | MF_CHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_2, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_3, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MMPM_MEASURE, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_AUTOCENTERROI, MF_BYCOMMAND | MF_UNCHECKED);
 	}
 	else if (menuPart == 3) {
 		pSubMenu->CheckMenuItem(ID_3POINTSET_1, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_2, MF_BYCOMMAND | MF_CHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_3, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MMPM_MEASURE, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_AUTOCENTERROI, MF_BYCOMMAND | MF_UNCHECKED);
 	}
 	else if (menuPart == 4) {
 		pSubMenu->CheckMenuItem(ID_3POINTSET_1, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_2, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_3, MF_BYCOMMAND | MF_CHECKED);
 		pSubMenu->CheckMenuItem(ID_MMPM_MEASURE, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_AUTOCENTERROI, MF_BYCOMMAND | MF_UNCHECKED);
 	}
 	else if (menuPart == 5) {
 		pSubMenu->CheckMenuItem(ID_3POINTSET_1, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_2, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_3POINTSET_3, MF_BYCOMMAND | MF_UNCHECKED);
 		pSubMenu->CheckMenuItem(ID_MMPM_MEASURE, MF_BYCOMMAND | MF_CHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_AUTOCENTERROI, MF_BYCOMMAND | MF_UNCHECKED);
+	}
+	else if (menuPart == 6) {
+		pSubMenu->CheckMenuItem(ID_3POINTSET_1, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_3POINTSET_2, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_3POINTSET_3, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_MEASURE, MF_BYCOMMAND | MF_UNCHECKED);
+		pSubMenu->CheckMenuItem(ID_MMPM_AUTOCENTERROI, MF_BYCOMMAND | MF_CHECKED);
 	}
 	int cmd;
 	cmd = pSubMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD, fi_pointP.x, fi_pointP.y, this);
@@ -1239,6 +1276,16 @@ void CDlgMmpm::OnContextMenu(CWnd* /*pWnd*/, CPoint fi_pointP/*point*/)
 			menuPart = 5;
 		}
 	}
+	else if (cmd == ID_MMPM_AUTOCENTERROI)
+	{
+		if (menuPart == 6) {
+			menuPart = 99;
+		}
+		else {
+
+			menuPart = 6;
+		}
+	}
 	else {
 		menuPart = 99;
 	}
@@ -1276,3 +1323,39 @@ void CDlgMmpm::MenuZoomFit()
 	uvCmn_Camera_MilAutoScale(DISP_TYPE_MMPM, 1);
 	ZoomFlag = false;
 }
+
+/* desc: Auto Center */
+void CDlgMmpm::AutoCenter()
+{
+	// 1. ROI 값으로 AUTO CENTER 이미지 등록하기
+	LPG_ACGR pstGrab = NULL;
+
+	if (abs(um_rectArea.left - um_rectArea.right) == 0 || abs(um_rectArea.top - um_rectArea.bottom) == 0) {
+		AfxMessageBox(_T("화면에 설정하고자 하는 ROI를 세팅해주세요."));
+		return;
+	}
+
+	/* 에러 정보가 발생된 첫 번째 항목 설정  */
+	if (m_lstGrab.GetCount())
+	{
+		pstGrab = m_lstGrab.GetAt(m_lstGrab.FindIndex(m_u8Index));
+
+		m_pstGrab = pstGrab; // lk91 image test 할 때 아래 두줄 주석 후, 주석 풀기
+		//if (!pstGrab)	m_pstGrab	= NULL;
+		//else			m_pstGrab	= uvEng_Camera_GetGrabbedMark(pstGrab->cam_id, pstGrab->img_id);
+	}
+	else {
+		AfxMessageBox(_T("Grab Count Zero."));
+		return;
+	}
+	uvCmn_Camera_RegistMMPM_AutoCenter(um_rectArea, m_pstGrab->cam_id, m_pstGrab->img_id);
+
+	// 2. Dlg 생성
+	CDlgMMPMAutoCenter dlgMMPMAutoCenter;
+	if (dlgMMPMAutoCenter.DoModal() == IDOK) {
+
+	}
+
+
+}
+

@@ -134,6 +134,11 @@ BOOL CConfUvdi15::LoadConfig()
 //		AfxMessageBox(L"Failed to load the config for TRIG_STEP", MB_ICONSTOP|MB_TOPMOST);
 //		return FALSE;
 //	}
+	if (!LoadConfigTemp())			/* [TEMP_RANGE]	*/
+	{
+		AfxMessageBox(L"Failed to load the config for TEMP_RANGE", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
 	if (!LoadConfigGlobalTrans())	/* [GLOBAL_TRANS] */
 	{
 		AfxMessageBox(L"Failed to load the config for EDGE_FIND", MB_ICONSTOP|MB_TOPMOST);
@@ -147,6 +152,12 @@ BOOL CConfUvdi15::LoadConfig()
 	if (!LoadConfigUvDI15Common())	/* [UVDI15_COMN]	*/
 	{
 		AfxMessageBox(L"Failed to load the config for UVDI15_COMN", MB_ICONSTOP|MB_TOPMOST);
+		return FALSE;
+	}
+
+	if (!LoadConfigStrobeLamp())	/* [STROBE_LAMP]	*/
+	{
+		AfxMessageBox(L"Failed to load the config for STROBE_LAMP", MB_ICONSTOP | MB_TOPMOST);
 		return FALSE;
 	}
 
@@ -177,6 +188,8 @@ BOOL CConfUvdi15::SaveConfig()
 	if (!SaveConfigTrigger(0x01))	return FALSE;
 	if (!SaveConfigCameraBasler())	return FALSE;
 	if (!SaveConfigGlobalTrans())	return FALSE;
+
+	if (!SaveConfigStrobeLamp())	return FALSE;
 	//if (!SaveConfigAutoHotAir())	return FALSE;
 
 	return TRUE;
@@ -388,6 +401,7 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"SETUP_ALIGN");
 
 	SetConfigUint32(L"ALIGN_METHOD",			m_pstCfg->set_align.align_method);
+	SetConfigUint32(L"USE_2D_CALI_DATA",		m_pstCfg->set_align.use_2d_cali_data);
 	SetConfigDouble(L"DOF_FILM_THICK",			m_pstCfg->set_align.dof_film_thick,	4);
 
 	SetConfigDouble(L"MARK2_ORG_GERB_X",		m_pstCfg->set_align.mark2_org_gerb_xy[0],	4);
@@ -1145,6 +1159,9 @@ BOOL CConfUvdi15::LoadConfigFlatParam()
 	m_pstCfg->measure_flat.u8CountOfMeasure = GetConfigUint8(L"MEASURE_COUNT");
 	m_pstCfg->measure_flat.u16DelayTime = GetConfigUint16(L"DELAY_TIME");
 
+	m_pstCfg->measure_flat.bThieckOnOff = FALSE;
+	m_pstCfg->measure_flat.bThickCheck = FALSE;
+
 	return TRUE;
 }
 BOOL CConfUvdi15::SaveConfigFlatParam()
@@ -1213,6 +1230,51 @@ BOOL CConfUvdi15::SaveConfigUvDI15Common()
 	SetConfigUint32(L"USE_VISION_LIBRARY",	m_pstCfg->set_uvdi15.use_vision_lib);
 	SetConfigUint32(L"LOAD_RECIPE_HOMING",	m_pstCfg->set_uvdi15.load_recipe_homing);
 	SetConfigStr(L"RECIPE_NAME",			m_pstCfg->set_uvdi15.recipe_name);
+	return TRUE;
+}
+
+
+/*
+ desc : Load or Save the config file (TEMP_RANGE)
+ parm : None
+ retn : TRUE or FALSE
+*/
+BOOL CConfUvdi15::LoadConfigTemp()
+{
+	UINT8 i = 0x00;
+	TCHAR tzKey[64] = { NULL };
+
+	/* Subject Name 설정 */
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"TEMP_RANGE");
+
+	m_pstCfg->temp_range.hot_air[0] =	GetConfigDouble(L"HOT_AIR_DEV_TEMP");
+	m_pstCfg->temp_range.hot_air[1] =	GetConfigDouble(L"HOT_AIR_DEV_RANGE");
+	m_pstCfg->temp_range.di_internal[0] = GetConfigDouble(L"HOT_DI_DEV_TEMP");
+	m_pstCfg->temp_range.di_internal[1] = GetConfigDouble(L"HOT_DI_DEV_RANGE");
+	m_pstCfg->temp_range.optic_led[0] = GetConfigDouble(L"HOT_PH_LED_TEMP");
+	m_pstCfg->temp_range.optic_led[1] = GetConfigDouble(L"HOT_PH_LED_RANGE");
+	m_pstCfg->temp_range.optic_board[0] = GetConfigDouble(L"HOT_PH_BOARD_TEMP");
+	m_pstCfg->temp_range.optic_board[1] = GetConfigDouble(L"HOT_PH_BOARD_RANGE");
+
+	return TRUE;
+}
+BOOL CConfUvdi15::SaveConfigTemp()
+{
+	UINT8 i = 0x00;
+	TCHAR tzKey[64] = { NULL };
+
+	/* Subject Name 설정 */
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"TEMP_RANGE");
+
+	SetConfigDouble(L"HOT_AIR_DEV_TEMP",	m_pstCfg->temp_range.hot_air[0], 1);
+	SetConfigDouble(L"HOT_AIR_DEV_RANGE",	m_pstCfg->temp_range.hot_air[1], 1);
+	SetConfigDouble(L"HOT_DI_DEV_TEMP",		m_pstCfg->temp_range.di_internal[0], 1);
+	SetConfigDouble(L"HOT_DI_DEV_RANGE",	m_pstCfg->temp_range.di_internal[1], 1);
+	SetConfigDouble(L"HOT_PH_LED_TEMP",		m_pstCfg->temp_range.optic_led[0], 1);
+	SetConfigDouble(L"HOT_PH_LED_RANGE",	m_pstCfg->temp_range.optic_led[1], 1);
+	SetConfigDouble(L"HOT_PH_BOARD_TEMP",	m_pstCfg->temp_range.optic_board[0], 1);
+	SetConfigDouble(L"HOT_PH_BOARD_RANGE",	m_pstCfg->temp_range.optic_board[1], 1);
+
 	return TRUE;
 }
 
@@ -1422,5 +1484,51 @@ BOOL CConfUvdi15::SaveConfigGlobalTrans()
 	
 	return TRUE;
 }
+
+
+
+/*
+ 설명 : 환경 파일 적재 (STROBE_LAMP)
+ 변수 : None
+ 반환 : TRUE or FALSE
+*/
+BOOL CConfUvdi15::LoadConfigStrobeLamp()
+{
+	/* Subject Name 설정 */
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"STROBE_LAMP");
+
+	UINT8 i = 0x00;
+	TCHAR tzKey[64] = { NULL };
+	for (; i < 8; i++)
+	{
+		swprintf_s(tzKey, 64, L"STROBE_LAMP[%d]", i);
+		m_pstCfg->set_strobe_lamp.u16StrobeValue[i] = GetConfigUint16(tzKey);
+	}
+
+
+	return TRUE;
+}
+
+/*
+ 설명 : 환경 파일 저장 (STROBE_LAMP)
+ 변수 : None
+ 반환 : TRUE or FALSE
+*/
+BOOL CConfUvdi15::SaveConfigStrobeLamp()
+{
+	/* Subject Name 설정 */
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"STROBE_LAMP");
+
+	UINT8 i = 0x00;
+	TCHAR tzKey[64] = { NULL };
+	for (; i < 8; i++)
+	{
+		swprintf_s(tzKey, 64, L"STROBE_LAMP[%d]", i);
+		SetConfigUint32(tzKey, m_pstCfg->set_strobe_lamp.u16StrobeValue[i]);
+	}
+
+	return TRUE;
+}
+
 
 

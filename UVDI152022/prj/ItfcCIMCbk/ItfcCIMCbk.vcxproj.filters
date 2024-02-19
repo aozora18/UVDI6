@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{772a2989-5342-4af5-b2c7-5f8127f3744c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\03.개발 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\02.생성 파일">
+      <UniqueIdentifier>{5e3b98aa-d182-447c-bcc8-8ad27a511153}</UniqueIdentifier>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="내부 파일\04.외부 파일">
+      <UniqueIdentifier>{bf93f187-daed-4596-9d16-fcc96835134b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\04.외부 파일\comn">
+      <UniqueIdentifier>{215a3a32-62a1-4ebf-a577-ab93a59b6edf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\04.외부 파일\data">
+      <UniqueIdentifier>{8e67b0ef-895b-4390-a245-e3053a451e46}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ItfcCIMCbk_i.h">
+      <Filter>내부 파일\02.생성 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\cim300\CRJobID.h">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\cim300\E40CmdParam.h">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\cim300\LogData.h">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\cim300\PRJobID.h">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\cim300\SharedData.h">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>내부 파일\04.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>내부 파일\04.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="dllmain.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="EMSvcCbk.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ItfcCIMCbk.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ItfcCIMCbk_i.c">
+      <Filter>내부 파일\02.생성 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\cim300\CRJobID.cpp">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\cim300\E40CmdParam.cpp">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\cim300\LogData.cpp">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\cim300\PRJobID.cpp">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\cim300\SharedData.cpp">
+      <Filter>내부 파일\04.외부 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>내부 파일\04.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>내부 파일\04.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="EMSvcCbk.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcCIMCbk.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ItfcCIMCbk.rgs">
+      <Filter>자원 파일</Filter>
+    </None>
+    <None Include="ItfcCIMCbk.def">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </None>
+    <None Include="EMSvcCbk.rgs">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="ItfcCIMCbk.idl">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </Midl>
+  </ItemGroup>
+</Project>

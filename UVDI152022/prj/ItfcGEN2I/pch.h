@@ -1,0 +1,77 @@
+﻿// pch.h: 미리 컴파일된 헤더 파일입니다.
+// 아래 나열된 파일은 한 번만 컴파일되었으며, 향후 빌드에 대한 빌드 성능을 향상합니다.
+// 코드 컴파일 및 여러 코드 검색 기능을 포함하여 IntelliSense 성능에도 영향을 미칩니다.
+// 그러나 여기에 나열된 파일은 빌드 간 업데이트되는 경우 모두 다시 컴파일됩니다.
+// 여기에 자주 업데이트할 파일을 추가하지 마세요. 그러면 성능이 저하됩니다.
+
+#ifndef PCH_H
+#define PCH_H
+
+// 여기에 미리 컴파일하려는 헤더 추가
+#include "framework.h"
+
+/* --------------------------------------------------------------------------------------------- */
+/*                                           전역 변수                                           */
+/* --------------------------------------------------------------------------------------------- */
+
+extern TCHAR				g_tzWorkDir[MAX_PATH_LEN];
+extern LOGFONT				g_lf;
+
+/* 엔진 초기화 되었는지 여부에 따라 */
+extern BOOL					g_bEngineInited;
+extern TCHAR				g_tzPEngine[MAX_FILE_LEN];
+
+
+/* MC2 Global Parameter */
+extern UINT8				g_u8DrvDoneToggled[MAX_MC2_DRIVE];
+extern UINT8				g_u8DrvCmdToggled[MAX_MC2_DRIVE];
+
+/* Software Running Mode  */
+extern ENG_ERVM				g_enRunMode;
+
+/* Data File */
+extern CCodeToStr			*g_pCodeToStr;
+extern CLedPower			*g_pLedPower;
+extern CRecipeGen2i			*g_pRecipe;
+
+/* Shared Memory Object */
+extern CMemConf				*g_pMemConf;
+extern CMemConfTeaching		*g_pMemConfTeaching;
+extern CMemConfTracking		*g_pMemConfTracking;
+extern CMemConfExpoParam	*g_pMemConfExpoParam;
+extern CMemLuria			*g_pMemLuria;
+extern CMemMC2				*g_pMemMC2;
+extern CMemPLC				*g_pMemPLC;
+extern CMemMPA				*g_pMemMPA;
+extern CMemMDR				*g_pMemMDR;
+extern CMemEFU				*g_pMemEFU;
+extern CMemBSA				*g_pMemBSA;
+
+
+/* --------------------------------------------------------------------------------------------- */
+/*                                           전역 함수                                           */
+/* --------------------------------------------------------------------------------------------- */
+
+/*
+ desc : 엔진 내부 환경 파일 구조체 포인터 반환
+ parm : None
+ retn : 구조체 포인터 (공유 메모리 영역)
+*/
+extern LPG_CIEA GetConfig();
+extern LPG_CTPI GetConfigTeaching();
+extern LPG_CTEI GetConfigExpoParam();
+extern LPG_CWTI GetConfigTracking();
+extern LPG_LDSM GetShMemLuria();
+extern LPG_MDSM GetShMemMC2();
+extern LPG_PDSM GetShMemPLC();
+extern LPG_PDSM GetShMemStruct();
+
+/*
+ desc : Check whether to use it
+ parm : id	- [in]  Library Identifier
+ retn : TRUE or FALSE
+*/
+extern BOOL IsUseLib(ENG_EDIC id);
+
+
+#endif //PCH_H

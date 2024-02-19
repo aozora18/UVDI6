@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="외부 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{fdaea25d-21f7-4fe2-8be1-544f900cdefd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일">
+      <UniqueIdentifier>{c1c0cc6b-417c-4aeb-a763-c9fe061ab598}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comm">
+      <UniqueIdentifier>{03e08997-efc5-4875-a6cc-a8570f0b8adf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\txml">
+      <UniqueIdentifier>{4855ec6d-ad76-4ac7-846b-b98b1283582b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comn">
+      <UniqueIdentifier>{42bad96b-41e9-4885-9e92-ef333484455b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ItfcMC2.cpp">
+      <Filter>내부 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MC2CThread.cpp">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MC2Thread.cpp">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\PktQue.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\RingBuff.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\txml\tinyxml2.cpp">
+      <Filter>외부 파일\txml</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ItfcMC2.rc2">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MC2CThread.h">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MC2Thread.h">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\PktQue.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\RingBuff.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\txml\tinyxml2.h">
+      <Filter>외부 파일\txml</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcMC2.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

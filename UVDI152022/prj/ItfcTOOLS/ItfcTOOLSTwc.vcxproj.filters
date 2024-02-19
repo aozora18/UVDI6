@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="외부 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{a47040c7-1606-48c5-9138-6c12845a4f02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일">
+      <UniqueIdentifier>{ed716d57-427d-477f-9f58-8aeb930e699d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comn">
+      <UniqueIdentifier>{192c8cfc-4445-4fa4-8ed9-9cca0ac51605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\itfc">
+      <UniqueIdentifier>{de41bef6-913c-40cd-8f45-75061baccda8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\data">
+      <UniqueIdentifier>{d64779eb-8544-4a80-90f6-3d245751c35b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\itfe">
+      <UniqueIdentifier>{bb321bb0-4b81-4541-b4dc-9ca31644ac00}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="ItfcTOOLS.cpp">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\ConfBase.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\ConfComn.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\MemMap.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\mesg\CodeToStr.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\ConfGen2i.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\MemGen2i.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcLogs.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcLuria.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcMC2.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcMCQGen2i.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcPM100D.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfc\ItfcTOOLS.h">
+      <Filter>외부 파일\itfc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\ConfBase.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\ConfComn.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\MemMap.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\mesg\CodeToStr.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\ConfGen2i.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\MemGen2i.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcLogs.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcLuria.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcMC2.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcMCQGen2i.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcPM100D.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ItfcTOOLS.rc2">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcTOOLS.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

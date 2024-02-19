@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="외부 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{a47040c7-1606-48c5-9138-6c12845a4f02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일">
+      <UniqueIdentifier>{ed716d57-427d-477f-9f58-8aeb930e699d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comn">
+      <UniqueIdentifier>{192c8cfc-4445-4fa4-8ed9-9cca0ac51605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\itfc">
+      <UniqueIdentifier>{de41bef6-913c-40cd-8f45-75061baccda8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\data">
+      <UniqueIdentifier>{573b01b1-64e6-49ef-bfba-3dae6585b559}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\recipe">
+      <UniqueIdentifier>{229ba7b8-7796-4f83-8199-ef37c22ecde2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\itfe">
+      <UniqueIdentifier>{7a58344e-251f-4ef3-89f7-4a60967add36}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\ConfBase.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\MainThread.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="ItfcUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\LedPower.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\ACamCali.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\PhStep.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\Base.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\ThickCali.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\ConfComn.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\mesg\CodeToStr.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\CorrectY.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcACamCali.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcCamera.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcLedPower.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcLogs.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcLuria.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcMC2.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcPhStep.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcThickCali.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcGentec.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcMvenc.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcPhilhmi.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\RecipeUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcRcpUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\MarkUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcMarkUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\ConfUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\MemUVDI15.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\engine\MemMap.cpp">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcStrobeLamp.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcKeyenceLDS.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\ConfBase.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\MainThread.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfc\ItfcUVDI15.h">
+      <Filter>외부 파일\itfc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\LedPower.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\ACamCali.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\PhStep.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\Base.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\ThickCali.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\ConfComn.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\mesg\CodeToStr.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\CorrectY.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcACamCali.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcCamera.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcLedPower.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcLogs.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcLuria.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcMC2.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcPhStep.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcThickCali.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcGentec.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcMvenc.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcPhilhmi.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\RecipeUVDI15.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcRcpUVDI15.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\MarkUVDI15.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcMarkUVDI15.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\ConfUVDI15.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\MemUVDI15.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\engine\MemMap.h">
+      <Filter>내부 파일\02.개발 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcStrobeLamp.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcKeyenceLDS.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ItfcUVDI15.rc2">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcUVDI15.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

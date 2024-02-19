@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="외부 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{f3344961-5d3d-465b-a126-0b55d0c6a090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일">
+      <UniqueIdentifier>{b9aab077-7f7f-47b3-885e-c6ceb7a98c5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comm">
+      <UniqueIdentifier>{9be5a4bc-1b95-411e-97be-80b55264a219}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comn">
+      <UniqueIdentifier>{5d2a0fc6-572c-4393-88de-6dfc41921222}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\tiny">
+      <UniqueIdentifier>{1764709a-9771-4bcf-8ce9-0ff5b344b73e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\01.통신 파일">
+      <UniqueIdentifier>{3bf7bee8-4553-4666-8705-433caed0ae7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\03.XML 파일">
+      <UniqueIdentifier>{13fe34cb-a015-4b77-a996-37a5e638519c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일\02.유저 파일">
+      <UniqueIdentifier>{d7fb7e72-fab0-4479-995f-8d71a8b90e5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\mesg">
+      <UniqueIdentifier>{9bcd692d-39b0-49d4-8f34-4e8a8091c1c3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\ClientThread.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\PktQue.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\RingBuff.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\ServerThread.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comm\TcpThread.cpp">
+      <Filter>외부 파일\comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\txml\tinyxml2.cpp">
+      <Filter>외부 파일\tiny</Filter>
+    </ClCompile>
+    <ClCompile Include="ItfcLuria.cpp">
+      <Filter>내부 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LuriaCThread.cpp">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LuriaQue.cpp">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LuriaSThread.cpp">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LuriaThread.cpp">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseFamily.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ComManagement.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectPhComn.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Exposure.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="JobManagement.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MachineConfig.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelPreparation.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PhZFocus.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="JobSelectXml.cpp">
+      <Filter>내부 파일\02.개발 파일\03.XML 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\mesg\CodeToStr.cpp">
+      <Filter>외부 파일\mesg</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ItfcLuria.rc2">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\ClientThread.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\PktQue.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\RingBuff.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\ServerThread.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comm\TcpThread.h">
+      <Filter>외부 파일\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\txml\tinyxml2.h">
+      <Filter>외부 파일\tiny</Filter>
+    </ClInclude>
+    <ClInclude Include="LuriaCThread.h">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LuriaQue.h">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LuriaSThread.h">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LuriaThread.h">
+      <Filter>내부 파일\02.개발 파일\01.통신 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseFamily.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ComManagement.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectPhComn.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Exposure.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="JobManagement.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MachineConfig.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelPreparation.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PhZFocus.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h">
+      <Filter>내부 파일\02.개발 파일\02.유저 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="JobSelectXml.h">
+      <Filter>내부 파일\02.개발 파일\03.XML 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\mesg\CodeToStr.h">
+      <Filter>외부 파일\mesg</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcLuria.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

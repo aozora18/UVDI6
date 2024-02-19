@@ -1,0 +1,227 @@
+
+#pragma once
+
+#include "DlgMenu.h"
+
+// by sys&j : 가독성을 위해 enum 추가
+enum EnConfGrp
+{
+	eCONF_GRP_COMMON,
+	eCONF_GRP_COMMON_GERBER_PATH,
+	eCONF_GRP_COMMON_STROBE_TYPE,
+	eCONF_GRP_COMMON_CAMERA_KIND,
+	eCONF_GRP_COMMON_SAVE_OPTION,
+	eCONF_GRP_ALIGN_CAM,
+	eCONF_GRP_ACAM_OPTION_ETC,
+	eCONF_GRP_ACAM_SPEC,
+	eCONF_GRP_TEMP_RANGE,
+	eCONF_GRP_EXPO_START_XY,
+	eCONF_GRP_TRIG_GRAB,
+	eCONF_GRP_ACAM_ANALOG_GAIN,
+	eCONF_GRP_COMMON_RUN_OPTION,
+	eCONF_GRP_TRANSFORMATION,
+	eCONF_GRP_MAX,
+};
+
+enum EnConfTxt
+{
+	eCONF_TXT_ACAM_SPEC_HORZ,
+	eCONF_TXT_ACAM_SPEC_VERT,
+	eCONF_TXT_ACAM_SPEC_DIST,
+	eCONF_TXT_TEMP_HOTAIR,
+	eCONF_TXT_TEMP_HOTAIR_RANGE,
+	eCONF_TXT_TEMP_OPTIC_LED,
+	eCONF_TXT_TEMP_LED_RANGE,
+	eCONF_TXT_TEMP_DI,
+	eCONF_TXT_TEMP_DI_RANGE,
+	eCONF_TXT_TEMP_OPTIC_BD,
+	eCONF_TXT_TEMP_BD_RANGE,
+	eCONF_TXT_EXPO_START_X,
+	eCONF_TXT_EXPO_START_Y,
+	eCONF_TXT_TRIG_ON_TIME_1,
+	eCONF_TXT_TRIG_ON_TIME_2,
+	eCONF_TXT_STROBE_ON_TIME_1,
+	eCONF_TXT_STROBE_ON_TIME_2,
+	eCONF_TXT_TRIG_DELAY_TIME_1,
+	eCONF_TXT_TRIG_DELAY_TIME_2,
+	eCONF_TXT_TRIG_PLUS_1,
+	eCONF_TXT_TRIG_PLUS_2,
+	eCONF_TXT_TRIG_MINUS_1,
+	eCONF_TXT_TRIG_MINUS_2,
+	eCONF_TXT_ACAM_ANALOG_GAIN_1,
+	eCONF_TXT_ACAM_ANALOG_GAIN_2,
+	eCONF_TXT_TRANS_GBL_ROTATE,
+	eCONF_TXT_TRANS_GBL_SCALE,
+	eCONF_TXT_TRANS_GBL_OFFSET,
+	eCONF_TXT_MAX,
+};
+
+
+enum EnConfEdtTxt
+{
+	eCONF_EDT_GERBER_PATH,
+	eCONF_EDT_MAX,
+};
+
+enum EnConfEdtInt
+{
+	eCONF_EDT_INT_ACAM_SPEC_HORZ,
+	eCONF_EDT_INT_ACAM_SPEC_VERT,
+	eCONF_EDT_INT_TRIG_ON_TIME_1,
+	eCONF_EDT_INT_TRIG_ON_TIME_2,
+	eCONF_EDT_INT_STROBE_ON_TIME_1,
+	eCONF_EDT_INT_STROBE_ON_TIME_2,
+	eCONF_EDT_INT_TRIG_DELAY_TIME_1,
+	eCONF_EDT_INT_TRIG_DELAY_TIME_2,
+	eCONF_EDT_INT_TRIG_PLUS_1,
+	eCONF_EDT_INT_TRIG_PLUS_2,
+	eCONF_EDT_INT_TRIG_MINUS_1,
+	eCONF_EDT_INT_TRIG_MINUS_2,
+	eCONF_EDT_INT_ACAM_ANALOG_GAIN_1,
+	eCONF_EDT_INT_ACAM_ANALOG_GAIN_2,
+
+	eCONF_EDT_INT_MAX,
+};
+
+enum EnConfBtnFloat
+{
+	eCONF_EDT_FLOAT_ACAM_POINT_DIST,
+	eCONF_EDT_FLOAT_TEMP_HOTAIR_SET,
+	eCONF_EDT_FLOAT_TEMP_HOTAIR_RANGE,
+	eCONF_EDT_FLOAT_TEMP_DI_SET,
+	eCONF_EDT_FLOAT_TEMP_DI_RANGE,
+	eCONF_EDT_FLOAT_TEMP_LED_SET,
+	eCONF_EDT_FLOAT_TEMP_LED_RANGE,
+	eCONF_EDT_FLOAT_TEMP_BD_SET,
+	eCONF_EDT_FLOAT_TEMP_BD_RANGE,
+	eCONF_EDT_FLOAT_EXPO_START_X,
+	eCONF_EDT_FLOAT_EXPO_START_Y,
+	eCONF_EDT_FLOAT_TRANS_GBL_ROTATE,
+	eCONF_EDT_FLOAT_TRANS_GBL_SCALE_X,
+	eCONF_EDT_FLOAT_TRANS_GBL_SCALE_Y,
+	eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_X,
+	eCONF_EDT_FLOAT_TRANS_GBL_OFFSET_Y,
+	eCONF_EDT_FLOAT_MAX,
+};
+
+enum EnConfBtn
+{
+	eCONF_BTN_FILE_SELECT,
+	eCONF_BTN_CONF_LOAD,
+	eCONF_BTN_CONF_SAVE,
+	eCONF_BTN_START_XY,
+	eCONF_BTN_ANALOG_GAIN,
+	eCONF_BTN_HOT_AIR,
+	eCONF_BTN_MAX,
+};
+
+enum EnConfChk
+{
+	eCONF_CHK_LAMP_TYPE_1,
+	eCONF_CHK_LAMP_TYPE_2,
+	eCONF_CHK_CAMERA_BASLER,
+	eCONF_CHK_CAMERA_IDS,
+	eCONF_CHK_GRAB_MARK_SAVE,
+	eCONF_CHK_LOG_FILE_SAVE,
+	eCONF_CHK_ACAM_ROTATE_INST,
+	eCONF_CHK_RUN_RECIPE_HOMING,
+	eCONF_CHK_MATERIAL_DETECT,
+	eCONF_CHK_GLOBAL_RECT,
+	eCONF_CHK_GLOBAL_ROTATION,
+	eCONF_CHK_GLOBAL_SCALE,
+	eCONF_CHK_GLOBAL_OFFSET,
+	eCONF_CHK_MAX,
+};
+// by sys&j : 가독성을 위해 enum 추가
+
+class CDlgConf : public CDlgMenu
+{
+public:
+
+	/* 생성자 / 파괴자 */
+	CDlgConf(UINT32 id, CWnd* parent = NULL);
+	virtual ~CDlgConf();
+
+
+	/* 가상함수 선언 */
+protected:
+
+	virtual BOOL		PreTranslateMessage(MSG* msg);
+	virtual VOID		DoDataExchange(CDataExchange* dx);
+	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
+
+
+public:
+
+	virtual BOOL		OnInitDlg();
+	virtual VOID		OnExitDlg();
+	virtual VOID		OnPaintDlg(CDC* dc);
+	virtual VOID		OnResizeDlg();
+	virtual VOID		UpdatePeriod(UINT64 tick, BOOL is_busy);
+
+
+	/* 로컬 변수 */
+protected:
+
+	CMyGrpBox			m_grp_ctl[eCONF_GRP_MAX];
+	CMacButton			m_btn_ctl[eCONF_BTN_MAX];
+	CMacCheckBox		m_chk_ctl[eCONF_CHK_MAX];
+
+	CMyStatic			m_txt_ctl[eCONF_TXT_MAX];
+	CEditTxt			m_edt_txt[eCONF_EDT_MAX];
+	CEditNum			m_edt_int[eCONF_EDT_INT_MAX];
+	CEditNum			m_edt_flt[eCONF_EDT_FLOAT_MAX];
+
+
+	/* 로컬 함수 */
+protected:
+
+	VOID				InitCtrl();
+
+	BOOL				InitObject();
+	VOID				CloseObject();
+
+	BOOL				InitGrid();
+	VOID				CloseGrid();
+
+	VOID				LoadConfig();
+	VOID				SaveConfig();
+
+	VOID				SelectPath();
+
+	VOID				LoadCommon(LPG_CIEA conf);
+	VOID				SaveCommon(LPG_CIEA conf);
+	VOID				LoadAlignCamera(LPG_CIEA conf);
+	VOID				SaveAlignCamera(LPG_CIEA conf);
+	VOID				LoadTempRange(LPG_CIEA conf);
+	VOID				SaveTempRange(LPG_CIEA conf);
+	VOID				LoadEtc(LPG_CIEA conf);
+	VOID				SaveEtc(LPG_CIEA conf);
+	VOID				LoadLuria(LPG_CIEA conf);
+	VOID				SaveLuria(LPG_CIEA conf);
+	VOID				SetExpoStartXY();
+	VOID				LoadTrigGrab(LPG_CIEA conf);
+	VOID				SaveTrigGrab(LPG_CIEA conf);
+	VOID				LoadTransformation(LPG_CIEA conf);
+	VOID				SaveTransformation(LPG_CIEA conf);
+
+	VOID				SetTempHotAir();
+
+#if 0	/* Not currently in use */
+	VOID				LoadMarkFind(LPG_CIEA conf);
+	VOID				SaveMarkFind(LPG_CIEA conf);
+#endif
+	VOID				SetAnalogGain();
+
+
+	/* 공용 함수 */
+public:
+
+
+
+	/* 메시지 맵 */
+protected:
+	DECLARE_MESSAGE_MAP()
+	afx_msg VOID		OnBtnClick(UINT32 id);
+	afx_msg VOID		OnChkClick(UINT32 id);
+};

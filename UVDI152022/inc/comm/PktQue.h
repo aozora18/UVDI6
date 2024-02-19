@@ -1,0 +1,42 @@
+
+#pragma once
+
+#include "../conf/tcpip.h"
+
+class CPktQue
+{
+// 생성자 & 파괴자
+public:
+
+	CPktQue(UINT32 count);
+	~CPktQue();
+
+
+// 로컬 변수
+protected:
+
+	UINT32				m_u32QueCount;	// 환형 큐 버퍼 개수
+
+	// 환형 큐 버퍼 인덱스
+	UINT32				m_u32Rear;		// 뒷 부분
+	UINT32				m_u32Front;		// 앞 부분
+
+	LPG_PSRB			m_pstQue;		// 환형 큐 버퍼
+
+// 로컬 함수
+protected:
+
+	UINT32				PushRearIndex();
+	UINT32				PopFrontIndex();
+
+// 공용 함수
+public:
+
+	BOOL				IsQueFull();
+	BOOL				IsQueEmpty();
+
+	BOOL				PushPktData(UINT16 cmd, UINT32 len, PUINT8 data);
+	LPG_PSRB			PopPktData();
+
+	UINT32				GetQueCount()	{	return m_u32QueCount;	}
+};

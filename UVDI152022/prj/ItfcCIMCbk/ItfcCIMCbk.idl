@@ -1,0 +1,38 @@
+﻿// ItfcCIMCbk.idl: ItfcCIMCbk의 IDL 소스
+//
+
+// 이 파일은 MIDL 도구에 의해 처리되어
+// 형식 라이브러리(ItfcCIMCbk.tlb) 및 마샬링 코드를 생성합니다.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(78cfdfed-db3f-47ae-9daf-1d2a279cda34),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IEMSvcCbk : IDispatch
+{
+	[id(1), helpstring("method SetSharedData")] HRESULT SetSharedData([in] LONG_PTR data);
+	[id(2), helpstring("method SetLogData")] HRESULT SetLogData([in] LONG_PTR data);
+};
+[
+	uuid(a7aacf49-de90-4256-8e84-c29cb0137880),
+	version(1.0),
+]
+library ItfcCIMCbkLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(523fa23e-ca6f-4b17-ad1e-d84469029a50)
+	]
+	coclass EMSvcCbk
+	{
+		[default] interface IEMSvcCbk;
+	};
+};
+
+import "shobjidl.idl";

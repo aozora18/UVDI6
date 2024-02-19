@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="외부 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{1f5927e1-3f9f-4dd2-9fdc-f92dc3201a75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="외부 파일\comn">
+      <UniqueIdentifier>{060e9c97-59f9-4626-b8ee-4a25353fc53f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\03.개발 파일">
+      <UniqueIdentifier>{28bf13e4-8e7c-4538-93a2-3f489a7a9884}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.메일 파일">
+      <UniqueIdentifier>{00b4907f-3a62-412b-9d71-1ff68ef2f40f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyListCtrl.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyRich.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MySection.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyTabCtrl.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgCbks.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgCIM3.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgCJM.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgData.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgE40.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgE87.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgE90.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgE94.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgGEM1.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgGEM2.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgMesg.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgPJM.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgSIM3.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgTerm.h">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>내부 파일\02.메일 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgMain.h">
+      <Filter>내부 파일\02.메일 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyListCtrl.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyRich.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyTabCtrl.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgCbks.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgCIM3.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgCJM.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgData.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgE40.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgE87.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgE90.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgE94.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgGEM1.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgGEM2.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgMesg.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgPJM.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgSIM3.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgTerm.cpp">
+      <Filter>내부 파일\03.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>내부 파일\02.메일 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgMain.cpp">
+      <Filter>내부 파일\02.메일 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TCIM.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\TCIM.rc2">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\TCIM.ico">
+      <Filter>자원 파일</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

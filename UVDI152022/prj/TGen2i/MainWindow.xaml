@@ -1,0 +1,41 @@
+﻿<Window x:Class="TGen2i.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:TGen2i"
+		mc:Ignorable="d"
+		Title="MainWindow" AllowsTransparency="True" WindowStyle="None" Background ="{x:Null}"
+		Width="1280" Height="1024" OpacityMask="#FFDC6565"
+		WindowStartupLocation="CenterScreen">
+	<Window.Resources>
+	</Window.Resources>
+	<Border RenderTransformOrigin="0.255,0.322" UseLayoutRounding="False"
+			BorderBrush="Gray" BorderThickness="0" Background="White" Margin="5">
+		<Border.Effect>
+			<DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="Gray"/>
+		</Border.Effect>
+		<Grid x:Name="MainWnd" Background="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" Loaded="onLoaded">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="46"/>
+				<RowDefinition Height="604"/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="428"/>
+			</Grid.ColumnDefinitions>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_exit"	Content="EXIT"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="1155,10,-826,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_work"	Content="WORK"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="10,10,0,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_luria_1"	Content="Luria (1/2)"	HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="120,10,0,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_mc2"		Content="MC2"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="345,10,-16,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_plc"		Content="PLC"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="455,10,-126,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_robot"	Content="ROBOT"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="564,10,-235,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_config"	Content="CONFIG"	HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="1035,10,-706,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_aligner"	Content="ALIGNER"	HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="674,10,-345,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_logs"	Content="LOGS"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="784,10,-455,0" Height="30"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_efu"	Content="EFU"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="889,10,-560,0" Height="30"/>
+			<TextBlock HorizontalAlignment="Left" Margin="5,946,0,-355" TextWrapping="Wrap" Text="RealTime Logs" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.Row="1" Height="14" Width="78"/>
+			<TextBox x:Name="m_edt_main_logs" HorizontalAlignment="Left" Height="23" Margin="90,942,-806,-360" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="1145" Grid.Row="1"/>
+			<Button Style="{DynamicResource style_btn_menu}" x:Name="main_btn_menu_luria_2"	Content="Luria (2/2)"		HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="230,10,0,0" Height="30"/>
+		</Grid>
+	</Border>
+</Window>

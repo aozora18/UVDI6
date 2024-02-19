@@ -1,0 +1,6 @@
+﻿[*.cs]
+
+# Default severity for all analyzer diagnostics
+dotnet_analyzer_diagnostic.severity = none
+csharp_space_between_method_declaration_name_and_open_parenthesis=false
+csharp_indent_switch_labels=false

@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="내부 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="내부 파일\01.기본 파일">
+      <UniqueIdentifier>{f2f6a96e-f8cf-4936-9117-24a155979f00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\02.개발 파일">
+      <UniqueIdentifier>{954a6858-94ed-41b0-8ab9-280ab29c325a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\03.기타 파일">
+      <UniqueIdentifier>{09a0ffda-1c56-4d99-a6e9-491063b9e2cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\03.기타 파일\Mcl">
+      <UniqueIdentifier>{75689737-f95c-450f-ac9f-1f6d6814a10f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\03.기타 파일\Socket">
+      <UniqueIdentifier>{e821ff8e-01b1-4242-ac9e-7675e2259329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\03.기타 파일\Mcl\Include">
+      <UniqueIdentifier>{8e3666e1-cd86-4afa-ab5f-01fc2994cf00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="내부 파일\03.기타 파일\Mcl\Src">
+      <UniqueIdentifier>{8aaeab26-d952-465a-b545-b2ac313c6a50}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ItfcStrobeLamp.cpp">
+      <Filter>내부 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="StrobeLampLib.cpp">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Socket\SocketHandle.cpp">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Include\Mcl4Mfc.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclAutoLock.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclAutoPtr.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclCritSec.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclEvent.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclGlobal.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclKernel.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclMailbox.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclMonitor.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclMutex.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclSemaphore.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclSharedMemory.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclThread.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\CMclWaitableCollection.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Mcl\Src\TSafe.cpp">
+      <Filter>내부 파일\03.기타 파일\Mcl\Src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ItfcStrobeLamp.rc2">
+      <Filter>자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>내부 파일\01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StrobeLampLib.h">
+      <Filter>내부 파일\02.개발 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\AsyncSocketServerImpl.h">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\CritSection.h">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\SocketClientImpl.h">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\SocketHandle.h">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\SocketServerImpl.h">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\ThreadPool.hpp">
+      <Filter>내부 파일\03.기타 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMcl.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclAutoLock.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclAutoPtr.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclCritSec.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclEvent.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclGlobal.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclKernel.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclLinkedLists.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclMailbox.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclMonitor.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclMutex.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclSemaphore.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclSharedMemory.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclThread.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclWaitableCollection.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\CMclWaitableObject.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\Mcl4Mfc.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mcl\Include\TSafe.h">
+      <Filter>내부 파일\03.기타 파일\Mcl\Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcStrobeLamp.rc">
+      <Filter>자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

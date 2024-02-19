@@ -1,0 +1,909 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="01.기본 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="02.메인 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="20.외부 파일">
+      <UniqueIdentifier>{2197dcd7-e512-4268-abb4-9eaad61ab99c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="20.외부 파일\comn">
+      <UniqueIdentifier>{8adaf6a1-4048-4448-a0e8-a0e41c34da84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="20.외부 파일\grid">
+      <UniqueIdentifier>{31f700b5-8da8-4fb2-a8b3-1559ae820043}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="21.자원 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="19.기타 파일">
+      <UniqueIdentifier>{f54367a0-e594-4ce4-8278-e181935e0b31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="20.외부 파일\kybd">
+      <UniqueIdentifier>{4d64f737-60bf-4ed0-812b-d1861424501e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="20.외부 파일\ctrl">
+      <UniqueIdentifier>{4820f682-ba4e-4aba-b8d7-15fd7ec3866f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일">
+      <UniqueIdentifier>{8401d208-bf32-43db-8be5-fbeaa6cb5929}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\mark">
+      <UniqueIdentifier>{f88417ac-92fa-40f7-bd0a-a02f333d462f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\ctrl">
+      <UniqueIdentifier>{a9341122-01aa-4ca2-af28-2fe7de723d65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\logs">
+      <UniqueIdentifier>{e4fe6ac2-9fa3-40e9-b93f-689950f2239f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\stat">
+      <UniqueIdentifier>{90f164ab-331e-4261-89f9-29eb7601197a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\gerb">
+      <UniqueIdentifier>{cc9f7da2-612d-4c11-9be4-a1be79024373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\expo">
+      <UniqueIdentifier>{a7bac3fe-edf4-4eb0-b175-fa908b2dec6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs">
+      <UniqueIdentifier>{62a2c173-b949-4128-bf7c-fb0ce348dcd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\calb">
+      <UniqueIdentifier>{9b41c635-fb26-4ee4-9e89-b03c4aa0d943}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\calb\uvpower">
+      <UniqueIdentifier>{03dc9228-f90a-4bff-83e3-480cb3ceee5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\param">
+      <UniqueIdentifier>{45294e66-e7ba-42f9-b887-f85597cfbfc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\calb\camera">
+      <UniqueIdentifier>{499e0242-a94e-44f2-aed4-0f222a86e9a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\calb\exposure">
+      <UniqueIdentifier>{1877bd4e-cbe0-4428-a49d-37993e783d50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.작업 파일">
+      <UniqueIdentifier>{1fc35296-9170-41b0-88b5-d04cbf9f1589}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.작업 파일\작업 이름">
+      <UniqueIdentifier>{c0ab59d5-3fc4-44fa-9c39-f9754abea960}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.작업 파일\기본 작업">
+      <UniqueIdentifier>{395a7876-e877-4565-8749-6f7f2c7979ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.작업 파일\보정 작업">
+      <UniqueIdentifier>{d9b628b4-2a1b-4c80-941d-3029ae32d121}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\conf">
+      <UniqueIdentifier>{604d2926-e68a-4c88-8afe-455c2b28b417}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="19.기타 파일\db">
+      <UniqueIdentifier>{01ecd6a7-2eda-4944-a010-e727af1032c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="19.기타 파일\db\sqlite">
+      <UniqueIdentifier>{ada2926c-d854-4282-8940-46a2a691888a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\Login">
+      <UniqueIdentifier>{e2e4fe9a-3a26-430c-8ce6-d3ff3aeeefc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.메뉴 파일\dlgs\calb\accuracy">
+      <UniqueIdentifier>{3edc2e9e-0fb4-4588-a48f-1e02a8dbcd30}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainApp.h">
+      <Filter>01.기본 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgMain.h">
+      <Filter>02.메인 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>02.메인 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\CpuUsage.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MacButton.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MacProgress.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyCombo.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyDialog.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyEdit.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyGrpBox.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyListBox.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyRich.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyStatic.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyTabCtrl.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\Picture.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\UniToChar.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\CellRange.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCell.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCellBase.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCellCheck.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCellCombo.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCellDateTime.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCellNumeric.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridCtrl.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridDropTarget.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\GridURLCell.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\InPlaceEdit.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\MemDC.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\grid\TitleTip.h">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\expo\DrawDev.h">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\expo\DrawMark.h">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\expo\MarkDist.h">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\expo\ExpoVal.h">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\kybd\DlgKBDN.h">
+      <Filter>20.외부 파일\kybd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\kybd\DlgKBDT.h">
+      <Filter>20.외부 파일\kybd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\ctrl\EditCtrl.h">
+      <Filter>20.외부 파일\ctrl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\MyEditVert.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="imgs\Images.h">
+      <Filter>19.기타 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\gerb\GridGerb.h">
+      <Filter>03.메뉴 파일\gerb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\gerb\DrawType.h">
+      <Filter>03.메뉴 파일\gerb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\gerb\DrawPrev.h">
+      <Filter>03.메뉴 파일\gerb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\mark\DrawModel.h">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\mark\GridMark.h">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\mark\GridModel.h">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\mark\GridBase.h">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\mark\GridModelInMark.h">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\ctrl\GridMotor.h">
+      <Filter>03.메뉴 파일\ctrl</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\logs\GridFile.h">
+      <Filter>03.메뉴 파일\logs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\logs\LogMesg.h">
+      <Filter>03.메뉴 파일\logs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\stat\GridLuria.h">
+      <Filter>03.메뉴 파일\stat</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\stat\GridDrive.h">
+      <Filter>03.메뉴 파일\stat</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkAbort.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgConf.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgCtrl.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgExpo.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgLogs.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgMark.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgMenu.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="mesg\DlgMesg.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgStat.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkHoming.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkInited.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkRecipeLoad.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgSped.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkRecipeUnload.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkExpoOnly.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkMarkMove.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkMarkTest.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkExpoAlign.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="work\Work.h">
+      <Filter>04.작업 파일\기본 작업</Filter>
+    </ClInclude>
+    <ClInclude Include="work\WorkStep.h">
+      <Filter>04.작업 파일\기본 작업</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\mark\GridMiniMotor.h">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgEdge.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\stat\GridTempDI.h">
+      <Filter>03.메뉴 파일\stat</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgStep.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgWait.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgRept.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\expo\TempAlarm.h">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgMmpm.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\AniGif.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="ResizeUI.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgMotr.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgCalb.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\DlgCalbAccuracy.h">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\DlgCalbCamera.h">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\DlgCalbExposure.h">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\DlgCalbUVPower.h">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\uvpower\DlgCalbUVPowerCheck.h">
+      <Filter>03.메뉴 파일\dlgs\calb\uvpower</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\uvpower\DlgCalbUVPowerMeasure.h">
+      <Filter>03.메뉴 파일\dlgs\calb\uvpower</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\Drawgdix.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ProgressCtrlX.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\comn\ProgressMemDC.h">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgSubMenu.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgSubTab.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="work\Calibration\PowerMeasureMgr.h">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClInclude>
+    <ClInclude Include="work\Calibration\FlushErrorMgr.h">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgSetMark.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgJob.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="param\enum.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="param\FileManager.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="param\Recipe.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="param\RecipeManager.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkOnlyFEM.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\camera\DlgCalbCameraSpec.h">
+      <Filter>03.메뉴 파일\dlgs\calb\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\exposure\DlgCalbExposureFEM.h">
+      <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\exposure\DlgCalbExposureFlush.h">
+      <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgParam.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="param\IOManager.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgManual.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgPhilhmi.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\DlgAuto.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\conf\DlgConfSetting.h">
+      <Filter>03.메뉴 파일\dlgs\conf</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\conf\DlgConfTeach.h">
+      <Filter>03.메뉴 파일\dlgs\conf</Filter>
+    </ClInclude>
+    <ClInclude Include="param\Setting.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="param\SettingManager.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="work\Calibration\CamSpecMgr.h">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClInclude>
+    <ClInclude Include="work\step\WorkFEMExpo.h">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClInclude>
+    <ClInclude Include="param\InterLockManager.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="WheatyExceptionReport.h">
+      <Filter>19.기타 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgLoginMain.h">
+      <Filter>03.메뉴 파일\dlgs\Login</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgLoginAdmin.h">
+      <Filter>03.메뉴 파일\dlgs\Login</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgLoginManager.h">
+      <Filter>03.메뉴 파일\dlgs\Login</Filter>
+    </ClInclude>
+    <ClInclude Include="db\DBData.h">
+      <Filter>19.기타 파일\db</Filter>
+    </ClInclude>
+    <ClInclude Include="db\DBDefine.h">
+      <Filter>19.기타 파일\db</Filter>
+    </ClInclude>
+    <ClInclude Include="db\DBMgr.h">
+      <Filter>19.기타 파일\db</Filter>
+    </ClInclude>
+    <ClInclude Include="db\Sqlite\CppSQLite3.h">
+      <Filter>19.기타 파일\db\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="param\LogManager.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\DlgCalbFlatness.h">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClInclude>
+    <ClInclude Include="pops\DlgMarkShow.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\calb\accuracy\DlgCalbAccuracyMeasure.h">
+      <Filter>03.메뉴 파일\dlgs\calb\accuracy</Filter>
+    </ClInclude>
+    <ClInclude Include="work\Calibration\AccuracyMgr.h">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp">
+      <Filter>01.기본 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgMain.cpp">
+      <Filter>02.메인 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>02.메인 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\CpuUsage.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MacButton.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MacProgress.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyCombo.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyDialog.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyEdit.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyGrpBox.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyListBox.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyRich.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyStatic.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyTabCtrl.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\Picture.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCell.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCellBase.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCellCheck.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCellCombo.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCellDateTime.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCellNumeric.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridCtrl.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridDropTarget.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\GridURLCell.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\InPlaceEdit.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\grid\TitleTip.cpp">
+      <Filter>20.외부 파일\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\expo\DrawDev.cpp">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\expo\DrawMark.cpp">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\expo\MarkDist.cpp">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\expo\ExpoVal.cpp">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\kybd\DlgKBDN.cpp">
+      <Filter>20.외부 파일\kybd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\kybd\DlgKBDT.cpp">
+      <Filter>20.외부 파일\kybd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\ctrl\EditCtrl.cpp">
+      <Filter>20.외부 파일\ctrl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\MyEditVert.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="imgs\Images.cpp">
+      <Filter>19.기타 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\gerb\GridGerb.cpp">
+      <Filter>03.메뉴 파일\gerb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\gerb\DrawType.cpp">
+      <Filter>03.메뉴 파일\gerb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\gerb\DrawPrev.cpp">
+      <Filter>03.메뉴 파일\gerb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\mark\DrawModel.cpp">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\mark\GridMark.cpp">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\mark\GridModel.cpp">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\mark\GridBase.cpp">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\mark\GridModelInMark.cpp">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\ctrl\GridMotor.cpp">
+      <Filter>03.메뉴 파일\ctrl</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\logs\GridFile.cpp">
+      <Filter>03.메뉴 파일\logs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\logs\LogMesg.cpp">
+      <Filter>03.메뉴 파일\logs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\stat\GridLuria.cpp">
+      <Filter>03.메뉴 파일\stat</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\stat\GridDrive.cpp">
+      <Filter>03.메뉴 파일\stat</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkAbort.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgConf.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgCtrl.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgExpo.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgLogs.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgMark.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgMenu.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="mesg\DlgMesg.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgStat.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkHoming.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkInited.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkRecipeLoad.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgSped.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkRecipeUnload.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkExpoOnly.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkMarkMove.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkMarkTest.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkExpoAlign.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="work\Work.cpp">
+      <Filter>04.작업 파일\기본 작업</Filter>
+    </ClCompile>
+    <ClCompile Include="work\WorkStep.cpp">
+      <Filter>04.작업 파일\기본 작업</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\mark\GridMiniMotor.cpp">
+      <Filter>03.메뉴 파일\mark</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgEdge.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\stat\GridTempDI.cpp">
+      <Filter>03.메뉴 파일\stat</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgStep.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgWait.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgRept.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\expo\TempAlarm.cpp">
+      <Filter>03.메뉴 파일\expo</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgMmpm.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\AniGif.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="ResizeUI.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgMotr.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgCalb.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\DlgCalbAccuracy.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\DlgCalbCamera.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\DlgCalbExposure.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\DlgCalbUVPower.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\uvpower\DlgCalbUVPowerCheck.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\uvpower</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\uvpower\DlgCalbUVPowerMeasure.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\uvpower</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\comn\ProgressCtrlX.cpp">
+      <Filter>20.외부 파일\comn</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgSubMenu.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgSubTab.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="work\Calibration\PowerMeasureMgr.cpp">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClCompile>
+    <ClCompile Include="work\Calibration\FlushErrorMgr.cpp">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgSetMark.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgJob.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="param\FileManager.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="param\Recipe.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="param\RecipeManager.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkOnlyFEM.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\camera\DlgCalbCameraSpec.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\exposure\DlgCalbExposureFEM.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\exposure\DlgCalbExposureFlush.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgParam.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="param\IOManager.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgManual.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgPhilhmi.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\DlgAuto.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\conf\DlgConfSetting.cpp">
+      <Filter>03.메뉴 파일\dlgs\conf</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\conf\DlgConfTeach.cpp">
+      <Filter>03.메뉴 파일\dlgs\conf</Filter>
+    </ClCompile>
+    <ClCompile Include="param\Setting.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="param\SettingManager.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="work\Calibration\CamSpecMgr.cpp">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClCompile>
+    <ClCompile Include="work\step\WorkFEMExpo.cpp">
+      <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="param\InterLockManager.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="WheatyExceptionReport.cpp">
+      <Filter>19.기타 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgLoginMain.cpp">
+      <Filter>03.메뉴 파일\dlgs\Login</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgLoginAdmin.cpp">
+      <Filter>03.메뉴 파일\dlgs\Login</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgLoginManager.cpp">
+      <Filter>03.메뉴 파일\dlgs\Login</Filter>
+    </ClCompile>
+    <ClCompile Include="db\DBData.cpp">
+      <Filter>19.기타 파일\db</Filter>
+    </ClCompile>
+    <ClCompile Include="db\DBMgr.cpp">
+      <Filter>19.기타 파일\db</Filter>
+    </ClCompile>
+    <ClCompile Include="db\Sqlite\CppSQLite3.cpp">
+      <Filter>19.기타 파일\db\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="param\LogManager.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\DlgCalbFlatness.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgMarkShow.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\accuracy\DlgCalbAccuracyMeasure.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\accuracy</Filter>
+    </ClCompile>
+    <ClCompile Include="work\Calibration\AccuracyMgr.cpp">
+      <Filter>04.작업 파일\보정 작업</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="UVDI15.rc">
+      <Filter>21.자원 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\UVDI15.rc2">
+      <Filter>21.자원 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\UVDI15.ico">
+      <Filter>21.자원 파일</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

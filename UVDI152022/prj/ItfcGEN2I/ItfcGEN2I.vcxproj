@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{3A0BD54D-98E3-4188-9E6C-1732119863FC}</ProjectGuid>
+    <Keyword>MFCDLLProj</Keyword>
+    <RootNamespace>ItfcEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>../../bin/debug/</OutDir>
+    <TargetName>$(ProjectName)x64D</TargetName>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>../../bin/release/</OutDir>
+    <TargetName>$(ProjectName)x64</TargetName>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <ImportLibrary>../../lib/debug/$(TargetName).lib</ImportLibrary>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <ImportLibrary>../../lib/release/$(TargetName).lib</ImportLibrary>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp" />
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp" />
+    <ClCompile Include="..\..\inc\engine\ConfBase.cpp" />
+    <ClCompile Include="..\..\inc\engine\ConfComn.cpp" />
+    <ClCompile Include="..\..\inc\engine\ConfExpoParam.cpp" />
+    <ClCompile Include="..\..\inc\engine\ConfGen2i.cpp" />
+    <ClCompile Include="..\..\inc\engine\ConfTeaching.cpp" />
+    <ClCompile Include="..\..\inc\engine\ConfTracking.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcBSA.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcEFU.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcLedPower.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcLogs.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcLuria.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcMC2.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcLitho.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcMCQGen2i.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcMDR.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcMPA.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcPM100D.cpp" />
+    <ClCompile Include="..\..\inc\engine\EItfcRcpGen2i.cpp" />
+    <ClCompile Include="..\..\inc\engine\MemGen2i.cpp" />
+    <ClCompile Include="..\..\inc\engine\MemMap.cpp" />
+    <ClCompile Include="..\..\inc\mesg\CodeToStr.cpp" />
+    <ClCompile Include="..\..\inc\recipe\Base.cpp" />
+    <ClCompile Include="..\..\inc\recipe\LedPower.cpp" />
+    <ClCompile Include="..\..\inc\recipe\RecipeGen2i.cpp" />
+    <ClCompile Include="ItfcGEN2I.cpp" />
+    <ClCompile Include="MainApp.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\inc\comn\ThinThread.h" />
+    <ClInclude Include="..\..\inc\comn\UniToChar.h" />
+    <ClInclude Include="..\..\inc\engine\ConfBase.h" />
+    <ClInclude Include="..\..\inc\engine\ConfComn.h" />
+    <ClInclude Include="..\..\inc\engine\ConfExpoParam.h" />
+    <ClInclude Include="..\..\inc\engine\ConfGen2i.h" />
+    <ClInclude Include="..\..\inc\engine\ConfTeaching.h" />
+    <ClInclude Include="..\..\inc\engine\ConfTracking.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcBSA.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcEFU.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcLedPower.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcLogs.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcLuria.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcMC2.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcLitho.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcMCQGen2i.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcMDR.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcMPA.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcPM100D.h" />
+    <ClInclude Include="..\..\inc\engine\EItfcRcpGen2i.h" />
+    <ClInclude Include="..\..\inc\engine\MemGen2i.h" />
+    <ClInclude Include="..\..\inc\engine\MemMap.h" />
+    <ClInclude Include="..\..\inc\mesg\CodeToStr.h" />
+    <ClInclude Include="..\..\inc\recipe\Base.h" />
+    <ClInclude Include="..\..\inc\recipe\LedPower.h" />
+    <ClInclude Include="..\..\inc\recipe\RecipeGen2i.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="MainApp.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ItfcBSA\ItfcBSA.vcxproj">
+      <Project>{c7b7e590-9c8f-4d6a-b213-cc491c818255}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcCmn\ItfcCmn.vcxproj">
+      <Project>{ee8a4ae9-aca2-45ca-b49f-85ce07a846fa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcEFU\ItfcEFU.vcxproj">
+      <Project>{425bbf83-c89e-45ee-b015-e72620ba58f0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcLitho\ItfcLitho.vcxproj">
+      <Project>{8e826974-dd63-479d-88c5-b969df492e5d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcLogs\ItfcLogs.vcxproj">
+      <Project>{8eda3cd0-cda7-4cb2-bc5d-789fe5983d52}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcLuria\ItfcLuria.vcxproj">
+      <Project>{991409c4-c3ce-422d-b773-6dec7c61d755}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcMC2\ItfcMC2.vcxproj">
+      <Project>{99f9d70d-420a-47af-b243-cdea2fc1239f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcMCQDrv\ItfcMCQDrv.vcxproj">
+      <Project>{6efde627-83ee-49df-962b-d67f02b2a0da}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcMDR\ItfcMDR.vcxproj">
+      <Project>{cd3ea5de-8eff-4dc9-a3ba-000ab48d32eb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcMPA\ItfcMPA.vcxproj">
+      <Project>{8b11c2a8-fe0c-4c49-88bc-8a59eb5506f4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcPM100D\ItfcPM100D.vcxproj">
+      <Project>{0299602b-04aa-4e7e-880d-fc9f87b33ec4}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ItfcGEN2I.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ItfcGEN2I.rc2" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

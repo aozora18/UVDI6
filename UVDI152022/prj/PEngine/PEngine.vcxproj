@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{1460D00E-8229-4600-978A-60EADB34FCD2}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <RootNamespace>PEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>../../bin/debug/</OutDir>
+    <TargetName>$(ProjectName)x64D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>../../bin/release/</OutDir>
+    <TargetName>$(ProjectName)x64</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\inc\base\DlgChild.h" />
+    <ClInclude Include="..\..\inc\comn\CpuUsage.h" />
+    <ClInclude Include="..\..\inc\comn\MacButton.h" />
+    <ClInclude Include="..\..\inc\comn\MacProgress.h" />
+    <ClInclude Include="..\..\inc\comn\MyCombo.h" />
+    <ClInclude Include="..\..\inc\comn\MyDialog.h" />
+    <ClInclude Include="..\..\inc\comn\MyEdit.h" />
+    <ClInclude Include="..\..\inc\comn\MyGrpBox.h" />
+    <ClInclude Include="..\..\inc\comn\MyListBox.h" />
+    <ClInclude Include="..\..\inc\comn\MyRich.h" />
+    <ClInclude Include="..\..\inc\comn\MyStatic.h" />
+    <ClInclude Include="..\..\inc\comn\MyTabCtrl.h" />
+    <ClInclude Include="..\..\inc\comn\Picture.h" />
+    <ClInclude Include="..\..\inc\comn\ThinThread.h" />
+    <ClInclude Include="..\..\inc\comn\UniToChar.h" />
+    <ClInclude Include="..\..\inc\grid\CellRange.h" />
+    <ClInclude Include="..\..\inc\grid\GridCell.h" />
+    <ClInclude Include="..\..\inc\grid\GridCellBase.h" />
+    <ClInclude Include="..\..\inc\grid\GridCellCheck.h" />
+    <ClInclude Include="..\..\inc\grid\GridCellCombo.h" />
+    <ClInclude Include="..\..\inc\grid\GridCellDateTime.h" />
+    <ClInclude Include="..\..\inc\grid\GridCellNumeric.h" />
+    <ClInclude Include="..\..\inc\grid\GridCtrl.h" />
+    <ClInclude Include="..\..\inc\grid\GridDropTarget.h" />
+    <ClInclude Include="..\..\inc\grid\GridURLCell.h" />
+    <ClInclude Include="..\..\inc\grid\InPlaceEdit.h" />
+    <ClInclude Include="..\..\inc\grid\MemDC.h" />
+    <ClInclude Include="..\..\inc\grid\TitleTip.h" />
+    <ClInclude Include="DlgEFEM.h" />
+    <ClInclude Include="DlgLogs.h" />
+    <ClInclude Include="DlgLuri.h" />
+    <ClInclude Include="DlgMC2.h" />
+    <ClInclude Include="DlgMoni.h" />
+    <ClInclude Include="DlgPlcQ.h" />
+    <ClInclude Include="DlgTrig.h" />
+    <ClInclude Include="DlgVisi.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="Luria\DlgLuDP.h" />
+    <ClInclude Include="Luria\DlgLuEP.h" />
+    <ClInclude Include="Luria\DlgLuJF.h" />
+    <ClInclude Include="Luria\DlgLuJM.h" />
+    <ClInclude Include="Luria\DlgLuMC.h" />
+    <ClInclude Include="Luria\DlgLuPD.h" />
+    <ClInclude Include="Luria\DlgLuria.h" />
+    <ClInclude Include="MainThread.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="MainApp.h" />
+    <ClInclude Include="DlgMain.h" />
+    <ClInclude Include="PLC\DlgPSet.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="TrayIcon.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\inc\base\DlgChild.cpp" />
+    <ClCompile Include="..\..\inc\comn\CpuUsage.cpp" />
+    <ClCompile Include="..\..\inc\comn\MacButton.cpp" />
+    <ClCompile Include="..\..\inc\comn\MacProgress.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyCombo.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyDialog.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyEdit.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyGrpBox.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyListBox.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyRich.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyStatic.cpp" />
+    <ClCompile Include="..\..\inc\comn\MyTabCtrl.cpp" />
+    <ClCompile Include="..\..\inc\comn\Picture.cpp" />
+    <ClCompile Include="..\..\inc\comn\ThinThread.cpp" />
+    <ClCompile Include="..\..\inc\comn\UniToChar.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCell.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCellBase.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCellCheck.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCellCombo.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCellDateTime.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCellNumeric.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridCtrl.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridDropTarget.cpp" />
+    <ClCompile Include="..\..\inc\grid\GridURLCell.cpp" />
+    <ClCompile Include="..\..\inc\grid\InPlaceEdit.cpp" />
+    <ClCompile Include="..\..\inc\grid\TitleTip.cpp" />
+    <ClCompile Include="DlgEFEM.cpp" />
+    <ClCompile Include="DlgLogs.cpp" />
+    <ClCompile Include="DlgLuri.cpp" />
+    <ClCompile Include="DlgMC2.cpp" />
+    <ClCompile Include="DlgMoni.cpp" />
+    <ClCompile Include="DlgPlcQ.cpp" />
+    <ClCompile Include="DlgTrig.cpp" />
+    <ClCompile Include="DlgVisi.cpp" />
+    <ClCompile Include="Luria\DlgLuDP.cpp" />
+    <ClCompile Include="Luria\DlgLuEP.cpp" />
+    <ClCompile Include="Luria\DlgLuJF.cpp" />
+    <ClCompile Include="Luria\DlgLuJM.cpp" />
+    <ClCompile Include="Luria\DlgLuMC.cpp" />
+    <ClCompile Include="Luria\DlgLuPD.cpp" />
+    <ClCompile Include="Luria\DlgLuria.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="MainApp.cpp" />
+    <ClCompile Include="DlgMain.cpp" />
+    <ClCompile Include="PLC\DlgPSet.cpp" />
+    <ClCompile Include="TrayIcon.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PEngine.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\PEngine.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\PEngine.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ItfcCmn\ItfcCmn.vcxproj">
+      <Project>{ee8a4ae9-aca2-45ca-b49f-85ce07a846fa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ItfcEngine\ItfcEngineGen2i.vcxproj">
+      <Project>{3a0bd54d-98e3-4188-9e6c-1732119863fc}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,16 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {523fa23e-ca6f-4b17-ad1e-d84469029a50} = s 'EMSvcCbk class'
+		{
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Free'
+			}
+			TypeLib = s '{a7aacf49-de90-4256-8e84-c29cb0137880}'
+			Version = s '1.0'
+		}
+	}
+}

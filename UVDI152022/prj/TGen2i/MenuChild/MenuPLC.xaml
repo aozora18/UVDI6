@@ -1,0 +1,343 @@
+﻿<!-- <Window x:Name="Menu_PLC" x:Class="TGen2i.MenuChild.MenuPLC" -->
+<local:MenuBase x:Name="Menu_PLC" x:Class="TGen2i.MenuChild.MenuPLC"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TGen2i.MenuChild"
+        mc:Ignorable="d"
+        Title="Work" Height="942" Width="1250" BorderThickness="0"
+		Background="{x:Null}" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"
+		AllowsTransparency="True" WindowStyle="None">
+	<Grid Margin="0,0,0,0" Background="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
+		<Border BorderBrush="#FF404040" BorderThickness="2" HorizontalAlignment="Left" Height="46" Margin="10,10,0,0" VerticalAlignment="Top" Width="610">
+			<Label x:Name="m_label_plc_ctrl" Content="PLC Control" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,5,0,0" Height="30" Width="590" Foreground="#FFE0E0E0" BorderBrush="#FF404040" BorderThickness="2" FontSize="14" Background="#FF404040" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+		</Border>
+		<Border BorderBrush="#FF404040" BorderThickness="2" HorizontalAlignment="Left" Height="46" Margin="630,10,0,0" VerticalAlignment="Top" Width="610">
+			<Label x:Name="m_label_plc_io" Content="PLC Input" HorizontalAlignment="Left" Margin="5,5,0,0" Width="593" Foreground="#FFE0E0E0" BorderBrush="#FF404040" BorderThickness="2" FontSize="14" Background="#FF404040" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Height="30" VerticalAlignment="Top"/>
+		</Border>
+		<Border BorderBrush="#FF404040" BorderThickness="2" HorizontalAlignment="Left" Height="816" Margin="630,61,0,0" VerticalAlignment="Top" Width="610">
+
+			<!-- <DataGrid x:Name="m_grid_plc_io" AutoGenerateColumns="False" SelectionMode="Extended" CanUserAddRows="False"
+					  Margin="5" IsSynchronizedWithCurrentItem="False" Background="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"> -->
+			<DataGrid x:Name="m_grid_plc_io" ColumnHeaderStyle="{DynamicResource GridHeaderStyle}"
+					  Background="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" Margin="0,-2,0,0">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Items" CellStyle="{DynamicResource GridCellStyle}"
+										Binding="{Binding Path=m_strItem}" IsReadOnly="True">
+						<DataGridTextColumn.ElementStyle>
+							<Style TargetType="TextBlock">
+								<Setter Property="HorizontalAlignment" Value="Left"/>
+								<Setter Property="VerticalAlignment" Value="Center"/>
+							</Style>
+						</DataGridTextColumn.ElementStyle>
+					</DataGridTextColumn>
+					<DataGridTextColumn Header="Values" CellStyle="{DynamicResource GridCellStyle}"
+										Binding="{Binding Path=m_strValue}" IsReadOnly="True">
+						<DataGridTextColumn.ElementStyle>
+							<Style TargetType="TextBlock">
+								<Setter Property="HorizontalAlignment" Value="Center"/>
+								<Setter Property="VerticalAlignment" Value="Center"/>
+							</Style>
+						</DataGridTextColumn.ElementStyle>
+					</DataGridTextColumn>
+				</DataGrid.Columns>
+			</DataGrid>
+		</Border>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_grid_page_prev" Content="Prev" Margin="630,882,520,0"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_grid_page_next" Content="Next" Margin="1150,882,0,0"/>
+		<Rectangle Fill="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" HorizontalAlignment="Left" Height="876" Margin="10,61,0,0" Stroke="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" VerticalAlignment="Top" Width="610"/>
+		<CheckBox x:Name="m_chk_plc_safety_reset_cmd" Content="SAFETY RESET CMD" HorizontalContentAlignment="Right"
+				  HorizontalAlignment="Left" Margin="17,68,0,0" VerticalAlignment="Top" Width="250" Height="15"
+				  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+				  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_tower_green_lamp_cmd" Content="TOWER GREEN LAMP CMD" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,83,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_tower_yellow_lamp_cmd" Content="TOWER YELLOW LAMP FLASHING CMD" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,98,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_halogen_ring_light_power" Content="SET" Margin="142,737,1078,182" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<CheckBox x:Name="m_chk_plc_tower_red_lamp_cmd" Content="TOWER RED LAMP FLASHING CMD" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,114,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_tower_buzzer_1_cmd" Content="TOWER BUZZER 1 CMD" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,129,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_z1_axis_air_cooling_on_off" Content="Z1 AXIS AIR COOLING ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,144,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_z2_axis_air_cooling_on_off" Content="Z2 AXIS AIR COOLING ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,160,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_z1_axis_cylinder_on_off" Content="Z1 AXIS CYLINDER ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,191,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_z3_axis_air_cooling_on_off" Content="Z3 AXIS AIR COOLING ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,176,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_wafer_chuck_vacuum_on_off" Content="WAFER CHUCK VACUUM ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,238,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_wafer_chuck_exhaust_on_off" Content="WAFER CHUCK EXHAUST ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,254,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_vacuumuum_on_off" Content="ROBOT VACUUMUUM ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,269,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_z2_axis_cylinder_on_off" Content="Z2 AXIS CYLINDER ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,207,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_z3_axis_cylinder_on_off" Content="Z3 AXIS CYLINDER ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,223,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_aligner_vacuum_on_off" Content="ALIGNER VACUUM ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,285,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_photohead_1_power_off_cmd" Content="PHOTOHEAD 1 POWER OFF CMD" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,300,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_photohead_2_power_off_cmd" Content="PHOTOHEAD 2 POWER OFF CMD" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,315,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_illumination_sensor_pwr_on_off" Content="ILLUMINATION SENSOR PWR ON/OFF" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,331,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_halogen_ring_light_power_on" Content="HALOGEN LING LIGHT POWER ON" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,346,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_halogen_coaxial_light_power_on" Content="HALOGEN COAXIAL LIGHT POWER ON" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,361,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_01" Content="ROBOT INPUT SIGNAL 1" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,377,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_02" Content="ROBOT INPUT SIGNAL 2" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,392,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_03" Content="ROBOT INPUT SIGNAL 3" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,408,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_04" Content="ROBOT INPUT SIGNAL 4" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,423,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_05" Content="ROBOT INPUT SIGNAL 5" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,438,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_06" Content="ROBOT INPUT SIGNAL 6" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,453,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_07" Content="ROBOT INPUT SIGNAL 7" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,468,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_08" Content="ROBOT INPUT SIGNAL 8" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,483,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_09" Content="ROBOT INPUT SIGNAL 9" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,499,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_robot_input_signal_10" Content="ROBOT INPUT SIGNAL 10" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,514,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_xy_stage_move_prohibit" Content="XY STAGE MOVE PROHIBIT" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,530,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_ink_exposure_inline" Content="EXPOSURE INLINE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,565,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rej_exposure_reject" Content="EXPOSURE REJECT" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,580,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_snd_exposure_send_to_ready" Content="EXPOSURE SEND TO READY" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,596,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rdy_exposure_receive_to_ready" Content="EXPOSURE RECEIVE TO READY" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,612,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rserve_1" Content="EXP-RSERVE 1" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,627,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rserve_2" Content="EXP-RSERVE 2" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,643,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rserve_3" Content="EXP-RSERVE 3" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,658,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rserve_4" Content="EXP-RSERVE 4" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,673,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_exp_rserve_5" Content="EXP-RSERVE 5" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,688,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBlock x:Name="m_blk_plc_halogen_ring_light_power" HorizontalAlignment="Left" Margin="17,716,0,0" TextWrapping="Wrap" Text="HALOGEN LING LIGHT POWER ON (0.00 ~ 12.00V)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_halogen_ring_light_power" HorizontalAlignment="Left" Height="23" Margin="20,737,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_halogen_coaxial_light_power" Content="SET" Margin="141,796,1079,123" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_halogen_coaxial_light_power" HorizontalAlignment="Left" Margin="17,775,0,0" TextWrapping="Wrap" Text="HALOGEN COAXIAL LIGHT POWER ON (0 ~ 100%)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_halogen_coaxial_light_power" HorizontalAlignment="Left" Height="23" Margin="19,796,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_pc_live_check" Content="SET" Margin="141,856,1079,63" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_pc_live_check" HorizontalAlignment="Left" Margin="17,835,0,0" TextWrapping="Wrap" Text="PC LIVE CHECK (0 ~ 65536)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_txt_plc_pc_live_check" HorizontalAlignment="Left" Height="23" Margin="19,856,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_enable_disable" Content="LIFT PIN X AXIS ENABLE DISABLE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,68,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_reset" Content="LIFT PIN X AXIS RESET" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,83,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_stop" Content="LIFT PIN X AXIS STOP" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,98,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_jog_plus_move" Content="LIFT PIN X AXIS JOG PLUS MOVE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,114,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_jog_minus_move" Content="LIFT PIN X AXIS JOG MINUS MOVE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,129,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_home_position" Content="LIFT PIN X AXIS HOME POSITION" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,144,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_position" Content="LIFT PIN X AXIS POSITION" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,159,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_x_axis_drive_alarm_reset" Content="LIFT PIN X AXIS DRIVE ALARM RESET" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,174,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_enable_disable" Content="LIFT PIN Z AXIS ENABLE DISABLE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,189,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_reset" Content="LIFT PIN Z AXIS RESET" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,204,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_stop" Content="LIFT PIN Z AXIS STOP" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,219,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_jog_plus_move" Content="LIFT PIN Z AXIS JOG PLUS MOVE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,235,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_jog_minus_move" Content="LIFT PIN Z AXIS JOG MINUS MOVE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,250,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_home_position" Content="LIFT PIN Z AXIS HOME POSITION" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,265,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_position" Content="LIFT PIN Z AXIS POSITION" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,280,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_lift_pin_z_axis_drive_alarm_reset" Content="LIFT PIN Z AXIS DRIVE ALARM RESET" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,295,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_enable_disable" Content="BAS CAMERA Z AXIS ENABLE DISABLE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,311,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_reset" Content="BAS CAMERA Z AXIS RESET" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,326,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_stop" Content="BAS CAMERA Z AXIS STOP" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,341,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_jog_plus_move" Content="BAS CAMERA Z AXIS JOG PLUS MOVE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,357,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_jog_minus_move" Content="BAS CAMERA Z AXIS JOG MINUS MOVE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,372,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_home_position" Content="BAS CAMERA Z AXIS HOME POSITION" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,387,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<CheckBox x:Name="m_chk_plc_bsa_camera_z_axis_position" Content="BAS CAMERA Z AXIS POSITION" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="295,402,0,0" VerticalAlignment="Top" Width="290" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_lift_pin_x_axis_jog_speed_setting" Content="SET" Margin="417,460,803,459" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_lift_pin_x_axis_jog_speed_setting" HorizontalAlignment="Left" Margin="292,439,0,0" TextWrapping="Wrap" Text="LIFT PIN X AXIS JOG SPEED (0.1 ~ 600.00 mm/min)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_lift_pin_x_axis_jog_speed_setting" HorizontalAlignment="Left" Height="23" Margin="295,460,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_lift_pin_x_axis_position_speed_setting" Content="SET" Margin="417,509,803,410" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_lift_pin_x_axis_position_speed_setting" HorizontalAlignment="Left" Margin="292,488,0,0" TextWrapping="Wrap" Text="LIFT X AXIS POSITION SPEED (0.01 ~ 18000.00 mm/min)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_lift_pin_x_axis_position_speed_setting" HorizontalAlignment="Left" Height="23" Margin="295,509,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_lift_pin_x_axis_position_setting" Content="SET" Margin="417,556,803,363" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_lift_pin_x_axis_position_setting" HorizontalAlignment="Left" Margin="292,535,0,0" TextWrapping="Wrap" Text="LIFT X AXIS POSITION (0.0 ~ 246000.0 um)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_lift_pin_x_axis_position_setting" HorizontalAlignment="Left" Height="23" Margin="295,556,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_lift_pin_z_axis_jog_speed_setting" Content="SET" Margin="417,630,803,289" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_lift_pin_z_axis_jog_speed_setting" HorizontalAlignment="Left" Margin="292,609,0,0" TextWrapping="Wrap" Text="LIFT PIN Z AXIS JOG SPEED (0.1 ~ 600.00 mm/min)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_lift_pin_z_axis_jog_speed_setting" HorizontalAlignment="Left" Height="23" Margin="295,630,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_lift_pin_z_axis_position_speed_setting" Content="SET" Margin="417,679,803,240" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_lift_pin_z_axis_position_speed_setting" HorizontalAlignment="Left" Margin="292,658,0,0" TextWrapping="Wrap" Text="LIFT PIN Z AXIS POSITION SPEED (0.01 ~ 18000.00 mm/min)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_lift_pin_z_axis_position_speed_setting" HorizontalAlignment="Left" Height="23" Margin="295,679,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_lift_pin_z_axis_position_setting" Content="SET" Margin="417,726,803,193" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_lift_pin_z_axis_position_setting" HorizontalAlignment="Left" Margin="292,705,0,0" TextWrapping="Wrap" Text="LIFT PIN X AXIS POSITION (0.0 ~ 257000.0 um)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_lift_pin_z_axis_position_setting" HorizontalAlignment="Left" Height="23" Margin="295,726,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_bsa_camera_z_axis_jog_speed_setting" Content="SET" Margin="417,800,803,119" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_bsa_camera_z_axis_jog_speed_setting" HorizontalAlignment="Left" Margin="292,779,0,0" TextWrapping="Wrap" Text="BSA CAMERA Z AXIS JOG SPEED (0.1 ~ 100.00 mm/min)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_bsa_camera_z_axis_jog_speed_setting" HorizontalAlignment="Left" Height="23" Margin="295,800,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_bsa_camera_z_axis_position_speed_setting" Content="SET" Margin="417,849,803,70" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_bsa_camera_z_axis_position_speed_setting" HorizontalAlignment="Left" Margin="292,828,0,0" TextWrapping="Wrap" Text="BSA CAMERA Z AXIS POSITION SPEED (0.01 ~ 218.40 mm/min)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_bsa_camera_z_axis_position_speed_setting" HorizontalAlignment="Left" Height="23" Margin="295,849,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<Button Style="{DynamicResource style_btn_normal}" x:Name="m_btn_plc_bsa_camera_z_axis_position_setting" Content="SET" Margin="417,896,803,23" Height="Auto" Width="Auto" RenderTransformOrigin="1.667,0.739"/>
+		<TextBlock x:Name="m_blk_plc_bsa_camera_z_axis_position" HorizontalAlignment="Left" Margin="292,875,0,0" TextWrapping="Wrap" Text="BSA CAMERA Z AXIS POSITION (-1000.0 ~ 3050.0 um)" VerticalAlignment="Top" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+		<TextBox x:Name="m_box_plc_bsa_camera_z_axis_position_setting" HorizontalAlignment="Left" Height="23" Margin="295,896,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="117" TextAlignment="Right"/>
+		<CheckBox x:Name="m_chk_plc_xy_stage_move_prohibit_release" Content="XY STAGE MOVE PROHIBIT RELEASE" HorizontalContentAlignment="Right"
+	  HorizontalAlignment="Left" Margin="17,547,0,0" VerticalAlignment="Top" Width="250" Height="15"
+	  FlowDirection="RightToLeft" Tag="" VerticalContentAlignment="Center"
+	  BorderBrush="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"/>
+	</Grid>
+</local:MenuBase>

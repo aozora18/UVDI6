@@ -67,7 +67,32 @@ int ProcessXml(string xmlFilename)
 		fs::copy_file(srcfilename, backupFilename, fs::copy_options::overwrite_existing);
 	};
 
-	auto GetLocalzoneData = [&](string xmlFilename, std::vector<LocalData>& localZone, string& xmlString,bool& processed,int& localCount)
+
+	auto CheckProcessed = [&](string xmlFilename) -> bool
+	{
+		std::ifstream file(xmlFilename);
+		std::string xmlData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+		// pugi::xml_document 객체 생성 및 XML 데이터 로드
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_string(xmlData.c_str());
+
+		if (!result) return false;
+
+		string xmlString = xmlData.c_str();
+
+		pugi::xml_node rltNode = doc.child("rlt");
+		if (!rltNode) return 0;
+
+		pugi::xml_node fidNode = rltNode.child("Fiducials");
+		if (!rltNode)  return 0;
+
+		bool processed = fidNode.attribute("processed").as_bool();
+
+		return processed;
+	};
+
+	auto GetLocalfiducialCnt = [&](string xmlFilename) -> int
 	{
 		std::ifstream file(xmlFilename);
 		std::string xmlData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -78,7 +103,7 @@ int ProcessXml(string xmlFilename)
 
 		if (!result) return 0;
 
-		xmlString = xmlData.c_str();
+		string xmlString = xmlData.c_str();
 
 		pugi::xml_node rltNode = doc.child("rlt");
 		if (!rltNode) return 0;
@@ -86,21 +111,47 @@ int ProcessXml(string xmlFilename)
 		pugi::xml_node fidNode = rltNode.child("Fiducials");
 		if (!rltNode)  return 0;
 
-		processed = fidNode.attribute("processed").as_bool();
-
-		if (processed == false)
-		{
-			string copyName = AddSuffixToFilename(xmlFilename, "_GL");
-			Backup(xmlFilename,copyName);
-		}
-
 		pugi::xml_node localNode = fidNode.child("Local");
 		if (!localNode)  return 0;
 
-		localCount = localNode.attribute("number").as_int();
-		
-		if (processed == true || localCount == 0)
-			return 0;
+		int localCount = localNode.attribute("number").as_int();
+		return localCount;
+	};
+
+
+	auto GetXMLString = [&](string xmlFilename, string& xmlString)
+	{
+		std::ifstream file(xmlFilename);
+		std::string xmlData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+		// pugi::xml_document 객체 생성 및 XML 데이터 로드
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_string(xmlData.c_str());
+
+		if (!result) return;
+
+		xmlString = xmlData.c_str();
+	};
+
+	auto GetLocalzoneData = [&](string xmlFilename, std::vector<LocalData>& localZone )
+	{
+		std::ifstream file(xmlFilename);
+		std::string xmlData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+		// pugi::xml_document 객체 생성 및 XML 데이터 로드
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_string(xmlData.c_str());
+
+		if (!result) return 0;
+
+		pugi::xml_node rltNode = doc.child("rlt");
+		if (!rltNode) return 0;
+
+		pugi::xml_node fidNode = rltNode.child("Fiducials");
+		if (!rltNode)  return 0;
+
+		pugi::xml_node localNode = fidNode.child("Local");
+		if (!localNode)  return 0;
 
 		for (pugi::xml_node fidNode : localNode.children("fid"))
 		{
@@ -113,7 +164,7 @@ int ProcessXml(string xmlFilename)
 			data.gbrY = fidNode.child("gbr").attribute("y").as_double();
 			localZone.push_back(data);
 		}
-		return 1;
+		return (int)localZone.size();
 	};
 
 
@@ -265,27 +316,20 @@ int ProcessXml(string xmlFilename)
 			}
 		};
 
-	auto GenerateFid = [&](std::string xmlString, std::vector<LocalData>& zoneStack,bool localFind,bool processed,string noLocalFileName)->string
+	auto GenerateFid = [&](std::string xmlString, std::vector<LocalData>& zoneStack,string noLocalFilename,string withLocalFilename)
 	{
 		auto fidCount = zoneStack.size();
-
-		if (processed && localFind)
-			return "";
 
 		size_t localStartPos = xmlString.find("<Local");
 		size_t localEndPos = xmlString.find("</Local>");
 
-
-		//여기까지가 로컬 전부 지운것.
-		if (localFind == false)
-		{
-			auto xmlstringClone = xmlString;
-			xmlstringClone.erase(localStartPos, localEndPos - localStartPos);
-			xmlstringClone.insert(localStartPos, "<Local d-code=\"0\" number=\"0\">");
-			WriteString(noLocalFileName, xmlstringClone);
-			if (processed) return "";
-		}
-
+		auto xmlstringClone = xmlString;
+		xmlstringClone.erase(localStartPos, localEndPos - localStartPos);
+		xmlstringClone.insert(localStartPos, "<Local d-code=\"0\" number=\"0\">");
+		
+		if(noLocalFilename.empty() == false)
+			WriteString(noLocalFilename, xmlstringClone);
+		
 		if (localStartPos != std::string::npos && localEndPos != std::string::npos)
 		{
 			size_t fidStartPos = xmlString.find("<fid", localStartPos);
@@ -318,51 +362,70 @@ int ProcessXml(string xmlFilename)
 			if (addPoint != string::npos)
 				addPoint += string("</fid>").length();
 		}
-		return xmlString;
+		
+		if (withLocalFilename.empty() == false)
+			WriteString(withLocalFilename, xmlString);
 	};
 
 
 	auto CodeBody = [&]()->int
 	{
+
 		vector<LocalData> zoneStack;
 		std::vector<LocalData> localZone;
 		string xmlString;
 
-		bool localFind = false; string combinePath;
-		CheckFilesInDirectory(xmlFilename, "_G", localFind, combinePath);
+		bool localFind = false; string onlyGlobalPath="";
+		bool globalFind = false; string withGlobalLocal = "";
 
-		bool processed = false; int localCount = 0;
+		CheckFilesInDirectory(xmlFilename, "_G", globalFind, onlyGlobalPath);
+		CheckFilesInDirectory(xmlFilename, "_GL", localFind, withGlobalLocal);
 
-		GetLocalzoneData(xmlFilename, localZone, xmlString, processed, localCount);
-		
-		if(localCount != 0 && processed == false)
-		while (localZone.empty() == false)
+		bool processed = CheckProcessed(xmlFilename);
+		int localCount = GetLocalfiducialCnt(xmlFilename);
+		GetXMLString(xmlFilename, xmlString);
+
+		if (processed == false)
 		{
-			vector<int> pointIndex;
+			Backup(xmlFilename, string()); //백업파일만들기
 
-			makeLocalZone(localZone, pointIndex, zoneStack);
+			SetProcessedFlag(xmlString);
+			WriteString(xmlFilename, xmlString);
 
-			std::sort(pointIndex.begin(), pointIndex.end(), std::greater<size_t>());
+			if (localCount == 0)
+			{	
+				Backup(xmlFilename, onlyGlobalPath);
+				Backup(xmlFilename, withGlobalLocal);
+				return 1; //더 처리할거 없음.
+			}
+			else
+			{
+				GetLocalzoneData(xmlFilename, localZone);
+					
+				while (localZone.empty() == false)
+				{
+					vector<int> pointIndex;
 
-			for (auto indexToDelete : pointIndex)
-				localZone.erase(localZone.begin() + indexToDelete);
+					makeLocalZone(localZone, pointIndex, zoneStack);
+
+					std::sort(pointIndex.begin(), pointIndex.end(), std::greater<size_t>());
+
+					for (auto indexToDelete : pointIndex)
+						localZone.erase(localZone.begin() + indexToDelete);
+				}
+
+				 GenerateFid(xmlString, zoneStack, onlyGlobalPath, withGlobalLocal);
+
+				return 1;
+			}
 		}
-
-		if (localFind == false && localCount == 0)
+		else
 		{
-			Backup(xmlFilename, combinePath);
-			if (processed) return 1;
-		}
-
-		auto res = GenerateFid(xmlString, zoneStack, localFind, processed, combinePath);
-
-		if (res.length() == 0)
 			return 1;
+		}
+		
 
-		SetProcessedFlag(res);
-		Backup(xmlFilename,string());
-		WriteString(xmlFilename, res);
-		return 1;
+		
 	};
 	
 	return CodeBody();

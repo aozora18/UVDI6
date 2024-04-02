@@ -99,7 +99,7 @@ API_IMPORT DOUBLE uvEng_Luria_GetGlobalMarkDiffVertX(UINT8 type);
 */
 API_IMPORT DOUBLE uvEng_Luria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan);
 
-API_IMPORT VOID uvEng_Luria_SetAlignMotionInfo(AlignMotion& motion);
+API_IMPORT VOID uvEng_Luria_SetAlignMotionPtr(AlignMotion& motion);
 
 /*
  desc : 두 Mark 간의 상/하 Y 축 떨어진 간격 즉, Y 축 간의 오차 (높이) 값

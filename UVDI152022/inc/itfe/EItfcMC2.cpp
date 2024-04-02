@@ -652,6 +652,8 @@ API_EXPORT UINT64 uvCmn_MC2_GetRefOutputs()
 */
 API_EXPORT BOOL uvCmn_MC2_IsDriveError(ENG_MMDI drv_id)
 {
+	auto cfg = GetConfig();
+	if (cfg == nullptr) return FALSE;
 	/* Check if it is in demo operation mode */
 	if (GetConfig()->IsRunDemo())	return FALSE;
 	if (!IsMC2DriveValid(drv_id))	return FALSE;

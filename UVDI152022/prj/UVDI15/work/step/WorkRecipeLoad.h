@@ -51,7 +51,8 @@ protected:
 #if 1
 	ENG_JWNS			IsGerberJobLoaded();
 #endif
-
+	VOID				PhilRecipeLoadComp(UINT8 state);
+	VOID				PhilRecipeInit();
 /* 공용 함수 */
 public:
 

@@ -336,10 +336,13 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 	for (auto& mark : m_vGlobalMark)
 	{
+
+
+
 		mark.rtArea.left	= (LONG)(rDraw.CenterPoint().x + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) - nGlobalMarkSize);
-		mark.rtArea.top		= (LONG)(rDraw.CenterPoint().y + ((mark.stMark.mark_y - (m_dGerberSizeY / 2)) * dScaleY) - nGlobalMarkSize);
+		mark.rtArea.top		= (LONG)(rDraw.CenterPoint().y + (( (m_dGerberSizeY / 2) - mark.stMark.mark_y) * dScaleY) - nGlobalMarkSize);
 		mark.rtArea.right	= (LONG)(rDraw.CenterPoint().x + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) + nGlobalMarkSize);
-		mark.rtArea.bottom	= (LONG)(rDraw.CenterPoint().y + ((mark.stMark.mark_y - (m_dGerberSizeY / 2)) * dScaleY) + nGlobalMarkSize);
+		mark.rtArea.bottom	= (LONG)(rDraw.CenterPoint().y + (((m_dGerberSizeY / 2) - mark.stMark.mark_y) * dScaleY) + nGlobalMarkSize);
 
 		if (nIndex == m_nSelectGlobalMark)
 		{
@@ -394,10 +397,11 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	nIndex = 0;
 	for (auto& mark : m_vLocalMark)
 	{
-		mark.rtArea.left	= (LONG)(rDraw.CenterPoint().x - (dImageWidth / 2) + ((mark.stMark.mark_x) * dScaleX) - nLocalMarkSize);
-		mark.rtArea.top		= (LONG)(rDraw.CenterPoint().y - (dImageHeight / 2) + ((mark.stMark.mark_y) * dScaleY) - nLocalMarkSize);
-		mark.rtArea.right	= (LONG)(rDraw.CenterPoint().x - (dImageWidth / 2) + ((mark.stMark.mark_x) * dScaleX) + nLocalMarkSize);
-		mark.rtArea.bottom	= (LONG)(rDraw.CenterPoint().y - (dImageHeight / 2) + ((mark.stMark.mark_y) * dScaleY) + nLocalMarkSize);
+
+		mark.rtArea.left = (LONG)(rDraw.CenterPoint().x  + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) - nLocalMarkSize);
+		mark.rtArea.top = (LONG)(rDraw.CenterPoint().y   + (((m_dGerberSizeY / 2) - mark.stMark.mark_y) * dScaleY) - nLocalMarkSize);
+		mark.rtArea.right = (LONG)(rDraw.CenterPoint().x  + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) + nLocalMarkSize);
+		mark.rtArea.bottom = (LONG)(rDraw.CenterPoint().y + (((m_dGerberSizeY / 2) - mark.stMark.mark_y) * dScaleY) + nLocalMarkSize);
 
 		if (nIndex == m_nSelectLocalMark)
 		{
@@ -469,15 +473,14 @@ int CDrawPrev::OnMouseClick(int x, int y)
 // 			CString str;
 // 			str.Format(_T("Clicked Mark: Global %d (%d, %d)"), nIndex, point.x, point.y);
 // 			AfxMessageBox(str);
-			m_nSelectGlobalMark = nIndex;
+			m_nSelectGlobalMark = mark.stMark.tgt_id;
 			m_nSelectLocalMark = -1;
-			return nIndex;
+			return m_nSelectGlobalMark;
 		}
 
-		nIndex++;
 	}
 
-	nIndex = 0;
+	
 	for (const auto& mark : m_vLocalMark)
 	{
 		if (mark.rtArea.PtInRect(point))
@@ -486,12 +489,12 @@ int CDrawPrev::OnMouseClick(int x, int y)
 // 			CString str;
 // 			str.Format(_T("Clicked Mark: Local %d (%d, %d)"), nIndex, point.x, point.y);
 // 			AfxMessageBox(str);
-			m_nSelectLocalMark = nIndex;
+			m_nSelectLocalMark = mark.stMark.tgt_id;;
 			m_nSelectGlobalMark = -1;
-			return nIndex;
+			return m_nSelectLocalMark;
 		}
 
-		nIndex++;
+	
 	}
 
 	m_nSelectGlobalMark = -1;

@@ -117,6 +117,8 @@ public:
 	/* Align Mark 검색 방식 설정 */
 	VOID				SetMarkMethod(ENG_MMSM method, UINT8 count);
 	ENG_MMSM			GetMarkMethod(UINT8 cam_id);
+	UINT8 GetMarkFindSetCount(int camNum);
+	UINT8 GetMarkFindedCount(int camNum) ;
 
 	VOID				ResetGrabAll();
 
@@ -128,6 +130,10 @@ public:
 									 UINT16 count, BOOL angle, LPG_ACGR results, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no, UINT8 img_proc);
 	BOOL				RunModelExam(PUINT8 image, UINT32 width, UINT32 height,
 									 DOUBLE score, DOUBLE scale, LPG_ACGR results, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no); // 미사용
+
+	BOOL				RunModelExam2(PUINT8 image, UINT32 width, UINT32 height,DOUBLE score, DOUBLE scale, LPG_ACGR results);
+
+
 	BOOL				RunEdgeDetect(UINT8 cam_id, LPG_ACGR grab, UINT8 saved);
 	BOOL				RunMarkerStrip(UINT8 cam_id, PUINT8 image, LPG_MSMP param, STG_MSMR &results);
 	/* Edge Detection 검출 즉, 윤곽(경계)선 검출 후 경계선의 중심 X/Y 좌표 반환 */

@@ -287,20 +287,20 @@ API_EXPORT BOOL uvEng_Recipe_IsExistLocalMark()
 		img_id	- [out] Camera Grabbed Image Number (Zero based)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvEng_Recipe_GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id)
-{
-	return g_pMark->GetLocalMarkToGrabNum(mark, cam_id, img_id);
-}
+//API_EXPORT BOOL uvEng_Recipe_GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id)
+//{
+//	return g_pMark->GetLocalMarkToGrabNum(mark, cam_id, img_id);
+//}
 
 /*
  desc : 현재 Local Mark Index 값 값에 해당된 Scan 번호 값 반환
  parm : mark_id	- [in]  Local Mark Index 값 (0 or Later)
  retn : Scan Number (Zero Based)
 */
-API_EXPORT UINT8 uvEng_Recipe_GetLocalMarkToScanNum(UINT8 mark_id)
-{
-	return g_pMark->GetLocalMarkToScanNum(mark_id);
-}
+//API_EXPORT UINT8 uvEng_Recipe_GetLocalMarkToScanNum(UINT8 mark_id)
+//{
+//	return g_pMark->GetLocalMarkToScanNum(mark_id);
+//}
 
 /*
  desc : 현재 Camera Index와 Grabbed Image를 가지고 몇 번째 인덱스에 저장되어 있는지 반환
@@ -309,20 +309,20 @@ API_EXPORT UINT8 uvEng_Recipe_GetLocalMarkToScanNum(UINT8 mark_id)
 		mark	- [out] Mark Index (Zero based) 반환
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvEng_Recipe_GetGrabNumToLocalMark(UINT8 cam_id, UINT8 img_id, UINT8& mark)
-{
-	return g_pMark->GetGrabNumToLocalMark(cam_id, img_id, mark);
-}
+//API_EXPORT BOOL uvEng_Recipe_GetGrabNumToLocalMark(UINT8 cam_id, UINT8 img_id, UINT8& mark)
+//{
+//	return g_pMark->GetGrabNumToLocalMark(cam_id, img_id, mark);
+//}
 
 /*
  desc : 현재 카메라마다 Grabbed Image 번호에 해당되는 방향 (스테이지 이동 방향) 정보 반환
  parm : img_id	- [in]  Camera Grabbed Image Number (Zero based)
  retn : TRUE (Normal : 정방향; 전진) or FALSE (역방향; 후진)
 */
-API_EXPORT BOOL uvEng_Recipe_GetImageToStageDirect(UINT8 img_id)
-{
-	return g_pMark->GetImageToStageDirect(img_id);
-}
+//API_EXPORT BOOL uvEng_Recipe_GetImageToStageDirect(UINT8 img_id)
+//{
+//	return g_pMark->GetImageToStageDirect(img_id);
+//}
 
 /*
  desc : 얼라인 마크 검색을 위해 1 Scan 하게 되면, 검색되는 마크의 개수 즉,

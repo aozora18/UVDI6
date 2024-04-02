@@ -261,6 +261,7 @@ typedef struct __st_cmps_philhmi_config_value_event__
 {
 	BOOL				mp_start;
 	BOOL				safe_pos;
+	BOOL				recipe_comp;
 	UINT8				phil_mode;
 	UINT8				phil_move;
 	UINT8				drive_id;
@@ -279,6 +280,7 @@ typedef struct __st_cmps_philhmi_config_value_event__
 	{
 		mp_start = FALSE;
 		safe_pos = FALSE;
+		recipe_comp = FALSE;
 		phil_mode = en_menu_phil_mode_none;
 		phil_move = en_menu_phil_move_none;
 
@@ -305,6 +307,9 @@ typedef struct __st_cmps_expo_log_after_completion
 
 	UINT8				align_type;						/* Align Mark Array(Global, Local) Type				*/
 
+#ifdef USE_ALIGNMOTION
+UINT16					align_motion;					//얼라인모션
+#endif
 
 
 	UINT8				mark_type;						/* Mark 구분 즉, 0 : Geomatrix, 1 : Pattern Image	*/
@@ -318,6 +323,7 @@ typedef struct __st_cmps_expo_log_after_completion
 
 	UINT8				move_acam ;						/* Align Camera 좌/우 끝으로 이동 여부 */
 	UINT8				move_ph;						/* Photohead 상/하 동작 여부 */
+	UINT8				ready_mode;						/* 사용 모드 0 :  일반 모드, 1 : 단차 모드*/
 	UINT8				u8_reserved[6];
 	UINT32				expo_count;						/* 노광 반복 횟수 (최소 1 이상 값) */
 	UINT32				u32_reserved;
@@ -353,6 +359,7 @@ typedef struct __st_cmps_expo_log_after_completion
 
 		move_acam = 0;
 		move_ph = 0;
+		ready_mode = 0;
 		expo_count = 1;
 	}
 

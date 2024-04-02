@@ -9,6 +9,10 @@
 #define MAX_CNT_CIRCLE	100
 #define MAX_CNT_TEXT	100
 
+enum class FlipDir
+{
+	X,Y
+};
 
 //----------Point----------//
 class CDrawDcPixel {
@@ -77,6 +81,7 @@ public:
 	CMilDisp(void);
 	~CMilDisp(void);
 
+	void ClearShapes(int fi_iDispType);
 	void DrawBase(int fi_iDispType, int fi_iNo);
 	void DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
 
@@ -86,6 +91,7 @@ public:
 	void OverlayDC_Circle(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY);
 	void OverlayDC_Cross(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY);
 	void OverlayDC_Box(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY);
+	void OverlayDC_Flip(MIL_ID fi_MilBuf, FlipDir dir); //!최종결과물을 뒤집어야한다.!
 
 	void AddCircleList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_color);
 	void AddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color);
@@ -101,8 +107,8 @@ public:
 	CDrawDcCross**	clCrossList;
 	CDrawDcText**	clTextList;
 
-	CPoint GetOrgImgSize(int fi_iCamNo);
-	CDPoint GetRateDispToBuf(int fi_iCamNo, int fi_DispType);
+	CPoint GetOrgImgSize();
+	CDPoint GetRateDispToBuf(int fi_DispType);
 	VOID InitMilDisp();
 	VOID CloseMilDisp();
 

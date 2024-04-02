@@ -73,8 +73,9 @@ CCamMain::CCamMain(LPG_CIEA config, UINT8 cam_id)
 						  (UINT64(config->GetACamGrabSize(0x00)) * UINT64(config->GetACamGrabSize(0x01)) + 1);
 		m_pGrabBuff[i][UINT64(config->GetACamGrabSize(0x00)) * UINT64(config->GetACamGrabSize(0x01))] = 0;
 	}
-
-	pstMark = (LPG_ACGR)::Alloc(sizeof(STG_ACGR));
+	markPool.Initialize();
+	
+	//pstMark = new STG_ACGR; //(LPG_ACGR)::Alloc(sizeof(STG_ACGR));
 }
 
 /*
@@ -92,8 +93,9 @@ CCamMain::~CCamMain()
 		m_pCamera	= NULL;
 	}
 
+	m_stGrab.Release();
 	// Live Mode 임시 저장용 메모리 해제
-	Free(m_stGrab.grab_data);
+	//Free(m_stGrab.grab_data);
 	/* Gray Index 메모리 해제 */
 	if (m_pHistLevel)	Free(m_pHistLevel);
 	if (m_pGrayCount)	Free(m_pGrayCount);
@@ -106,7 +108,9 @@ CCamMain::~CCamMain()
 		Free(m_pGrabBuff[0]);
 		Free(m_pGrabBuff);
 	}
-	::Free(pstMark);
+	//delete pstMark;
+	//::Free(pstMark);
+	markPool.Destroy();
 }
 
 /*
@@ -309,12 +313,17 @@ BOOL CCamMain::SetParamUpdate()
 		m_pCamera->TriggerSource.SetValue(TriggerSource_Line1);
 		m_pCamera->TriggerActivation.SetValue(TriggerActivation_RisingEdge);
 		m_pCamera->TriggerDelayAbs.SetValue(0.0f);
-		m_pCamera->ExposureMode.SetValue(ExposureMode_Timed);
-		m_pCamera->ExposureAuto.SetValue(ExposureAuto_Off);
+		
+		bool testview = false;
+		m_pCamera->ExposureMode.SetValue(testview == true ? ExposureMode_Off : ExposureMode_Timed);
+		m_pCamera->ExposureAuto.SetValue(testview == true ? ExposureAuto_Once : ExposureAuto_Off);
+
 		m_pCamera->AcquisitionFrameRateEnable.SetValue(false);
 		m_pCamera->AcquisitionStatusSelector.SetValue(AcquisitionStatusSelector_FrameTriggerWait);
 		m_pCamera->SyncFreeRunTimerEnable.SetValue(false);
+
 		m_pCamera->ExposureTimeAbs.SetValue(m_u32ExposeTime);
+
 		/* Transport layer */
 //		m_pCamera->GevSCPSPacketSize.SetValue(8192);	/* Fixed */
 	}
@@ -417,6 +426,7 @@ VOID CCamMain::OnImageGrabbed(CInstantCamera& camera, const CGrabResultPtr& grab
 				//pstMark	= (LPG_ACGR)::Alloc(sizeof(STG_ACGR));
 				//ASSERT(pstMark);
 				// 새로 Grabbed된 이미지 저장 (등록) 처리
+				pstMark = markPool.GetNext();
 				pstMark->cam_id		= m_u8CamID;
 				pstMark->img_id		= m_u8GrabIndex++;
 				pstMark->grab_size	= (UINT32)grabbed->GetImageSize();
@@ -475,16 +485,8 @@ VOID CCamMain::ResetGrabbedImage()
 	/* 동기화 진입 */
 	if (m_syncGrab.Enter())
 	{
-		m_u8GrabIndex	= 0;
-		pPos	= m_lstMark.GetHeadPosition();
-		while (pPos)
-		{
-			pstGrab	= m_lstMark.GetNext(pPos);
-			if (pstGrab)	::Free(pstGrab);
-		}
+		m_u8GrabIndex	= 0;	
 		m_lstMark.RemoveAll();
-
-		/* 동기화 해제 */
 		m_syncGrab.Leave();
 	}
 }

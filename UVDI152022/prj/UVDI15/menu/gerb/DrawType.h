@@ -32,6 +32,6 @@ protected:
 public:
 
 	VOID				DrawType(ENG_ATGL type=ENG_ATGL::en_global_0_local_0x0_n_point);
-	ENG_ATGL			GetNextType();
+	//ENG_ATGL			GetNextType();
 	ENG_ATGL			GetType()	{	return m_enType;	}
 };

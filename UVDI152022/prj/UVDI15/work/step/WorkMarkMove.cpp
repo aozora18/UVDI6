@@ -6,7 +6,7 @@
 #include "pch.h"
 #include "../../MainApp.h"
 #include "WorkMarkMove.h"
-
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -50,8 +50,9 @@ BOOL CWorkMarkMove::InitWork()
 	/* 전체 작업 단계 */
 	m_u8StepTotal	= 0x09;
 
-	/* Grab Mode 설정 */
-	uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);
+	uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
+	
+	
 
 	return TRUE;
 }
@@ -66,7 +67,13 @@ VOID CWorkMarkMove::DoWork()
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-	case 0x01 : m_enWorkState = IsSetTrigPosResetAll();		break;
+	case 0x01 : 
+	{
+		
+		m_enWorkState = IsSetTrigPosResetAll();
+		uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);/* Grab Mode 설정 */
+	}
+	break;
 	case 0x02 : m_enWorkState = IsMotorDriveStopAll();		break;
 	case 0x03 : m_enWorkState = SetTrigEnable(FALSE);		break;
 	case 0x04 : m_enWorkState = IsTrigEnabled(FALSE);		break;
@@ -120,7 +127,7 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
 	dbVeloACamX	= pstCfg->mc2_svc.max_velo[UINT8(enDrvACam)];
 	dbVeloStageY= pstCfg->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_y)];
-
+	
 	/* 최종 이동하고자 하는 모션 위치 값 얻기 */
 //	GetMovePosGlobalMark(m_u8MarkNo, i32PosACamX, i32PosStageY);
 	if (!GetGlobalMarkMoveXY(m_u8MarkNo, dbPosACamX, dbPosStageY))
@@ -145,6 +152,12 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam1);
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam2);
 	/* Stage Moving (Vector) */
+
+	AlignMotion& alignMotion = GlobalVariables::getInstance()->GetAlignMotion();
+
+	auto stageX =  alignMotion.GetMotion()["stage"]["x"].currPos;
+	auto exti =  alignMotion.EstimateOffset(1, dbPosStageY, stageX, dbPosACamX);
+
 	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dbPosStageY))
 	{
 		return ENG_JWNS::en_error;

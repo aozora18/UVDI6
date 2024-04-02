@@ -8,7 +8,7 @@
 #include "DlgMarkShow.h"
 #include "../mesg/DlgMesg.h"
 #include <afxtaskdialog.h>
-
+#include "..\GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -154,7 +154,7 @@ VOID CDlgMarkShow::DrawInit()
 	CMyStatic* pText = NULL;
 
 	UINT8 u8ACamNo = GetMarkACamNoFromIndex(m_nMarkIndex, m_bIsLocal);
-	UINT8 u8ImgNo = GetMarkImgIDFromIndex(m_nMarkIndex, m_bIsLocal);
+	UINT8 u8ImgNo = GetMarkImgIDFromIndex(m_nMarkIndex, u8ACamNo,m_bIsLocal);
 
 	/* 이미지 적재 */
 	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\ui_img\\status\\mark_init.jpg", g_tzWorkDir);
@@ -187,7 +187,7 @@ VOID CDlgMarkShow::DrawInit()
 LPG_ACGR CDlgMarkShow::GetMarkInfo(int index, BOOL bIsLocal)
 {
 	UINT8 u8ACamNo = GetMarkACamNoFromIndex(index, bIsLocal);
-	UINT8 u8ImgNo = GetMarkImgIDFromIndex(index, bIsLocal);
+	UINT8 u8ImgNo = GetMarkImgIDFromIndex(index, u8ACamNo, bIsLocal);
 
 	return uvEng_Camera_GetGrabbedMark(u8ACamNo, u8ImgNo);
 }
@@ -196,32 +196,62 @@ int CDlgMarkShow::GetMarkACamNoFromIndex(int index, BOOL bIsLocal)
 {
 	// 현재 global 4개 기준으로만 되어 있음
 	//int nACamNo = m_nMarkIndex / 2 + 1;
-	int nACamNo = index / 2 + 1;
-
-	if (bIsLocal)
+	
+	auto alignNotion = GlobalVariables::getInstance()->GetAlignMotion();
+	auto status = alignNotion.status;
+	auto pool = bIsLocal ? status.markPoolForCamLocal : status.markPoolForCamGlobal;
+	
+	for (int i = 1; i <= status.acamCount; i++)
 	{
-		// 추가 구현 필요
-	}
+		auto find = std::find_if(pool[i].begin(),pool[i].end(),
+								[&](const STG_XMXY val)
+								{
+									return val.tgt_id == index; 
+								});
 
-	return nACamNo;
+		if (find != pool[i].end())
+		{
+			// 해당하는 요소를 찾았을 때 처리
+			return i;
+		}
+	}
+	return 1;
 }
 
-int CDlgMarkShow::GetMarkImgIDFromIndex(int index, BOOL bIsLocal)
+int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bIsLocal)
 {
 	// 현재 global 4개 기준으로만 되어 있음
 	//int nImgID = m_nMarkIndex % 2;
-	int nImgID =0;
+	int nImgID =-1;
 
-	/*0 1 2 3*
-	/*0 1 0 1*/
-	/*1 0 1 0*/
-	if (bIsLocal)
+	auto alignNotion = GlobalVariables::getInstance()->GetAlignMotion();
+	auto status = alignNotion.status;
+
+	auto pool = bIsLocal ? status.markPoolForCamLocal[camIndex] : status.markPoolForCamGlobal[camIndex];
+
+	if (pool.size() == 0)
+		return nImgID;
+
+	auto find = ::find_if(pool.begin(), pool.end(),[&](const STG_XMXY val)
 	{
-		// 추가 구현 필요
-	}
-	else
+			return val.tgt_id == fiducialIndex;
+	});
+
+	if (find != pool.end())
 	{
-		nImgID = (index % 2) ^ 1;
+		fiducialIndex *= bIsLocal ? 1 : -1;
+		auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
+
+		int min = bIsLocal ? status.globalMarkCnt : 0;
+		for (int i = min; i < grabMark->GetCount(); i++)
+		{
+			auto item = grabMark->GetAt(grabMark->FindIndex(i));
+			if (item->fiducialMarkIndex == fiducialIndex)
+			{
+				nImgID = item->img_id;
+				break;
+			}
+		}
 	}
 
 	return nImgID;
@@ -235,8 +265,9 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int index, BOOL bIsLocal)
 */
 BOOL CDlgMarkShow::DrawMark(int index)
 {
-	UINT8 u8ACamNo	= GetMarkACamNoFromIndex(index, m_bIsLocal);
-	UINT8 u8ImgNo	= GetMarkImgIDFromIndex(index, m_bIsLocal);
+	int u8ACamNo	= GetMarkACamNoFromIndex(index, m_bIsLocal);
+	int u8ImgNo	= GetMarkImgIDFromIndex(index,u8ACamNo ,m_bIsLocal);
+	if (u8ImgNo == -1)return FALSE;
 	TCHAR tzMark[128] = { NULL };
 	/*BOOL bRedraw		= FALSE;*/
 	LPG_ACGR pstMark = NULL;
@@ -251,8 +282,10 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	pstMark = uvEng_Camera_GetGrabbedMark(u8ACamNo, u8ImgNo);
 	if (!pstMark)	return FALSE;
 	/* Output the grabbed images on screen */
-	uvEng_Camera_DrawMarkMBufID(m_hPicMark, m_rPicMark, pstMark->cam_id, pstMark->img_id);
-
+	//uvEng_Camera_DrawMarkMBufID(m_hPicMark, m_rPicMark, pstMark->cam_id, pstMark->img_id,pstMark->img_id);
+	HDC hcd = ::GetDC(m_hPicMark);
+	uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
+	::ReleaseDC(m_hPicMark,hcd);
 	/* Update the grabbed results to the text buffer */
 	swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
 		pstMark->cam_id, pstMark->img_id + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,

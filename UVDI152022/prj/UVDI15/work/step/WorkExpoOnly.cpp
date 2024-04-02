@@ -33,6 +33,7 @@ CWorkExpoOnly::CWorkExpoOnly(LPG_CELA expo)
 
 	m_stExpoLog.Init();
 	memcpy(&m_stExpoLog, expo, sizeof(STG_CELA));
+
 }
 
 /*
@@ -151,12 +152,7 @@ VOID CWorkExpoOnly::SetWorkNext()
 		if (m_u8StepTotal == m_u8StepIt)
 		{
 			/*1싸이클 노광 완료시 로그 기록*/
-			//SaveExpoLog(TRUE);
-			/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-			if (g_u16PhilCommand == ePHILHMI_C2P_PROCESS_EXECUTE)
-			{
-				SetPhilProcessCompelet();
-			}
+			SaveExpoLog(TRUE);
 
 			/* 현재 노광 횟수에 도달 했는지 여부 */
 			//if (++m_u32ExpoCount != m_stExpoInfo.expo_count)
@@ -177,6 +173,9 @@ VOID CWorkExpoOnly::SetWorkNext()
 			}
 			else
 			{
+				/*노광 종료가 되면 Philhmil에 완료보고*/
+				SetPhilProcessCompelet();
+
 				m_enWorkState	= ENG_JWNS::en_comp;
 				CWork::EndWork();	/* 항상 호출*/
 			}
@@ -191,6 +190,11 @@ VOID CWorkExpoOnly::SetWorkNext()
 	}
 	else if (ENG_JWNS::en_error == m_enWorkState)
 	{
+		SaveExpoLog(TRUE);
+
+		/*노광 종료가 되면 Philhmil에 완료보고*/
+		SetPhilProcessCompelet();
+
 		m_enWorkState = ENG_JWNS::en_comp;
 	}
 }
@@ -458,34 +462,45 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 
 
 	/* 거버 / 소재두께 / 광량 / 얼라인 타입 / 마크 타입 / 조명 타입 / 1번 카메라 조명 / 2번 카메라 조명 */
-	TCHAR tzAlignType[7][40] = { L"Global 0 Local 0_0"	, L"Global 4 Local 0_0" , L"Global 4 Local 2_1" , L"Global 4 Local 2_2"
+	/*TCHAR tzAlignType[7][40] = { L"Global 0 Local 0_0"	, L"Global 4 Local 0_0" , L"Global 4 Local 2_1" , L"Global 4 Local 2_2"
 														, L"Global 4 Local 3_2" , L"Global 4 Local 4_2" , L"Global 4 Local 5_2" };
 	TCHAR tzMarkType[2][20] = { L"Geomatrix", L"Pattern Image" };
-	TCHAR tzLampType[2][8] = { L"Ring", L"Coaxial" };
-
- 
-	swprintf_s(tzResult, 1024, L"%s,%d,%.2f,%s,%s,%s,%d,%d,",
-		csCnv1.Ansi2Uni(pstJobRecipe->gerber_name), pstJobRecipe->material_thick, pstJobRecipe->expo_energy, tzAlignType[pstAlignRecipe->align_type],
-		tzMarkType[pstAlignRecipe->mark_type], tzLampType[pstAlignRecipe->lamp_type], pstAlignRecipe->gain_level[0], pstAlignRecipe->gain_level[1]);
-	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
- 
-	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	TCHAR tzLampType[2][8] = { L"Ring", L"Coaxial" };*/
+//
+//#ifdef USE_ALIGNMOTION
+//	swprintf_s(tzResult, 1024, L"%s,%d,%.2f,%s,%s,%s,%s,%d,%d,",
+//		csCnv1.Ansi2Uni(pstJobRecipe->gerber_name), pstJobRecipe->material_thick, pstJobRecipe->expo_energy, tzAlignType[pstAlignRecipe->align_type],
+//		tzAlignType[pstAlignRecipe->align_motion], tzMarkType[pstAlignRecipe->mark_type], tzLampType[pstAlignRecipe->lamp_type], pstAlignRecipe->gain_level[0], 
+//		pstAlignRecipe->gain_level[1]);
+//
+//	
+//#else
+//	//swprintf_s(tzResult, 1024, L"%s,%d,%.2f,%s,%s,%s,%d,%d,",
+//	//	csCnv1.Ansi2Uni(pstJobRecipe->gerber_name), pstJobRecipe->material_thick, pstJobRecipe->expo_energy, tzAlignType[pstAlignRecipe->align_type],
+//	//	tzMarkType[pstAlignRecipe->mark_type], tzLampType[pstAlignRecipe->lamp_type], pstAlignRecipe->gain_level[0], pstAlignRecipe->gain_level[1]);
+//	//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+//#endif
+// 
+//	//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
 	/*ExpoLog 기록*/
-	memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);
+	//memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);
+	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
 	m_stExpoLog.material_thick	= pstJobRecipe->material_thick;
 	m_stExpoLog.expo_energy		= pstJobRecipe->expo_energy;
 
 	m_stExpoLog.align_type		= pstAlignRecipe->align_type;
-
+#ifdef USE_ALIGNMOTION
+	m_stExpoLog.align_motion = pstAlignRecipe->align_motion;
+#endif
 	m_stExpoLog.mark_type		= pstAlignRecipe->mark_type;
 	m_stExpoLog.lamp_type		= pstAlignRecipe->lamp_type;
 	m_stExpoLog.gain_level[0]	= pstAlignRecipe->gain_level[0];
 	m_stExpoLog.gain_level[1]	= pstAlignRecipe->gain_level[1];
 
 	m_stExpoLog.led_duty_cycle = pstExpoRecipe->led_duty_cycle;
-	sprintf_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
+	//sprintf_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
+	strcpy_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
@@ -503,71 +518,66 @@ VOID CWorkExpoOnly::SetPhilProcessCompelet()
 	sprintf_s(stProcessComp.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, m_stExpoLog.recipe_name);
 	sprintf_s(stProcessComp.szGlassID, DEF_MAX_GLASS_NAME_LENGTH, m_stExpoLog.glassID);
 
-	/*노광 결과 파라미터값*/
 	stProcessComp.usCount = 15;
-	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "CHAR");
+	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Data");
 	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.data);
 
-	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT64");
+	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Time");
 	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%lld", m_stExpoLog.expo_time);
 
-	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "BOOL");
 	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Mode");
-	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "Direct");
+	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "0");
 
-	sprintf_s(stProcessComp.stVar[3].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
+	sprintf_s(stProcessComp.stVar[3].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "BOOL");
 	sprintf_s(stProcessComp.stVar[3].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Succ");
 	sprintf_s(stProcessComp.stVar[3].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
 
-	sprintf_s(stProcessComp.stVar[4].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT32");
-	sprintf_s(stProcessComp.stVar[4].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Real Scale");
-	sprintf_s(stProcessComp.stVar[4].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.1f", m_stExpoLog.real_scale);
+	sprintf_s(stProcessComp.stVar[4].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[4].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_top_horz");
+	sprintf_s(stProcessComp.stVar[4].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.global_dist[0]);
 
-	sprintf_s(stProcessComp.stVar[5].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "INT32");
-	sprintf_s(stProcessComp.stVar[5].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Real Rotain");
-	sprintf_s(stProcessComp.stVar[5].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.1f", m_stExpoLog.real_rotaion);
+	sprintf_s(stProcessComp.stVar[5].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[5].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_btm_horz");
+	sprintf_s(stProcessComp.stVar[5].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.global_dist[0]);
 
-	sprintf_s(stProcessComp.stVar[6].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "PCHAR");
-	sprintf_s(stProcessComp.stVar[6].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gerber Name");
-	sprintf_s(stProcessComp.stVar[6].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.gerber_name);
+	sprintf_s(stProcessComp.stVar[6].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[6].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_lft_vert");
+	sprintf_s(stProcessComp.stVar[6].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.global_dist[0]);
 
-	sprintf_s(stProcessComp.stVar[7].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT32");
-	sprintf_s(stProcessComp.stVar[7].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Material Thick");
-	sprintf_s(stProcessComp.stVar[7].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.material_thick);
+	sprintf_s(stProcessComp.stVar[7].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[7].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_rgt_vert");
+	sprintf_s(stProcessComp.stVar[7].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.global_dist[0]);
 
-	sprintf_s(stProcessComp.stVar[8].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "float");
-	sprintf_s(stProcessComp.stVar[8].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Expo Energy");
-	sprintf_s(stProcessComp.stVar[8].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, " %.1f", m_stExpoLog.expo_energy);
+	sprintf_s(stProcessComp.stVar[8].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[8].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_lft_diag");
+	sprintf_s(stProcessComp.stVar[8].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.global_dist[0]);
 
-	sprintf_s(stProcessComp.stVar[9].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[9].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Align Type");
-	sprintf_s(stProcessComp.stVar[9].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.align_type);
+	sprintf_s(stProcessComp.stVar[9].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[9].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_rgt_diag");
+	sprintf_s(stProcessComp.stVar[9].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.global_dist[0]);
 
-	sprintf_s(stProcessComp.stVar[10].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[10].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Mark Type");
-	sprintf_s(stProcessComp.stVar[10].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.mark_type);
+	sprintf_s(stProcessComp.stVar[10].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
+	sprintf_s(stProcessComp.stVar[10].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gerber_Name");
+	sprintf_s(stProcessComp.stVar[10].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.gerber_name);
 
-	sprintf_s(stProcessComp.stVar[11].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[11].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Lamp Type");
-	sprintf_s(stProcessComp.stVar[11].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.lamp_type);
+	sprintf_s(stProcessComp.stVar[11].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[11].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Material_Thick");
+	sprintf_s(stProcessComp.stVar[11].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.material_thick);
 
-	sprintf_s(stProcessComp.stVar[12].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[12].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gain Level1");
-	sprintf_s(stProcessComp.stVar[12].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.gain_level[0]);
+	sprintf_s(stProcessComp.stVar[12].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[12].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Expo_Energy");
+	sprintf_s(stProcessComp.stVar[12].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, " %.1f", m_stExpoLog.expo_energy);
 
-	sprintf_s(stProcessComp.stVar[13].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[13].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gain Level2");
-	sprintf_s(stProcessComp.stVar[13].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.gain_level[1]);
+	sprintf_s(stProcessComp.stVar[13].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
+	sprintf_s(stProcessComp.stVar[13].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Power_Name");
+	sprintf_s(stProcessComp.stVar[13].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.power_name);
 
-	sprintf_s(stProcessComp.stVar[14].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "PCHAR");
-	sprintf_s(stProcessComp.stVar[14].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Power Name");
-	sprintf_s(stProcessComp.stVar[14].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.power_name);
-
-	sprintf_s(stProcessComp.stVar[15].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[15].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Led Duty Cycle");
-	sprintf_s(stProcessComp.stVar[15].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.led_duty_cycle);
+	sprintf_s(stProcessComp.stVar[14].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "INT");
+	sprintf_s(stProcessComp.stVar[14].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Led_Duty_Cycle");
+	sprintf_s(stProcessComp.stVar[14].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.led_duty_cycle);
 
 	if (!m_stExpoLog.expo_succ)
 	{

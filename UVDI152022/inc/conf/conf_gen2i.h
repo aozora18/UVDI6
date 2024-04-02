@@ -45,6 +45,7 @@ typedef struct __st_config_file_data_name__
 	TCHAR				ph_step[MAX_FILE_LEN];
 	TCHAR				acam_cali[MAX_FILE_LEN];
 	TCHAR				correct_y[MAX_FILE_LEN];
+	TCHAR				staticAcamCali[3][MAX_FILE_LEN];
 
 }	STG_CFDN,	*LPG_CFDN;
 

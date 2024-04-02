@@ -50,6 +50,7 @@ class CDPoint
 {
 public:
 	double x, y;
+	CDPoint(double x, double y) : x(x), y(y) {}
 	CDPoint()
 	{
 		x = y = 0.0;

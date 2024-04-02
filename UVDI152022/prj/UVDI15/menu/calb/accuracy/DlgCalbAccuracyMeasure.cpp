@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 
+
 /*
  desc : 생성자
  parm : id		- [in]  자신의 윈도 ID
@@ -49,7 +50,7 @@ VOID CDlgCalbAccuracyMeasure::DoDataExchange(CDataExchange* dx)
 	for (i = 0; i < eCALB_ACCURACY_MEASURE_PIC_MAX; i++)		DDX_Control(dx, u32StartID + i, m_pic_ctl[i]);
 
 	u32StartID = IDC_CALB_ACCURACY_MEASURE_GRD_SELECT_CAM;
-	for (i = 0; i <eCALB_ACCURACY_MEASURE_GRD_MAX; i++)			DDX_Control(dx, u32StartID + i, m_grd_ctl[i]);
+	for (i = 0; i < eCALB_ACCURACY_MEASURE_GRD_MAX; i++)			DDX_Control(dx, u32StartID + i, m_grd_ctl[i]);
 }
 
 
@@ -95,12 +96,12 @@ BOOL CDlgCalbAccuracyMeasure::OnInitDlg()
 	InitGridOption();
 	InitGridData();
 	InitDispMark();
-
+	
 	if (FALSE == CAccuracyMgr::GetInstance()->SetRegistModel())
 	{
 		AfxMessageBox(L"Failed to setup the model for search target", MB_ICONSTOP | MB_TOPMOST);
 	}
-
+	
 	return TRUE;
 }
 
@@ -108,7 +109,23 @@ VOID CDlgCalbAccuracyMeasure::InitDispMark()
 {
 	CWnd* pWnd[2];
 	pWnd[0] = GetDlgItem(IDC_CALB_ACCURACY_MEASURE_PIC_ROI);
-	pWnd[1] = NULL;
+	LPRECT temp = nullptr;
+
+
+	CRect baseRect;
+	auto baseControl = GetDlgItem(IDC_CALB_ACCURACY_MEASURE_STT_CAMERA_VIEW);
+	baseControl->GetWindowRect(baseRect);
+
+	pWnd[0]->MoveWindow(baseRect.left, baseRect.top, baseRect.Width() * 0.95, baseRect.Width() * 0.95, TRUE);
+
+	baseControl = GetDlgItem(IDC_CALB_ACCURACY_MEASURE_PIC_ROI);
+	baseControl->GetWindowRect(baseRect);
+
+	/*CRect grabBtn;
+	pWnd[1] = GetDlgItem(IDC_CALB_ACCURACY_MEASURE_BTN_GRAB);
+	pWnd[1]->GetWindowRect(grabBtn);
+	pWnd[1]->MoveWindow(grabBtn.left, baseRect.top + baseRect.Height(), grabBtn.Width(), grabBtn.Height(), TRUE);*/
+
 	uvEng_Camera_SetDisp(pWnd, 0x03);
 	//DispResize(pWnd[0]);
 
@@ -290,9 +307,9 @@ VOID CDlgCalbAccuracyMeasure::InitGridSelectCam()
 	CResizeUI	clsResizeUI;
 	CRect		rGrid;
 	std::vector <int>			vRowSize(1);
-	std::vector <int>			vColSize(DEF_CAMERA_COUNT);
-	std::vector <std::wstring>	vTitle(DEF_CAMERA_COUNT);
-	std::vector <COLORREF>		vColColor(DEF_CAMERA_COUNT);
+	std::vector <int>			vColSize(CAMER_ACOUNT);
+	std::vector <std::wstring>	vTitle(CAMER_ACOUNT);
+	std::vector <COLORREF>		vColColor(CAMER_ACOUNT);
 
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_SELECT_CAM];
 
@@ -348,7 +365,7 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	CResizeUI					clsResizeUI;
 	CRect						rGrid;
 	CString						strFilePath;
-	CGridCtrl*					pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
+	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
 	std::vector <int>			vColSize(eOPTION_COL_MAX);
 	std::vector <int>			vRowSize(eOPTION_ROW_MAX);
 	std::vector <std::wstring>	vTitle[eOPTION_ROW_MAX];
@@ -357,6 +374,10 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	vTitle[eOPTION_ROW_X_DRV] = { _T("Select X motor"), _T("STAGE X") };
 	vTitle[eOPTION_ROW_USE_CAL] = { _T("Use calibration data"), _T("NO") };
 	vTitle[eOPTION_ROW_CAL_FILE_PATH] = { _T("Calibration file"), _T("None") };
+	vTitle[eOPTION_DOUBLE_MARK] = { _T("Double Mark"), _T("NO") };
+	
+	 //serchmode = ;
+	CAccuracyMgr::GetInstance()->SetSearchMode(CAccuracyMgr::SearchMode::single);
 
 	clsResizeUI.ResizeControl(this, pGrid);
 	pGrid->GetWindowRect(rGrid);
@@ -461,7 +482,7 @@ VOID CDlgCalbAccuracyMeasure::InitGridData(BOOL bIsReload/* = FALSE*/)
 
 	pGrid->DeleteAllItems();
 	pGrid->Refresh();
-	 
+
 	if (FALSE == bIsReload)
 	{
 		clsResizeUI.ResizeControl(this, pGrid);
@@ -647,6 +668,7 @@ VOID CDlgCalbAccuracyMeasure::OnClickGridSelectCam(NMHDR* pNotifyStruct, LRESULT
 	pGrid->SetItemBkColour(0, pItem->iColumn, DEF_COLOR_BTN_MENU_SELECT);
 
 	//CCamSpecMgr::GetInstance()->SetCamID(m_u8SelHead + 1);
+	CAccuracyMgr::GetInstance()->SetCamID(m_u8SelHead + 1);
 
 	pGrid->Refresh();
 }
@@ -670,6 +692,7 @@ VOID CDlgCalbAccuracyMeasure::OnClickGridOption(NMHDR* pNotifyStruct, LRESULT* p
 	{
 		LoadCalibrationFile();
 	}
+
 
 	pGrid->Refresh();
 }
@@ -723,8 +746,8 @@ VOID CDlgCalbAccuracyMeasure::OnClickGridData(NMHDR* pNotifyStruct, LRESULT* pRe
 */
 VOID CDlgCalbAccuracyMeasure::UpdatePeriod(UINT64 tick, BOOL is_busy)
 {
-// 	/* for Align Camera */
-// 	UpdateCtrlACam();
+	// 	/* for Align Camera */
+	// 	UpdateCtrlACam();
 
 	if (!is_busy)
 	{
@@ -756,9 +779,33 @@ VOID CDlgCalbAccuracyMeasure::UpdateLiveView()
 	//	::ReleaseDC(m_pic_ctl[0].m_hWnd, hDC);
 	//}
 
-	if (!uvEng_Camera_IsCamModeLive())	return;
-	UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
-	uvEng_Camera_DrawImageBitmap(DISP_TYPE_CALB_ACCR, u8ACamID - 1, u8ACamID);
+	
+
+	if (!uvEng_Camera_IsCamModeLive())
+	{
+
+
+	}
+	else
+	{
+		UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
+		uvEng_Camera_DrawImageBitmap(DISP_TYPE_CALB_ACCR, u8ACamID - 1, u8ACamID);
+		uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_CALB_ACCR, 0);
+	}
+}
+
+bool CDlgCalbAccuracyMeasure::IsSearchMarkTypeChanged()
+{
+	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
+	auto itemText = pGrid->GetItemText(eOPTION_DOUBLE_MARK, eOPTION_COL_VALUE);
+	auto select = (itemText == "NO" || itemText == "No")? CAccuracyMgr::SearchMode::single : CAccuracyMgr::SearchMode::multi;
+
+	if (CAccuracyMgr::GetInstance()->GetSearchMode() != select)
+	{
+		CAccuracyMgr::GetInstance()->SetSearchMode(select);
+		return true;
+	}
+	return false;
 }
 
 VOID CDlgCalbAccuracyMeasure::ResetDataViewPoint(UINT32 u32Row)
@@ -778,7 +825,7 @@ VOID CDlgCalbAccuracyMeasure::ResetDataViewPoint(UINT32 u32Row)
 VOID CDlgCalbAccuracyMeasure::SetLiveView(BOOL bLive)
 {
 	BOOL bSucc = FALSE;
-
+	uvEng_Camera_ClearShapes(DISP_TYPE_CALB_ACCR);
 	if (TRUE == bLive)
 	{
 		m_btn_ctl[eCALB_ACCURACY_MEASURE_BTN_LIVE].SetBgColor(LIME);
@@ -980,7 +1027,8 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stVctParam.push_back(stParam);
 
 	if (IDOK == dlg.MyDoModal(stVctParam))
-	{;
+	{
+		;
 		CString strExt = _T("CSV Files|csv");
 		CString strFileName;
 		CString strFilter = _T("CSV Files(*.csv)|*.csv|All Files (*.*)|*.*||");
@@ -1101,20 +1149,27 @@ BOOL CDlgCalbAccuracyMeasure::MarkGrab(double* pdErrX, double* pdErrY)
 		SetLiveView(FALSE);
 	}
 
-	UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
+	UINT8 u8ACamID = GetCheckACam() + 1;
 	CTactTimeCheck cTime;
-	LPG_ACGR pstResult = NULL;
+	
 
 	/* 기존 Live & Edge & Calibration 데이터 초기화 */
 	uvEng_Camera_ResetGrabbedImage();
 
 	if (ENG_VCCM::en_image_mode != uvEng_Camera_GetCamMode())
 	{
+		//doubleMarkAccurtest.RegistMark(u8ACamID);
+
 		/* Mark Model이 등록되어 있는지 여부 */
-		if (!uvEng_Camera_IsSetMarkModelACam(u8ACamID, 2))
+		if (IsSearchMarkTypeChanged() || !uvEng_Camera_IsSetMarkModelACam(u8ACamID, 2))
 		{
-			AfxMessageBox(L"No Mark Model registered", MB_ICONSTOP | MB_TOPMOST);
-			return FALSE;
+			auto serchmode = CAccuracyMgr::GetInstance()->GetSearchMode();
+
+			if (FALSE == (serchmode == CAccuracyMgr::SearchMode::single ? CAccuracyMgr::GetInstance()->SetRegistModel() : CAccuracyMgr::GetInstance()->RegistMultiMark()))
+				AfxMessageBox(L"Failed to setup the model for search target", MB_ICONSTOP | MB_TOPMOST);
+				
+			//AfxMessageBox(L"No Mark Model registered", MB_ICONSTOP | MB_TOPMOST);
+			//return FALSE;
 		}
 
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
@@ -1136,28 +1191,46 @@ BOOL CDlgCalbAccuracyMeasure::MarkGrab(double* pdErrX, double* pdErrY)
 	cTime.Init();
 	cTime.Start();
 
+	LPG_ACGR pstResult = nullptr;
 	/* 일정 시간동안 동작 */
 	while (1000 > (int)cTime.GetTactMs())
 	{
+		
 		/* 검색된 결과가 있는지 조사 */
-		pstResult = uvEng_Camera_RunModelCali(u8ACamID, 0xFE, (UINT8)DISP_TYPE_CALB_ACCR, TMP_MARK, TRUE, uvEng_GetConfig()->mark_find.image_process);
-
-		if (NULL != pstResult)
+		auto searchMode = CAccuracyMgr::GetInstance()->GetSearchMode();
+		//여기서 그려야됨
+		if (searchMode == CAccuracyMgr::SearchMode::single)
 		{
-			if (NULL != pstResult->marked)
+			pstResult = uvEng_Camera_RunModelCali(u8ACamID, 0xFE, (UINT8)DISP_TYPE_CALB_ACCR, TMP_MARK, TRUE, uvEng_GetConfig()->mark_find.image_process);
+
+			if (NULL != pstResult)
 			{
-				InvalidateView();
-
-				if (NULL != pdErrX && NULL != pdErrY)
+				if (NULL != pstResult->marked)
 				{
-					pdErrX = &pstResult->move_mm_x;
-					pdErrY = &pstResult->move_mm_y;
-				}
+					InvalidateView();
 
-				return TRUE;
+					if (NULL != pdErrX && NULL != pdErrY)
+					{
+						*pdErrX = pstResult->move_mm_x;
+						*pdErrY = pstResult->move_mm_y;
+					}
+					return TRUE;
+				}
 			}
 		}
-
+		else
+		{
+			auto res = CAccuracyMgr::GetInstance()->RunDoublemarkTestExam(u8ACamID, pdErrX, pdErrY);
+			
+			if (res)return true;
+			/*
+			if(pstResult != nullptr && pstResult[0].marked == true && pstResult[1].marked == true)
+			{
+				delete[] pstResult;
+				return true;
+			}
+			else delete[] pstResult;*/
+		}
 		cTime.Stop();
 		Wait_(100);
 	}
@@ -1234,7 +1307,7 @@ VOID CDlgCalbAccuracyMeasure::PointMoveStart()
 	{
 		MotionMove(ENG_MMDI::en_align_cam1, pstCfg->set_cams.safety_pos[0]);
 	}
-	
+
 	Wait_(200);
 
 	MotionMove(ENG_MMDI::en_stage_y, dpPos.y);

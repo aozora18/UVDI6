@@ -253,7 +253,7 @@ BOOL CMilMain::InitMilAlloc(ENG_ERVM run_mode, PTCHAR font_name, UINT8 font_size
 	for (i = 0; i < m_pstConfig->set_cams.acam_count + 1; i++)
 	{
 		m_pMilModel[i]	= new CMilModel(m_pstConfig, m_pstShMemVisi,
-			i + 1, run_mode);
+			i + 1, m_mSysID, run_mode);
 		ASSERT(m_pMilModel[i]);
 	}
 	/* 1번 Scan 할 때마다 수집된 Grabbed Image를 저장 및 관리하는 객체 메모리 할당 */
@@ -265,7 +265,7 @@ BOOL CMilMain::InitMilAlloc(ENG_ERVM run_mode, PTCHAR font_name, UINT8 font_size
 		for (j=0; j<m_pstConfig->mark_find.max_mark_grab; j++)
 		{
 			m_pMilGrab[i][j]	= new CMilGrab(m_pstConfig, m_pstShMemVisi,
-				i + 1, run_mode);
+				i + 1, m_mSysID,run_mode);
 		}
 	}
 #endif
@@ -610,7 +610,7 @@ LPG_ACGR CMilMain::GetLastGrabbedMark()
 UINT8 CMilMain::GetModelRegistCount(UINT8 cam_id)
 {
 	if (cam_id >= MAX_ALIGN_CAMERA)	return 0;
-	//return m_pMilModel[cam_id-1]->GetModelRegistCount();
+	return m_pMilModel[cam_id-1]->GetModelRegistCount();
 	return 2; //lk91 사용 안함.
 }
 
@@ -913,6 +913,92 @@ BOOL CMilMain::RunModelStep(UINT8 cam_id, PUINT8 image, UINT32 width, UINT32 hei
 	/* 검색 유효 개수가 맞는지 확인 */
 	return (j == count);
 }
+
+
+/*
+ desc : Geometric Model Find (Examination; 검사 (측정) 검색용)
+ parm : image	- [in]  Bitmap Image Buffer
+		width	- [in]  Grabbed Image - Width (Pixel)
+		height	- [in]  Grabbed Image - Width (Pixel)
+		score	- [in]  크기 비율 값 (이 값보다 크거나 같으면 Okay)
+		scale	- [in]  매칭 비율 값 (1.0 기준으로 +/- 이 값 범위 안에 있으면 Okay)
+		results	- [out] 검색된 결과 정보가 저장될 구조체 참조 포인터 (grabbed image buffer까지 복사해옴)
+ retn : TRUE or FALSE
+*/
+BOOL CMilMain::RunModelExam2(PUINT8 image, UINT32 width, UINT32 height,
+	DOUBLE score, DOUBLE scale, LPG_ACGR results)
+{
+	UINT8 i = 0, j = 0;
+	BOOL bIsFindAll = FALSE;
+	LPG_GMFR pstGet = NULL;
+	bool valid[2] = { false,false };
+	/* Grabbed Image 처리를 위한 객체 선택 */
+	m_pLastGrabResult = m_pMilGrab[0][0];	/* Align Camera 1 - Fixed */
+	if (!m_pLastGrabResult)	return FALSE;
+	if (!m_pLastGrabResult->PutGrabImage(image, 0x00 /* fixed */, 0.0f /* fixed */, 0.0f /* fixed */))
+	{
+		LOG_ERROR(ENG_EDIC::en_mil, L"Failed to put the grabbed image");
+	}
+	else
+	{
+		/* 현재 해당 객체에 모델이 등록되어 있는지 여부 */
+		if (!m_pMilModel)						return FALSE;
+		if (!m_pMilModel[0]->IsSetMarkModel(TMP_MARK))	return FALSE;
+		/* Edge Detecting 수행 */
+		if (!m_pMilModel[0]->RunModelFind(m_mGraphID, m_pLastGrabResult->GetBufID(), FALSE))
+		{
+			return FALSE;
+		}
+		//if (!m_pMilModel[0]->IsFindModCount(2, score, scale))
+		//{
+		//	return FALSE;
+		//}
+		//theApp.clMilDisp.DrawOverlayDC(false, DISP_TYPE_CALB_ACCR, 0);
+		
+		for (i = 0; i < 2; i++)
+		{
+			pstGet = m_pMilModel[0]->GetFindMark(i);
+			pstGet->mark_width = m_pMilModel[0]->GetModelWidth(i);
+			pstGet->mark_height = m_pMilModel[0]->GetModelHeight(i);
+			
+			if (pstGet->IsValidMark(score, scale))
+			{
+				valid[i] = true;
+				m_pLastGrabResult->SetGrabbedMark(0xff, pstGet,
+					m_pMilModel[0]->GetFindMarkAll(),
+					m_pMilModel[0]->GetFindMarkAllCount(),
+					pstGet->mark_width, pstGet->mark_height);
+				if (results)
+				{
+					/* 반환 구조체에 복사 진행 (포인트 주소까지 복사해버리면 안되므로 ...) */
+					memcpy(&results[i], m_pLastGrabResult->GetGrabbedMark(),
+						sizeof(STG_ACGR) - sizeof(PUINT8));
+					/* Grabbed Image까지 포함됨 */
+					//memcpy(results[i].grab_data, image, width * height);
+					/* 검색된 Mark 크기 값은 별도로 다시 저장해야 함 */
+					results[i].mark_width_px = m_pMilModel[0]->GetModelWidth(j);
+					results[i].mark_height_px = m_pMilModel[0]->GetModelHeight(j);
+					results[i].marked = valid[i];
+					//theApp.clMilDisp.AddCrossList(DISP_TYPE_CALB_ACCR, 0, results[i].mark_width_px - results[i].mark_cent_px_x, results[i].mark_height_px - results[i].mark_cent_px_y,  30, 30, COLOR_BLUE);
+					//uvEng_Camera_DrawImageBitmap((UINT8)DISP_TYPE_CALB_ACCR, 0, 1, 0, 1);
+
+					/* 다음 Array에 저장하기 위함과 동시에, 2개 모두 검색되었는지 여부 */
+					
+						
+				}
+			}
+			else
+			{
+				
+			}
+		}
+		//theApp.clMilDisp.DrawOverlayDC(true, DISP_TYPE_CALB_ACCR, 0);
+	}
+	auto res = (valid[0] & valid[1]) == true;
+
+	return res;
+}
+
 
 /*
  desc : Geometric Model Find (Examination; 검사 (측정) 검색용)
@@ -1484,6 +1570,12 @@ BOOL CMilMain::RunLineCentXY(UINT8 cam_id, LPG_ACGR grab_data, BOOL mil_result)
 #endif
 	return bSucc;
 }
+
+
+UINT8 CMilMain::GetMarkFindSetCount(int camNum)
+{ return m_pMilModel[camNum-1]->GetMarkFindSetCount(); }
+UINT8 CMilMain::GetMarkFindedCount(int camNum) 
+{ return m_pMilModel[camNum-1]->GetMarkFindedCount(); }
 
 /*
  desc : 마크 등록 방식 (Type)

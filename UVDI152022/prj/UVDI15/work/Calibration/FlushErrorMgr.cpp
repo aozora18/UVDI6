@@ -89,13 +89,14 @@ VOID CFlushErrorMgr::Terminate()
 		return;
 	}
 
-	for (int nIndex = 0; nIndex < u8CamCount; nIndex++)
-	{
-		if (NULL != m_pstGrabData[nIndex].grab_data)
-		{
-			::Free(m_pstGrabData[nIndex].grab_data);
-		}
-	}
+	//for (int nIndex = 0; nIndex < u8CamCount; nIndex++)
+	//{
+	//	//delete m_pstGrabData[nIndex];
+	//	/*if (m_pstGrabData!= null && m_pstGrabData[nIndex]   NULL != m_pstGrabData[nIndex].grab_data)
+	//	{
+	//		::Free(m_pstGrabData[nIndex].grab_data);
+	//	}*/
+	//}
 
 	delete[] m_pstGrabData;
 }
@@ -231,7 +232,7 @@ BOOL CFlushErrorMgr::GrabbedImage(double& dCenterMove)
 		{
 			return FALSE;
 		}
-		//Sleep(4000);
+		Sleep(4000);
 
 		/* 타이머 초기화 및 시작 */
 		cTime.Init();
@@ -262,7 +263,8 @@ BOOL CFlushErrorMgr::GrabbedImage(double& dCenterMove)
 				/* X 좌표 값이 작은 순으로 재배치 */
 				if (FALSE == bIsChanged)
 				{
-					STG_ACGR stTemp = { NULL };
+					STG_ACGR stTemp;
+					stTemp.Init();
 					memcpy(&stTemp, &m_pstGrabData[0], sizeof(STG_ACGR));
 					memcpy(&m_pstGrabData[0], &m_pstGrabData[1], sizeof(STG_ACGR));
 					memcpy(&m_pstGrabData[1], &stTemp, sizeof(STG_ACGR));

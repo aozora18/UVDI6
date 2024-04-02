@@ -19,6 +19,11 @@
 #include "../param/RecipeManager.h"
 #include "../../../inc/kybd/DlgKBDT.h"
 #include "DlgMmpm.h"
+#include <atlcoll.h>
+#include "../../../inc/conf/vision_uvdi15.h"
+#include "../GlobalVariables.h"
+#include "../pops/DlgParam.h"
+
 
 
 #ifdef	_DEBUG
@@ -26,6 +31,8 @@
 #undef THIS_FILE
 static char THIS_FILE[]	= __FILE__;
 #endif
+
+class GlobalVariables;
 
 
 /*
@@ -217,7 +224,7 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	m_u64TickCount++;
 	m_bBlink = !m_bBlink;
 
-	DrawMarkData();
+//	DrawMarkData();
 }
 
 /*
@@ -705,21 +712,22 @@ void CDlgManual::UpdateGridInformation()
 		}
 	}
 
+	/*Tack Time*/
 	UINT64 u64JobTime = uvEng_GetJobWorkTime();
-	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::TACT_TIME, 1, L"Last : %u m %02u s",	uvCmn_GetTimeToType(u64JobTime, 0x01),	uvCmn_GetTimeToType(u64JobTime, 0x02));
+	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::TACT_TIME, 1, L"Last : %u m %02u s", uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02));
 
+	/*Gerber Name*/
 	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe();
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::GERBER_NAME, 1, L"%S", pJob->gerber_name);
 
-
-	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
 	/*Roation*/
-	//m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"%d", pstParams->rotation);
-	//if (pstParams->rotation == 0)
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
-	//}
+	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
+	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"%d", pstParams->rotation);
+	if (pstParams->rotation == 0)
+	{
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
+	}
 	//else if (pstParams->rotation > pstRecipeExpo->real_rotaion_range)
 	//{
 	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, SEA_GREEN);
@@ -730,22 +738,26 @@ void CDlgManual::UpdateGridInformation()
 	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, TOMATO);
 	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
 	//}
-	//abh1000 1019
-	LPG_LDPP pstPanel = &uvEng_ShMem_GetLuria()->panel;
-	if (pstPanel->global_rectangle_lock == 1)
-	{
-		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
-		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"Rectangle Lock ON");
-	}
 	else
 	{
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, SEA_GREEN);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"Rectangle Lock OFF");
 	}
 
-
+	//abh1000 1019
+	//LPG_LDPP pstPanel = &uvEng_ShMem_GetLuria()->panel;
+	//if (pstPanel->global_rectangle_lock == 1)
+	//{
+	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
+	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
+	//	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"Rectangle Lock ON");
+	//}
+	//else
+	//{
+	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, SEA_GREEN);
+	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
+	//	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"Rectangle Lock OFF");
+	//}
 
 	/*scale_xy*/
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, L"ScaleX = %.5f  ScaleY = %.5f", pstParams->scale_xy[0] / 1000000.0f, pstParams->scale_xy[1] / 1000000.0f);
@@ -754,16 +766,51 @@ void CDlgManual::UpdateGridInformation()
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);
 	}
-	else if ((pstParams->scale_xy[0] + pstParams->scale_xy[1]) / 2 / 1000000.0f > pstRecipeExpo->real_scale_range)
+	//else if ((pstParams->scale_xy[0] + pstParams->scale_xy[1]) / 2 / 1000000.0f > pstRecipeExpo->real_scale_range)
+	//{
+	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, SEA_GREEN);
+	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
+	//}
+	//else
+	//{
+	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, TOMATO);
+	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
+	//}
+	else
 	{
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, SEA_GREEN);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
 	}
+
+
+	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
+	DOUBLE RealThick = uvEng_GetConfig()->measure_flat.dAlignMeasure + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+	DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+
+	/*LDS Thick*/
+	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > LimitZ Pos : %.3f", RealThick, LimitZPos);
+	/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
+	if(uvEng_GetConfig()->measure_flat.dAlignMeasure == 0)
+	{ 
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);
+	}
+	else if (RealThick < LimitZPos)
+	{
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, SEA_GREEN);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
+	}
 	else
 	{
-		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, TOMATO);
-		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, TOMATO);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
 	}
+	 
+	//else
+	//{
+	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, SEA_GREEN);
+	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
+	//}
 
 
 
@@ -999,11 +1046,12 @@ VOID CDlgManual::CalcEnergy()
 	m_stJob.expo_energy = (float)(dbTotal / DOUBLE(i));
 	m_stJob.step_size = u8Step;
 	m_stJob.material_thick = u16Thickness;
-	//m_stJob.frame_rate = u16FrameRate;
+	m_stJob.frame_rate = u16FrameRate;
 
 	uvEng_JobRecipe_RecipeModify(&m_stJob);
 	UpdateGridParameter();
 }
+
 
 /*
  desc : 일반 버튼 클릭한 경우
@@ -1063,10 +1111,10 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 		break;
 	case EN_MANUAL_BTN::CALIBRATION_MARK:
 	{
-		CDlgMmpm dlgMmpm;
-		dlgMmpm.DoModal();
+		MakeMarkOffsetField();
 	}
-		break;
+	break;
+
 	case EN_MANUAL_BTN::MARK_ZERO:
 	{
 		MarkZero();
@@ -1080,6 +1128,101 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 		break;
 	}
 }
+
+
+
+VOID CDlgManual::MakeMarkOffsetField()
+{
+	CDlgParam dlg;
+	DLG_PARAM stParam;
+	VCT_DLG_PARAM stVctParam;
+	CString strName;
+	CDPoint dpStartPos;
+
+	const int GLOBAL_MARK_COUNT = 4;
+	const int MARK_PAIR = 2;
+
+	auto grabFindFunc = [&](int camIdx, int imgID, CAtlList <LPG_ACGR>* grabPtr) -> unique_ptr<STG_XMXY>
+	{
+		if (grabPtr == NULL || grabPtr->GetCount() == 0)
+			return nullptr;
+
+		for (int i = 0; i < grabPtr->GetCount(); i++)
+		{
+			auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
+			if (grab != nullptr && grab->cam_id == camIdx && grab->img_id == imgID)
+			{
+				auto temp = make_unique<STG_XMXY>();
+				temp->mark_x = grab->move_mm_x;
+				temp->mark_y = grab->move_mm_y;
+				return temp;
+			}
+		}
+		return nullptr;
+	};
+
+	auto uiWorks = [&](std::initializer_list<std::unique_ptr<STG_XMXY>> values)
+	{
+		for (int i = 0; i < GLOBAL_MARK_COUNT; i++)
+		{
+			auto singleValue = (values.begin()[i].get());
+			for (int j = 0; j < MARK_PAIR; j++)
+			{
+				
+				CString temp;
+				temp.Format(_T("Mark%d offset %s"), i + 1, (j == 0 ? "x" : "y"));
+				stParam.Init();
+				stParam.strName = temp;
+				stParam.strValue = CStringA(singleValue == nullptr ? "" : (j == 0 ? std::to_string(singleValue->mark_x).c_str() : std::to_string(singleValue->mark_y).c_str()));
+				stParam.strUnit = _T("um");
+				stParam.enFormat = ENM_DITM::en_double;
+				stParam.u8DecPts = 4;
+				stVctParam.push_back(stParam);
+			}
+		}
+
+		if (IDOK == dlg.MyDoModal(stVctParam))
+		{
+			vector<double> values = 
+			{
+				 _ttof(stVctParam[0].strValue),_ttof(stVctParam[1].strValue),
+				 _ttof(stVctParam[2].strValue),_ttof(stVctParam[3].strValue),
+				 _ttof(stVctParam[4].strValue),_ttof(stVctParam[5].strValue),
+				 _ttof(stVctParam[6].strValue),_ttof(stVctParam[7].strValue)
+			};
+
+			LPG_CIEA cfg = uvEng_GetConfig();
+			
+			CString temp;
+			temp.Format(_T("Mark1 offset x : %f , Mark1 offset y : %f\n Mark2 offset x : %f, Mark2 offset y : %f\n Mark3 offset x : %f, Mark3 offset y : %f\n Mark4 offset x : %f, Mark4 offset y : %f\n"), 
+				values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]);
+			
+			if (MessageBoxEx(nullptr, temp, _T("notice"), MB_YESNO | MB_ICONSTOP, LANG_ENGLISH) == IDYES)
+			{
+				cfg->set_align.mark_offset_x[0] = values[0]; cfg->set_align.mark_offset_y[0] = values[1];
+				cfg->set_align.mark_offset_x[1] = values[2]; cfg->set_align.mark_offset_y[1] = values[3];
+				cfg->set_align.mark_offset_x[2] = values[4]; cfg->set_align.mark_offset_y[2] = values[5];
+				cfg->set_align.mark_offset_x[3] = values[6]; cfg->set_align.mark_offset_y[3] = values[7];
+				uvEng_SaveConfig();
+			}
+		}
+	};
+
+	
+	CAtlList <LPG_ACGR>* grabMark = uvEng_Camera_GetGrabbedMarkAll();
+
+	auto markCount = grabMark->GetCount();
+	auto alignMotion = GlobalVariables::getInstance()->GetAlignMotion();
+	auto globalMarkCnt = alignMotion.status.globalMarkCnt;
+	
+	auto temp = { grabFindFunc(1, 0, grabMark),
+								grabFindFunc(1, 1, grabMark),
+								grabFindFunc(2, 0, grabMark),
+								grabFindFunc(2, 1, grabMark) };
+
+	uiWorks(temp);
+}
+
 
 void CDlgManual::OnGrdClick(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult)
 {
@@ -1467,7 +1610,7 @@ BOOL CDlgManual::MarkZero()
 */
 VOID CDlgManual::DrawMarkData()
 {
-	if (0 != m_u64TickCount % 10)
+	if (0 != m_u64TickCount % 100)
 	{
 		return;
 	}

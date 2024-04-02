@@ -98,7 +98,7 @@ BOOL CRecipeManager::CreateRecipe(CString strRecipeName)
 	BOOL bSuccess = uvEng_JobRecipe_RecipeAppend(&stRecipe);
 	
 	/*Philhmi에 보고*/
-	PhilSendCreateRecipe(stRecipe);
+	//PhilSendCreateRecipe(stRecipe);
 
 	stRecipe.Close();
 
@@ -114,12 +114,14 @@ BOOL CRecipeManager::CreateRecipe(STG_RJAF stRecipe)
 {
 	CString strRecipeName;
 	CUniToChar	csCnv;
-	stRecipe.Init();
+	//stRecipe.Init();
 
 	strRecipeName.Format(_T("%s"), csCnv.Ansi2Uni(stRecipe.job_name));
 	
 	//UpdateRecipe(stRecipe, eRECIPE_MODE_VIEW);
 	BOOL bSuccess = uvEng_JobRecipe_RecipeAppend(&stRecipe);
+
+	if (!bSuccess) return bSuccess;
 	//stRecipe.Close();
 
 	LoadRecipeList();
@@ -165,7 +167,7 @@ BOOL CRecipeManager::DeleteRecipe(CString strRecipeName)
 	BOOL bSuccess = uvEng_JobRecipe_RecipeDelete(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
 
 	/*Philhmi에 보고*/
-	PhilSendDeleteRecipe(strRecipeName);
+	//PhilSendDeleteRecipe(strRecipeName);
 	
 	::SendMessage(m_hMainWnd, WM_MAIN_RECIPE_DELETE, NULL, (LPARAM)&strRecipeName);
 	return bSuccess;
@@ -399,11 +401,11 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 
 
 	/*Philhmi 에서 Select 보낸 요청한 메세지 아닐 경우만 보고*/
-	if (g_u16PhilCommand |= ePHILHMI_C2P_RECIPE_SELECT)
-	{
-		/*Philhmi에 보고*/
-		PhilSendSelectRecipe(strRecipeName);
-	}
+	//if (g_u16PhilCommand |= ePHILHMI_C2P_RECIPE_SELECT)
+	//{
+	//	/*Philhmi에 보고*/
+	//	PhilSendSelectRecipe(strRecipeName);
+	//}
 
 	::SendMessage(m_hMainWnd, WM_MAIN_RECIPE_CHANGE, NULL, (LPARAM)&strRecipeName);
 
@@ -626,7 +628,7 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 		}
 	}
 	/*Philhmi에 보고*/
-	PhilSendModifyRecipe(stRecipe);
+	//PhilSendModifyRecipe(stRecipe);
 
 	uvEng_JobRecipe_RecipeModify(&stRecipe);
 	uvEng_ExpoRecipe_RecipeModify(&stExpoRecipe);
@@ -1658,7 +1660,7 @@ BOOL CRecipeManager::CalcMarkDist()
 
 	/* 거버에 대한 마크 정보 얻기 */
 	if (0x00 != uvEng_Luria_GetGlobalMarkJobName(tzGerb, lstX, lstY,
-		ENG_ATGL::en_global_4_local_0x0_n_point))
+		ENG_ATGL::en_global_4_local_0_point))
 	{
 		//dlgMesg.MyDoModal(L"Failed to get the mark info. of gerber file", 0x01);
 	}
@@ -1695,90 +1697,91 @@ BOOL CRecipeManager::CalcMarkDist()
 	return TRUE;
 }
 
-VOID CRecipeManager::PhilSendCreateRecipe(STG_RJAF stRecipe)
+VOID CRecipeManager::PhilSendCreateRecipe(LPG_RJAF stRecipe)
 {
 	STG_PP_P2C_RCP_CREATE			stCreate;
 	STG_PP_P2C_RCP_CREATE_ACK		stCreateAck;
 	stCreate.Reset();
 	stCreateAck.Reset();
 
-	memcpy(stCreate.szRecipeName, stRecipe.job_name, DEF_MAX_RECIPE_NAME_LENGTH);
+	memcpy(stCreate.szRecipeName, stRecipe->job_name, DEF_MAX_RECIPE_NAME_LENGTH);
 
 	/*노광 결과 파라미터값*/
 	stCreate.usCount = 7;
 	sprintf_s(stCreate.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stCreate.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Job Name");
-	sprintf_s(stCreate.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.job_name);
+	sprintf_s(stCreate.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->job_name);
 
 	sprintf_s(stCreate.stVar[1].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stCreate.stVar[1].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Path");
-	sprintf_s(stCreate.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.gerber_path);
+	sprintf_s(stCreate.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->gerber_path);
 
 	sprintf_s(stCreate.stVar[2].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stCreate.stVar[2].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Name");
-	sprintf_s(stCreate.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.gerber_name);
+	sprintf_s(stCreate.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->gerber_name);
 
 	sprintf_s(stCreate.stVar[3].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stCreate.stVar[3].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Align Recipe");
-	sprintf_s(stCreate.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.align_recipe);
+	sprintf_s(stCreate.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->align_recipe);
 
 	sprintf_s(stCreate.stVar[4].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stCreate.stVar[4].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Recipe");
-	sprintf_s(stCreate.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.expo_recipe);
+	sprintf_s(stCreate.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->expo_recipe);
 
 	sprintf_s(stCreate.stVar[5].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "INT");
 	sprintf_s(stCreate.stVar[5].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Material Thick");
-	sprintf_s(stCreate.stVar[5].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", stRecipe.material_thick);
+	sprintf_s(stCreate.stVar[5].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", stRecipe->material_thick);
 
 	sprintf_s(stCreate.stVar[6].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "DOUBLE");
 	sprintf_s(stCreate.stVar[6].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Energy");
-	sprintf_s(stCreate.stVar[6].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", stRecipe.expo_energy);
+	sprintf_s(stCreate.stVar[6].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", stRecipe->expo_energy);
 
 	uvEng_Philhmi_Send_P2C_RCP_CREATE(stCreate, stCreateAck);
 }
 
-VOID CRecipeManager::PhilSendModifyRecipe(STG_RJAF stRecipe)
+VOID CRecipeManager::PhilSendModifyRecipe(LPG_RJAF stRecipe)
 {
 	STG_PP_P2C_RCP_MODIFY			stModify;
 	STG_PP_P2C_RCP_MODIFY_ACK		stModifyAck;
- 		
+
 	stModify.Reset();
 	stModifyAck.Reset();
 
-	memcpy(stModify.szRecipeName, stRecipe.job_name, DEF_MAX_RECIPE_NAME_LENGTH);
+	memcpy(stModify.szRecipeName, stRecipe->job_name, DEF_MAX_RECIPE_NAME_LENGTH);
 
 	/*노광 결과 파라미터값*/
 	stModify.usCount = 7;
 	sprintf_s(stModify.stVar[0].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stModify.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Job Name");
-	sprintf_s(stModify.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.job_name);
-		
+	sprintf_s(stModify.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->job_name);
+
 	sprintf_s(stModify.stVar[1].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stModify.stVar[1].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Path");
-	sprintf_s(stModify.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.gerber_path);
-			  
+	sprintf_s(stModify.stVar[1].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->gerber_path);
+
 	sprintf_s(stModify.stVar[2].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stModify.stVar[2].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Gerber Name");
-	sprintf_s(stModify.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.gerber_name);
-			  
+	sprintf_s(stModify.stVar[2].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->gerber_name);
+
 	sprintf_s(stModify.stVar[3].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stModify.stVar[3].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Align Recipe");
-	sprintf_s(stModify.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.align_recipe);
-			  
+	sprintf_s(stModify.stVar[3].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->align_recipe);
+
 	sprintf_s(stModify.stVar[4].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stModify.stVar[4].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Recipe");
-	sprintf_s(stModify.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe.expo_recipe);
-			  
+	sprintf_s(stModify.stVar[4].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%s", stRecipe->expo_recipe);
+
 	sprintf_s(stModify.stVar[5].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "INT");
 	sprintf_s(stModify.stVar[5].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Material Thick");
-	sprintf_s(stModify.stVar[5].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", stRecipe.material_thick);
-			  
+	sprintf_s(stModify.stVar[5].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%d", stRecipe->material_thick);
+
 	sprintf_s(stModify.stVar[6].szParameterType, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "DOUBLE");
 	sprintf_s(stModify.stVar[6].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Expo Energy");
-	sprintf_s(stModify.stVar[6].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", stRecipe.expo_energy);
- 		
+	sprintf_s(stModify.stVar[6].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "%.1f", stRecipe->expo_energy);
+
 	uvEng_Philhmi_Send_P2C_RCP_MODIFY(stModify, stModifyAck);
 }
+
 
 VOID CRecipeManager::PhilSendDeleteRecipe(CString strRecipeName)
 {

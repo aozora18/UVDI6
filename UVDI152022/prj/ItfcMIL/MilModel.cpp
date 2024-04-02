@@ -28,8 +28,8 @@ static CHAR THIS_FILE[] = __FILE__;
 */
 #ifndef _NOT_USE_MIL_
 CMilModel::CMilModel(LPG_CIEA config, LPG_VDSM shmem,
-	UINT8 cam_id, /*MIL_ID ml_sys, MIL_ID ml_dis, */ENG_ERVM run_mode)
-	: CMilImage(config, shmem, cam_id, /*ml_sys, ml_dis, */run_mode)
+	UINT8 cam_id, /* MIL_ID ml_dis, */MIL_ID ml_sys, ENG_ERVM run_mode)
+	: CMilImage(config, shmem, cam_id, /*, ml_dis, */ml_sys,run_mode)
 #else
 CMilModel::CMilModel(LPG_CIEA config, LPG_VDSM shmem,
 	UINT8 cam_id, ENG_ERVM run_mode)
@@ -235,9 +235,164 @@ UINT32 CMilModel::GetMarkModelType(UINT8 index/* =0 */)
 		score_tgt	- [in]  이 값 이하로는 검색할 수 없다 (입력되는 값은 percentage (0.0 ~ 100.0))
  retn : TRUE or FALSE
 */
-BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, // lk91 SetModelDefine_tot로 변경
+BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markIdx, DOUBLE smooth, // lk91 SetModelDefine_tot로 변경
 	DOUBLE scale_min, DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt)	 
 {
+	UINT32 i = 0, j = 0;
+	LONG lSpeed[4] = { M_LOW, M_MEDIUM, M_HIGH, M_VERY_HIGH };
+	LONG lLevel[3] = { M_MEDIUM, M_HIGH, M_VERY_HIGH };
+	LONG lFilter[3] = { M_DEFAULT , M_KERNEL , M_RECURSIVE };	/* Filter Mode */
+	DOUBLE dbPixel[4] = { NULL };	/* um --> size */
+	DOUBLE dbDivSize = 1.0f;	/* Ring과 Circle의 경우, 모델 크기 등록할 때, 반지름으로 해야하기 때문에 */
+	DOUBLE dbPixelToMM = m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
+	DOUBLE dbCertainty = 0.0f;
+	/* 가장 최근에 등록된 Mark Model 저장 */
+	MmodAlloc(m_mlSysID, M_GEOMETRIC, M_DEFAULT, &m_mlModelID[markIdx]);
+	if (!m_mlModelID[markIdx] || MappGetError(M_CURRENT, M_NULL))
+	{
+		LOG_ERROR(ENG_EDIC::en_mil, L"MILL_ERR : Failed to allocate the model image (buffer)");
+		return FALSE;
+	}
+	/* Model Type : Get the size of image (buffer) */
+	for (i = 0; i < m_u8ModelRegist; i++) // lk91 i 2, 검색 대상인 모델 등록 개수
+	{
+		/* Pixel Size 구하기 */
+		for (j = 0; j < 4; j++)
+		{
+			dbPixel[j] = m_pstMarkModel[markIdx +i].param[j + 1] / (dbPixelToMM * 1000.0f);
+		}
+		switch (m_pstMarkModel[markIdx + i].type)
+		{
+			/* 아래 2개의 Type은 검색 등록 할 때, 지름 (길이)이 아닌 반지름 */
+		case ENG_MMDT::en_ring:
+		case ENG_MMDT::en_circle:	dbDivSize = 2.0f;
+			m_pstModelSize[i].x = dbPixel[0] / 2.0f;
+			m_pstModelSize[i].y = dbPixel[0] / 2.0f;	break;
+
+		case ENG_MMDT::en_square:	m_pstModelSize[i].x = dbPixel[0];
+			m_pstModelSize[i].y = dbPixel[0];	break;
+		case ENG_MMDT::en_cross:
+		case ENG_MMDT::en_diamond:
+		case ENG_MMDT::en_triangle:
+		case ENG_MMDT::en_rectangle:
+		case ENG_MMDT::en_ellipse:	m_pstModelSize[i].x = dbPixel[0];
+			m_pstModelSize[i].y = dbPixel[1];	break;
+		}
+		/* Define the model */
+		if (m_pstMarkModel[markIdx + i].param[0] == 1) {
+			MmodDefine(m_mlModelID[markIdx], m_pstMarkModel[markIdx + i].type, M_FOREGROUND_BLACK,	// lk91 black & white 설정값 세팅하는 부분, M_ANY 추가해도 괜찮을 듯, M_FOREGROUND_BLACK 0x100L 256, M_FOREGROUND_WHITE 0x80L 128 M_ANY 0x11000000L  ??
+				dbPixel[0] / dbDivSize, dbPixel[1] / dbDivSize,
+				dbPixel[2] / dbDivSize, dbPixel[3] / dbDivSize);
+		}
+		else if (m_pstMarkModel[markIdx + i].param[markIdx] == 2) {
+			MmodDefine(m_mlModelID[markIdx], m_pstMarkModel[markIdx + i].type, M_FOREGROUND_WHITE,
+				dbPixel[0] / dbDivSize, dbPixel[1] / dbDivSize,
+				dbPixel[2] / dbDivSize, dbPixel[3] / dbDivSize);
+		}
+		else {
+			MmodDefine(m_mlModelID[markIdx], m_pstMarkModel[markIdx + i].type, M_ANY,
+				dbPixel[0] / dbDivSize, dbPixel[1] / dbDivSize,
+				dbPixel[2] / dbDivSize, dbPixel[3] / dbDivSize);
+			//MmodDefine(m_mlModelID, M_CIRCLE, M_ANY,
+			//	dbPixel[0] / dbDivSize, dbPixel[1] / dbDivSize,
+			//	dbPixel[2] / dbDivSize, dbPixel[3] / dbDivSize);
+		}
+	}
+
+	/* 이미지 노이즈 감소 값 설정 */
+	if (smooth < 0.0f || smooth > 100.0f)	smooth = 50.0f;
+	/* 모델의 검색 속도 지정 (모델 크기가 작거나 매칭률에서 높은 정확성을 필요로 하거나, 모델의 에지가 기하학적으로 복잡한 경우에는 디폴트 설정 (M_MEDIUM) 사용) */
+	//smooth = 70;
+	//level = 1;
+	//speed = 0;
+	//score_min = 60;
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SPEED, lSpeed[speed]);
+	//MmodControl(m_mlModelID, M_CONTEXT, M_SPEED, M_MEDIUM);
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SMOOTHNESS, smooth);
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_DETAIL_LEVEL, lLevel[level]);
+	//MmodControl(m_mlModelID, M_CONTEXT, M_DETAIL_LEVEL, M_MEDIUM);
+	/* 모델의 정확성을 요구할 때 (Accuracy가 높을수록 처리 속도는 떨어지게 됨) */
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_ACCURACY, M_MEDIUM);
+	//MmodControl(m_mlModelID, M_CONTEXT, M_FILTER_MODE, M_DEFAULT);
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SEARCH_POSITION_RANGE, M_ENABLE);
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SEARCH_ANGLE_RANGE, M_ENABLE);
+	//MmodControl(m_mlModelID, M_CONTEXT, M_SAVE_TARGET_EDGES, M_ENABLE);
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SAVE_TARGET_EDGES, M_DISABLE);
+	// lk91 추가
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SEARCH_SCALE_RANGE, M_DISABLE);
+	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
+	//MmodControl(m_mlModelID, M_CONTEXT, M_CERTAINTY, 60.0); //error
+	//MmodControl(m_mlModelID, M_CONTEXT, M_POLARITY, M_ANY); //error
+
+
+
+#if 0
+	/* Detail Level : 오브젝트 조명에 따라 올바른 엣지를 추출할 대 사용 */
+	MmodControl(m_mlModelID, M_CONTEXT, M_DETAIL_LEVEL, M_MEDIUM);/* M_MEDIUM, M_HIGH, M_VERY_HIGH */
+#endif
+	/* 등록된 마크 기준으로, Scale 최소 / 최대 값 설정 */
+	if (scale_min > 0.0f && scale_max > 0.0f)
+	{
+		/* scale_min과 scale_max 값 유효성 확인 후 잘못된 값 조정 */
+		if (scale_min < 0.5)	scale_min = 0.5f;
+		if (scale_min > 1.0)	scale_min = 1.0f;
+		if (scale_max < 1.0)	scale_min = 1.0f;
+		if (scale_max > 2.0)	scale_min = 2.0f;
+
+		/* 모델 크기 비율 지정 */
+		MmodControl(m_mlModelID[2], M_CONTEXT, M_SEARCH_SCALE_RANGE, M_ENABLE);
+		MmodControl(m_mlModelID[2], M_DEFAULT, M_SCALE, 1.0f);
+		/* 이 주어진 범위 내에서만, 등록된 마크와 유사성이 가장 높은 것을 추출해 냄 즉, Score 값이 가장 높은 것을 추출해 냄 */
+		/* scale_min : 0.5 ~ 1.0, scale_max : 1.0 ~ 2.0 사이의 범위 값을 가져야만 됨 */
+		if (0.0f != scale_min)	MmodControl(m_mlModelID[2], M_DEFAULT, M_SCALE_MIN_FACTOR, scale_min);
+		if (0.0f != scale_max)	MmodControl(m_mlModelID[2], M_DEFAULT, M_SCALE_MAX_FACTOR, scale_max);
+	}
+	/* Score 최소 검색 값 설정 */
+	if (score_min > 0.0f)
+	{
+		/* Target Image에서 Model 검색 설정에 기준이되는 매칭 점수를 결정 */
+		/* 만약 이 값을 100 으로 설정하면, 모델 내의 Active Edge가 Target의 검색된 Object와 완전히 매칭해야 함 */
+		MmodControl(m_mlModelID[2], M_DEFAULT, M_ACCEPTANCE, score_min);
+#if 0
+		/* 매우 정확한 매칭이 예상되는 경우에, 검색을 고속으로 하기 위해 사용 */
+		/* 따라서 Acceptance 보다 항상 높게 설정 해야 함 (기본 값은 0) */
+		/* Acceptance를 만족하고 certainty를 만족하면 바로 리턴. 더 높은 점수를 갖는 후보에 대해 포괄적인 조사하지 않음 */
+		/* 즉, Acceptance를 80 설정하고, Certanity를 85를 설정하면, */
+		/* 80 이상 매칭된 오브젝트들 중 Certainty 값이 85인 것이 있으면, 반환하고, 없으면 검색 실패임 */
+		/* 특별한 경우를 제외하고는 이 기능을 사용해서는 안된다. 정말 정확한 매칭 값을 찾기를 원할 때만 사용함 */
+		if (score_min > dbCertainty)	dbCertainty = score_min + score_min / 10;	/* 항상 10% 높게 설정 */
+		MmodControl(m_mlModelID, M_DEFAULT, M_CERTAINTY, dbCertainty);
+#endif
+	}
+	/* Score (for target) 최소 검색 값 설정 */
+	if (score_tgt > 0.0f)
+	{
+		/* score acceptacne 값으로 검색된 모델 중 target score 값이 이 값 이하인 경우, 검색 대상에서 제외 */
+		/* 현재 grabbed image 들 중에서 mark model과 유사한 이미지의 분포 정도 값 설정 후 검색하는 방법임 */
+		MmodControl(m_mlModelID[2], M_DEFAULT, M_ACCEPTANCE_TARGET, score_tgt);
+	}
+#if 0
+	/* 등록된 모델의 주어진 각도 기준으로 설정된 각도만큼 회전하여 매칭 (기본 값 0.0) */
+	MmodControl(m_mlModelID, M_DEFAULT, M_ANGLE, 0.0 /* 0.0 ~ 360.0*/);
+	MmodControl(m_mlModelID, M_DEFAULT, M_ANGLE_DELTA_NEG, 0.0 /* 0.0 ~ 360.0*/);
+	MmodControl(m_mlModelID, M_DEFAULT, M_ANGLE_DELTA_POS, 0.0 /* 0.0 ~ 360.0*/);
+	//	MmodControl(m_mlModelID, M_CONTEXT, M_CHAIN_ALL_NEIGHBORS,	M_ENABLE);
+#endif
+#if 0
+	/* Set the degree of smoothness (noise reduction) applied to the model images and target images during the edge extraction */
+	MmodControl(m_mlModelID, M_CONTEXT, M_FILTER_MODE, lFilter[pstMarkFind->filter_mode]);
+	if (pstMarkFind->use_sharing_edge)	MmodControl(m_mlModelID, M_CONTEXT, M_SHARED_EDGES, M_ENABLE);
+#endif
+#if 0
+	/* 최종 검색될 모델 대상의 개수 설정 (검색 대상 모델 개수보다 2배 까지 검색하도록 설정) */
+	MmodControl(m_mlModelID, M_DEFAULT, M_NUMBER, MIL_INT(m_u8MarkFindSet));
+#else
+	/* Target Image에서 검색하고자 하는 최대 개수 지정 */
+	MmodControl(m_mlModelID[2], M_DEFAULT, M_NUMBER, MIL_INT(m_pstConfig->mark_find.max_mark_find));
+#endif
+	/* Preprocess the search context */
+	MmodPreprocess(m_mlModelID[2], M_DEFAULT);
+
 	return TRUE;
 }
 
@@ -325,7 +480,7 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 	/* 기존 결과 정보 초기화 */
 	ResetMarkResult();
 	///* 등록하고자 하는 모델 개수 설정 */
-	//m_u8ModelRegist = count;
+	m_u8ModelRegist = count;
 	/* 등록 대상 모델의 개수가 초과하면, 최대 값으로 설정 */
 	//if (m_pstConfig->mark_find.max_mark_regist < count)
 	//{
@@ -347,14 +502,21 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 	//	if (param5)	m_pstMarkModel[i].param[4] = param5[i];
 	//}
 
-	m_pstMarkModel[mark_no].type = model[0];
-	m_pstMarkModel[mark_no].param[0] = param1[0];
-	if (param2)	m_pstMarkModel[mark_no].param[1] = param2[0];
-	if (param3)	m_pstMarkModel[mark_no].param[2] = param3[0];
-	if (param4)	m_pstMarkModel[mark_no].param[3] = param4[0];
-	if (param5)	m_pstMarkModel[mark_no].param[4] = param5[0];
-	return SetModelDefine_tot(speed, level, count, smooth, mark_no, NULL,
-		scale_min, scale_max, score_min, score_tgt);
+	memset(&m_pstMarkModel[mark_no], 0, sizeof(STG_CMPV));
+	
+
+	for (int i = 0; i < m_u8ModelRegist/*m_pstConfig->mark_find.max_mark_regist*/; i++)
+	{
+		m_pstMarkModel[mark_no+i].type = model[i];
+		m_pstMarkModel[mark_no+i].param[i] = param1[i];
+		if (param2)	m_pstMarkModel[mark_no+i].param[1] = param2[i];
+		if (param3)	m_pstMarkModel[mark_no+i].param[2] = param3[i];
+		if (param4)	m_pstMarkModel[mark_no+i].param[3] = param4[i];
+		if (param5)	m_pstMarkModel[mark_no+i].param[4] = param5[i];
+	}
+	
+	return m_u8ModelRegist > 1 ? SetModelDefine(speed, level, smooth, count, scale_min, scale_max, score_min) :
+								 SetModelDefine_tot(speed, level, count, smooth, mark_no, NULL,scale_min, scale_max, score_min, score_tgt);
 }
 
 /*
@@ -2603,6 +2765,171 @@ VOID CMilModel::Mask_MarkSet(CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, in
 }
 
 #ifndef _NOT_USE_MIL_
+
+/*
+ desc : Geometric Model Find
+ parm : grab_id	- [in]  Grabbed Image 정보가 저장된 ID (Target Image (Buffer))
+		angle	- [in]  각도 적용 여부 (TRUE : 각도 측정함, FALSE : 각도 측정하지 않음)
+						TRUE : 현재 카메라의 회전된 각도 구하기 위함, FALSE : 기존 각도 적용하여 회전된 각도 구함
+ retn : TRUE or FALSE
+*/
+BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
+{
+	UINT8 u8ScaleSize = 0x00 /* equal */; /* 0x01 : ScaleUp, 0x02 : ScaleDown */
+	BOOL bSucc = TRUE;
+	TCHAR tzData[128] = { NULL };
+	UINT32 u32GrabWidth = 0, u32GrabHeight = 0, i, j, k;
+	UINT32 u32MaxCount = m_u8ModelRegist;// m_pstConfig->mark_find.max_mark_find;
+	DOUBLE dbGrabCentX = 0.0f, dbGrabCentY = 0.0f/*,*/ /*dbLineDist = 0.0f,*/ /*dbModelSize*/;
+	DOUBLE dbPosX, dbPosY, dbScore, dbScale, dbAngle, dbCovg, dbFitErr;
+	MIL_ID mlResult = M_NULL, miModResults = 0, miOperation;
+
+	/* 구조체 값 초기화 (!!! 반드시 초기화 !!!) */
+	m_u8MarkFindGet = 0x00;
+	ResetMarkResult();
+
+	/* Get the size of grabbed image (buffer) */
+	u32GrabWidth = (UINT32)MbufInquire(grab_id, M_SIZE_X, NULL);
+	u32GrabHeight = (UINT32)MbufInquire(grab_id, M_SIZE_Y, NULL);
+	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* 좌표 값은 Zero-based 이므로 */
+	dbGrabCentY = (DOUBLE)u32GrabHeight / 2.0f;
+
+	//MbufSave(_T("C:\\DI_TEST\\RESULT4.bmp"), grab_id); // lk91 TEST 용
+
+	/* Allocate a result buffer. */
+	MmodAllocResult(m_mlSysID, M_DEFAULT, &mlResult);
+	/* Find the model */
+	MmodFind(m_mlModelID[2], grab_id, mlResult);
+	/* Get the number of models found. */
+	MmodGetResult(mlResult, M_DEFAULT, M_NUMBER + M_TYPE_MIL_INT, &miModResults);
+	if (miModResults < 1)
+	{
+		swprintf_s(tzData, 128, L"Not all mark were found : search (%u) / found (%u)",
+			u32MaxCount, UINT8(miModResults));
+		LOG_WARN(ENG_EDIC::en_mil, tzData);
+		/* 결과 버퍼 메모리 해제 */
+		MmodFree(mlResult);
+		return FALSE;
+	}
+#ifdef _DEBUG
+	TRACE(L"CMilModel::RunModelFind::Mark Find Count = %d\n", miModResults);
+#endif
+	/* If a model was found above the acceptance threshold */
+	if (miModResults > u32MaxCount)	miModResults = u32MaxCount;
+	/* Read results */
+	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* 모델 여러개 등록했을 때, 검색된 모델의 번호 */
+	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_X, m_pFindPosX);
+	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_Y, m_pFindPosY);
+	MmodGetResult(mlResult, M_DEFAULT, M_SCORE, m_pFindScore);
+	MmodGetResult(mlResult, M_DEFAULT, M_SCALE, m_pFindScale);
+	MmodGetResult(mlResult, M_DEFAULT, M_ANGLE, m_pFindAngle);
+	MmodGetResult(mlResult, M_DEFAULT, M_TARGET_COVERAGE, m_pFindCovg);
+	MmodGetResult(mlResult, M_DEFAULT, M_FIT_ERROR, m_pFindFitErr);
+	//MmodGetResult(mlResult, M_DEFAULT, M_RADIUS, m_pFindCircleRadius);
+
+
+	/* 복합 마크 검색 방식일 경우, 검색 대상 개수만큼 찾지 못했는지 여부 확인 */
+	if (true)
+	{
+		if (miModResults < u32MaxCount)
+		{
+			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
+				m_u8MarkFindSet, UINT8(miModResults));
+			LOG_ERROR(ENG_EDIC::en_mil, tzData);
+			bSucc = FALSE;	/* 작업 실패 */
+		}
+		/* 만약 찾고자 하는 개수보다 많이 검색된 경우, Score or Scale 값이 가장 높은 순 (내림차순)으로 정렬 */
+		else
+		{
+			/* 마지막 원소 전까지 비교하면 되므로 n-1 개수만큼 비교 */
+			for (i = 0; i < miModResults - 1; i++)
+			{
+				k = i;	/* 기준 인덱스 */
+				for (j = i + 1; j < miModResults; j++)
+				{
+#if 0
+					/* SCALE 값이 0.000f 값에 가장 가까운 값일수록 좋음  */
+					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 값에 가장 가까운 값이 높은 점수임 */
+#else
+					/* SCORE 값이 100.000 값에 가장 가까운 값일수록 좋음 */
+					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* 가장 높은 값일수록 높음 점수임 */
+#endif
+				}
+				/* 기존 위치 값 임시 백업 */
+				dbPosX = m_pFindPosX[i];
+				dbPosY = m_pFindPosY[i];
+				dbScore = m_pFindScore[i];
+				dbScale = m_pFindScale[i];
+				dbAngle = m_pFindAngle[i];
+				dbCovg = m_pFindCovg[i];
+				dbFitErr = m_pFindFitErr[i];
+				/* 현재 검색 기준 위치에 가장 높은 값으로 변경 */
+				m_pFindPosX[i] = m_pFindPosX[k];
+				m_pFindPosY[i] = m_pFindPosY[k];
+				m_pFindScore[i] = m_pFindScore[k];
+				m_pFindScale[i] = m_pFindScale[k];
+				m_pFindAngle[i] = m_pFindAngle[k];
+				m_pFindCovg[i] = m_pFindCovg[k];
+				m_pFindFitErr[i] = m_pFindFitErr[k];
+				/* 기존 가장 높은 값을 검색 기준 값으로 변경 */
+				m_pFindPosX[k] = dbPosX;
+				m_pFindPosY[k] = dbPosY;
+				m_pFindScore[k] = dbScore;
+				m_pFindScale[k] = dbScale;
+				m_pFindAngle[k] = dbAngle;
+				m_pFindCovg[k] = dbCovg;
+				m_pFindFitErr[k] = dbFitErr;
+			}
+		}
+		/* 강제로 검색 개수를 최종 찾고자 하는 개수로 설정 */
+		miModResults = u32MaxCount;
+	}
+
+	if (bSucc)
+	{
+		for (i = 0; i < miModResults; i++)
+		{
+#if 1
+			miOperation = M_MODEL + M_DRAW_BOX + M_DRAW_EDGES + M_DRAW_POSITION;
+			//			miOperation	= M_TARGET+M_DRAW_BOX+M_DRAW_EDGES+M_DRAW_POSITION;
+			//			miOperation	= M_DRAW_EDGES+M_DRAW_BOX+M_DRAW_POSITION/*+M_DRAW_WEIGHT_REGIONS*/;
+
+						/* 검색된 모델의 Target (Matching 모델이 아니라)에 대해 그림 그려 주기 */
+			MgraColor(graph_id/*M_DEFAULT*/, M_COLOR_RED);
+			/* Draw the model */
+			MmodDraw(M_DEFAULT, mlResult, grab_id, miOperation, i, M_DEFAULT);
+#endif
+			/* 각도 측정 프로그램에서 호출한 경우라면, 아래 카메라 회전 값을 적용한 좌표 값 추출하지 않음 */
+			if (!angle)
+			{
+				/* 얼라인 카메라의 회전 각도에 따라 검색된 마크의 중심 위치가 달라짐 */
+				GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
+			}
+
+			/* Grabbed Image의 중심 좌표에서 검색된 Mark의 중심 좌표 간의 직선의 거리 구하기 */
+			m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
+			/* Scale Rate 값의 오차 값을 100 percent 기준으로 환산하여 변경 후 저장 */
+			m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
+			/* 검색된 객체의 크기가 등록된 마크 기준 대비 큰 것인지 아닌지 플래그 설정 */
+			if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
+			else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
+			/* --------------------------------------------------------------------------------------- */
+			/* 검색 대상에 부합되는지 확인 */
+			m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
+				m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
+				m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
+				m_pFindPosX[i], m_pFindPosY[i], u8ScaleSize);
+		}
+	}
+
+	/* 결과 버퍼 메모리 해제 */
+	MmodFree(mlResult);
+
+	/* 1 개 이상 찾아야 됨 */
+	m_u8MarkFindGet = UINT8(miModResults);
+	return miModResults > 0;
+}
+
 /* desc : Geometric Model Find */
 BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc)
 {
@@ -2670,8 +2997,10 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	TCHAR tzData[128] = { NULL };
 	UINT32 u32GrabWidth = 0, u32GrabHeight = 0, i, j, k;
 	UINT32 u32MaxCount;
-	if(dlg_id != DISP_TYPE_CALB_EXPO)
+	if (dlg_id != DISP_TYPE_CALB_EXPO)
 		u32MaxCount = m_pstConfig->mark_find.max_mark_find;
+	else if (dlg_id == DISP_TYPE_CALB_ACCR)
+		u32MaxCount = theApp.clMilMain.GetMarkFindedCount(m_camid);
 	else
 		u32MaxCount = 2;
 
@@ -2758,7 +3087,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	/* If a model was found above the acceptance threshold */
 	if (miModResults > u32MaxCount)	miModResults = u32MaxCount;
 	/* Read results */
-	//MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* 모델 여러개 등록했을 때, 검색된 모델의 번호 */, 모델 각각 등록으로 변경
+	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* 모델 여러개 등록했을 때, 검색된 모델의 번호 */
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_X, m_pFindPosX);
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_Y, m_pFindPosY);
 	MmodGetResult(mlResult, M_DEFAULT, M_SCORE, m_pFindScore);
@@ -3599,53 +3928,10 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACCURACY, M_MEDIUM);
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_POLARITY, M_ANY);
-
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ACCEPTANCE, M_DEFAULT);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ANGLE, M_DEFAULT);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ANGLE_DELTA_NEG, 45.0);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ANGLE_DELTA_POS, 45.0);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_FIT_ERROR_WEIGHTING_FACTOR, 25);
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_TIMEOUT, 2000);
 		/* Target Image에서 검색하고자 하는 최대 개수 지정 */
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, MIL_INT(count));
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SCALE_RANGE, M_ENABLE);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SHARED_EDGES, M_ENABLE);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SAVE_TARGET_EDGES, M_ENABLE);
-		//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_TARGET_CACHING, M_ENABLE);
-
-	///* 등록된 마크 기준으로, Scale 최소 / 최대 값 설정 */
-	//	if (scale_min > 0.0f && scale_max > 0.0f)
-	//	{
-	//		/* scale_min과 scale_max 값 유효성 확인 후 잘못된 값 조정 */
-	//		if (scale_min < 0.5)	scale_min = 0.5f;
-	//		if (scale_min > 1.0)	scale_min = 1.0f;
-	//		if (scale_max < 1.0)	scale_min = 1.0f;
-	//		if (scale_max > 2.0)	scale_min = 2.0f;
-
-	//		/* 모델 크기 비율 지정 */
-	//		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_SEARCH_SCALE_RANGE, M_ENABLE);
-	//		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SCALE, 1.0f);
-	//		/* 이 주어진 범위 내에서만, 등록된 마크와 유사성이 가장 높은 것을 추출해 냄 즉, Score 값이 가장 높은 것을 추출해 냄 */
-	//		/* scale_min : 0.5 ~ 1.0, scale_max : 1.0 ~ 2.0 사이의 범위 값을 가져야만 됨 */
-	//		if (0.0f != scale_min)	MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SCALE_MIN_FACTOR, scale_min);
-	//		if (0.0f != scale_max)	MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SCALE_MAX_FACTOR, scale_max);
-	//	}
-	//	/* Score 최소 검색 값 설정 */
-	//	if (score_min > 0.0f)
-	//	{
-	//		/* Target Image에서 Model 검색 설정에 기준이되는 매칭 점수를 결정 */
-	//		/* 만약 이 값을 100 으로 설정하면, 모델 내의 Active Edge가 Target의 검색된 Object와 완전히 매칭해야 함 */
-	//		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ACCEPTANCE, score_min);
-	//		//if (score_min > dbCertainty)	dbCertainty = score_min + score_min / 10;	/* 항상 10% 높게 설정 */
-	//		//MmodControl(m_mlModelID, M_DEFAULT, M_CERTAINTY, dbCertainty);
-	//	}
-	//	/* Score (for target) 최소 검색 값 설정 */
-	//	if (score_tgt > 0.0f)
-	//	{
-	//		/* score acceptacne 값으로 검색된 모델 중 target score 값이 이 값 이하인 경우, 검색 대상에서 제외 */
-	//		/* 현재 grabbed image 들 중에서 mark model과 유사한 이미지의 분포 정도 값 설정 후 검색하는 방법임 */
-	//		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ACCEPTANCE_TARGET, score_tgt);
-	//	}
+	
 
 		
 		/* Preprocess the search context */

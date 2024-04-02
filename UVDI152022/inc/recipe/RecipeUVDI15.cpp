@@ -860,6 +860,17 @@ BOOL CRecipeUVDI15::JobRecipeAppend(LPG_RJAF recipe)
 		return FALSE;
 	}
 
+	/*입력된 거버가 해당 경로에 존재하는지 확인*/
+	TCHAR tzPath[MAX_PATH_LEN] = { NULL };
+	CUniToChar csCnv1, csCnv2;
+	swprintf_s(tzPath, MAX_PATH_LEN, L"%s\\%s",
+		csCnv1.Ansi2Uni(recipe->gerber_path), csCnv2.Ansi2Uni(recipe->gerber_name));
+	if (!uvCmn_FindPath(tzPath))
+	{
+		AfxMessageBox(L"TFailed to find the path of gerber file", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
+
 	/* 맨 마지막 위치에 등록 */
 	pstRecipe	= new STG_RJAF;
 	ASSERT(pstRecipe);

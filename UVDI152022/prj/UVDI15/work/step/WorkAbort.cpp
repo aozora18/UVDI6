@@ -49,10 +49,15 @@ BOOL CWorkAbort::InitWork()
 	if (!CWork::InitWork())	return FALSE;
 
 	/* 전체 작업 단계 */
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	m_u8StepTotal = 0x07;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 	m_u8StepTotal	= 0x0a;
+#endif
 
+	//m_u8StepTotal = 0x07;
 	/*Philhmi에 장비 정지 신호 보내기*/
-	PhilInterrupsStop();
+	//PhilInterrupsStop();
 	return TRUE;
 }
 
@@ -76,10 +81,6 @@ VOID CWorkAbort::DoWork()
 	case 0x06 : m_enWorkState = IsWorkWaitTime();						break;
 	case 0x07 : m_enWorkState = SetTrigEnable(FALSE);					break;
 	case 0x08 : m_enWorkState = SetMovingUnloader();					break;
-	//case 0x09 : m_enWorkState = SetVacuumShutterOnOff(0x02, 0x01);		break;
-	//case 0x0a : m_enWorkState = IsTrigEnabled(FALSE);					break;
-	//case 0x0b : m_enWorkState = IsMovedUnloader();						break;
-	//case 0x0c : m_enWorkState = IsShutterWait();						break;
 	case 0x09: m_enWorkState = IsTrigEnabled(FALSE);					break;
 	case 0x0a: m_enWorkState = IsMovedUnloader();						break;
 	}

@@ -8,6 +8,8 @@
 #include "../conf/global.h"
 #include "../conf/vision_uvdi15.h"
 
+class AlignMotion;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -233,13 +235,17 @@ API_IMPORT DOUBLE uvBasler_GetGrabbedMarkDist(ENG_GMDD direct);
 						0xfe : Align Camera Angle Measuring Mode (얼라인 카메라 각도 측정하기 위함)
  retn : Calirbated Image의 정보가 저장된 구조체 포인터 반환
 */
-API_IMPORT LPG_ACGR uvBasler_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc); // default mode = 0xff
+API_IMPORT LPG_ACGR uvBasler_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc,int flipDir=-1); // default mode = 0xff
+
+
+API_IMPORT VOID uvBasler_Camera_ClearShapes(int fi_iDispType);
+
 /*
  desc : Geometric Model Find
  parm : cam_id	- [in]  Camera Index (1 or 2)
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvBasler_RunModelFind(UINT8 cam_id, UINT8 mark_no); // 미사용
+//API_IMPORT BOOL uvBasler_RunModelFind(UINT8 cam_id, UINT8 mark_no); // 미사용
 /*
  desc : 가장 최근에 카메라 별로 Calibrated된 결과 중 Error 값이 저장된 데이터 반환
  parm : None
@@ -397,6 +403,9 @@ API_IMPORT VOID uvBasler_DrawGrabBitmap(HDC hdc, RECT draw, UINT8 cam_id);
  retn : None
 */
 API_IMPORT VOID uvBasler_DrawStripBitmap(HDC hdc, RECT draw, UINT8 cam_id, LPG_MSMP param);
+
+
+
 /*
  desc : Calibration 이미지 (검색된 결과)를 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -404,6 +413,9 @@ API_IMPORT VOID uvBasler_DrawStripBitmap(HDC hdc, RECT draw, UINT8 cam_id, LPG_M
  retn : None
 */
 API_IMPORT VOID uvBasler_DrawCaliMarkBitmap(HDC hdc, RECT draw);
+
+API_IMPORT VOID uvBasler_Camera_SetAlignMotionPtr(AlignMotion& ptr);
+
 /*
  desc : 가장 마지막에 Grabbed Image를 출력
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -428,7 +440,7 @@ API_IMPORT BOOL uvBasler_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UINT8 
 		img_id	- [in]  Camera Grabbed Image Index (0 or Later)
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 img_id);
+API_IMPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 hwndIdx, UINT8 img_id);
 /*
  desc : Calibration 이미지 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -438,7 +450,7 @@ API_IMPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_IMPORT VOID uvBasler_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find);
+API_IMPORT VOID uvBasler_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce, UINT8 flipFlag);
 /*
  desc : Drawing - Examination Object Image (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -634,6 +646,8 @@ API_IMPORT BOOL uvBasler_IsLicenseValid();
  retn : None
 */
 API_IMPORT VOID uvBasler_SetMarkMethod(ENG_MMSM method, UINT8 count=0x00);
+
+API_IMPORT UINT8 uvBasler_SetMarkFoundCount(int camNum);
 /*
  desc : 노광 모드 설정 즉, 직접 노광, 얼라인 노광, 보정 후 얼라인 노광
  parm : mode	- [in]  직접 노광 (0x00), 얼라인 노광 (0x01), 얼라인 카메라 보정 값 적용 후 얼라인 노광 (0x02)
@@ -671,7 +685,7 @@ API_IMPORT VOID uvBasler_SetMultiMarkArea(UINT32 width, UINT32 height);
 API_IMPORT BOOL uvBasler_SetModelDefineMMF(UINT8 cam_id, PTCHAR name, PTCHAR mmf, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
 API_IMPORT BOOL uvBasler_SetModelDefinePAT(UINT8 cam_id, PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
 API_IMPORT VOID uvBasler_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BOOL save);
-API_IMPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save);
+API_IMPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save ,int flipDir=-1);
 API_IMPORT VOID uvBasler_SetMarkLiveDispSize(CSize fi_size);
 API_IMPORT VOID uvBasler_SetCalbCamSpecDispSize(CSize fi_size);
 API_IMPORT VOID uvBasler_SetAccuracyMeasureDispSize(CSize fi_size);

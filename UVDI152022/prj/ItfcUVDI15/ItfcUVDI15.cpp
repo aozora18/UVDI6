@@ -1338,7 +1338,8 @@ API_EXPORT PINT32 uvEng_Trig_GetTrigger(ENG_AMTF mark, UINT8 cam_id)
 
 	LPG_CMTP pstMarkTrig = &g_pMemConf->GetMemMap()->mark_trig;
 	if (ENG_AMTF::en_global == mark)	return pstMarkTrig->global[cam_id-1];
-	else								return pstMarkTrig->local[cam_id-1];
+	else								
+		return pstMarkTrig->local[cam_id-1];
 }
 
 /* --------------------------------------------------------------------------------------------- */

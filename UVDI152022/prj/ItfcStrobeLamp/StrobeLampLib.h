@@ -140,7 +140,14 @@ protected:
 	/* 직렬화 : 동적 메모리 할당 */
 	BYTE* SerializeMessage(const stStrobeLampMessage& msg)
 	{
- 
+		////	동적 메모리 할당(new)을 사용하였으므로, 개발자가 명시적으로 메모리를 해제(delete)해야 합니다.
+		//기존것
+		//size_t size = msg.GetSize();	//sizeof(stStrobeLampMessage);
+		//BYTE* serializedData = new BYTE[size];
+		//std::memcpy(serializedData, &msg, size);
+		//return serializedData;
+		//여기까지.
+
 		//새거.
 		size_t header = msg.GetHeaderSize();
 		size_t body = msg.GetBodySize();

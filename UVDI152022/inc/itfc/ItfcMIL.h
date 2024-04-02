@@ -151,6 +151,10 @@ API_IMPORT UINT32 uvMIL_GetModelRegistCount(UINT8 cam_id);
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvMIL_RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 img_id, PUINT8 image, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc);
+
+
+API_EXPORT VOID uvMIL_Camera_ClearShapes(int fi_iDispType);
+
 /*
  desc : 사용자에 의해 수동으로 검색된 경우, 결과 값만 처리
  parm : grab	- [in]  사용자에 의해 수동으로 입력된 grabbed image 결과 정보가 저장된 구조체 포인터
@@ -182,8 +186,14 @@ API_IMPORT BOOL uvMIL_RunModelStep(UINT8 cam_id,
 		results		- [out] 검색된 결과 값 반환 구조체 포인터
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvMIL_RunModelExam(PUINT8 image, UINT32 width, UINT32 height,
+API_IMPORT BOOL uvMIL_RunModelExam2(PUINT8 image, UINT32 width, UINT32 height,
 								   DOUBLE score, DOUBLE scale, LPG_ACGR results=NULL);
+
+
+API_IMPORT BOOL uvMIL_RunModelExam(PUINT8 image, UINT32 width, UINT32 height, 
+									DOUBLE score, DOUBLE scale, LPG_ACGR results, 
+									UINT8 img_id, UINT8 dlg_id, UINT8 mark_no);
+
 /*
  desc : 가장 최근 Grabbed Image의 패턴 매칭 검색 결과 구조체 포인터 반환
  parm : None
@@ -262,7 +272,7 @@ API_IMPORT BOOL uvMIL_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UINT8 img
 		img_id	- [in]  Camera Grabbed Image Index (0 or Later) (if img_id == 0xff then Calibration Method)
  retn : None
 */
-API_IMPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 img_id);
+API_IMPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 hwndIdx,UINT8 img_id);
 /*
  desc : Calibration 이미지 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -272,7 +282,7 @@ API_IMPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_IMPORT VOID uvMIL_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find);
+API_IMPORT VOID uvMIL_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce, UINT8 flipFlag);
 /*
  desc : Drawing - Examination Object Image (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -341,6 +351,11 @@ API_IMPORT VOID uvMIL_SetMarkMethod(ENG_MMSM method, UINT8 count);
 		mil_result	- [in]  MIL 내부 검색 결과 대화 상자 출력 여부
  retn : TRUE or FALSE
 */
+
+
+API_IMPORT UINT8 uvMIL_SetMarkFindSetCount(int camNum);
+API_IMPORT UINT8 uvMIL_SetMarkFoundCount(int camNum);
+
 API_IMPORT BOOL uvMIL_RunLineCentXY(UINT8 cam_id, LPG_ACGR grab_data, BOOL mil_result=FALSE);
 /*
  desc : Iamge 회전 (이미지의 중심을 기준으로 회전)
@@ -411,6 +426,8 @@ API_IMPORT BOOL uvMIL_SetStripMakerSetup(UINT8 cam_id, LPG_MSMP param);
 /* ----------------------------------------------------------------------------------------- */
 API_IMPORT VOID uvMIL_DrawLiveBitmap(HDC hdc, RECT draw, LPG_ACGR grab, DOUBLE angle);
 API_IMPORT VOID uvMIL_DrawImageBitmap(int dispType, int Num, LPG_ACGR grab, DOUBLE angle, int cam_id);
+API_IMPORT VOID uvMIL_DrawImageBitmapFlip(int dispType, int Num, LPG_ACGR grab, DOUBLE angle, int cam_id, int  flipOption=-1);
+
 API_IMPORT VOID uvMIL_SetMarkLiveDispSize(CSize fi_size);
 API_IMPORT VOID uvMIL_SetCalbCamSpecDispSize(CSize fi_size);
 API_IMPORT VOID uvMIL_SetCalbStepDispSize(CSize fi_size);

@@ -79,9 +79,9 @@ public:
 	BOOL				IsRecipeSharedType();
 	BOOL				IsExistLocalMark();
 	UINT8				GetSelectRecipeLocalMarkCount();
-	BOOL				GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id);
-	UINT8				GetLocalMarkToScanNum(UINT8 mark_id);
-	BOOL				GetGrabNumToLocalMark(UINT8 cam_id, UINT8 img_id, UINT8& mark);
-	BOOL				GetImageToStageDirect(UINT8 img_id);
+	//BOOL				GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id);
+	//UINT8				GetLocalMarkToScanNum(UINT8 mark_id);
+	//'BOOL				GetGrabNumToLocalMark(UINT8 cam_id, UINT8 img_id, UINT8& mark);
+	//BOOL				GetImageToStageDirect(UINT8 img_id);
 	UINT8				GetScanLocalMarkCount();
 };

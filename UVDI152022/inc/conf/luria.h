@@ -1221,8 +1221,8 @@ typedef struct __st_luria_data_machine_config__
 	*/
 	VOID ResetTableSetting(UINT8 tbl_no)
 	{
-		parallelogram_adjust[tbl_no-1]	= 0;
-		table_print_direction[tbl_no-1]	= 0;
+		parallelogram_adjust[tbl_no-1]	= 1000;
+		table_print_direction[tbl_no-1]	= 1;
 		table_position_limit[tbl_no-1].Reset();
 	}
 
@@ -1233,7 +1233,7 @@ typedef struct __st_luria_data_machine_config__
 	*/
 	BOOL IsTableSetting(UINT8 tbl_no)
 	{
-		return (parallelogram_adjust[tbl_no-1] > 0 && table_print_direction[tbl_no-1] > 0 &&
+		return (parallelogram_adjust[tbl_no-1] != 1000 && table_print_direction[tbl_no-1] > 0 &&
 				table_position_limit[tbl_no-1].IsValid());
 	}
 

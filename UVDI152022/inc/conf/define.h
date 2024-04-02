@@ -107,6 +107,8 @@
 #define	CUSTOM_DATA_CONFIG2					"HDDI6_data"
 #endif
 
+#define USE_ALIGNMOTION //240108 , 6마이크로 공정땐 align motion들어감.
+
 /* Align Camera 2D Calibration 사용 버전 */
 //#define USE_ALIGN_CAMERA_2D_CALI_VER			0x10	/* 0x10 or 0x20 or 0x21 */
 #define USE_ALIGN_CAMERA_2D_CALI_VER			0x20	/* 0x10 or 0x20 or 0x21 */

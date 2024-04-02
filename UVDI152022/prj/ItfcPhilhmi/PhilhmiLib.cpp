@@ -872,7 +872,7 @@ int CPhilhmiLib::Send_P2C_ABS_MOVE_COMP(STG_PP_P2C_ABS_MOVE_COMP& stSend, STG_PP
 		}
 	}
 
-	stSend.ulUniqueID = GetUniqueID();
+	//stSend.ulUniqueID = GetUniqueID();
 	STG_PP_PACKET_SEND stUnionSend;
 	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
 	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
@@ -980,7 +980,7 @@ int CPhilhmiLib::Send_P2C_REL_MOVE_COMP(STG_PP_P2C_REL_MOVE_COMP& stSend, STG_PP
 		}
 	}
 
-	stSend.ulUniqueID = GetUniqueID();
+	//stSend.ulUniqueID = GetUniqueID();
 	STG_PP_PACKET_SEND stUnionSend;
 	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
 	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
@@ -1088,7 +1088,7 @@ int CPhilhmiLib::Send_P2C_CHAR_MOVE_COMP(STG_PP_P2C_CHAR_MOVE_COMP& stSend, STG_
 		}
 	}
 
-	stSend.ulUniqueID = GetUniqueID();
+	//stSend.ulUniqueID = GetUniqueID();
 	STG_PP_PACKET_SEND stUnionSend;
 	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
 	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))

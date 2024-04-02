@@ -72,9 +72,9 @@ public:
 	BOOL				GetLEDFrameRate();
 	BOOL				CalcMarkDist();
 
-	VOID				PhilSendCreateRecipe(STG_RJAF stRecipe);
+	VOID				PhilSendCreateRecipe(LPG_RJAF stRecipe);
 	VOID				PhilSendDeleteRecipe(CString strRecipeName);
-	VOID				PhilSendModifyRecipe(STG_RJAF stRecipe);
+	VOID				PhilSendModifyRecipe(LPG_RJAF stRecipe);
 	VOID				PhilSendSelectRecipe(CString strRecipeName);
 	
 

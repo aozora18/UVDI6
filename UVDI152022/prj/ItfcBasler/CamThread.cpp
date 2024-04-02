@@ -8,6 +8,9 @@
 #include "CamThread.h"
 #include "CamMain.h"
 #include <timeapi.h>
+#include "../UVDI15/GlobalVariables.h"
+
+class AlignMotion;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -175,31 +178,44 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 	{
 		// Grabbed Image가 존재하는 경우만 처리
 		pstGrab	= m_pCamMain[cam_id-1]->GetGrabbedImage();
-		pstGrab->grabTime = timeGetTime();
 		
+		bool globalGrab = true;
 		// 현재 Grabbed Image가 존재한다면 ...
 		if (pstGrab && pstGrab->grab_data)
 		{
 
 			/* Model Find */
-			if(pstGrab->img_id < 2)
+			if(pstGrab->img_id < 2) //<-이거 뭔의미야.
 				bFinded	= uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, GLOBAL_MARK, FALSE, img_proc); // global mark
 			else
+			{
+				globalGrab = false;
 				bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, LOCAL_MARK, FALSE, img_proc); // local mark
+				//auto find = temp.GetFiducialIndex(cam_id, 4);
+				
+			}
 			/* Get the search result value of mark regardless of success or failure of the search */
 			pstGrab	= uvMIL_GetLastGrabbedMark();
+			
+			pstGrab->grabTime = timeGetTime();
+			pstGrab->fiducialMarkIndex = -1818;
+
 			if (!pstGrab)	LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 			else
 			{
-				pstGrab->marked	= UINT8(bFinded);
+				
+
 				if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
 				{
 					m_lstGrab.AddTail(pstGrab);
+					//grabPtrQueue.push(pstGrab);
 				}
 				else
 				{
 					LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 				}
+				pstGrab->marked = UINT8(bFinded);
+				pstGrab->fiducialMarkIndex = alignMotionPtr == NULL ? -1818 : alignMotionPtr->GetFiducialIndex(cam_id, globalGrab, &m_lstGrab);
 			}
 		}
 		/* 동기화 해제 */
@@ -216,8 +232,8 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 */
 BOOL CCamThread::SetGrabbedMark(LPG_ACGR grab, LPG_GMFR gmfr, LPG_GMSR gmsr)
 {
-	STG_ACGR stGrab	= {NULL};
-
+	STG_ACGR stGrab;
+	stGrab.Init();
 	if (!uvMIL_SetGrabbedMark(grab, gmfr, gmsr))	return FALSE;
 	/* 검색 성공 혹은 실패와 상관 없이 Mark 검색 결과 정보 얻기 */
 	if (!uvMIL_GetLastGrabbedMark())	return FALSE;
@@ -467,7 +483,7 @@ CAtlList <LPG_ACGR>* CCamThread::GetGrabbedMarkAll()
 		mode	- [in]  0xff : Calibration Mode, 0xfe : Align Camera Angle Measuring Mode
  retn : Calirbated Image의 정보가 저장된 구조체 포인터 반환
 */
-LPG_ACGR CCamThread::RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc)
+LPG_ACGR CCamThread::RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc , int flipDir)
 {
 	BOOL bFinded	= FALSE;
 #if 0
@@ -497,7 +513,8 @@ LPG_ACGR CCamThread::RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 
 			//else {
 			//	tmpDispType = dlg_id;
 			//}
-			uvMIL_DrawImageBitmap(dlg_id, m_pstGrabbed->cam_id - 1, m_pstGrabbed, 0.0, m_pstGrabbed->cam_id - 1); // lk91 img_id 가 0부터 시작하는지 체크
+
+			uvMIL_DrawImageBitmapFlip(dlg_id, m_pstGrabbed->cam_id - 1, m_pstGrabbed, 0.0, m_pstGrabbed->cam_id - 1, flipDir); // lk91 img_id 가 0부터 시작하는지 체크
 
 			/* Model Find */
 			bFinded	= uvMIL_RunModelFind(m_pstGrabbed->cam_id,
@@ -509,11 +526,11 @@ LPG_ACGR CCamThread::RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 
 			{
 				/* 검색 성공된 Mark 정보 얻기 */
 				if (uvMIL_GetLastGrabbedMark())	m_pstGrabbed = uvMIL_GetLastGrabbedMark();
-				m_pstGrabbed->marked	= bFinded ? 0x01 /* success */ : 0x02 /* failed */;
+				m_pstGrabbed->marked = bFinded ? 0x01 /* success */ : 0x02 /* failed */;
 				/* 최근 얼라인 카메라의 Grabbed 결과 값 갱신 */
-				m_pstGrabACam[cam_id-1].marked		= m_pstGrabbed->marked;
-				m_pstGrabACam[cam_id-1].move_mm_x	= m_pstGrabbed->move_mm_x;
-				m_pstGrabACam[cam_id-1].move_mm_y	= m_pstGrabbed->move_mm_y;
+				m_pstGrabACam[cam_id - 1].marked = m_pstGrabbed->marked;
+				m_pstGrabACam[cam_id - 1].move_mm_x = m_pstGrabbed->move_mm_x;
+				m_pstGrabACam[cam_id - 1].move_mm_y = m_pstGrabbed->move_mm_y;
 			}
 
 			/* 동기화 해제 */
@@ -597,21 +614,30 @@ BOOL CCamThread::RunModelStep(UINT8 cam_id, UINT16 count, BOOL angle, LPG_ACGR r
 */
 BOOL CCamThread::RunModelExam(DOUBLE score, DOUBLE scale, LPG_ACGR results)
 {
-	UINT16 i		= 0;
-	BOOL bFinded	= FALSE;
-	LPG_ACGR pstGrab= NULL;
+	UINT16 i = 0;
+	BOOL bFinded = FALSE;
+	LPG_ACGR pstGrab = NULL;
 
 	/* 반드시 설정 */
-	for (i=0; i<2 && results; i++)	results[i].cam_id	= 0x01;
+	//for (i = 0; i < 2 && results; i++)	results[i].cam_id = 0x01;
 
+	int tgtCamId = results[0].cam_id - 1;
 	/* 현재 Camera 동작 모드가 Calibration 모드인지 확인 */
-	if (m_pCamMain[0]->GetCamMode() != ENG_VCCM::en_cali_mode)
+	if (m_pCamMain[tgtCamId]->GetCamMode() != ENG_VCCM::en_cali_mode)
 	{
 		LOG_ERROR(ENG_EDIC::en_basler, L"It is not model exam mode");
 		return NULL;
 	}
 	// Calibrated Image가 존재하는 경우만 처리
-	pstGrab	= m_pCamMain[0]->GetGrabbedImage();
+	int timeAccum = 0;
+	while (pstGrab == nullptr)
+	{
+		pstGrab = m_pCamMain[tgtCamId]->GetGrabbedImage();
+		timeAccum += 300;
+		Sleep(300);
+		if (timeAccum > 3000)break;
+	}
+	
 	// 현재 Grabbed Image가 존재한다면 ...
 	if (pstGrab->grab_size > 0 && pstGrab->grab_width > 0 && pstGrab->grab_height > 0)
 	{
@@ -619,21 +645,35 @@ BOOL CCamThread::RunModelExam(DOUBLE score, DOUBLE scale, LPG_ACGR results)
 		if (m_syncGrab.Enter())
 		{
 			/* Model Find */
-			bFinded	= uvMIL_RunModelExam(pstGrab->grab_data,
-										 pstGrab->grab_width, pstGrab->grab_height,
-										 score, scale, results);
+			bFinded = uvMIL_RunModelExam2(pstGrab->grab_data,
+				pstGrab->grab_width, pstGrab->grab_height,
+				score, scale, results);
 			if (bFinded)
 			{
-				for (i=0; i<2 && results; i++)
+				for (i = 0; i < 2 && results; i++)
 				{
-					results[i].marked	= bFinded ? 0x01 /* success */ : 0x02 /* failed */;
+					results[i].marked = bFinded ? 0x01 /* success */ : 0x02 /* failed */;
 				}
 			}
+
+			if (results[0].marked == true && results[0].marked == results[1].marked)
+			{
+				if (uvMIL_GetLastGrabbedMark())	m_pstGrabbed = uvMIL_GetLastGrabbedMark();
+				m_pstGrabbed->marked = bFinded ? 0x01 /* success */ : 0x02 /* failed */;
+				/* 최근 얼라인 카메라의 Grabbed 결과 값 갱신 */
+				m_pstGrabACam[0].marked = m_pstGrabbed->marked;
+				m_pstGrabACam[0].move_mm_x = m_pstGrabbed->move_mm_x;
+				m_pstGrabACam[0].move_mm_y = m_pstGrabbed->move_mm_y;
+			}
+
 			/* 동기화 해제 */
 			m_syncGrab.Leave();
 		}
 	}
-
+	else
+	{
+		int deug = 0;
+	}
 	return bFinded;
 }
 

@@ -401,7 +401,7 @@ API_IMPORT DOUBLE uvLuria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan);
  retn : 두 지점의 Y 축 간의 높이 차이 (unit: mm)
 */
 
-API_IMPORT VOID uvLuria_SetAlignMotionInfo(AlignMotion& motion);
+API_IMPORT VOID uvLuria_SetAlignMotionPtr(AlignMotion& motion);
 
 
 

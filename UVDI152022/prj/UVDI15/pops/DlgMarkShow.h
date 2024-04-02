@@ -42,11 +42,14 @@ public:
 
 	virtual VOID		UpdatePeriod()	{};
 	void				SetMarkType(BOOL bIsLocal) { m_bIsLocal = bIsLocal; }
-	void				SetMarkIndex(int nIndex) { m_nMarkIndex = nIndex; }
+	void				SetMarkIndex(int nIndex) 
+	{ 
+		m_nMarkIndex = nIndex; 
+	}
 	LPG_ACGR			GetMarkInfo(int nIndex, BOOL bIsLocal);
 
 	int					GetMarkACamNoFromIndex(int index, BOOL bIsLocal);
-	int					GetMarkImgIDFromIndex(int index, BOOL bIsLocal);
+	int					GetMarkImgIDFromIndex(int fiducialIndex, int camIndex, BOOL bIsLocal);
 /* 로컬 변수 */
 protected:
 

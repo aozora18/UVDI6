@@ -26,7 +26,7 @@ static CHAR THIS_FILE[] = __FILE__;
 */
 #ifndef _NOT_USE_MIL_
 CMilImage::CMilImage(LPG_CIEA config, LPG_VDSM shmem,
-					 UINT8 cam_id, /*MIL_ID ml_sys, MIL_ID ml_dis, */ENG_ERVM run_mode)
+					 UINT8 cam_id, /* MIL_ID ml_dis, */MIL_ID ml_sys,ENG_ERVM run_mode)
 #else
 CMilImage::CMilImage(LPG_CIEA config, LPG_VDSM shmem,
 					 UINT8 cam_id, ENG_ERVM run_mode)
@@ -37,6 +37,7 @@ CMilImage::CMilImage(LPG_CIEA config, LPG_VDSM shmem,
 
 	m_pstConfig		= config;
 	m_pstShMemVisi	= shmem;
+	m_mlSysID = ml_sys;
 	/* MIL System & Display ID ¿¬°á */
 #ifndef _NOT_USE_MIL_
 	//theApp.clMilMain.m_mSysID		= ml_sys;

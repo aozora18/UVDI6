@@ -161,7 +161,7 @@ BOOL CDlgMark::OnInitDlg()
 	InitValue();
 	/* 기본 값 설정 */
 	SetBaseData();
-	LoadTriggerCh();
+	//LoadTriggerCh();
 	/* MIL DISP 연결 */
 	InitDispMark();
 	/*Strobe 조명값 확인*/
@@ -195,7 +195,7 @@ BOOL CDlgMark::OnInitDlg()
 
 	searchROI_ALL = false;
 
-/*
+
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 	GetDlgItem(IDC_MARK_CHK_ACAM_3)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_MARK_TXT_CAM3_GAIN_LEVEL)->ShowWindow(SW_HIDE);
@@ -203,7 +203,7 @@ BOOL CDlgMark::OnInitDlg()
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 
 #endif
-*/
+
 
 	return TRUE;
 }
@@ -1919,7 +1919,8 @@ VOID CDlgMark::SetLiveView()
 		dlgMesg.MyDoModal(L"There is no camera selected!", 0x01);
 		return;
 	}
-
+		uvEng_Camera_ClearShapes(DISP_TYPE_MARK_LIVE);
+		
 	/* 현재 채크된 상태이면 */
 	if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck())	/* Live View */
 	{
@@ -1994,7 +1995,8 @@ VOID CDlgMark::UpdateLiveView()
 
 		if (m_u8ViewMode == 0x00)	m_u8ViewMode	= 0x01;	/* Live Mode 저장 */
 
-		uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID-1, u8ACamID);
+		uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID-1, u8ACamID,0,0);
+		uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MARK_LIVE, 0);
 	}
 	else	/* Grabbed Mode */
 	{
@@ -2045,13 +2047,13 @@ VOID CDlgMark::SetMatchModel()
 			return;
 		}
 	}
-	uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
+	//uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
 
 	/* Grabbed Image의 매칭 결과가 존재하는지 여부 확인 */
 	do {
 		UINT8 mode = 0xff;
 		/* Grabbed Image가 존재하는지 확인 */
-		pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, m_chk_img[0].GetCheck());
+		pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, m_chk_img[0].GetCheck(),0);
 		if (pstGrab && 0x00 != pstGrab->marked)	break;	/* 결과 값 출력 */
 		/* 임의 시간 동안 응답이 없으면 루프 빠져 나감 */
 #ifdef _DEBUG

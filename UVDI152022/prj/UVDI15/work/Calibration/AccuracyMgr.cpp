@@ -11,7 +11,7 @@
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
 #undef THIS_FILE
-static char THIS_FILE[]	= __FILE__;
+static char THIS_FILE[] = __FILE__;
 #endif
 
 bool _SortX(ST_ACCR_PARAM& tagA, ST_ACCR_PARAM& tagB)
@@ -34,7 +34,7 @@ CAccuracyMgr::CAccuracyMgr()
 	m_bStop = FALSE;
 	m_bUseCalData = FALSE;
 	m_bUseCamDrv = FALSE;
-	m_u8ACamID = 0;
+	m_u8ACamID = 1;
 	m_nStartIndex = 0;
 }
 
@@ -165,7 +165,25 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 
 	return FALSE;
 }
- 
+
+double degreesToRadians(double degrees)
+{
+	return degrees * (3.14159265358979323846f / 180.0f);
+}
+
+CDPoint rotatePointAroundAnotherPoint(CDPoint P, CDPoint anchorPos, double thetaRadians)
+{
+
+
+	double relativeX = P.x - anchorPos.x;
+	double relativeY = P.y - anchorPos.y;
+
+	double rotatedX = relativeX * cos(thetaRadians) - relativeY * sin(thetaRadians);
+	double rotatedY = relativeX * sin(thetaRadians) + relativeY * cos(thetaRadians);
+
+	return CDPoint(rotatedX + anchorPos.x, rotatedY + anchorPos.y);
+}
+
 
 BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint)
 {
@@ -176,13 +194,38 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 	CDPoint dpPos;
 	int nMaxIndex = cpMaxPoint.x * cpMaxPoint.y;
 
-	for (int i = 0; i < nMaxIndex; i++)
-	{
-		dpPos = CalcPosition(dpStartPos, dAngle, dPitch, CalcPoint(i, u8StartPoint, u8Dir, cpMaxPoint));
-		strLine.Format(_T("%.4f,%.4f,\n"), dpPos.x, dpPos.y);
+	vector<CDPoint> buffer;
 
-		strWrite += strLine;
+
+	double dRadian = degreesToRadians(dAngle);
+	bool reverse = false;
+
+	buffer.push_back(dpStartPos);
+
+	for (int i = 1; i < nMaxIndex; i++)
+	{
+		CDPoint tempPoint = CDPoint((double)(dpStartPos.x + ((i % cpMaxPoint.x) * dPitch)),
+			(double)(dpStartPos.y + ((i / cpMaxPoint.x) * dPitch)));
+
+		CDPoint tempRotated = rotatePointAroundAnotherPoint(tempPoint, dpStartPos, dRadian);
+
+		buffer.push_back(tempRotated);
+
+		if (buffer.size() == cpMaxPoint.x)
+		{
+			if (reverse)
+				std::reverse(buffer.begin(), buffer.end());
+
+			for each (CDPoint var in buffer)
+			{
+				strLine.Format(_T("%.4f,%.4f,\n"), var.x, var.y);
+				strWrite += strLine;
+			}
+			reverse = !reverse;
+			buffer.clear();
+		}
 	}
+
 
 	if (TRUE == sFile.Open(strPath, CFile::modeWrite | CFile::modeCreate | CFile::modeNoTruncate, &ex))
 	{
@@ -194,6 +237,63 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 
 	return FALSE;
 }
+
+
+
+//
+//BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint)
+//{
+//	CFileException ex;
+//	CStdioFile sFile;
+//	CString strWrite;
+//	CString strLine;
+//	CDPoint dpPos;
+//	int nMaxIndex = cpMaxPoint.x * cpMaxPoint.y;
+//
+//	vector<CDPoint> buffer;
+//
+//
+//	double dRadian = degreesToRadians(dAngle);
+//	bool reverse = false;
+//
+//	buffer.push_back(dpStartPos);
+//
+//
+//	for (int i = 1; i < nMaxIndex; i++)
+//	{
+//		CDPoint tempPoint = CDPoint((double)(dpStartPos.x + ((i % cpMaxPoint.x) * dPitch)),
+//			(double)(dpStartPos.y + ((i / cpMaxPoint.x) * dPitch)));
+//
+//		CDPoint tempRotated = rotatePointAroundAnotherPoint(tempPoint, dpStartPos, dRadian);
+//
+//		buffer.push_back(tempRotated);
+//
+//		if (buffer.size() == cpMaxPoint.x)
+//		{
+//			if (reverse)
+//				std::reverse(buffer.begin(), buffer.end());
+//
+//			for each (CDPoint var in buffer)
+//			{
+//				strLine.Format(_T("%.4f,%.4f,\n"), var.x, var.y);
+//				strWrite += strLine;
+//			}
+//			reverse = !reverse;
+//			buffer.clear();
+//		}
+//	}
+//
+//
+//	if (TRUE == sFile.Open(strPath, CFile::modeWrite | CFile::modeCreate | CFile::modeNoTruncate, &ex))
+//	{
+//		sFile.SeekToBegin();
+//		sFile.WriteString(strWrite);
+//		sFile.Close();
+//		return TRUE;
+//	}
+//
+//	return FALSE;
+//}
 
 
 BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
@@ -225,7 +325,7 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 
 		strLine.Format(_T(" %+.4f, %+.4f, %+.4f, %+.4f,\n"),
 			stVctField[i].dMotorX, stVctField[i].dMotorY,
-			 dACamPosX + stVctField[i].dValueX, dStagePosY + stVctField[i].dValueY);
+			dACamPosX + stVctField[i].dValueX, dStagePosY + stVctField[i].dValueY);
 
 		strWrite += strLine;
 	}
@@ -249,17 +349,21 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 	LPG_CIEA pstCfg = uvEng_GetConfig();
 	TCHAR tzMesg[128] = { NULL };
 	STG_ACGR stGrab;
+	stGrab.Init();
 	BOOL bRunState = TRUE;
 
 	m_bStop = FALSE;
 
 	if (TRUE == m_bUseCamDrv)
 	{
-		ENG_MMDI enXDrv = (0 == m_u8ACamID) ? ENG_MMDI::en_align_cam2 : ENG_MMDI::en_align_cam1;
+
+		ENG_MMDI enXDrv = (1 == m_u8ACamID) ? ENG_MMDI::en_align_cam2 : ENG_MMDI::en_align_cam1;
+
 		int nIndex = (int)enXDrv - (int)ENG_MMDI::en_align_cam1;
 
 		// 회피 위치로 이동
 		Move(enXDrv, pstCfg->set_cams.safety_pos[nIndex]);
+
 	}
 
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("[2DCal]\tSTART"));
@@ -362,7 +466,7 @@ BOOL CAccuracyMgr::SetRegistModel()
 		}
 		else
 		{
-				uvCmn_Camera_SetMarkFindMode(i + 1, 0, TMP_MARK); // CALIB는 직접 만든 MARK 사용(MOD)
+			uvCmn_Camera_SetMarkFindMode(i + 1, 0, TMP_MARK); // CALIB는 직접 만든 MARK 사용(MOD)
 		}
 	}
 
@@ -459,21 +563,21 @@ CPoint CAccuracyMgr::CalcPoint(UINT32 u32Index, UINT8 u8StartPoint, UINT8 u8Dir,
 
 	switch (u8StartPoint)
 	{
-	// Start Point : 0, 0
+		// Start Point : 0, 0
 	case eCAL_PARAM_START_POINT_LB:
 		break;
-			
-	// Start Point : 0, Y Max
+
+		// Start Point : 0, Y Max
 	case eCAL_PARAM_START_POINT_LT:
 		cpReturnPoint.y = cpMaxGridSize.y - cpReturnPoint.y - 1;
 		break;
-			
-	// Start Point : X Max, 0
+
+		// Start Point : X Max, 0
 	case eCAL_PARAM_START_POINT_RB:
 		cpReturnPoint.x = cpMaxGridSize.x - cpReturnPoint.x - 1;
 		break;
-			
-	// Start Point : X Max, Y Max
+
+		// Start Point : X Max, Y Max
 	case eCAL_PARAM_START_POINT_RT:
 		cpReturnPoint.x = cpMaxGridSize.x - cpReturnPoint.x - 1;
 		cpReturnPoint.y = cpMaxGridSize.y - cpReturnPoint.y - 1;
@@ -573,7 +677,7 @@ BOOL CAccuracyMgr::MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut, 
 	}
 	else
 	{
-		enXDrv = (0 == m_u8ACamID) ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+		enXDrv = (1 == m_u8ACamID) ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
 	}
 
 	if (TRUE == m_bUseCalData)
@@ -649,7 +753,7 @@ BOOL CAccuracyMgr::MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut, 
 BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
 {
 	CTactTimeCheck cTime;
-	UINT8 u8ChNo = (0 == m_u8ACamID) ? 0x01 : 0x02;
+	UINT8 u8ChNo = m_u8ACamID;
 	UINT8 u8Mode = (TRUE == bRunMode) ? 0xFF : 0xFE;
 	LPG_ACGR pstGrab = NULL;
 
@@ -684,21 +788,38 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
 				return FALSE;
 			}
 
-			/* Grabbed Image가 존재하는지 확인 */
-			pstGrab = uvEng_Camera_RunModelCali(u8ChNo, u8Mode, (UINT8)DISP_TYPE_CALB_ACCR, TMP_MARK, TRUE, uvEng_GetConfig()->mark_find.image_process);	/* 이미지 중심으로 이동하기 때문에 무조건 0xff 값 */
-			if (NULL != pstGrab && 0x00 != pstGrab->marked)
-			{
-				stGrab = *pstGrab;
-				/* 다음 단계로 이동 */
-				return TRUE;
-			}
+			auto mode = this->GetSearchMode();
 
+			/* Grabbed Image가 존재하는지 확인 */
+
+			if (mode == SearchMode::single)
+			{
+				pstGrab = uvEng_Camera_RunModelCali(u8ChNo, u8Mode, (UINT8)DISP_TYPE_CALB_ACCR, TMP_MARK, TRUE, uvEng_GetConfig()->mark_find.image_process);	/* 이미지 중심으로 이동하기 때문에 무조건 0xff 값 */
+				if (NULL != pstGrab && 0x00 != pstGrab->marked)
+				{
+					stGrab = *pstGrab;
+					/* 다음 단계로 이동 */
+					return TRUE;
+				}
+			}
+			else
+			{
+				double errX, errY;
+				if (RunDoublemarkTestExam(u8ChNo, &errX, &errY))
+				{
+					stGrab.move_mm_x = errX;
+					stGrab.move_mm_y = errY;
+					return true;
+				}
+
+
+			}
 			cTime.Stop();
 			Sleep(1);
 		}
 	}
 
-	/* 시간 초과 */ 
+	/* 시간 초과 */
 	return FALSE;
 }
 
@@ -727,3 +848,113 @@ UINT MeasureThread(LPVOID lpParam)
 
 	return 0;
 }
+
+
+bool DoubleMarkAccurcytest::RegistMultiMark()
+{
+	LPG_CIEA pstCfg = uvEng_GetConfig();
+	UINT32 u32Model[2] = { (UINT32)ENG_MMDT::en_circle, (UINT32)ENG_MMDT::en_ring }, u32Find = 2;
+	DOUBLE dbMSize1[2] = { NULL } /* um */, dbMColor[2] = { NULL } /* 256:Black, 128:White */;
+	DOUBLE dbMSize2[2] = { NULL };
+
+	u32Model[0] = (UINT32)ENG_MMDT::en_ring;
+	dbMSize1[0] = pstCfg->acam_cali.model_ring_size1 * 1000.0f;
+	dbMSize2[0] = pstCfg->acam_cali.model_ring_size2 * 1000.0f;
+	dbMColor[0] = pstCfg->acam_cali.model_ring_color;
+
+	u32Model[1] = (UINT32)ENG_MMDT::en_circle;
+	dbMSize1[1] = pstCfg->acam_cali.model_shut_size * 1000.0f;
+	dbMColor[1] = pstCfg->acam_cali.model_shut_color;
+
+	const int markCnt = 2;
+
+	for (int i = 0; i < pstCfg->set_cams.acam_count; i++)
+	{
+		if (uvEng_Camera_SetModelDefineEx(i+1,
+			pstCfg->mark_find.model_speed,
+			pstCfg->mark_find.detail_level,
+			markCnt,
+			pstCfg->mark_find.model_smooth,
+			u32Model,
+			dbMColor,
+			dbMSize1,
+			dbMSize2,
+			NULL,
+			NULL,
+			TMP_MARK,
+			pstCfg->acam_spec.in_ring_scale_min,
+			pstCfg->acam_spec.in_ring_scale_max) == false)
+			return false;
+	}
+}
+
+
+bool DoubleMarkAccurcytest::RunDoublemarkTestExam(int camNum, double* pdErrX = nullptr, double* pdErrY = nullptr)
+{
+	
+	UINT32 u32GrabSize = 0;
+	DOUBLE dbOffsetXY[2] = { NULL };
+
+	LPG_ACGR pstResult = NULL;
+	/* Grabbed Image 크기 얻기 (단위: bytes) */
+	auto aoiWidth = uvEng_GetConfig()->set_cams.aoi_size[0];
+	auto aoiHeight = uvEng_GetConfig()->set_cams.aoi_size[1];
+	u32GrabSize = aoiWidth * aoiHeight;
+	/* Grabbed Image 버퍼 할당 */
+	pstResult = new STG_ACGR[2];
+	ASSERT(pstResult);
+	memset(pstResult, 0x00, (sizeof(STG_ACGR) - sizeof(PUINT8)) * 2);
+	pstResult[0].grab_data = (PUINT8)::Alloc(u32GrabSize + 1);
+	pstResult[1].grab_data = (PUINT8)::Alloc(u32GrabSize + 1);
+	pstResult[0].grab_data[u32GrabSize] = 0x00;
+	pstResult[1].grab_data[u32GrabSize] = 0x00;
+	pstResult[0].cam_id = camNum;
+	pstResult[1].cam_id = camNum;
+
+	double errX = 0, errY = 0;
+
+	BOOL res = FALSE;
+	uvEng_Camera_ClearShapes((UINT8)DISP_TYPE_CALB_ACCR);
+	uvEng_Camera_OverlayAddLineList((UINT8)DISP_TYPE_CALB_ACCR, 0, 400, 0, 400, 800, PS_SOLID, 4);
+	uvEng_Camera_OverlayAddLineList((UINT8)DISP_TYPE_CALB_ACCR, 0, 0, 400, 800, 400, PS_SOLID, 4);
+
+	auto halfW = aoiWidth >> 1;
+	auto halfH = aoiHeight >> 1;
+
+	Sleep(300);
+
+	if (res = uvEng_Camera_RunModelExam(pstResult))
+	{
+		errX = pstResult[0].mark_cent_mm_x - pstResult[1].mark_cent_mm_x;
+		errY = pstResult[0].mark_cent_mm_y - pstResult[1].mark_cent_mm_y;
+
+		if (NULL != pdErrX && NULL != pdErrY)
+		{
+			*pdErrX = errX;
+			*pdErrY = errY;
+		}
+		char temp[255] = { 0, };
+		sprintf_s(temp, "offsetX: %.4f", errX);
+		uvEng_Camera_OverlayAddTextList((UINT8)DISP_TYPE_CALB_ACCR, 0, 50, 700, CString(temp), 15, 10, 20, VISION_FONT_TEXT, true);
+		sprintf_s(temp, "offsetY: %.4f", errY);
+		uvEng_Camera_OverlayAddTextList((UINT8)DISP_TYPE_CALB_ACCR, 0, 50, 750, CString(temp), 15, 10, 20, VISION_FONT_TEXT, true);
+	}
+	else
+	{
+		uvEng_Camera_OverlayAddTextList((UINT8)DISP_TYPE_CALB_ACCR, 0, 50, 700, (pstResult[0].marked == true ? L"Ring find Success." : L"Ring find failed."), (pstResult[0].marked == true ? 15 : 2), 10, 20, VISION_FONT_TEXT, true);
+		uvEng_Camera_OverlayAddTextList((UINT8)DISP_TYPE_CALB_ACCR, 0, 50, 750, (pstResult[1].marked == true ? L"Dot find Success." : L"Dot find failed."), (pstResult[1].marked == true ? 15 : 2), 10, 20, VISION_FONT_TEXT, true);
+
+	}
+	//			int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, int fi_iWdt1, int fi_iWdt2, int fi_color)
+
+	uvEng_Camera_DrawImageBitmap((UINT8)DISP_TYPE_CALB_ACCR, 0, camNum, 0, 1);
+	
+
+	delete[] pstResult;
+	//return pstResult;
+
+	return res;
+	//return uvEng_Camera_RunModelExam(res);
+
+}
+

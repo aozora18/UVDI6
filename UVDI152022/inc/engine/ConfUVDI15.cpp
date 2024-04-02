@@ -41,16 +41,20 @@ BOOL CConfUvdi15::LoadConfig()
 {
 	BOOL bSucc	= TRUE;
 
+	
+
 	/* 아래 함수 호출 순서는 반드시 지켜야 됨 */
 	if (!LoadConfigFileName())	/* [FILE_NAME] */
 	{
 		AfxMessageBox(L"Failed to load the config for FILE_NAME", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
 	}
+	
 	if (!LoadConfigSetupCamera())	/* [SETUP_CAMERA] */
 	{
-		AfxMessageBox(L"Failed to load the config for SETUP_CAMERA", MB_ICONSTOP|MB_TOPMOST);
+		AfxMessageBox(L"Failed to load the config for SETUP_CAMERA", MB_ICONSTOP | MB_TOPMOST);
 		return FALSE;
+
 	}
 	if (!LoadConfigCameraBasler())	/* [CAMERA_IDS or BASLER] */
 	{
@@ -219,6 +223,18 @@ BOOL CConfUvdi15::LoadConfigFileName()
 	GetConfigStr(L"FILE_THICK_CALI", m_pstCfg->file_dat.thick_cali, MAX_FILE_LEN);
 	GetConfigStr(L"FILE_CORRECT_Y", m_pstCfg->file_dat.correct_y, MAX_FILE_LEN);
 
+
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	const int cfgCamCnt = 3;
+	TCHAR temp[MAX_FILE_LEN] = { 0, };
+	for (int i=0; i < cfgCamCnt; i++)
+	{
+		swprintf_s(temp, MAX_FILE_LEN, L"FILE_STATIC_ALIGN_CAM%d", i+1);
+		GetConfigStr(temp, m_pstCfg->file_dat.staticAcamCali[i], MAX_FILE_LEN);
+	}
+#endif
+
 	return TRUE;
 }
 BOOL CConfUvdi15::SaveConfigFileName()
@@ -369,6 +385,9 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	m_pstCfg->set_align.mark2_org_gerb_xy[1]	= GetConfigDouble(L"MARK2_ORG_GERB_Y");
 	m_pstCfg->set_align.mark2_stage_x			= GetConfigDouble(L"MARK2_STAGE_X");
 
+	m_pstCfg->set_align.use_Localmark_offset = GetConfigDouble(L"USE_LOCAL_MARK_OFFSET");
+	
+
 	for (i=1; i<=m_pstCfg->luria_svc.table_count; i++)
 	{
 		swprintf_s(tzKey, MAX_KEY_STRING, L"TABLE_UNLOADER_X_%d", i);
@@ -384,6 +403,20 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d", i);
 		m_pstCfg->set_align.mark_offset_y[i] = GetConfigDouble(tzKey);
 	}
+
+	for (i = 1; i <= 2; i++)
+	{
+		for (int j = 0; j < 8; j++)
+		{
+			swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d_%d", i,j);
+			m_pstCfg->set_align.localMark_offset_x[((i-1) * 8) + j] =  GetConfigDouble(tzKey);
+			swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d_%d", i,j);
+			m_pstCfg->set_align.localMark_offset_y[((i - 1) * 8) + j] = GetConfigDouble(tzKey);
+		}
+		
+	}
+
+
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");
 	m_pstCfg->set_align.mark_horz_diff = GetConfigDouble(tzKey);
@@ -854,6 +887,7 @@ BOOL CConfUvdi15::LoadConfigACamCali()
 	m_pstCfg->acam_cali.max_cols_count		= GetConfigUint16(L"MAX_COLS_COUNT");
 
 	m_pstCfg->acam_cali.model_shut_type		= GetConfigUint32(L"MODEL_SHUT_TYPE");
+	m_pstCfg->acam_cali.model_ring_type		= GetConfigUint32(L"MODEL_RING_TYPE");   // 최외곽 도형이 꼭 링이된다는 보장은 없음 직사각형도 가능
 
 	m_pstCfg->acam_cali.period_min_size		= GetConfigDouble(L"MIN_PERIOD_SIZE");
 
@@ -884,6 +918,9 @@ BOOL CConfUvdi15::LoadConfigACamCali()
 		m_pstCfg->acam_cali.mark_stage_y[i]	= GetConfigDouble(tzKey);
 		swprintf_s(tzKey, 64, L"MARK_ACAM_%d", i+1);
 		m_pstCfg->acam_cali.mark_acam[i]	= GetConfigDouble(tzKey);
+
+
+
 	}
 
 	return TRUE;
@@ -902,6 +939,7 @@ BOOL CConfUvdi15::SaveConfigACamCali()
 	SetConfigUint32(L"MAX_COLS_COUNT",		m_pstCfg->acam_cali.max_cols_count);
 
 	SetConfigUint32(L"MODEL_SHUT_TYPE",		m_pstCfg->acam_cali.model_shut_type);
+	SetConfigUint32(L"MODEL_RING_TYPE",		m_pstCfg->acam_cali.model_ring_type);
 
 	SetConfigUint64(L"PERIOD_WAIT_TIME",	m_pstCfg->acam_cali.period_wait_time);
 
@@ -1090,6 +1128,7 @@ BOOL CConfUvdi15::LoadConfigPhStepXY()
 	m_pstCfg->ph_step.max_ph_step		= GetConfigUint8(L"MAX_PH_STEP");
 	m_pstCfg->ph_step.scroll_mode		= GetConfigUint8(L"SCROLL_MODE");
 	m_pstCfg->ph_step.ph_scan			= GetConfigUint8(L"PH_SCAN");
+	m_pstCfg->ph_step.expose_round		= GetConfigUint8(L"EXPOSE_ROUND");
 	m_pstCfg->ph_step.model_type		= GetConfigUint32(L"MODEL_TYPE");
 	m_pstCfg->ph_step.start_xy[0]		= GetConfigDouble(L"MARK_STAGE_X");
 	m_pstCfg->ph_step.start_xy[1]		= GetConfigDouble(L"MARK_STAGE_Y");
@@ -1098,7 +1137,8 @@ BOOL CConfUvdi15::LoadConfigPhStepXY()
 	m_pstCfg->ph_step.mark_period		= GetConfigDouble(L"MARK_PERIOD");
 	m_pstCfg->ph_step.model_color		= GetConfigDouble(L"MODEL_COLOR");
 	m_pstCfg->ph_step.model_dia_size	= GetConfigDouble(L"MODEL_DIA_SIZE");
-	m_pstCfg->ph_step.center_offset	= GetConfigDouble(L"CENTER_OFFSET");
+	m_pstCfg->ph_step.center_offset		= GetConfigDouble(L"CENTER_OFFSET");
+	m_pstCfg->ph_step.y_pos_plus		= GetConfigDouble(L"Y_POS_PLUS");
 
 	return TRUE;
 }
@@ -1112,6 +1152,7 @@ BOOL CConfUvdi15::SaveConfigPhStepXY()
 
 	SetConfigUint32(L"MAX_PH_STEP",		m_pstCfg->ph_step.max_ph_step);
 	SetConfigUint32(L"MODEL_TYPE",		m_pstCfg->ph_step.model_type);
+	SetConfigUint32(L"EXPOSE_ROUND",	m_pstCfg->ph_step.expose_round);
 	SetConfigDouble(L"MARK_STAGE_X",	m_pstCfg->ph_step.start_xy[0],		4);
 	SetConfigDouble(L"MARK_STAGE_Y",	m_pstCfg->ph_step.start_xy[1],		4);
 	SetConfigDouble(L"MARK_ACAM1_X",	m_pstCfg->ph_step.start_acam_x,		4);
@@ -1159,8 +1200,13 @@ BOOL CConfUvdi15::LoadConfigFlatParam()
 	m_pstCfg->measure_flat.u8CountOfMeasure = GetConfigUint8(L"MEASURE_COUNT");
 	m_pstCfg->measure_flat.u16DelayTime = GetConfigUint16(L"DELAY_TIME");
 
+	m_pstCfg->measure_flat.u8UseThickCheck = GetConfigUint8(L"USE_THICK_CHECK");
+	m_pstCfg->measure_flat.dRangStartYPos = GetConfigDouble(L"RANG_START_Y");
+	m_pstCfg->measure_flat.dRangEndYPos = GetConfigDouble(L"RANG_END_Y");
+	m_pstCfg->measure_flat.dOffsetZPOS = GetConfigDouble(L"OFFSET_Z");
+	m_pstCfg->measure_flat.dLimitZPOS = GetConfigDouble(L"LIMIT_Z");
+
 	m_pstCfg->measure_flat.bThieckOnOff = FALSE;
-	m_pstCfg->measure_flat.bThickCheck = FALSE;
 
 	return TRUE;
 }
@@ -1190,6 +1236,13 @@ BOOL CConfUvdi15::SaveConfigFlatParam()
 	SetConfigUint32(L"LINE_Y", m_pstCfg->measure_flat.u8CountOfYLine);
 	SetConfigUint32(L"MEASURE_COUNT", m_pstCfg->measure_flat.u8CountOfMeasure);
 	SetConfigUint32(L"DELAY_TIME", m_pstCfg->measure_flat.u16DelayTime);
+
+	SetConfigUint32(L"USE_THICK_CHECK", m_pstCfg->measure_flat.u8UseThickCheck);
+	SetConfigDouble(L"RANG_START_Y", m_pstCfg->measure_flat.dRangStartYPos, 3);
+	SetConfigDouble(L"RANG_END_Y", m_pstCfg->measure_flat.dRangEndYPos, 3);
+	SetConfigDouble(L"OFFSET_Z", m_pstCfg->measure_flat.dOffsetZPOS, 3);
+	SetConfigDouble(L"LIMIT_Z", m_pstCfg->measure_flat.dLimitZPOS, 3);
+
 
 	return TRUE;
 }
@@ -1371,10 +1424,10 @@ BOOL CConfUvdi15::LoadConfigCameraBasler()
 	swprintf_s(m_tzSubj, MAX_SUBJ_STRING, L"CAMERA_BASLER");
 
 	/* Mirror Left/Right & Top / Bottom (카메라 영상. 상/하 그리고 좌/우 반전 여부) */
-	m_pstCfg->set_basler.cam_reverse_x	= GetConfigUint8(L"CAM_REVERSE_X");
-	m_pstCfg->set_basler.cam_reverse_y	= GetConfigUint8(L"CAM_REVERSE_Y");
-	m_pstCfg->set_basler.z_axis_move_min= GetConfigDouble(L"Z_AXIS_MOVE_MIN");
-	m_pstCfg->set_basler.z_axis_move_max= GetConfigDouble(L"Z_AXIS_MOVE_MAX");
+	m_pstCfg->set_basler.cam_reverse_x = GetConfigUint8(L"CAM_REVERSE_X");
+	m_pstCfg->set_basler.cam_reverse_y = GetConfigUint8(L"CAM_REVERSE_Y");
+	m_pstCfg->set_basler.z_axis_move_min = GetConfigDouble(L"Z_AXIS_MOVE_MIN");
+	m_pstCfg->set_basler.z_axis_move_max = GetConfigDouble(L"Z_AXIS_MOVE_MAX");
 
 	for (; i<m_pstCfg->set_cams.acam_count; i++)
 	{
@@ -1407,10 +1460,11 @@ BOOL CConfUvdi15::SaveConfigCameraBasler()
 	swprintf_s(m_tzSubj, MAX_SUBJ_STRING, L"CAMERA_BASLER");
 
 	/* Mirror Left/Right & Top / Bottom (카메라 영상. 상/하 그리고 좌/우 반전 여부) */
-	SetConfigUint32(L"CAM_REVERSE_X",	m_pstCfg->set_basler.cam_reverse_x);
-	SetConfigUint32(L"CAM_REVERSE_Y",	m_pstCfg->set_basler.cam_reverse_y);
-	SetConfigDouble(L"Z_AXIS_MOVE_MIN",	m_pstCfg->set_basler.z_axis_move_min, 4);
-	SetConfigDouble(L"Z_AXIS_MOVE_MAX",	m_pstCfg->set_basler.z_axis_move_max, 4);
+	SetConfigUint32(L"CAM_REVERSE_X", m_pstCfg->set_basler.cam_reverse_x);
+	SetConfigUint32(L"CAM_REVERSE_Y", m_pstCfg->set_basler.cam_reverse_y);
+	SetConfigDouble(L"Z_AXIS_MOVE_MIN", m_pstCfg->set_basler.z_axis_move_min, 4);
+	SetConfigDouble(L"Z_AXIS_MOVE_MAX", m_pstCfg->set_basler.z_axis_move_max, 4);
+
 
 	for (; i<m_pstCfg->set_cams.acam_count; i++)
 	{

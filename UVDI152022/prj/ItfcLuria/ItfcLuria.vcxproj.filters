@@ -125,6 +125,7 @@
     <None Include="res\ItfcLuria.rc2">
       <Filter>자원 파일</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">

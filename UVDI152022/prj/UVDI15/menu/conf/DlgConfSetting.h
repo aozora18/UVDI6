@@ -122,6 +122,8 @@ protected:
 	VOID				SeveMarkFind(LPG_CIEA conf);
 	VOID				LoadStrobeLamp(LPG_CIEA conf);
 	VOID				SaveStrobeLamp(LPG_CIEA conf);
+	VOID				LoadFlatness(LPG_CIEA conf);
+	VOID				SaveFlatness(LPG_CIEA conf);
 
 	/* 공용 함수 */
 public:

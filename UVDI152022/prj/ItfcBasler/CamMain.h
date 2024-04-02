@@ -4,6 +4,42 @@
 class CCamInst;
 class CCamEvent;
 
+using namespace std;
+
+class MarkPoolManager
+{
+public:
+
+	void Initialize()
+	{
+		pstMarkPool.reserve(POOL_COUNT);
+		for (int i = 0; i < POOL_COUNT; i++)
+			pstMarkPool.push_back(new STG_ACGR);
+	}
+
+	void Destroy()
+	{
+
+		for (int i = 0; i < POOL_COUNT; i++)
+			delete pstMarkPool.at(i);
+	}
+
+	LPG_ACGR GetNext()
+	{
+		lock_guard<mutex> lock(poolLockMutex);
+		if (accessIndex >= POOL_COUNT)accessIndex = 0;
+		return pstMarkPool.at(accessIndex++);
+	}
+
+private:
+	const int POOL_COUNT = 10;
+	
+	vector< LPG_ACGR> pstMarkPool;
+	int accessIndex = 0;
+	mutex poolLockMutex;
+	
+};
+
 class CCamMain : public CImageEventHandler, public CConfigurationEventHandler
 {
 /* 생성자 & 파괴자 */
@@ -65,6 +101,8 @@ protected:
 	UINT8				m_uDispType; // VISION 사용, MARK TAB 유무(1 - Mark Tab, 0 -  그 외)
 
 	LPG_ACGR pstMark;
+	MarkPoolManager markPool;
+
 
 /* 로컬 함수 */
 protected:
@@ -106,3 +144,4 @@ public:
 	UINT8				GetDispType() { return m_uDispType; }
 	VOID				SetDispType(UINT8 dispType) { m_uDispType = dispType; }
 };
+

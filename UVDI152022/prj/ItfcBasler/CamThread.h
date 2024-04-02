@@ -4,7 +4,7 @@
 #include "../../inc/comn/ThinThread.h"
 
 class CCamMain;
-
+class AlignMotion;
 class CCamThread : public CThinThread
 {
 // 생성자/파괴자
@@ -19,6 +19,7 @@ protected:
 	virtual BOOL		StartWork();
 	virtual VOID		RunWork();
 	virtual VOID		EndWork();
+	AlignMotion*		alignMotionPtr = nullptr;
 
 // 구조체 변수
 protected:
@@ -55,6 +56,12 @@ protected:
 
 // 공용 함수
 public:
+
+	void SetAlignMotionPtr(AlignMotion& ptr)
+	{
+		alignMotionPtr = &ptr;
+	}
+
 	CAtlList <LPG_ACGR>* GetGrabImage()
 	{
 		return &m_lstGrab;
@@ -81,7 +88,7 @@ public:
 
 	VOID				SetMatchParam(UINT8 rotate, DOUBLE match);
 	CAtlList <LPG_ACGR>* GetGrabbedMarkAll();
-	LPG_ACGR			RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc); // default mode = 0xff
+	LPG_ACGR			RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc, int flipDir=-1); // default mode = 0xff
 	BOOL				RunModelStep(UINT8 cam_id, UINT16 count, BOOL angle, LPG_ACGR results, UINT8 dlg_id, UINT8 mark_no, UINT8 img_proc);
 	BOOL				RunModelExam(DOUBLE score, DOUBLE scale, LPG_ACGR results);
 	BOOL				RunEdgeDetect(UINT8 cam_id, UINT8 saved);

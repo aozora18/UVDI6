@@ -497,7 +497,8 @@ VOID CDlgExpo::RedrawMarkPage(UINT8 mode)
 	/* 다음 페이지 보기 */
 	else
 	{
-		if (m_u8MarkPage < 0x05)	m_u8MarkPage++;
+		const int MAX_PAGE = 30;
+		if (m_u8MarkPage < MAX_PAGE)	m_u8MarkPage++;
 	}
 
 	/* 현재 페이지에 마크 4개 정보 출력 */
@@ -544,9 +545,9 @@ VOID CDlgExpo::VacuumOnOff()
 	ST_IO stIO;
 	CIOManager::GetInstance()->UpdateIO();
 
-
-	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("VACUUM_PUMP_UNIT_STAGE_VACUUM_ON"), stIO);
-
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15 || DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	CIOManager::GetInstance()->GetIO(eIO_OUTPUT, _T("VACUUM PUMP UNIT STAGE VACUUM ON"), stIO);
+#endif
 	stIO.bOn = !stIO.bOn;
 
 	CDlgMesg dlgMesg;

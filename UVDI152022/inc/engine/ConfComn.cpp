@@ -83,6 +83,9 @@ BOOL CConfComn::SaveConfig()
 */
 VOID CConfComn::UpdateMonitorData()
 {
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	return;
+#endif // 
 	SYSTEMTIME stTm	= {NULL};
 
 	/* Subject Name ¼³Á¤ */

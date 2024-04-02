@@ -112,6 +112,16 @@ typedef struct __st_config_setup_align_info__
 	DOUBLE				mark_offset_y[4];
 	DOUBLE				mark_horz_diff;							/* 수평(0) / 수평(1) 의 오차값의 제한값(단위: mm)*/
 	DOUBLE				mark_vert_diff;							/* 수직(2) / 수직(2) 의 오차값의 제한값(단위: mm)*/
+
+	UINT8				use_Localmark_offset;					/* 각 Local Mark Offset에 추가 기능 적용 여부 (1:사용, 0:미사용) */
+
+	DOUBLE				localMark_offset_x[16];
+	DOUBLE				localMark_offset_y[16];
+
+	
+	//DOUBLE				mark_offset_x[4];						/* 각 Global Mark의 offset 설정값(단위: mm) */
+	//DOUBLE				mark_offset_y[4];
+
 	/* 거버에 저장된 Mark 2번 기준 X 축 모션 좌표 (단위: mm) */
 
 }	STG_CSAI,	*LPG_CSAI;
@@ -361,6 +371,7 @@ typedef struct __st_config_align_camera_calibration__
 	UINT16				set_rows_count;					/* 행 (Row) 측정 개수 */
 	UINT16				set_cols_count;					/* 열 (Column) 측정 개수 */
 
+	UINT32				model_ring_type;				/* Circle (8), Ellipse (16), Square (32), Rectangle (64), Ring (256), */
 	UINT32				model_shut_type;				/* Circle (8), Ellipse (16), Square (32), Rectangle (64), Ring (256), */
 														/* Cross (8192), Diamond (32768), Triangle (65536), Image (?????) */
 	UINT32				u32_reserved[1];
@@ -568,6 +579,7 @@ typedef struct __st_config_file_data_name__
 	TCHAR				trig_cali[MAX_FILE_LEN];
 	TCHAR				thick_cali[MAX_FILE_LEN];
 	TCHAR				correct_y[MAX_FILE_LEN];
+	TCHAR				staticAcamCali[3][MAX_FILE_LEN];
 }	STG_CFDN,	*LPG_CFDN;
 
 /* Setup the Align Camera Device for Basler */
@@ -598,7 +610,8 @@ typedef struct __st_config_phothead_offset_value__
 	UINT8				scroll_mode;						/* 광학계 단차 측정에 사용된 소재의 노광 속도 모드 (1 ~ 7)					*/
 	UINT8				ph_scan;							/* 광학계마다 노광할 때 상/하로 움직이는 Scan 개수 즉, Stripe 총 개수		*/
 	UINT8				max_ph_step;						/* 광학계 단차 레시피에 최대 등록 가능한 레시피 개수 */
-	UINT8				u8_reserved[5];
+	UINT8				expose_round;						/* 단차 확인을 위한 현재 노광 횟수 */
+	UINT8				u8_reserved[4];
 	UINT32				model_type;							/* Circle (8), Ellipse (16), Square (32), Rectangle (64), Ring (256),		*/
 															/* Cross (8192), Diamond (32768), Triangle (65536), Image (?????)			*/
 	UINT32				u32_reserved;
@@ -610,6 +623,8 @@ typedef struct __st_config_phothead_offset_value__
 	DOUBLE				stripe_width;						/* 광학계가 한 번 노광할 때마다 그려지는 STRIPE의 크기 (단위: mm)			*/
 	DOUBLE				mark_period;						/* 2 개의 Mark 간의 떨어진 간격 즉, 인접한 원의 중심 간의 거리(단위: mm)	*/
 	DOUBLE				center_offset;						/* 이 값이 클수록 빨리 검색하나, 정확도는 떨어짐. 최소 0.1 mm 이상 (단위:mm)*/
+
+	DOUBLE				y_pos_plus;							/* 단차 측정 동작을 위한 Y축 거리 (단위:mm) */
 
 }	STG_CPOV,	*LPG_CPOV;
 
@@ -743,9 +758,14 @@ typedef struct __st_config_measure_auto_flatness__
 	UINT16 u16DelayTime;						/* 각 측정 시 지연 시간 */
 
 	BOOL bThieckOnOff;							/*LDS 측정 동작 실행 On/Off*/
-	BOOL bThickCheck;							/*LED 측정 동작 유무 확인*/
+	DOUBLE dRangStartYPos;						/*LDS 측정 Y축 가능한 시작 위치*/
+	DOUBLE dRangEndYPos;						/*LDS 측정 Y축 가능한 끝 위치*/
 	DOUBLE dMeasureYPos;						/*LDS 측정 Y축 좌표*/
 	DOUBLE dAlignMeasure;						/*LDS 측정 값*/
+
+	UINT8	u8UseThickCheck;					/*LED 측정 동작 사용 유무 확인*/
+	DOUBLE	dOffsetZPOS;						/*LDS 실제 측정값에 대한 보정값*/
+	DOUBLE	dLimitZPOS;							/*LDS 실제 측정값과 설정값에 대한 최대 오차값*/
 
 }	STG_CMAF, * LPG_CMAF;
 

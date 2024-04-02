@@ -3,11 +3,15 @@
 
 #include "RecipeManager.h"
 
+#include "..\DlgMain.h"
+
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
+
+class CDlgMain;
 
 CRecvPhil::CRecvPhil()
 {
@@ -43,9 +47,10 @@ VOID CRecvPhil::PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv)
 	/*DlgPhilhmi 에서 메시지 확인*/
 	strRecipe.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rcp_create.szRecipeName));
 	swprintf_s(szTemp, 512, L"Reicpe Name : %s", strRecipe.GetString());
-	::PostMessage(m_hMainWnd, WM_MAIN_PHIL_MSG, WPARAM(szTemp), 0);
+	//::PostMessage(m_hMainWnd, WM_MAIN_PHIL_MSG, WPARAM(szTemp), 0);
 
-	memcpy(stRecipe.job_name,		stRecv->st_c2p_rcp_create.stVar[0].szParameterValue,		DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
+	memcpy(stRecipe.job_name, stRecv->st_c2p_rcp_create.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
+	//memcpy(stRecipe.job_name,		stRecv->st_c2p_rcp_create.stVar[0].szParameterValue,		DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
 	memcpy(stRecipe.gerber_path,	stRecv->st_c2p_rcp_create.stVar[1].szParameterValue,	DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
 	memcpy(stRecipe.gerber_name,	stRecv->st_c2p_rcp_create.stVar[2].szParameterValue,	DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
 	memcpy(stRecipe.align_recipe,	stRecv->st_c2p_rcp_create.stVar[3].szParameterValue,	DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
@@ -125,7 +130,7 @@ VOID CRecvPhil::PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv)
 	}
 }
 
-VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv)
+VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy)
 {
 	STG_PP_C2P_RCP_SELECT_ACK stSelectSend;
 	stSelectSend.Reset();
@@ -137,17 +142,29 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv)
 
 	uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
 
-	/*Recipe 선택 요청 성공*/
-	if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
+	/*현재 시나리오 동작 중*/
+	if (is_busy)
 	{
-		UINT8 u8Offset = 0xff;
-		//RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
-
+		stSelectSend.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+		uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
 	}
-	/*Recipe 선택 요청 실패*/
 	else
 	{
-		//stSelectSend.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
+		/*Recipe 선택 요청 성공*/
+		if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
+		{
+			UINT8 u8Offset = 0xff;
+			callerInst->RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
+
+			uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
+		}
+		/*Recipe 선택 요청 실패*/
+		else
+		{
+			stSelectSend.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
+			uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
+		}
+
 	}
 
 }
@@ -229,6 +246,47 @@ VOID CRecvPhil::PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv)
 	uvEng_Philhmi_Send_C2P_RCP_INFO_ACK(stInfoSend);
 }
 
+VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy)
+{
+	STG_PP_C2P_PROCESS_EXECUTE_ACK stProcessExecute;
+	stProcessExecute.Reset();
+	stProcessExecute.ulUniqueID = stRecv->st_c2p_process_execute.ulUniqueID;
+
+
+	callerInst->m_stExpoLog.Init();
+	//callerInst->m_stExpoLog.phil_mode = 1;
+	/*노광 조건 저장*/
+	//m_stExpoLog.Init();
+	memcpy(callerInst->m_stExpoLog.recipe_name, stRecv->st_c2p_process_execute.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
+	memcpy(callerInst->m_stExpoLog.glassID, stRecv->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
+	/*받은 파라미터값 재전송*/
+	memcpy(stProcessExecute.szRecipeName, stRecv->st_c2p_process_execute.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
+	memcpy(stProcessExecute.szGlassID, stRecv->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
+
+	/*레시피의 선택 유무*/
+	BOOL bSelect = uvEng_JobRecipe_GetSelectRecipe() ? TRUE : FALSE;
+	/*레시피 등록 유무*/
+	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
+	/*레시피에 마크 등록 유무*/
+	BOOL bMarked = uvEng_Luria_IsMarkGlobal();
+
+
+
+	if (!bLoaded || !bSelect)
+	{
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	}
+	else if(is_busy)
+	{
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+		//return;
+	}
+	else
+	{
+		callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+	}
+	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
+}
 
 VOID CRecvPhil::PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv)
 {
@@ -259,19 +317,6 @@ VOID CRecvPhil::PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv)
 			u8Count++;
 		}
 
-
-		TCHAR szTemp[512] = { NULL };
-		/*DlgPhilhmi 에서 메시지 확인*/
-		for (int i = 0; i < u8Count; i++)
-		{
-				swprintf_s(szTemp, 512, L"Type:%S  Name:%S   Value%S",
-					stStatusValue.stVar[i].szParameterType,
-					stStatusValue.stVar[i].szParameterName,
-					stStatusValue.stVar[i].szParameterValue);
-
-				::PostMessage(m_hMainWnd, WM_MAIN_PHIL_MSG, WPARAM(szTemp), 0);
-		}
-
 	}
 
 
@@ -280,7 +325,7 @@ VOID CRecvPhil::PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv)
 	uvEng_Philhmi_Send_C2P_STATUS_VALUE_ACK(stStatusValue);
 }
 
-VOID CRecvPhil::PhilSendChageMode(STG_PP_PACKET_RECV* stRecv)
+VOID CRecvPhil::PhilSendChageMode(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst)
 {
 	STG_PP_C2P_MODE_CHANGE_ACK stModeChange;
 	stModeChange.Reset();
@@ -290,29 +335,82 @@ VOID CRecvPhil::PhilSendChageMode(STG_PP_PACKET_RECV* stRecv)
 	/*내부 선언*/
 	g_u8Romote = stRecv->st_c2p_mode_change.usMode;
 
-	/*원격 초기화 동작 실행*/
-	if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_stop)
+
+	if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_auto)
 	{
-		/*장비 초기화 진행*/
-		//RunWorkJob(ENG_BWOK::en_work_init);
-		::PostMessage(m_hMainWnd, WM_MAIN_THREAD, WPARAM(ENG_BWOK::en_work_init), 0);
-
-
+		callerInst->CreateMenu(IDC_MAIN_BTN_AUTO);
 	}
-	/*원격 메뉴얼 동작 실행*/
 	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_stop)
 	{
-		//CreateMenu(IDC_MAIN_BTN_MANUAL);
-		::PostMessage(m_hMainWnd, WM_MAIN_CHILD, WPARAM(ENG_CMDI::en_menu_manual), 0);
+		/*장비 정지 진행*/
+		callerInst->RunWorkJob(ENG_BWOK::en_work_stop);
 	}
-	/*원격 오토 동작 실행*/
-	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_auto)
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_pause)
 	{
-		//CreateMenu(IDC_MAIN_BTN_AUTO);
-		::PostMessage(m_hMainWnd, WM_MAIN_CHILD, WPARAM(ENG_CMDI::en_menu_auto), 0);
+		/*장비 정지 진행*/
+		callerInst->RunWorkJob(ENG_BWOK::en_work_stop);
 	}
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_alarm)
+	{
+
+	}
+	else if (stRecv->st_c2p_mode_change.usMode == en_menu_phil_mode_pm)
+	{
+
+	}
+
 
 	stModeChange.ulUniqueID = stRecv->st_c2p_mode_change.ulUniqueID;
 	uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(stModeChange);
 }
 
+VOID CRecvPhil::PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy)
+{
+	STG_PP_C2P_INITIAL_EXECUTE_ACK	stInitialExecuteAck;
+	stInitialExecuteAck.Reset();
+
+	stInitialExecuteAck.ulUniqueID = stRecv->st_c2p_initial_execute.ulUniqueID;
+
+	if (!is_busy)
+	{
+		/*장비 초기화 진행*/
+		callerInst->RunWorkJob(ENG_BWOK::en_work_init);
+	}
+	else
+	{
+		stInitialExecuteAck.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+	}
+
+	uvEng_Philhmi_Send_C2P_INITIAL_EXECUTE_ACK(stInitialExecuteAck);
+}
+
+
+VOID CRecvPhil::PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst)
+{
+	STG_PP_C2P_TIME_SYNC_ACK		stTimeSync;
+	stTimeSync.Reset();
+	stTimeSync.ulUniqueID = stRecv->st_c2p_time_sync.ulUniqueID;
+
+	/*현재 시간*/
+	SYSTEMTIME stTm = { NULL };
+	GetLocalTime(&stTm);
+	char szSyncTime[DEF_TIME_LENGTH + 1];
+	sprintf_s(stRecv->st_c2p_time_sync.szSyncTime, DEF_TIME_LENGTH + 1, "%04d%02d%02d%02d%02d%02d",
+		stTm.wYear, stTm.wMonth, stTm.wDay, stTm.wHour, stTm.wMinute, stTm.wSecond);
+	memcpy(stRecv->st_c2p_time_sync.szSyncTime, szSyncTime, DEF_TIME_LENGTH);
+
+
+	uvEng_Philhmi_Send_C2P_TIME_SYNC_ACK(stTimeSync);
+}
+
+VOID CRecvPhil::PhilSendInterruptStop(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst)
+{
+	STG_PP_C2P_INTERRUPT_STOP_ACK	stInterruptStop;
+	stInterruptStop.Reset();
+	stInterruptStop.ulUniqueID = stRecv->st_c2p_interrupt_stop.ulUniqueID;
+
+	/*장비 정지 진행*/
+	callerInst->RunWorkJob(ENG_BWOK::en_work_stop);
+
+	uvEng_Philhmi_Send_C2P_INTERRUPT_STOP_ACK(stInterruptStop);
+}

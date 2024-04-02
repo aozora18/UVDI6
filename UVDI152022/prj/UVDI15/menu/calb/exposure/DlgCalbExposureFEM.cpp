@@ -1426,7 +1426,8 @@ VOID CDlgCalbExposureFEM::RefreshResultCell()
 		return;
 	}
 
-	InitGridResult((int)pstPhFocs->step_x_count, (int)pstPhFocs->step_y_count);
+	//InitGridResult((int)pstPhFocs->step_x_count, (int)pstPhFocs->step_y_count);
+	InitGridResult((int)pstPhFocs->step_y_count, (int)pstPhFocs->step_x_count);
 }
 
 
@@ -1716,8 +1717,8 @@ LRESULT CDlgCalbExposureFEM::InputSetPoint(WPARAM wParam, LPARAM lParam)
 {
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_EXPOSURE_FEM_GRD_RESULT];
 
-	m_nPrintRow = (pGrid->GetRowCount()) - (int)wParam;
-	m_nPrintCol = (pGrid->GetColumnCount()) - (int)lParam;
+	m_nPrintRow = (pGrid->GetRowCount()) - (int)lParam;
+	m_nPrintCol = (pGrid->GetColumnCount()) - (int)wParam;
 	m_bPrinting = TRUE;
 
 	return 0;

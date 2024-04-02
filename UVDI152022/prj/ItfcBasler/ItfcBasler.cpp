@@ -599,11 +599,11 @@ API_EXPORT VOID uvBasler_ResetGrabbedImage()
 						0xfe : Align Camera Angle Measuring Mode (얼라인 카메라 각도 측정하기 위함)
  retn : Calirbated Image의 정보가 저장된 구조체 포인터 반환
 */
-API_EXPORT LPG_ACGR uvBasler_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc)
+API_EXPORT LPG_ACGR uvBasler_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc,int flipDir)
 {
 	/* New Grabbed Image 저장 */
 	if (cam_id < 1 || g_pstConfig->set_cams.acam_count < cam_id)	return NULL;
-	return g_pCamThread->RunModelFind(cam_id, mode, dlg_id, mark_no, useMilDisp, img_proc);
+	return g_pCamThread->RunModelFind(cam_id, mode, dlg_id, mark_no, useMilDisp, img_proc,flipDir);
 }
 
 /*
@@ -611,17 +611,17 @@ API_EXPORT LPG_ACGR uvBasler_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id
  parm : cam_id	- [in]  Camera Index (1 or 2)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvBasler_RunModelFind(UINT8 cam_id, UINT8 mark_no) // 미사용
-{
-	//LPG_ACGR pstGrab	= NULL;
-	//
-	//if (!g_pCamThread)	return FALSE;
-	//pstGrab	= g_pCamMain[cam_id-1]->GetGrabbedImage();
-	//if (!pstGrab)	return FALSE;
-	/* 검색 작업 진행 */
-	//return uvMIL_RunModelFind(cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, g_pCamMain[cam_id - 1]->GetDispType(), mark_no);
-	return FALSE;
-}
+//API_EXPORT BOOL uvBasler_RunModelFind(UINT8 cam_id, UINT8 mark_no) // 미사용
+//{
+//	//LPG_ACGR pstGrab	= NULL;
+//	//
+//	//if (!g_pCamThread)	return FALSE;
+//	//pstGrab	= g_pCamMain[cam_id-1]->GetGrabbedImage();
+//	//if (!pstGrab)	return FALSE;
+//	/* 검색 작업 진행 */
+//	//return uvMIL_RunModelFind(cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, g_pCamMain[cam_id - 1]->GetDispType(), mark_no);
+//	return FALSE;
+//}
 
 /*
  desc : 가장 최근에 Calibrated된 결과 데이터 반환
@@ -868,9 +868,10 @@ API_EXPORT VOID uvBasler_DrawGrabBitmap(HDC hdc, RECT draw, UINT8 cam_id)
 	if (!pstGrab)	return;
 	// 현재 Grabbed Image 1장 출력
 	if (!pstGrab->grab_width || !pstGrab->grab_height)	return;
-
-	/* 현재 Grabbed Image 출력 */
-	uvMIL_DrawLiveBitmap(hdc, draw, pstGrab, dbAngle);
+	
+		/* 현재 Grabbed Image 출력 */
+		uvMIL_DrawLiveBitmap(hdc, draw, pstGrab, dbAngle);
+	
 }
 
 /*
@@ -899,6 +900,9 @@ API_EXPORT VOID uvBasler_DrawStripBitmap(HDC hdc, RECT draw, UINT8 cam_id, LPG_M
 	uvMIL_DrawStripBitmap(hdc, draw, pstGrab, dbAngle, param);
 }
 
+
+
+
 /*
  desc : Calibration 이미지 (검색된 결과)를 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -910,6 +914,16 @@ API_EXPORT VOID uvBasler_DrawCaliMarkBitmap(HDC hdc, RECT draw)
 	if (!g_pCamThread)	return;
 	uvMIL_DrawCaliMarkBitmap(hdc, draw);
 }
+
+API_EXPORT VOID uvBasler_Camera_SetAlignMotionPtr(AlignMotion& ptr)
+{
+	if (!g_pCamThread)	return;
+
+	g_pCamThread->SetAlignMotionPtr(ptr);
+	
+	
+}
+
 
 /*
  desc : 가장 마지막에 Grabbed Image를 출력
@@ -953,13 +967,13 @@ API_EXPORT BOOL uvBasler_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UINT8 
 		img_id	- [in]  Camera Grabbed Image Index (0 or Later)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 img_id)
+API_EXPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id,UINT8 hwndIdx, UINT8 img_id)
 {
 	if (!g_pCamThread)	return FALSE;
 	/* 수집된 Camera 정보 유효성 확인 */
 	if (cam_id < 1 || g_pstConfig->set_cams.acam_count < cam_id)	return FALSE;
 	/* Grabbed Image에 대한 Mark 정보 그리기 */
-	uvMIL_DrawMarkMBufID(hwnd, draw, cam_id, img_id);
+	uvMIL_DrawMarkMBufID(hwnd, draw, cam_id, hwndIdx,img_id);
 
 	return TRUE;
 }
@@ -973,10 +987,10 @@ API_EXPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_EXPORT VOID uvBasler_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find)
+API_EXPORT VOID uvBasler_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce,UINT8 flipFlag)
 {
 	if (!g_pCamThread)	return;
-	uvMIL_DrawMarkDataBitmap(hdc, draw, grab, find);
+	uvMIL_DrawMarkDataBitmap(hdc, draw, grab, find,drawForce, flipFlag);
 }
 
 /*
@@ -1266,6 +1280,13 @@ API_EXPORT VOID uvBasler_SetMarkMethod(ENG_MMSM method, UINT8 count)
 	uvMIL_SetMarkMethod(method, count);
 }
 
+
+API_EXPORT UINT8 uvBasler_SetMarkFoundCount(int camNum)
+{
+	return uvMIL_SetMarkFoundCount(camNum);
+}
+
+
 /*
  desc : 노광 모드 설정 즉, 직접 노광, 얼라인 노광, 보정 후 얼라인 노광
  parm : mode	- [in]  직접 노광 (0x00), 얼라인 노광 (0x01), 얼라인 카메라 보정 값 적용 후 얼라인 노광 (0x02)
@@ -1422,7 +1443,7 @@ API_EXPORT VOID uvBasler_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BOOL s
 }
 
 /* desc : MIL ID 로 저장된 이미지 화면 출력 */
-API_EXPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save)
+API_EXPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save,int flipDir)
 {
 	DOUBLE dbAngle = g_pstConfig->set_cams.acam_inst_angle == 0 ? 0.0f : 180.0f;
 	LPG_ACGR pstGrab = NULL;
@@ -1439,7 +1460,9 @@ API_EXPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BO
 			/* 이전에 그렸던 시간과 비교해서 일정 시간 지났는지 확인 */
 			//if (GetTickCount64() > g_u64DrawDelayTime[cam_id - 1] + GRAB_DRAW_DELAY_TIME)
 			//{
-			uvMIL_DrawImageBitmap(dispType, Num, pstGrab, dbAngle, cam_id - 1);
+
+			uvMIL_DrawImageBitmapFlip(dispType, 0, pstGrab, dbAngle, cam_id - 1,flipDir);
+			
 			/* 다음에 그릴 때, 일정 시간 지연을 위해서 */
 			//g_u64DrawDelayTime[cam_id - 1] = GetTickCount64();
 
@@ -1660,6 +1683,16 @@ API_EXPORT VOID uvBasler_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int 
 {
 	uvMIL_DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo);
 }
+
+
+API_EXPORT VOID uvBasler_Camera_ClearShapes(int fi_iDispType)
+{
+	uvMIL_Camera_ClearShapes(fi_iDispType);
+}
+
+
+
+
 
 /* desc : Overlay 관련 함수 - Box List 추가 */
 API_EXPORT VOID uvBasler_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color)

@@ -90,7 +90,7 @@ typedef struct __st_align_camera_grab_result__
 	DOUBLE				square_rate;			/* 이 값 100에 가까워야 정사각형에 가까움 */
 	DOUBLE				coverage_rate;			/* 총 검색된 Edge들의 비율 값 (단위: %) */
 	DOUBLE				fit_error;				/* 검색된 엣지와 모델 엣지 간의 2차원 거리 에러 값 (0.0에 가까울 수록 비슷함) */
-												/* 즉, 검색된 엣지가 어느 정도 모델의 엣지에 대응하는지를 나타냄 */
+	/* 즉, 검색된 엣지가 어느 정도 모델의 엣지에 대응하는지를 나타냄 */
 	DOUBLE				circle_radius;			/* circle 반지름 */
 	/* ----------------------------------------------------------------------------------------- */
 	/* 아래 2개의 변수는 중요함. 추후 제어PC에게 Align Mark 좌표 값 넘겨주기 위함. 단위는 mm 임. */
@@ -101,8 +101,13 @@ typedef struct __st_align_camera_grab_result__
 	DOUBLE				move_px_y;
 	DOUBLE				move_mm_x;
 	DOUBLE				move_mm_y;
-	PUINT8				grab_data;				/* Grabbed Image Buffer */
 	DWORD				grabTime;
+	int					fiducialMarkIndex;
+	PUINT8				grab_data;				/* Grabbed Image Buffer */
+
+	//LPG_GMSR			submaskFindInfo;
+
+ 
 	BOOL IsEqualData(LPG_AMDR data)
 	{
 		return (move_mm_x == data->move_mm_x &&
@@ -140,6 +145,67 @@ typedef struct __st_align_camera_grab_result__
 	BOOL IsEmpty()
 	{
 		return !(grab_size > 0 && grab_width > 0 && grab_height > 0);	/* Check to Grabbed Image Size */
+	}
+
+	void Init()
+	{
+		grab_size = 0;
+		grab_width = 0;
+		grab_height = 0;
+		marked = 0;
+		cam_id = 0;
+		img_id = 0;
+		model_index = 0;
+		valid_score = 0;
+		valid_scale = 0;
+		valid_multi = 0;
+		manual_set = 0;
+		mark_method = 0;
+		scale_size = 0;
+		u32_reserved = 0;
+		mark_cent_px_x = 0.0;
+		mark_cent_px_y = 0.0;
+		mark_width_px = 0.0;
+		mark_height_px = 0.0;
+		mark_cent_mm_x = 0.0;
+		mark_cent_mm_y = 0.0;
+		mark_cent_mm_dist = 0.0;
+		mark_width_mm = 0.0;
+		mark_height_mm = 0.0;
+		mark_angle = 0.0;
+		score_rate = 0.0;
+		scale_rate = 0.0;
+		square_rate = 0.0;
+		coverage_rate = 0.0;
+		fit_error = 0.0;
+		circle_radius = 0.0;
+		move_px_x = 0.0;
+		move_px_y = 0.0;
+		move_mm_x = 0.0;
+		move_mm_y = 0.0;
+		grabTime = 0;
+		fiducialMarkIndex = -1818;
+		grab_data = nullptr;
+	}
+
+	/* 생성자 */
+	__st_align_camera_grab_result__()
+	{
+		Init();
+	}
+	
+	void Release()
+	{
+		/*if (IsEmpty() == false)
+		{
+			::free(grab_data);
+		}*/
+		//grab_data = nullptr;
+	}
+
+	~__st_align_camera_grab_result__()
+	{
+		Release();
 	}
 
 }	STG_ACGR,	*LPG_ACGR;
@@ -286,7 +352,7 @@ typedef struct __st_geomatric_matching_find_result__
 				  DOUBLE x, DOUBLE y, UINT8 scale_s, DOUBLE circle_r)
 	{
 		//model_index		= index;
-		model_index = 0; // lk91 model_index 값 .. 어떻게 사용해야하는지
+		model_index = index; // lk91 model_index 값 .. 어떻게 사용해야하는지
 		scale_rate		= scale;
 		score_rate		= score;
 		cent_dist		= dist;
@@ -297,6 +363,23 @@ typedef struct __st_geomatric_matching_find_result__
 		cent_y			= y;
 		scale_size		= scale_s;
 		circle_radius	= circle_r;
+	}
+
+	VOID SetValue(UINT32 index,
+		DOUBLE scale, DOUBLE score, DOUBLE dist, DOUBLE angle,
+		DOUBLE coverage, DOUBLE fit_err,
+		DOUBLE x, DOUBLE y, UINT8 scale_size)
+	{
+		model_index = index;
+		scale_rate = scale;
+		score_rate = score;
+		cent_dist = dist;
+		r_angle = angle;
+		coverage_rate = coverage;
+		fit_error = fit_err;
+		cent_x = x;
+		cent_y = y;
+		scale_size = scale_size;
 	}
 
 	/*
@@ -343,6 +426,10 @@ typedef struct __st_geomatric_matching_sub_result__
 	DOUBLE				cent_x;			/* 검색된 중심 위치 : X (unit : pixel) */
 	DOUBLE				cent_y;			/* 검색된 중심 위치 : Y (unit : pixel) */
 
+	DOUBLE				move_px_x;
+	DOUBLE				move_px_y;
+	DOUBLE				move_mm_x;
+	DOUBLE				move_mm_y;
 	/*
 	 desc : 데이터가 설정되어 있는지 여부
 	 parm : None
@@ -466,6 +553,10 @@ typedef struct __st_recipe_align_additional_function_
 	UINT8				mark_type;						/* Mark 구분 즉, 0 : Geomatrix, 1 : Pattern Image	*/
 	UINT8				align_type;						/* Align Mark Array(Global, Local) Type				*/
 
+#ifdef USE_ALIGNMOTION
+	UINT16				align_motion;					/* align 모션타입*/
+#endif
+
 	UINT8				lamp_type;						/* 램프 조명 타입 (0:Ring, 1:Coaxial)					*/
 	UINT8				gain_level[2];					/* Align Camera에 대한 Gain Level 값 (0 ~ 255)      */
 	UINT8				search_type;					/* [ENG_MMSM] Mark 검색 방법(0~5) single, cent_side, multi_only, ring_cirecle, ph_step [mark_model]*/
@@ -503,7 +594,9 @@ typedef struct __st_recipe_align_additional_function_
 		save_count	= cnt;	/* 등록된 모델 개수 저장 */
 		align_type	= 0x01;
 		lamp_type	= 0x01;
-
+#ifdef USE_ALIGNMOTION
+		align_motion = (UINT16)ENG_AMOS::en_onthefly_2cam;
+#endif
 		gain_level[0] = 0x00;
 		gain_level[1] = 0x00;
 		search_type = 0x01;

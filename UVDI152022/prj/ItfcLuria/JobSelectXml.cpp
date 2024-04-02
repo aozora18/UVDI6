@@ -8,11 +8,367 @@
 #include "JobSelectXml.h"
 #include "../UVDI15/GlobalVariables.h"
 
+#include <iostream>
+#include "pugixml.hpp"
+#include <vector>
+#include <algorithm>
+#include <fstream>  
+#include <iostream>
+#include <iosfwd>
+#include <string>
+#include <sstream>
+#include <tuple>
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+struct LocalData
+{
+	int index;
+	double orgX, orgY;
+	int bmpX, bmpY;
+	double gbrX, gbrY;
+};
+
+enum SearchDir
+{
+	XIncrease = 0b00001010,
+	XDecrease = 0b00001000,
+	YIncrease = 0b00000110,
+	YDecrease = 0b00000100,
+};
+
+
+int ProcessXml(string xmlFilename)
+{
+
+	auto SplitPath = [&](const std::string& filepath, std::string& directory, std::string& filename)
+	{
+		fs::path pathObj(filepath);
+		directory = pathObj.parent_path().string();
+		filename = pathObj.filename().string();
+	};
+
+	auto AddSuffixToFilename = [&](const std::string& filename, const std::string& suffix)->std::string
+	{
+		size_t dotPos = filename.find_last_of('.');
+		if (dotPos != std::string::npos)
+			return filename.substr(0, dotPos) + suffix + filename.substr(dotPos);
+		return filename;
+	};
+
+	auto Backup = [&](const std::string& srcfilename, string& copyFileName)
+	{
+		std::string backupFilename = (copyFileName.length() == 0 ? srcfilename + ".bak" : copyFileName);
+		fs::copy_file(srcfilename, backupFilename, fs::copy_options::overwrite_existing);
+	};
+
+	auto GetLocalzoneData = [&](string xmlFilename, std::vector<LocalData>& localZone, string& xmlString,bool& processed,int& localCount)
+	{
+		std::ifstream file(xmlFilename);
+		std::string xmlData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+		// pugi::xml_document 객체 생성 및 XML 데이터 로드
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_string(xmlData.c_str());
+
+		if (!result) return 0;
+
+		xmlString = xmlData.c_str();
+
+		pugi::xml_node rltNode = doc.child("rlt");
+		if (!rltNode) return 0;
+
+		pugi::xml_node fidNode = rltNode.child("Fiducials");
+		if (!rltNode)  return 0;
+
+		processed = fidNode.attribute("processed").as_bool();
+
+		if (processed == false)
+		{
+			string copyName = AddSuffixToFilename(xmlFilename, "_GL");
+			Backup(xmlFilename,copyName);
+		}
+
+		pugi::xml_node localNode = fidNode.child("Local");
+		if (!localNode)  return 0;
+
+		localCount = localNode.attribute("number").as_int();
+		
+		if (processed == true || localCount == 0)
+			return 0;
+
+		for (pugi::xml_node fidNode : localNode.children("fid"))
+		{
+			LocalData data;
+			data.orgX = fidNode.child("org").attribute("x").as_double();
+			data.orgY = fidNode.child("org").attribute("y").as_double();
+			data.bmpX = fidNode.child("bmp").attribute("x").as_int();
+			data.bmpY = fidNode.child("bmp").attribute("y").as_int();
+			data.gbrX = fidNode.child("gbr").attribute("x").as_double();
+			data.gbrY = fidNode.child("gbr").attribute("y").as_double();
+			localZone.push_back(data);
+		}
+		return 1;
+	};
+
+
+
+	auto FindClosestItem = [&](const std::vector<LocalData>& localDataVec, int baseItemIndex, SearchDir dir)->int
+		{
+			int closestIndex = 0;
+			double closestDistance = 0;
+			const unsigned char xMask = 0b00001000;
+			const unsigned char IncreaseMask = 0b00000010;
+			double threahold = 0.010f;
+			double values[2] = { 0, };
+
+			double apositeCoord = (dir & xMask) == xMask ? localDataVec[baseItemIndex].gbrY : localDataVec[baseItemIndex].gbrX;
+			
+			double orgValue = (dir & xMask) == xMask ? localDataVec[baseItemIndex].gbrX : localDataVec[baseItemIndex].gbrY;
+
+			for (size_t i = 0; i < localDataVec.size(); ++i)
+			{
+				if (i == baseItemIndex) continue;
+
+				double distance = 0;
+
+				double apositeCmpCoord = (dir & xMask) == xMask ? localDataVec[i].gbrY : localDataVec[i].gbrX;
+
+				bool same = fabsf(fabsf(apositeCoord) - fabsf(apositeCmpCoord)) < threahold;
+
+				if (!same)
+					continue;
+
+				values[1] = (dir & xMask) == xMask ? localDataVec[i].gbrX : localDataVec[i].gbrY;
+
+				if ((dir & IncreaseMask) == IncreaseMask ? orgValue < values[1] : orgValue > values[1])
+				{
+					if (closestDistance == 0)
+					{
+						closestDistance = values[1];
+						closestIndex = i;
+					}
+					else
+					{
+						if ((dir & IncreaseMask) == IncreaseMask)
+						{
+							if (closestDistance > values[1])
+							{
+								closestDistance = closestDistance > values[1];
+								closestIndex = i;
+							}
+						}
+						else
+						{
+							if (closestDistance < values[1])
+							{
+								closestDistance = values[1];
+								closestIndex = i;
+							}
+						}
+					}
+				}
+			}
+
+			return closestIndex;
+		};
+
+	auto makeLocalZone = [&](vector<LocalData>& unSortpointData, vector<int>& pointIndex, vector<LocalData>& zoneStack)
+	{
+		std::sort(unSortpointData.begin(), unSortpointData.end(), [](const auto& a, const auto& b)
+			{
+				return a.gbrX < b.gbrX;
+			});
+		std::sort(unSortpointData.begin(), unSortpointData.end(), [](const auto& a, const auto& b)
+			{
+				return a.gbrY < b.gbrY;
+			});
+
+		SearchDir searchOrder[] = { SearchDir::XIncrease ,SearchDir::YIncrease ,SearchDir::XDecrease };//, SearchDir::YDecrease
+
+		pointIndex.push_back(0);
+		zoneStack.push_back(unSortpointData[pointIndex.back()]);
+		for (int i = 0; i < 3; i++)
+		{
+			pointIndex.push_back(FindClosestItem(unSortpointData, pointIndex.back(), searchOrder[i]));
+			zoneStack.push_back(unSortpointData[pointIndex.back()]);
+		}
+	};
+
+	auto SetProcessedFlag = [&](std::string& xmlString)
+	{
+		size_t sp = xmlString.find("<Fiducials");
+		if (sp != string::npos)
+		{
+			size_t ep = xmlString.find(">", sp);
+
+			if (ep != string::npos)
+			{
+				xmlString.erase(sp, (ep - sp) + 1);
+				xmlString.insert(sp, "<Fiducials processed=\"true\">");
+			}
+		}
+	};
+
+	auto GenerateFidXmlString = [&](const LocalData& data)->std::string
+	{
+		char buffer[256];
+
+		sprintf_s(buffer,
+			"\n<fid id=\"%d\">\n"
+			"    <org x=\"%f\" y=\"%f\" />\n"
+			"    <bmp x=\"%d\" y=\"%d\" />\n"
+			"    <gbr x=\"%f\" y=\"%f\" />\n"
+			"</fid>\n",
+			data.index, data.orgX, data.orgY, data.bmpX, data.bmpY, data.gbrX, data.gbrY);
+
+		return std::string(buffer);
+
+	};
+
+	auto CheckFilesInDirectory = [&](const std::string& directory, string token, bool& find,string& combinePath)
+	{
+		auto CodeBody = [&]()
+		{
+			string root, file;
+			SplitPath(directory, root, file);
+			auto searchName = AddSuffixToFilename(file, token);
+			combinePath = root + "\\" + searchName;
+			for (const auto& entry : fs::directory_iterator(root))
+			{
+				if (!entry.is_regular_file()) continue;
+				std::string filename = entry.path().filename().string();
+				if (filename != searchName) continue;
+				return true;
+			}
+			return false;
+		};
+
+		find =  CodeBody();
+	};
+
+
+	auto WriteString = [&](string filename, string text)
+		{
+			std::ofstream outputFile(filename.c_str());
+
+			// 파일이 열렸는지 확인
+			if (outputFile.is_open())
+			{
+				outputFile << text;
+				outputFile.close();
+			}
+		};
+
+	auto GenerateFid = [&](std::string xmlString, std::vector<LocalData>& zoneStack,bool localFind,bool processed,string noLocalFileName)->string
+	{
+		auto fidCount = zoneStack.size();
+
+		if (processed && localFind)
+			return "";
+
+		size_t localStartPos = xmlString.find("<Local");
+		size_t localEndPos = xmlString.find("</Local>");
+
+
+		//여기까지가 로컬 전부 지운것.
+		if (localFind == false)
+		{
+			auto xmlstringClone = xmlString;
+			xmlstringClone.erase(localStartPos, localEndPos - localStartPos);
+			xmlstringClone.insert(localStartPos, "<Local d-code=\"0\" number=\"0\">");
+			WriteString(noLocalFileName, xmlstringClone);
+			if (processed) return "";
+		}
+
+		if (localStartPos != std::string::npos && localEndPos != std::string::npos)
+		{
+			size_t fidStartPos = xmlString.find("<fid", localStartPos);
+			while (fidStartPos != std::string::npos && fidStartPos < localEndPos)
+			{
+				size_t fidEndPos = xmlString.find("</fid>", fidStartPos);
+				if (fidEndPos != std::string::npos && fidEndPos < localEndPos)
+				{
+					xmlString.erase(fidStartPos, fidEndPos - fidStartPos + string("</fid>").length());
+				}
+				fidStartPos = xmlString.find("<fid", fidStartPos);
+			}
+		}
+
+
+		//여기부터는 로컬추가된것.
+
+		auto addPoint = xmlString.find(">", localStartPos);
+
+		if (addPoint != string::npos)
+			addPoint += string(">").length();
+
+		for (int i = 0; i < zoneStack.size(); i++)
+		{
+			zoneStack[i].index = i + 1;
+			auto str = GenerateFidXmlString(zoneStack[i]);
+			xmlString.insert(addPoint, str);
+			cout << xmlString.c_str();
+			addPoint = xmlString.find("</fid>", addPoint);
+			if (addPoint != string::npos)
+				addPoint += string("</fid>").length();
+		}
+		return xmlString;
+	};
+
+
+	auto CodeBody = [&]()->int
+	{
+		vector<LocalData> zoneStack;
+		std::vector<LocalData> localZone;
+		string xmlString;
+
+		bool localFind = false; string combinePath;
+		CheckFilesInDirectory(xmlFilename, "_G", localFind, combinePath);
+
+		bool processed = false; int localCount = 0;
+
+		GetLocalzoneData(xmlFilename, localZone, xmlString, processed, localCount);
+		
+		if(localCount != 0 && processed == false)
+		while (localZone.empty() == false)
+		{
+			vector<int> pointIndex;
+
+			makeLocalZone(localZone, pointIndex, zoneStack);
+
+			std::sort(pointIndex.begin(), pointIndex.end(), std::greater<size_t>());
+
+			for (auto indexToDelete : pointIndex)
+				localZone.erase(localZone.begin() + indexToDelete);
+		}
+
+		if (localFind == false && localCount == 0)
+		{
+			Backup(xmlFilename, combinePath);
+			if (processed) return 1;
+		}
+
+		auto res = GenerateFid(xmlString, zoneStack, localFind, processed, combinePath);
+
+		if (res.length() == 0)
+			return 1;
+
+		SetProcessedFlag(res);
+		Backup(xmlFilename,string());
+		WriteString(xmlFilename, res);
+		return 1;
+	};
+	
+	return CodeBody();
+	
+}
+
 
 /*
  desc : 생성자
@@ -149,7 +505,8 @@ BOOL CJobSelectXml::SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
 	}
 	row = my.size();
 	col = mx.size();
-
+	//auto x = mx.size();
+	//auto y = my.size();
 
 	if (shared)
 	{
@@ -268,55 +625,55 @@ BOOL CJobSelectXml::SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
  parm : align_type	- [in]  Gerber Data에 저장된 Mark Type (ENG_ATGL)
  retn : TRUE or FALSE
 */
-BOOL CJobSelectXml::IsValidAlignType(ENG_ATGL align_type)
-{
-	switch (align_type)
-	{
-	case ENG_ATGL::en_global_4_local_0x0_n_point:
-	case ENG_ATGL::en_global_3_local_0x0_n_point:
-	case ENG_ATGL::en_global_2_local_0x0_n_point:
-
-	case ENG_ATGL::en_global_4_local_2x1_n_point:
-
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-
-	case ENG_ATGL::en_global_4_local_2x2_s_point:
-	case ENG_ATGL::en_global_4_local_3x2_s_point:
-	case ENG_ATGL::en_global_4_local_4x2_s_point:
-	case ENG_ATGL::en_global_4_local_5x2_s_point:
-	case ENG_ATGL::en_not_defined:	// by sysandj : Preview를 위해 추가
-		return TRUE;
-	}
-	return FALSE;
-}
+//BOOL CJobSelectXml::IsValidAlignType(ENG_ATGL align_type)
+//{
+//	switch (align_type)
+//	{
+//	case ENG_ATGL::en_global_4_local_0x0_n_point:
+//	case ENG_ATGL::en_global_3_local_0x0_n_point:
+//	case ENG_ATGL::en_global_2_local_0x0_n_point:
+//
+//	case ENG_ATGL::en_global_4_local_2x1_n_point:
+//
+//	case ENG_ATGL::en_global_4_local_2x2_n_point:
+//	case ENG_ATGL::en_global_4_local_3x2_n_point:
+//	case ENG_ATGL::en_global_4_local_4x2_n_point:
+//	case ENG_ATGL::en_global_4_local_5x2_n_point:
+//
+//	case ENG_ATGL::en_global_4_local_2x2_s_point:
+//	case ENG_ATGL::en_global_4_local_3x2_s_point:
+//	case ENG_ATGL::en_global_4_local_4x2_s_point:
+//	case ENG_ATGL::en_global_4_local_5x2_s_point:
+//	case ENG_ATGL::en_not_defined:	// by sysandj : Preview를 위해 추가
+//		return TRUE;
+//	}
+//	return FALSE;
+//}
 
 /*
  desc : Align Type이 Shared Type인지 아닌지 여부
  parm : align_type	- [in]  Gerber Data에 저장된 Mark Type (ENG_ATGL)
  retn : TRUE or FALSE
 */
-BOOL CJobSelectXml::IsSharedAlignType(ENG_ATGL align_type)
-{
-	switch (align_type)
-	{
-	case ENG_ATGL::en_global_4_local_0x0_n_point:
-	case ENG_ATGL::en_global_3_local_0x0_n_point:
-	case ENG_ATGL::en_global_2_local_0x0_n_point:
-
-	case ENG_ATGL::en_global_4_local_2x1_n_point:
-
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-	case ENG_ATGL::en_not_defined:	// by sysandj : Preview를 위해 추가
-		return FALSE;
-	}
-	return TRUE;
-}
+//BOOL CJobSelectXml::IsSharedAlignType(ENG_ATGL align_type)
+//{
+//	switch (align_type)
+//	{
+//	case ENG_ATGL::en_global_4_local_0x0_n_point:
+//	case ENG_ATGL::en_global_3_local_0x0_n_point:
+//	case ENG_ATGL::en_global_2_local_0x0_n_point:
+//
+//	case ENG_ATGL::en_global_4_local_2x1_n_point:
+//
+//	case ENG_ATGL::en_global_4_local_2x2_n_point:
+//	case ENG_ATGL::en_global_4_local_3x2_n_point:
+//	case ENG_ATGL::en_global_4_local_4x2_n_point:
+//	case ENG_ATGL::en_global_4_local_5x2_n_point:
+//	case ENG_ATGL::en_not_defined:	// by sysandj : Preview를 위해 추가
+//		return FALSE;
+//	}
+//	return TRUE;
+//}
 
 /*
  desc : xml file 적재 - Global & Local Fiducial
@@ -341,7 +698,7 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 	tinyxml2::XMLAttribute* xmlAttr;
 
 	/* Align Type 유효성 검사 */
-	if (align_type != ENG_ATGL::en_global_0_local_0x0_n_point && !IsValidAlignType(align_type))	return FALSE;
+	/*if (align_type != ENG_ATGL::en_global_0_local_0x0_n_point && !IsValidAlignType(align_type))	return FALSE;*/
 	/* Create the panel object */
 	ResetData();
 
@@ -358,6 +715,11 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 	memset(m_pPhDistX, 0x00, sizeof(DOUBLE) * MAX_PH);
 	/* job name 절대 경로 설정 */
 	sprintf_s(szJobPath, MAX_PATH_LEN, "%s\\rlt_settings.xml", job_name);
+
+
+	ProcessXml(string(szJobPath));
+
+
 	// XML 열기
 	xmlErr = xmlDoc.LoadFile(szJobPath);
 	if (0 != xmlErr)	return FALSE;
@@ -477,12 +839,12 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 		lstGbrXY.RemoveAll();
 	}
 
-	/* search for <Local Fiducials> */
-	if (align_type != ENG_ATGL::en_global_0_local_0x0_n_point &&
-		align_type != ENG_ATGL::en_global_4_local_0x0_n_point &&
-		align_type != ENG_ATGL::en_global_3_local_0x0_n_point &&
-		align_type != ENG_ATGL::en_global_2_local_0x0_n_point)
-	{
+	///* search for <Local Fiducials> */
+	//if (align_type != ENG_ATGL::en_global_0_local_0x0_n_point &&
+	//	align_type != ENG_ATGL::en_global_4_local_0x0_n_point &&
+	//	align_type != ENG_ATGL::en_global_3_local_0x0_n_point &&
+	//	align_type != ENG_ATGL::en_global_2_local_0x0_n_point)
+	//{
 		xmlElem1 = (tinyxml2::XMLElement*)xmlNode->FirstChildElement("Fiducials");
 		if (!xmlElem1 || 0 != strcmp(xmlElem1->Value(), "Fiducials"))	return FALSE;
 		/* search for <Local> */
@@ -515,14 +877,6 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 				stGbrXY.org_id++;	/* OrgID가 Zero 부터 저장되기 위함 */
 			}
 
-			/* Align Mark Type이 Shared Type인지 여부 */
-
- 
-
-			// by sysandj : 주석
-			//switch (align_type)
-		 
-
 			if (lstGbrXY.GetCount())
 			{
 				/* Local Fiducial 정렬 작업 진행 */
@@ -545,7 +899,7 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 				lstGbrXY.RemoveAll();
 			}
 		}
-	}
+	/*}*/
 
 	/* Search For <PanelData> */
 	xmlElem1 = (tinyxml2::XMLElement*)xmlNode->FirstChildElement("PanelData");
@@ -704,7 +1058,8 @@ UINT8 CJobSelectXml::GetLocalBottomMark(UINT8 scan, UINT8 cam_id)
 {
 	UINT8 u8Index = 0x00;
 
- 
+	//if (!m_pFidLocal || cam_id < 1 || cam_id > 2 || scan > 1)	return 0xff;
+
 
 
 	if (!m_pFidLocal || std::clamp((int)cam_id, 1, 2) != cam_id)	return 0xff; //이제 스캔제한이 없어야한다. 
@@ -715,6 +1070,70 @@ UINT8 CJobSelectXml::GetLocalBottomMark(UINT8 scan, UINT8 cam_id)
 
 	u8Index = cam_id == 1 ? status.markMapConst[scan].back().tgt_id : status.markMapConst[centerCol + scan].back().tgt_id;
 
+	//
+	//	switch (m_enAlignType)
+	//	{
+	//		/* Normal Partition */
+	//	case ENG_ATGL::en_global_4_local_2x1_n_point:	/* Global (4) points / Local Division (2 x 1) (08) points */
+	//		if (cam_id == 1)	u8Index = 3;				/* Local Division이 2 x 1인 경우, Scan 값은 무조건 0이어야 함 */
+	//		else				u8Index = 7;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_2x2_n_point:	/* Global (4) points / Local Division (2 x 2) (16) points */
+	//		//abh1000(0308)
+	//		//if (0 == scan)		u8Index	= 3;
+	//		//else				u8Index	= 11;
+	//		//if (cam_id == 2)	u8Index	= u8Index + 4;
+	//		if (0 == scan)		u8Index = 3;
+	//		else				u8Index = 7;
+	//		if (cam_id == 2)	u8Index = u8Index + 8;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_3x2_n_point:	/* Global (4) points / Local Division (3 x 2) (24) points */
+	//		//abh1000 0417
+	//// 		if (0 == scan)		u8Index	= 5;
+	//// 		else				u8Index	= 17;
+	//// 		if (cam_id == 2)	u8Index	= u8Index + 6;
+	//		if (0 == scan)		u8Index = 5;
+	//		else				u8Index = 11;
+	//		if (cam_id == 2)	u8Index = u8Index + 12;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_4x2_n_point:	/* Global (4) points / Local Division (4 x 2) (32) points */
+	//		// 		if (0 == scan)		u8Index	= 7;
+	//		// 		else				u8Index	= 23;
+	//		// 		if (cam_id == 2)	u8Index	= u8Index + 8;
+	//		if (0 == scan)		u8Index = 7;
+	//		else				u8Index = 15;
+	//		if (cam_id == 2)	u8Index = u8Index + 16;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_5x2_n_point:	/* Global (4) points / Local Division (5 x 2) (40) points */
+	//		// 		if (0 == scan)		u8Index	= 9;
+	//		// 		else				u8Index	= 29;
+	//		// 		if (cam_id == 2)	u8Index	= u8Index + 10;
+	//		if (0 == scan)		u8Index = 9;
+	//		else				u8Index = 19;
+	//		if (cam_id == 2)	u8Index = u8Index + 20;
+	//		break;
+	//		/* Shared Partition */
+	//	case ENG_ATGL::en_global_4_local_2x2_s_point:	/* Global (4) points / Local Division (2 x 2) (13) points */
+	//		if (0 == scan)		u8Index = 2;
+	//		else				u8Index = 5;
+	//		if (cam_id == 2)	u8Index = u8Index + 3;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_3x2_s_point:	/* Global (4) points / Local Division (3 x 2) (16) points */
+	//		if (0 == scan)		u8Index = 3;
+	//		else				u8Index = 7;
+	//		if (cam_id == 2)	u8Index = u8Index + 4;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_4x2_s_point:	/* Global (4) points / Local Division (4 x 2) (19) points */
+	//		if (0 == scan)		u8Index = 4;
+	//		else				u8Index = 9;
+	//		if (cam_id == 2)	u8Index = u8Index + 5;
+	//		break;
+	//	case ENG_ATGL::en_global_4_local_5x2_s_point:	/* Global (4) points / Local Division (5 x 2) (22) points */
+	//		if (0 == scan)		u8Index = 5;
+	//		else				u8Index = 11;
+	//		if (cam_id == 2)	u8Index = u8Index + 6;
+	//		break;
+	//	}
 
 	return u8Index;
 }
@@ -730,7 +1149,9 @@ BOOL CJobSelectXml::GetLocalBottomMark(UINT8 scan, UINT8 cam_id, STG_XMXY& data)
 {
 	UINT8 u8Index = 0x00;
 
-	
+	//if (!m_pFidLocal || cam_id < 1 || cam_id > 2 || scan > 1)	return FALSE;
+
+	//if (!m_pFidLocal || cam_id < 1 || cam_id > 2 || scan > 1)	return FALSE;
 	if (!m_pFidLocal || std::clamp((int)cam_id, 1, 2) != cam_id)	return 0xff; //이제 스캔제한이 없어야한다. 
 
 
@@ -780,7 +1201,23 @@ UINT8 CJobSelectXml::GetLocalMarkCountPerScan()
 	UINT8 u8Count = alignMotion->status.gerberRowCnt;// GlobalVariables::getInstance()->GetAlignMotion().status.gerberRowCnt;
 	return u8Count;
 
- 
+
+	//switch (m_enAlignType)
+	//{
+	///* Normal Partition */
+	//case ENG_ATGL::en_global_4_local_2x1_n_point : u8Count	= 4;	break;	/* Global (4) points / Local Division (2 x 2) (16) points */
+	//case ENG_ATGL::en_global_4_local_2x2_n_point : u8Count	= 4;	break;	/* Global (4) points / Local Division (2 x 2) (16) points */
+	//case ENG_ATGL::en_global_4_local_3x2_n_point : u8Count	= 6;	break;	/* Global (4) points / Local Division (3 x 2) (24) points */
+	//case ENG_ATGL::en_global_4_local_4x2_n_point : u8Count	= 8;	break;	/* Global (4) points / Local Division (4 x 2) (32) points */
+	//case ENG_ATGL::en_global_4_local_5x2_n_point : u8Count	= 10;	break;	/* Global (4) points / Local Division (5 x 2) (40) points */
+	///* Shared Partition */						   
+	//case ENG_ATGL::en_global_4_local_2x2_s_point : u8Count	= 3;	break;	/* Global (4) points / Local Division (2 x 2) (13) points */
+	//case ENG_ATGL::en_global_4_local_3x2_s_point : u8Count	= 4;	break;	/* Global (4) points / Local Division (3 x 2) (16) points */
+	//case ENG_ATGL::en_global_4_local_4x2_s_point : u8Count	= 5;	break;	/* Global (4) points / Local Division (4 x 2) (19) points */
+	//case ENG_ATGL::en_global_4_local_5x2_s_point : u8Count	= 6;	break;	/* Global (4) points / Local Division (5 x 2) (22) points */
+	//}
+
+	//return u8Count;
 }
 
 /*
@@ -941,7 +1378,8 @@ DOUBLE CJobSelectXml::GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 	DOUBLE dbDiff = 0.0f;
 	STG_XMXY stData[2] = { NULL };
 
- 
+	//if (scan > 1)	return 0; 이제 스캔제한이 없어야함.
+
 
 	auto status = alignMotion->status;
 
@@ -952,6 +1390,68 @@ DOUBLE CJobSelectXml::GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 	u8CamX2 = status.markMapConst[centerCol + scan].back().tgt_id; //2캠
 
 
+	//switch (m_enAlignType)
+	//{
+	//	/* Normal Partition */
+	//case ENG_ATGL::en_global_4_local_2x1_n_point:	/* Global (4) points / Local Division (2 x 1) (08) points */
+	//	u8CamX1 = 3;	/* 1 x 2 얼라인 마크 배열 구조는 Scan이 1 번 밖에 없으므로, scan 값에 의미는 없음*/
+	//	u8CamX2 = 7;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_2x2_n_point:	/* Global (4) points / Local Division (2 x 2) (16) points */
+	//	//abh1000 0417
+	//	// 		if (0 == scan)	u8CamX1	= 3;
+	//	// 		else			u8CamX1	= 11;
+	//	// 		u8CamX2	= u8CamX1 + 4;
+	//	if (0 == scan)	u8CamX1 = 3;
+	//	else			u8CamX1 = 7;
+	//	u8CamX2 = u8CamX1 + 8;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_3x2_n_point:	/* Global (4) points / Local Division (3 x 2) (24) points */
+	//	// 		if (0 == scan)	u8CamX1	= 5;
+	//	// 		else			u8CamX1	= 17;
+	//	// 		u8CamX2	= u8CamX1 + 6;
+	//	if (0 == scan)	u8CamX1 = 5;
+	//	else			u8CamX1 = 11;
+	//	u8CamX2 = u8CamX1 + 12;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_4x2_n_point:	/* Global (4) points / Local Division (4 x 2) (32) points */
+	//	// 		if (0 == scan)	u8CamX1	= 7;
+	//	// 		else			u8CamX1	= 23;
+	//	// 		u8CamX2	= u8CamX1 + 8;
+	//	if (0 == scan)	u8CamX1 = 7;
+	//	else			u8CamX1 = 15;
+	//	u8CamX2 = u8CamX1 + 16;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_5x2_n_point:	/* Global (4) points / Local Division (5 x 2) (40) points */
+	//	// 		if (0 == scan)	u8CamX1	= 9;
+	//	// 		else			u8CamX1	= 29;
+	//	// 		u8CamX2	= u8CamX1 + 10;
+	//	if (0 == scan)	u8CamX1 = 9;
+	//	else			u8CamX1 = 19;
+	//	u8CamX2 = u8CamX1 + 20;
+	//	break;
+	//	/* Shared Partition */
+	//case ENG_ATGL::en_global_4_local_2x2_s_point:	/* Global (4) points / Local Division (2 x 2) (13) points */
+	//	if (0 == scan)	u8CamX1 = 2;
+	//	else			u8CamX1 = 5;
+	//	u8CamX2 = u8CamX1 + 3;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_3x2_s_point:	/* Global (4) points / Local Division (3 x 2) (16) points */
+	//	if (0 == scan)	u8CamX1 = 3;
+	//	else			u8CamX1 = 7;
+	//	u8CamX2 = u8CamX1 + 4;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_4x2_s_point:	/* Global (4) points / Local Division (4 x 2) (19) points */
+	//	if (0 == scan)	u8CamX1 = 4;
+	//	else			u8CamX1 = 9;
+	//	u8CamX2 = u8CamX1 + 5;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_5x2_s_point:	/* Global (4) points / Local Division (5 x 2) (22) points */
+	//	if (0 == scan)	u8CamX1 = 5;
+	//	else			u8CamX1 = 11;
+	//	u8CamX2 = u8CamX1 + 6;
+	//	break;
+	//}
 
 	/* 마크 개수가 부족한지 여부 확인 */
 	if (m_pFidLocal->GetCount() <= u8CamX2)			return 0;
@@ -1001,6 +1501,7 @@ UINT32 CJobSelectXml::GetLocalMarkDiffVertX(UINT8 scan,
 	UINT8 i, u8Count = 0x00, u8CamX1 = 0x00, u8CamX2 = 0x00;
 	STG_XMXY stTgt[2] = { NULL }, stOrg[2] = { NULL };
 
+	//if (scan > 1)	return 0; //이젠 스캔제한 없어야한다. 
 
 
 	auto status = alignMotion->status;
@@ -1031,6 +1532,58 @@ UINT32 CJobSelectXml::GetLocalMarkDiffVertX(UINT8 scan,
 
 	u8Count = cam1Scan.size();
 
+	///* Normal Partition */
+	//switch (m_enAlignType)
+	//{
+	//case ENG_ATGL::en_global_4_local_2x1_n_point	:	/* Global (4) points / Local Division (2 x 1) (08) points */
+	//	u8CamX1	= 0;	/* Scan이 1번 밖에 없으므로... */
+	//	u8Count	= 4;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_2x2_n_point	:	/* Global (4) points / Local Division (2 x 2) (16) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 8;
+	//	u8Count	= 4;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_3x2_n_point	:	/* Global (4) points / Local Division (3 x 2) (24) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 12;
+	//	u8Count	= 6;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_4x2_n_point	:	/* Global (4) points / Local Division (4 x 2) (32) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 16;
+	//	u8Count	= 8;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_5x2_n_point	:	/* Global (4) points / Local Division (5 x 2) (40) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 20;
+	//	u8Count	= 10;
+	//	break;
+	///* Shared Partition */
+	//case ENG_ATGL::en_global_4_local_2x2_s_point	:	/* Global (4) points / Local Division (2 x 2) (13) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 3;
+	//	u8Count	= 3;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_3x2_s_point	:	/* Global (4) points / Local Division (3 x 2) (16) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 4;
+	//	u8Count	= 4;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_4x2_s_point	:	/* Global (4) points / Local Division (4 x 2) (19) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 5;
+	//	u8Count	= 5;
+	//	break;
+	//case ENG_ATGL::en_global_4_local_5x2_s_point	:	/* Global (4) points / Local Division (5 x 2) (22) points */
+	//	if (0 == scan)	u8CamX1	= 0;
+	//	else			u8CamX1	= 6;
+	//	u8Count	= 6;
+	//	break;
+	//}
+	/* Align Camera 2번의 Y 좌표 간격 측정 시작 위치 */
+	//u8CamX2 = u8CamX1 + u8Count;
+
 	/* 마크 개수가 부족한지 여부 확인 */
 	if (1 > u8Count)
 	{
@@ -1038,14 +1591,24 @@ UINT32 CJobSelectXml::GetLocalMarkDiffVertX(UINT8 scan,
 		return 0;
 	}
 
-
+	//if (0x00 == scan)
+	//{
+	//	if (!m_pFidLocal->GetMark(u8CamX1 + u8Count - 1, stOrg[0]) ||
+	//		!m_pFidLocal->GetMark(u8CamX2 + u8Count - 1, stOrg[1]))
+	//	{
+	//		LOG_ERROR(ENG_EDIC::en_luria, L"Failed to get the mark of Left or Bottom");
+	//		return 0;
+	//	}
+	//}
+	//else
+	//{
 		if (!m_pFidLocal->GetMark(u8CamX1, stOrg[0]) ||
 			!m_pFidLocal->GetMark(u8CamX2, stOrg[1]))
 		{
 			LOG_ERROR(ENG_EDIC::en_luria, L"Failed to get the mark of Left or Bottom");
 			return 0;
 		}
-
+	//}
 
 	/* Scan 방향으로 원점 X (Left.Top과 Right.Top의 X 좌표) 기준으로 얼마큼 떨어졌는지 구함 */
 	for (i = u8Count; i > 0; i--)
@@ -1100,6 +1663,9 @@ DOUBLE CJobSelectXml::GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index)
 {
 	BOOL bSucc = FALSE;
 	STG_XMXY stGlobal = { NULL }, stLocal = { NULL };;
+	double absTolerance = 1;
+
+
 
 	if (!m_pFidGlobal)	return 0;
 	/* Global Fiducial의 Base Mark인 Left/Bottom의 거버 위치 정보 */
@@ -1112,10 +1678,45 @@ DOUBLE CJobSelectXml::GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index)
 	bSucc = m_pFidLocal->GetMark(index, stLocal);
 	if (!bSucc)	return 0;
 
-	/* 2 마크 간의 높이 차이 값 반환 */
-	return (stLocal.mark_y - stGlobal.mark_y);
+	double diff = ((stLocal.mark_y * 10000.0f) - (stGlobal.mark_y * 10000.0f));
+
+	/* 2 마크 간의 높이 차이 값 반환 */ 
+	return (abs(diff) <= absTolerance) ? 0.0f : diff / 10000;//같은 좌표에 2점이 존재할경우에 입실론이용해야한다. 
 }
 
+/*
+ desc : 마크 구성 정보를 보고, 입력된 마크 위치(번호)가 정방향에 속하는지 역방향에 속하는지 확인
+ parm : mark_no	- [in]  Align Mark Number (0 or Later)
+ retn : TRUE (Forward) or FALSE (Backward)
+*/
+//BOOL CJobSelectXml::IsMarkDirectForward(UINT8 mark_no)
+//{
+//	STG_DBXY stData[2]	= {NULL};
+//	
+//	뭐야 이거 존나 병신같잖아.
+//
+//	/* Mark Number가 1 이하이면 무조건 정방향 */
+//	if (mark_no < 2)	return TRUE;
+//	switch (m_enAlignType)
+//	{
+//	/* Normal or Shared Partition */
+//	case ENG_ATGL::en_global_4_local_2x1_n_point	:	/* Global (4) points / Local Division (2 x 1) (08) points */
+//	case ENG_ATGL::en_global_4_local_2x2_n_point	:	/* Global (4) points / Local Division (2 x 2) (16) points */
+//	case ENG_ATGL::en_global_4_local_2x2_s_point	:	/* Global (4) points / Local Division (3 x 2) (24) points */
+//		if (mark_no < 6)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_3x2_n_point	:	/* Global (4) points / Local Division (3 x 2) (24) points */
+//	case ENG_ATGL::en_global_4_local_3x2_s_point	:	/* Global (4) points / Local Division (3 x 2) (24) points */
+//		if (mark_no < 8)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_4x2_n_point	:	/* Global (4) points / Local Division (4 x 2) (32) points */
+//	case ENG_ATGL::en_global_4_local_4x2_s_point	:	/* Global (4) points / Local Division (4 x 2) (32) points */
+//		if (mark_no < 10)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_5x2_n_point	:	/* Global (4) points / Local Division (5 x 2) (40) points */
+//	case ENG_ATGL::en_global_4_local_5x2_s_point	:	/* Global (4) points / Local Division (5 x 2) (40) points */
+//		if (mark_no < 12)	return FALSE;	break;
+//	}
+//
+//	return TRUE;
+//}
 
 /*
  desc : 거버 크기 반환

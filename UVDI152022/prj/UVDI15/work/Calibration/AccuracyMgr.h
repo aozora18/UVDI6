@@ -45,6 +45,14 @@ enum EN_CAL_FIELD_PARAM
 	eCAL_PARAM_DIR_Y,
 };
 
+class DoubleMarkAccurcytest
+{
+public:
+	bool RunDoublemarkTestExam(int camNum, double* pdErrX, double* pdErrY);
+	bool RegistMultiMark();
+
+};
+
 class CAccuracyMgr
 {
 public:
@@ -59,7 +67,36 @@ public:
 		return &_inst;
 	}
 
-/* 열거형 */
+	enum SearchMode
+	{
+		single,
+		multi,
+	};
+
+	DoubleMarkAccurcytest doubleMarkAccurtest;
+	SearchMode serchmode = SearchMode::single;
+
+	void SetSearchMode(SearchMode mode)
+	{
+		serchmode = mode;
+	}
+
+	SearchMode GetSearchMode()
+	{
+		return serchmode;
+	}
+
+	bool RegistMultiMark()
+	{
+		return doubleMarkAccurtest.RegistMultiMark();
+	}
+
+	bool RunDoublemarkTestExam(int camNum, double* pdErrX=nullptr, double* pdErrY = nullptr)
+	{
+		return doubleMarkAccurtest.RunDoublemarkTestExam(camNum, pdErrX, pdErrY);
+	}
+
+	/* 열거형 */
 public:
 	enum EN_REPORT_LIST
 	{
@@ -83,29 +120,29 @@ protected:
 	enum EnCamSpec
 	{
 		eMODEL_FIND_COUNT = 2,
- 		eCOUNT_OF_CAMERA = 2,
+		eCOUNT_OF_CAMERA = 2,
 	};
 
 
-/* 로컬 변수 */
+	/* 로컬 변수 */
 protected:
 
 	BOOL				m_bStop;				/* 정지 플래그 */
 
-	CWinThread*			m_pMeasureThread;		/* 측정 쓰레드 */
+	CWinThread* m_pMeasureThread;		/* 측정 쓰레드 */
 	BOOL				m_bRunnigThread;		/* 쓰레드 동작 유무 파악*/
 
 	BOOL				m_bUseCalData;
 	BOOL				m_bUseCamDrv;
 
-	UINT8				m_u8ACamID;
+	UINT8				m_u8ACamID = 1;
 
 	int					m_nStartIndex;
 
 	VCT_ACCR_TABLE		m_stVctTable;
 
 
-/* 로컬 함수 */
+	/* 로컬 함수 */
 protected:
 
 	VOID Wait(int nTime);
@@ -113,10 +150,10 @@ protected:
 	BOOL MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut = 60000, double dDiffDistance = DEF_MOTION_CALI_CENTERING_MIN);
 	BOOL GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount);
 
-/* 공용 변수 */
+	/* 공용 변수 */
 public:
 
-/* 공용 함수 */
+	/* 공용 함수 */
 public:
 	////////////////////////////////////////////////////////////////////
 	VOID SortField(VCT_ACCR_TABLE& stVctField);
@@ -127,11 +164,16 @@ public:
 
 	BOOL SaveCaliFile(CString strFileName);
 
-	VOID SetUseCalData(BOOL bSet)	{ m_bUseCalData = bSet; }
-	BOOL GetUseCalData()			{ return m_bUseCalData; }
+	VOID SetUseCalData(BOOL bSet) { m_bUseCalData = bSet; }
+	BOOL GetUseCalData() { return m_bUseCalData; }
 
 	VOID SetUseCamDrv(BOOL bUseCamDrv) { m_bUseCamDrv = bUseCamDrv; }
 	BOOL GetCurXDrv() { return m_bUseCamDrv; }
+
+	VOID SetCamID(UINT8 u8Count)
+	{
+		m_u8ACamID = u8Count;
+	}
 
 	VOID SetStartIndex(int nStartNum) { m_nStartIndex = nStartNum; }
 	int GetStartIndex() { return m_bUseCamDrv; }

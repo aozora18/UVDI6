@@ -17,7 +17,7 @@
 #include "../../inc/conf/vision_uvdi15.h"
 #endif
 
-
+class AlignMotion;
 #ifdef __cplusplus
 extern "C"
 {
@@ -248,13 +248,14 @@ API_IMPORT BOOL uvEng_Camera_SetModelDefinePAT(UINT8 cam_id, PTCHAR name, PTCHAR
 						0xfe : Align Camera Angle Measuring Mode (얼라인 카메라 각도 측정하기 위함)
  retn : Calirbated Image의 정보가 저장된 구조체 포인터 반환
 */
-API_IMPORT LPG_ACGR uvEng_Camera_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc); // default mode : 0xff
+API_IMPORT LPG_ACGR uvEng_Camera_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc,int flipDir=-1); // default mode : 0xff
 /*
  desc : Calibration 이미지 (검색된 결과)를 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
 		draw	- [in]  이미지가 출력될 영역 (부모 윈도 기준 상대 좌표)
  retn : None
 */
+API_IMPORT VOID uvEng_Camera_SetAlignMotionPtr(AlignMotion& ptr);
 API_IMPORT VOID uvEng_Camera_DrawCaliBitmap(HDC hdc, RECT draw);
 /*
  desc : Outputs the most recently generated Buffer ID value to the window
@@ -283,7 +284,7 @@ API_IMPORT BOOL uvEng_Camera_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UI
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_IMPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find);
+API_IMPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce, UINT8 flipFlag);
 /*
  desc : 검색된 Mark 이미지 윈도 영역에 출력 수행 (MIL Buffer ID를 이용한 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -292,7 +293,7 @@ API_IMPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR gra
 		img_id	- [in]  Camera Grabbed Image Index (0 or Later)
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvEng_Camera_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 img_id);
+API_IMPORT BOOL uvEng_Camera_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 hwndIdx, UINT8 img_id);
 /*
  desc : Drawing - Examination Object Image (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context
@@ -416,6 +417,9 @@ API_IMPORT BOOL uvEng_Camera_SetGrabbedMarkEx(LPG_ACGR grab, LPG_GMFR gmfr, LPG_
  retn : None
 */
 API_IMPORT VOID uvEng_Camera_SetMarkMethod(ENG_MMSM method, UINT8 count=0x00);
+
+API_IMPORT UINT8 uvEng_SetMarkFoundCount(int camNum);
+
 /*
  desc : 노광 모드 설정 즉, 직접 노광, 얼라인 노광, 보정 후 얼라인 노광
  parm : mode	- [in]  직접 노광 (0x00), 얼라인 노광 (0x01), 얼라인 카메라 보정 값 적용 후 얼라인 노광 (0x02)
@@ -480,7 +484,7 @@ API_IMPORT BOOL uvCmn_Camera_IsZPosUpDownLimit(DOUBLE pos);
 /*                                 lk91 VISION 추가 함수                                     */
 /* ----------------------------------------------------------------------------------------- */
 API_IMPORT VOID uvEng_Camera_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BOOL save = FALSE);
-API_EXPORT VOID uvEng_Camera_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save = FALSE);
+API_EXPORT VOID uvEng_Camera_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save = FALSE, int flipDir=-1);
 API_EXPORT VOID uvEng_Camera_SetMarkLiveDispSize(CSize fi_size);
 API_EXPORT VOID uvEng_Camera_SetCalbCamSpecDispSize(CSize fi_size);
 API_EXPORT VOID uvEng_Camera_SetAccuracyMeasureDispSize(CSize fi_size);
@@ -531,6 +535,7 @@ API_EXPORT VOID uvEng_Camera_SetDisp(CWnd** pWnd, UINT8 fi_Mode); // 0x00:MarkLi
 API_EXPORT VOID uvEng_Camera_SetDispMMPM(CWnd* pWnd);
 API_EXPORT VOID uvEng_Camera_SetDispExpo(CWnd* pWnd[4]);
 
+API_IMPORT VOID uvEng_Camera_ClearShapes(int fi_iDispType);
 API_EXPORT VOID uvEng_Camera_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
 API_EXPORT VOID uvEng_Camera_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color);
 API_EXPORT VOID uvEng_Camera_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, int fi_iWdt1, int fi_iWdt2, int fi_color);

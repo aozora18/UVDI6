@@ -562,6 +562,7 @@ API_EXPORT BOOL uvMC2_SendDevAbsMove(ENG_MMDI drv_id, INT32 move, UINT32 velo)
 	}
 #endif
 
+	move = std::clamp(move, i32MinDist + 5, i32MaxDist - 5);
 
 	/* 이동 위치 값이 조건에 부합되는지 확인 */
 	if (i32MinDist > move || i32MaxDist < move)

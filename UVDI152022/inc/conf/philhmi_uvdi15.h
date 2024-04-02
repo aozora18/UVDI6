@@ -96,6 +96,8 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_RECIPE_DUPLICATE_NAME			= 10005,	//  레시피 이름 중복 
 	ePHILHMI_ERR_RECIPE_CREATE					= 10006,	//  레시피 생성 불가
 	ePHILHMI_ERR_RECIPE_MODIFY					= 10007,	//  레시피 변경 불가
+	ePHILHMI_ERR_RECIPE_LOAD					= 10008,	//  레시피 로드 불가
+	ePHILHMI_ERR_SEND_RECD_MISMATCH				= 10010,	//  요청 <-> 완료 불일치
 	ePHILHMI_ERR_RECIPE_NOT_DEFINE_TYPE			= 11000,	//	정의되지 않은 데이터 타입
 	ePHILHMI_ERR_RECIPE_NOT_DEFINE_PARAMETER	= 12000,	//	정의되지 않은 파라미터
 	ePHILHMI_ERR_RECIPE_EXCEED_LOW				= 13000,	//	파라미터 하한값 미달
@@ -117,6 +119,7 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_STATUS_EVENT					= 30002,	//	정의되지 않은 이벤트
 	ePHILHMI_ERR_STATUS_BUSY					= 30003,	//	주 공정 혹은 보조 공정 진행 중
 	ePHILHMI_ERR_STATUS_COMPLETE				= 30004,	//	주 공정 시퀀스 비정상 완료
+	ePHILHMI_ERR_STATUS_FAILED					= 30005,	//	주 공정, 진행 불가
 	ePHILHMI_ERR_STATUS_CHANGE					= 30010,	//	모드 변경 불가
 	ePHILHMI_ERR_STATUS_INIT					= 30011,	//	초기화 실패
 	ePHILHMI_ERR_STATUS_INIT_NEED				= 30012,	//	초기화 필요

@@ -126,7 +126,7 @@ BOOL CDlgCalbCameraSpec::OnInitDlg()
 
 	LoadDataConfig();
 	ViewControls(FALSE);
-	SetLiveView(FALSE);
+	//SetLiveView(FALSE);
 
 #ifndef CAM_SPEC_SIMUL
 	if (FALSE == CCamSpecMgr::GetInstance()->SetRegistModel())
@@ -284,9 +284,9 @@ VOID CDlgCalbCameraSpec::InitGridSelectCam()
 	CResizeUI	clsResizeUI;
 	CRect		rGrid;
 	std::vector <int>			vRowSize(1);
-	std::vector <int>			vColSize(DEF_CAMERA_COUNT);
-	std::vector <std::wstring>	vTitle(DEF_CAMERA_COUNT);
-	std::vector <COLORREF>		vColColor(DEF_CAMERA_COUNT);
+	std::vector <int>			vColSize(CAMER_ACOUNT);
+	std::vector <std::wstring>	vTitle(CAMER_ACOUNT);
+	std::vector <COLORREF>		vColColor(CAMER_ACOUNT);
 
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_CAMERA_SPEC_GRD_SELECT_CAM];
 
@@ -796,9 +796,9 @@ VOID CDlgCalbCameraSpec::InitGridPosition()
 	CResizeUI	clsResizeUI;
 	CRect		rGrid;
 	std::vector <int>			vRowSize(1);
-	std::vector <int>			vColSize(DEF_CAMERA_COUNT);
-	std::vector <std::wstring>	vTitle(DEF_CAMERA_COUNT);
-	std::vector <COLORREF>		vColColor(DEF_CAMERA_COUNT);
+	std::vector <int>			vColSize(CAMER_ACOUNT);
+	std::vector <std::wstring>	vTitle(CAMER_ACOUNT);
+	std::vector <COLORREF>		vColColor(CAMER_ACOUNT);
 
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_CAMERA_SPEC_GRD_POSITION];
 
@@ -1042,10 +1042,26 @@ VOID CDlgCalbCameraSpec::LoadDataConfig()
 	pGrdTrigger->SetItemText(eOPTION_ROW_STROBE_ON_TIME, eOPTION_COL_VALUE, pTrigger->strob_on_time[u8ChNo], FALSE);
 	pGrdTrigger->SetItemText(eOPTION_ROW_DELAY_TIME, eOPTION_COL_VALUE, pTrigger->trig_delay_time[u8ChNo], FALSE);
 
- 	pGrdOption->SetItemDouble(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_stage_x, 4);
+	//pGrdOption->SetItemDouble(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_stage_x, 4);
 	pGrdOption->SetItemDouble(eOPTION_ROW_STAGE_MEASURE_POS_Y, eOPTION_COL_VALUE, pOption->quartz_stage_y[u8ChNo], 4);
-	pGrdOption->SetItemDouble(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_acam[u8ChNo], 4);
+	//pGrdOption->SetItemDouble(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_acam[u8ChNo], 4);
 	pGrdOption->SetItemDouble(eOPTION_ROW_CAMERA_MEASURE_POS_Z, eOPTION_COL_VALUE, pOption->acam_z_focus[u8ChNo], 4);
+
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	pGrdOption->SetItemDouble(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_stage_x, 4);
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	if (u8ChNo == 2)
+	{
+		pGrdOption->SetItemDouble(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_acam[u8ChNo], 4);
+		pGrdOption->SetItemDouble(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE, 0, 4);
+	}
+	else
+	{
+		pGrdOption->SetItemDouble(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_stage_x, 4);
+		pGrdOption->SetItemDouble(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE, pOption->quartz_acam[u8ChNo], 4);
+	}
+#endif
 
 	pGrdOption->SetItemText(eOPTION_ROW_GRAB_WIDTH, eOPTION_COL_VALUE, pFov->spc_size[0]);
 	pGrdOption->SetItemText(eOPTION_ROW_GRAB_HEIGHT, eOPTION_COL_VALUE, pFov->spc_size[1]);
@@ -1077,10 +1093,26 @@ VOID CDlgCalbCameraSpec::SaveDataConfig()
 	pTrigger->strob_on_time[u8ChNo] = pGrdOption->GetItemTextToInt(eOPTION_ROW_STROBE_ON_TIME, eOPTION_COL_VALUE);
 	pTrigger->trig_delay_time[u8ChNo] = pGrdOption->GetItemTextToInt(eOPTION_ROW_DELAY_TIME, eOPTION_COL_VALUE);
 
-	pOption->quartz_stage_x = pGrdOption->GetItemTextToFloat(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE);
+	//pOption->quartz_stage_x = pGrdOption->GetItemTextToFloat(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE);
 	pOption->quartz_stage_y[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_STAGE_MEASURE_POS_Y, eOPTION_COL_VALUE);
-	pOption->quartz_acam[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE);
+	//pOption->quartz_acam[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE);
 	pOption->acam_z_focus[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_CAMERA_MEASURE_POS_Z, eOPTION_COL_VALUE);
+
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	pOption->quartz_acam[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE);
+	pOption->quartz_stage_x = pGrdOption->GetItemTextToFloat(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE);
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	if (u8ChNo == 2)
+	{
+		pOption->quartz_acam[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE);
+	}
+	else
+	{
+		pOption->quartz_acam[u8ChNo] = pGrdOption->GetItemTextToFloat(eOPTION_ROW_CAMERA_MEASURE_POS_X, eOPTION_COL_VALUE);
+		pOption->quartz_stage_x = pGrdOption->GetItemTextToFloat(eOPTION_ROW_STAGE_MEASURE_POS_X, eOPTION_COL_VALUE);
+	}
+#endif
 
 	pFov->spc_size[0] = pGrdOption->GetItemTextToInt(eOPTION_ROW_GRAB_WIDTH, eOPTION_COL_VALUE);
 	pFov->spc_size[1] = pGrdOption->GetItemTextToInt(eOPTION_ROW_GRAB_HEIGHT, eOPTION_COL_VALUE);
@@ -1092,7 +1124,12 @@ VOID CDlgCalbCameraSpec::SaveDataConfig()
 
 VOID CDlgCalbCameraSpec::SaveResult()
 {
-	ENG_MMDI enACamX = (0x00 == GetCheckACam()) ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	//ENG_MMDI enACamX = (0x00 == GetCheckACam()) ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	ENG_MMDI enACamX;
+	if (0x00 == GetCheckACam())			enACamX = ENG_MMDI::en_align_cam1;
+	else if (0x01 == GetCheckACam())	enACamX = ENG_MMDI::en_align_cam2;
+	else if (0x02 == GetCheckACam())	enACamX = ENG_MMDI::en_stage_x;
+
 	LPG_CASI pstACamSpec = &uvEng_GetConfig()->acam_spec;
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_CAMERA_SPEC_GRD_RESULT];
 	double dValue = 0.;
@@ -1262,7 +1299,8 @@ VOID CDlgCalbCameraSpec::MarkGrabbedResult()
 		SetLiveView(FALSE);
 	}
 
-	UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
+	//UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
+	UINT8 u8ACamID = GetCheckACam() + 1;
 
 	/* 현재 등록된 모델이 존재하는지 여부 */
 // 	if (FALSE == uvEng_Camera_IsSetMarkModel(0x01, u8ACamID, GLOBAL_MARK)) // lk91!! calib 사용하는 mark 체크
@@ -1980,7 +2018,8 @@ VOID CDlgCalbCameraSpec::UpdateLiveView()
 	//}
 
 	if (!uvEng_Camera_IsCamModeLive())	return;
-	UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
+	//UINT8 u8ACamID = (0 == GetCheckACam()) ? 0x01 : 0x02;
+	UINT8 u8ACamID = GetCheckACam() + 1;
 	uvEng_Camera_DrawImageBitmap(DISP_TYPE_CALB_CAMSPEC, u8ACamID-1, u8ACamID);
 }
 

@@ -56,7 +56,14 @@ public:
 #endif
 
 	int					OnMouseClick(int x, int y);
-	int					GetSelectGlobalMark() { return m_nSelectGlobalMark; }
-	int					GetSelectLocalMark() { return m_nSelectLocalMark; }
+	int					GetSelectGlobalMark() 
+	{ 
+		return m_nSelectGlobalMark; 
+	}
+
+	int					GetSelectLocalMark() 
+	{ 
+		return m_nSelectLocalMark; 
+	}
 	void				ReleaseMark();
 };

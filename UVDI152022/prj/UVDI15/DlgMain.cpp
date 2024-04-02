@@ -145,12 +145,17 @@ BOOL CDlgMain::OnInitDlg()
 {
 	
 	UINT32 u32Size	= 0, i = 0;
+	GlobalVariables::getInstance()->GetStuffs().RemoveOldFiles();
 #if (USE_ENGINE_LIB)
 	/* 라이브러리 초기화 */
 	if (!InitLib())		return FALSE;
 #endif
-	uvEng_Luria_SetAlignMotionInfo(GlobalVariables::getInstance()->GetAlignMotion());
+
+	
+	uvEng_Luria_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
 	uvEng_Mark_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
+	uvEng_Camera_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
+	
 	// by sysandj : 폰트 적용
 	CreateUserFont();
 	// by sysandj : 폰트 적용
@@ -261,6 +266,7 @@ BOOL CDlgMain::OnInitDlg()
 	strExpo.ReleaseBuffer();
 	strAlign.ReleaseBuffer();
 
+	GetDlgItem(IDC_MAIN_BTN_PHILHMI)->ShowWindow(SW_HIDE);
 
 	return TRUE;
 }
@@ -307,6 +313,8 @@ VOID CDlgMain::OnExitDlg()
 	/* 라이브러리 해제 */
 	CloseLib();
 #endif
+
+	GlobalVariables::getInstance()->Destroy();
 
 	/* 프로그램 종료 대기 알림 */
 	if (m_pDlgWait)
@@ -496,6 +504,9 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 	{
 		m_u64TickPeriod	= u64Tick;
 		UpdatePeriod(u64Tick, bBusy);
+
+		/*장비 동작 중*/
+		m_bMainBusy = bBusy;
 	}
 
 	/* 현재 자식 화면이 Expose인 경우, 각종 이벤트 처리 */
@@ -636,6 +647,10 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	CUniToChar csCnv1;
 	CString strAxis;
 
+
+	BOOL bBusy = LONG(lparam) == 1 ? TRUE : FALSE;
+	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
+
 	if (nullptr == pstPhil)
 	{
 		return 0L;
@@ -658,7 +673,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	
 
 	UINT8 u8Offset = 0xff;
-
+	UINT16 tempCommand = pstPhil->st_header.nCommand;
 	TCHAR szTemp[512] = { NULL };
 
 	switch (pstPhil->st_header.nCommand)
@@ -679,8 +694,8 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case ePHILHMI_C2P_RECIPE_SELECT:
-		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil);
-		break;
+		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil, this, m_bMainBusy);
+	break;
 
 	case ePHILHMI_C2P_RECIPE_LIST:
 		CRecvPhil::GetInstance()->PhilSendListRecipe(pstPhil);
@@ -691,10 +706,12 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 
 	case ePHILHMI_C2P_ABS_MOVE:
 		/*Recv 정상 수신 확인*/
-		PhilSendMoveRecvAck(pstPhil);
-		for (int i = 0; i < pstPhil->st_c2p_abs_move.usCount; i++)
+		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
-			PhilSendMove(pstPhil, i);
+			for (int i = 0; i < pstPhil->st_c2p_abs_move.usCount; i++)
+			{
+				PhilSendMove(pstPhil, i);
+			}
 		}
 		break;
 
@@ -704,10 +721,12 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 
 	case ePHILHMI_C2P_REL_MOVE:
 		/*Recv 정상 수신 확인*/
-		PhilSendMoveRecvAck(pstPhil);
-		for (int i = 0; i < pstPhil->st_c2p_rel_move.usCount; i++)
+		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
-			PhilSendMove(pstPhil, i);
+			for (int i = 0; i < pstPhil->st_c2p_rel_move.usCount; i++)
+			{
+				PhilSendMove(pstPhil, i);
+			}
 		}
 		break;
 
@@ -717,10 +736,12 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 
 	case ePHILHMI_C2P_CHAR_MOVE:
 		/*Recv 정상 수신 확인*/
-		PhilSendMoveRecvAck(pstPhil);
-		for (int i = 0; i < pstPhil->st_c2p_char_move.usCount; i++)
+		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
-			PhilSendMove(pstPhil, i);
+			for (int i = 0; i < pstPhil->st_c2p_char_move.usCount; i++)
+			{
+				PhilSendMove(pstPhil, i);
+			}
 		}
 		break;
 
@@ -730,7 +751,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case ePHILHMI_C2P_PROCESS_EXECUTE		 :
-		PhilSendProcessExecute(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendProcessExecute(pstPhil, this, m_bMainBusy);
 		break; 
 
 	case ePHILHMI_C2P_SUB_PROCESS_EXECUTE	 :
@@ -742,11 +763,11 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case ePHILHMI_C2P_MODE_CHANGE			 :
-		//CRecvPhil::GetInstance()->PhilSendChageMode(pstPhil);
-		PhilSendChageMode(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendChageMode(pstPhil, this);
+		//PhilSendChageMode(pstPhil);
 		break;
 	case ePHILHMI_C2P_INITIAL_EXECUTE:
-		PhilSendInitialExecute(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendInitialExecute(pstPhil, this, m_bMainBusy);
 		break;
 	case ePHILHMI_C2P_EVENT_STATUS:
 		PhilSendEventStatus(pstPhil);
@@ -757,11 +778,11 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case ePHILHMI_C2P_TIME_SYNC:
-		PhilSendTimeSync(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendTimeSync(pstPhil, this);
 		break;
 
 	case ePHILHMI_C2P_INTERRUPT_STOP:
-		PhilSendInterruptStop(pstPhil);
+		CRecvPhil::GetInstance()->PhilSendInterruptStop(pstPhil, this);
 		break;
 
 	/// <summary>
@@ -890,7 +911,9 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	}
 	
 	/*현재 Philhmi 메세지 저장*/
-	g_u16PhilCommand = pstPhil->st_header.nCommand;
+	g_u16PhilCommand = tempCommand;
+	
+	
 	return 0L;
 }
 
@@ -1562,12 +1585,9 @@ VOID CDlgMain::UpdateLDSMeasure()
 	TCHAR tzMsg[256] = { NULL };
 	dCurY = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);
 
-	const int MEASURE_MIN_Y = 400;
-	const int MEASURE_MAX_Y = 600;
-
-	if (uvEng_GetConfig()->measure_flat.bThickCheck)
+	if (uvEng_GetConfig()->measure_flat.bThieckOnOff)
 	{
-		if (dCurY > MEASURE_MIN_Y && MEASURE_MAX_Y < 600)
+		if (dCurY > uvEng_GetConfig()->measure_flat.dStartYPos && dCurY < uvEng_GetConfig()->measure_flat.dEndYPos)
 		{
 			dValue = uvEng_KeyenceLDS_Measure(0);
 			//Sleep(200);
@@ -1580,8 +1600,8 @@ VOID CDlgMain::UpdateLDSMeasure()
 			/*Log 기록*/
 			m_strLog.Format(tzMsg);
 			txtWrite(m_strLog);
-			
-			uvEng_GetConfig()->measure_flat.bThickCheck = FALSE;
+
+			uvEng_GetConfig()->measure_flat.bThieckOnOff = FALSE;
 		}
 	}
 
@@ -1620,7 +1640,7 @@ VOID CDlgMain::UpdateSafePosCheck()
 			stP2CEventNotify.Reset();
 			stEventNotifyAck.Reset();
 
-			sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "SAFEPOS");
+			sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_EVENT_NAME_LENGTH, "SAFEPOS");
 			stP2CEventNotify.bEventFlag = m_stPhilStatus.safe_pos;
 
 
@@ -1644,12 +1664,18 @@ VOID CDlgMain::UpdateSafePosCheck()
 			stP2CEventNotify.Reset();
 			stEventNotifyAck.Reset();
 
-			sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_RECIPE_PARAM_TYPE_LENGTH, "SAFEPOS");
+			sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_EVENT_NAME_LENGTH, "SAFEPOS");
 			stP2CEventNotify.bEventFlag = m_stPhilStatus.safe_pos;
 
 
 			uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
 		}
+	}
+
+	/*Recipe Comp 동작 되어 있다면 꺼지는 타임 설정*/
+	if (m_stPhilStatus.recipe_comp == TRUE)
+	{
+		m_stPhilStatus.recipe_comp = uvCmn_Luria_IsJobNameLoaded();
 	}
 }
 
@@ -1705,6 +1731,7 @@ VOID CDlgMain::UpdatePhilState()
 				stAbsMoveAck.Reset();
 
 				stAbsMove.usErrorCode = ePHILHMI_ERR_MOTOR_RUN_TIMEOUT;
+				stAbsMove.ulUniqueID = m_stPhilStatus.unique_id;
 				uvEng_Philhmi_Send_P2C_ABS_MOVE_COMP(stAbsMove, stAbsMoveAck);
 			}
 			else if (m_stPhilStatus.phil_move == en_menu_phil_move_rel)
@@ -1715,6 +1742,7 @@ VOID CDlgMain::UpdatePhilState()
 				stRelMoveAck.Reset();
 
 				stRelMove.usErrorCode = ePHILHMI_ERR_MOTOR_RUN_TIMEOUT;
+				stRelMove.ulUniqueID = m_stPhilStatus.unique_id;
 				uvEng_Philhmi_Send_P2C_REL_MOVE_COMP(stRelMove, stRelMoveAck);
 			}
 			else if (m_stPhilStatus.phil_move == en_menu_phil_move_char)
@@ -1725,6 +1753,7 @@ VOID CDlgMain::UpdatePhilState()
 				stCharMoveAck.Reset();
 
 				stCharMove.usErrorCode = ePHILHMI_ERR_MOTOR_RUN_TIMEOUT;
+				stCharMove.ulUniqueID = m_stPhilStatus.unique_id;
 				uvEng_Philhmi_Send_P2C_CHAR_MOVE_COMP(stCharMove, stCharMoveAck);
 			}
 
@@ -1733,7 +1762,7 @@ VOID CDlgMain::UpdatePhilState()
 		else
 		{
 			MovePos = uvCmn_MC2_GetDrvAbsPos((ENG_MMDI)m_stPhilStatus.drive_id);
-			if (0.01 < fabs(MovePos - m_stPhilStatus.phil_move))
+			if (0.01 > fabs(MovePos - m_stPhilStatus.move_dist))
 			{
 				if (m_stPhilStatus.phil_move == en_menu_phil_move_abs)
 				{
@@ -1742,6 +1771,7 @@ VOID CDlgMain::UpdatePhilState()
 					stAbsMove.Reset();
 					stAbsMoveAck.Reset();
 
+					stAbsMove.ulUniqueID = m_stPhilStatus.unique_id;
 					uvEng_Philhmi_Send_P2C_ABS_MOVE_COMP(stAbsMove, stAbsMoveAck);
 				}
 				else if (m_stPhilStatus.phil_move == en_menu_phil_move_rel)
@@ -1751,6 +1781,7 @@ VOID CDlgMain::UpdatePhilState()
 					stRelMove.Reset();
 					stRelMoveAck.Reset();
 
+					stRelMove.ulUniqueID = m_stPhilStatus.unique_id;
 					uvEng_Philhmi_Send_P2C_REL_MOVE_COMP(stRelMove, stRelMoveAck);
 				}
 				else if (m_stPhilStatus.phil_move == en_menu_phil_move_char)
@@ -1759,6 +1790,8 @@ VOID CDlgMain::UpdatePhilState()
 					STG_PP_P2C_CHAR_MOVE_COMP_ACK stCharMoveAck;
 					stCharMove.Reset();
 					stCharMoveAck.Reset();
+
+					stCharMove.ulUniqueID = m_stPhilStatus.unique_id;
 					uvEng_Philhmi_Send_P2C_CHAR_MOVE_COMP(stCharMove, stCharMoveAck);
 				}
 				m_stPhilStatus.phil_move = en_menu_phil_move_none;
@@ -1906,11 +1939,17 @@ void CDlgMain::CreateUserFont()
 	}
 }
 
-VOID CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv)
+BOOL CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 {
+	BOOL Succ = TRUE;
 	unsigned short	ErrorCode = ePHILHMI_ERR_OK;
 	g_u16PhilCommand = stRecv->st_header.nCommand;
 
+	if (is_busy)
+	{
+		ErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+		Succ = FALSE;
+	}
 
 	/*ABS 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
 	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE)
@@ -1942,6 +1981,8 @@ VOID CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv)
 
 		uvEng_Philhmi_Send_C2P_CHAR_MOVE_ACK(stCharAck);
 	}
+
+	return Succ;
 }
 
 
@@ -1980,6 +2021,7 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 #endif
 		/*완료 확인을 위한 저장*/
 		m_stPhilStatus.phil_move = en_menu_phil_move_abs;
+		m_stPhilStatus.unique_id = stRecv->st_c2p_abs_move.ulUniqueID;
 		m_stPhilStatus.drive_id = (UINT8)drv_id;
 		m_stPhilStatus.move_dist = dTargetPos;
 	}
@@ -2002,11 +2044,14 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 		else if (_T("PH5_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
 		else if (_T("PH6_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
 #endif
+		else                                    drv_id = ENG_MMDI::en_axis_none;
+
 		// 상대 이동일 경우
 		dTargetPos = uvCmn_MC2_GetDrvAbsPos(drv_id) + dTargetPos;
 
 		/*완료 확인을 위한 저장*/
 		m_stPhilStatus.phil_move = en_menu_phil_move_rel;
+		m_stPhilStatus.unique_id = stRecv->st_c2p_rel_move.ulUniqueID;
 		m_stPhilStatus.drive_id = (UINT8)drv_id;
 		m_stPhilStatus.move_dist = dTargetPos;
 	}
@@ -2029,27 +2074,24 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 		else if (_T("PH5_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph5;
 		else if (_T("PH6_Z") == strAxis)		drv_id = ENG_MMDI::en_axis_ph6;
 #endif
+		else                                    drv_id = ENG_MMDI::en_axis_none;
 
 		if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, L"EFEM_POS", DEF_MAX_POSITION_NAME_LENGTH))
 		{
-			if (drv_id == ENG_MMDI::en_stage_x)
-			{
-				dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][0];
-				dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
-			}
-			else if (drv_id == ENG_MMDI::en_stage_y)
-			{
-				dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][1];
-				dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
-			}
-			else
-			{
-				ErrorCode = ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT;
-			}
+			if (drv_id == ENG_MMDI::en_stage_x)				dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][0];
+			else if (drv_id == ENG_MMDI::en_stage_y)		dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][1];
+			else                                            ErrorCode = ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT;
+		}
+		else if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, L"MANUAL_POS", DEF_MAX_POSITION_NAME_LENGTH))
+		{
+			if (drv_id == ENG_MMDI::en_stage_x)				dTargetPos = uvEng_GetConfig()->mc2b_svc.max_dist[(UINT8)drv_id] - 10;
+			else if (drv_id == ENG_MMDI::en_stage_y)		dTargetPos = uvEng_GetConfig()->mc2b_svc.max_dist[(UINT8)drv_id] - 10;
+			else                                            ErrorCode = ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT;
 		}
 
 		/*완료 확인을 위한 저장*/
 		m_stPhilStatus.phil_move = en_menu_phil_move_char;
+		m_stPhilStatus.unique_id = stRecv->st_c2p_char_move.ulUniqueID;
 		m_stPhilStatus.drive_id = (UINT8)drv_id;
 		m_stPhilStatus.move_dist = dTargetPos;
 	}
@@ -2099,11 +2141,11 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 		i32MinDist = (INT32)ROUNDED(uvEng_GetConfig()->mc2b_svc.min_dist[u8drv_id] * 10000.0f, 0);
 		i32MaxDist = (INT32)ROUNDED(uvEng_GetConfig()->mc2b_svc.max_dist[u8drv_id] * 10000.0f, 0);
 	}
-	if (i32MaxDist < dTargetPos)
+	if (i32MaxDist < (dTargetPos * 10000.0f))
 	{
 		ErrorCode = ePHILHMI_ERR_MOTOR_PLM;
 	}
-	else if (i32MinDist > dTargetPos)
+	else if (i32MinDist > (dTargetPos * 10000.0f))
 	{
 		ErrorCode = ePHILHMI_ERR_MOTOR_NLM;
 	}
@@ -2126,6 +2168,7 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 			STG_PP_P2C_ABS_MOVE_COMP_ACK stAbsMoveAck;
 			stAbsMove.Reset();
 			stAbsMoveAck.Reset();
+			stAbsMove.ulUniqueID = m_stPhilStatus.unique_id;
 			stAbsMove.usErrorCode = ErrorCode;
 
 			uvEng_Philhmi_Send_P2C_ABS_MOVE_COMP(stAbsMove, stAbsMoveAck);
@@ -2136,6 +2179,7 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 			STG_PP_P2C_REL_MOVE_COMP_ACK stRelMoveAck;
 			stRelMove.Reset();
 			stRelMoveAck.Reset();
+			stRelMove.ulUniqueID = m_stPhilStatus.unique_id;
 			stRelMove.usErrorCode = ErrorCode;
 
 			uvEng_Philhmi_Send_P2C_REL_MOVE_COMP(stRelMove, stRelMoveAck);
@@ -2146,10 +2190,13 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 			STG_PP_P2C_CHAR_MOVE_COMP_ACK stCharMoveAck;
 			stCharMove.Reset();
 			stCharMoveAck.Reset();
+			stCharMove.ulUniqueID = m_stPhilStatus.unique_id;
 			stCharMove.usErrorCode = ErrorCode;
 
 			uvEng_Philhmi_Send_P2C_CHAR_MOVE_COMP(stCharMove, stCharMoveAck);
 		}
+
+		m_stPhilStatus.phil_move = en_menu_phil_move_none;
 	}
 }
 
@@ -2189,7 +2236,7 @@ VOID CDlgMain::PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv)
 		uvEng_Philhmi_Send_C2P_CHAR_MOVE_COMP_ACK(stCharComplete);
 	}
 }
-VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv)
+VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 {
 	STG_PP_C2P_PROCESS_EXECUTE_ACK stProcessExecute;
 	stProcessExecute.Reset();
@@ -2221,15 +2268,16 @@ VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv)
 	BOOL bMarked = uvEng_Luria_IsMarkGlobal();
 
 
-	if ((bSelect && bLoaded))
+	if ((bSelect && bLoaded && !is_busy))
 	{
 		RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&m_stExpoLog));
 	}
 	else
 	{
-		//stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_PROCESS;
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
 		return;
 	}
+
 
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }
@@ -2270,15 +2318,22 @@ VOID CDlgMain::PhilSendChageMode(STG_PP_PACKET_RECV* stRecv)
 	uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(stModeChange);
 }
 
-VOID CDlgMain::PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv)
+VOID CDlgMain::PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 {
 	STG_PP_C2P_INITIAL_EXECUTE_ACK	stInitialExecuteAck;
 	stInitialExecuteAck.Reset();
 
 	stInitialExecuteAck.ulUniqueID = stRecv->st_c2p_initial_execute.ulUniqueID;
 
-	/*장비 초기화 진행*/
-	RunWorkJob(ENG_BWOK::en_work_init);
+	if (is_busy)
+	{
+		/*장비 초기화 진행*/
+		RunWorkJob(ENG_BWOK::en_work_init);
+	}
+	else
+	{
+		stInitialExecuteAck.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+	}
 
 	uvEng_Philhmi_Send_C2P_INITIAL_EXECUTE_ACK(stInitialExecuteAck);
 }
@@ -2309,6 +2364,7 @@ VOID CDlgMain::PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv)
 	STG_PP_C2P_EVENT_STATUS_ACK		stEventStatus;
 	stEventStatus.Reset();
 	stEventStatus.ulUniqueID = stRecv->st_c2p_event_status.ulUniqueID;
+	stEventStatus.bEventFlag = 0;
 
 
 	memcpy(stEventStatus.szEventName, stRecv->st_c2p_event_status.szEventName, DEF_MAX_EVENT_NAME_LENGTH);
@@ -2322,6 +2378,12 @@ VOID CDlgMain::PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv)
 	{
 		stEventStatus.bEventFlag = m_stPhilStatus.safe_pos;
 	}
+	else if (0 == strcmp(stEventStatus.szEventName, "RECIPE_COMP"))
+	{
+		stEventStatus.bEventFlag = m_stPhilStatus.recipe_comp;
+		//stEventStatus.bEventFlag = uvCmn_Luria_IsJobNameLoaded();
+	}
+
 
 	uvEng_Philhmi_Send_C2P_EVENT_STATUS_ACK(stEventStatus);
 }
@@ -2346,6 +2408,14 @@ VOID CDlgMain::PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv)
 	STG_PP_C2P_TIME_SYNC_ACK		stTimeSync;
 	stTimeSync.Reset();
 	stTimeSync.ulUniqueID = stRecv->st_c2p_time_sync.ulUniqueID;
+
+	/*현재 시간*/
+	SYSTEMTIME stTm = { NULL };
+	GetLocalTime(&stTm);
+	char szSyncTime[DEF_TIME_LENGTH + 1];
+	sprintf_s(stRecv->st_c2p_time_sync.szSyncTime, DEF_TIME_LENGTH + 1, "%04d%02d%02d%02d%02d%02d",
+		stTm.wYear, stTm.wMonth, stTm.wDay, stTm.wHour, stTm.wMinute, stTm.wSecond);
+	memcpy(stRecv->st_c2p_time_sync.szSyncTime, szSyncTime, DEF_TIME_LENGTH);
 
 	TCHAR szTemp[512] = { NULL };
 	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)

@@ -27,8 +27,8 @@ CMarkUVDI15::CMarkUVDI15(PTCHAR work_dir)
 {
 	m_pstSelected	= NULL;
 	m_pstROI = (LPG_CRD)::Alloc(sizeof(STG_CRD));
-	for (int i = 0; i < GetConfig()->set_cams.acam_count; i++) { // lk91 UI Cam 3개로 변경시 수정
-
+	//for (int i = 0; i < GetConfig()->set_cams.acam_count; i++) { // lk91 UI Cam 3개로 변경시 수정
+	for (int i = 0; i < 2; i++) {
 		m_pstROI->roi_Left[i] = 5;
 		m_pstROI->roi_Right[i] = ACA1920_SIZE_X - 5;
 		m_pstROI->roi_Top[i] = 5;
@@ -188,7 +188,7 @@ BOOL CMarkUVDI15::LoadFile()
 	return TRUE;
 }
 
-
+#include <string.h>
 /*
  desc : Model 분석 및 등록 진행
  parm : data	- [in]  Model 정보가 저장된 문자열 버퍼
@@ -321,8 +321,15 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	
 	commandList.push([&](char* szValue) { stTempRecipe.save_count = (UINT8)std::atoi(szValue); });
 	commandList.push([&](char* szValue) { stTempRecipe.mark_type = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.align_type = (UINT8)std::atoi(szValue); });
-
+	commandList.push([&](char* szValue) 
+	{ 
+		auto value = (UINT8)std::atoi(szValue);
+		value = (value > (UINT8)ENG_ATGL::en_global_4_local_n_point) ? (UINT8)ENG_ATGL::en_global_4_local_n_point : value;
+		stTempRecipe.align_type = value;
+	});
+#ifdef USE_ALIGNMOTION
+	commandList.push([&](char* szValue) { stTempRecipe.align_motion = (UINT16)std::atoi(szValue); }); //요런식으로 구조를 바꾸면 중간에 아이템을 추가하더라도 인덱스 번호가 바뀔일이 없다. 
+#endif
 	commandList.push([&](char* szValue) { stTempRecipe.lamp_type = (UINT8)std::atoi(szValue); });
 	commandList.push([&](char* szValue) { stTempRecipe.gain_level[0] = (UINT8)std::atoi(szValue); });
 	commandList.push([&](char* szValue) { stTempRecipe.gain_level[1] = (UINT8)std::atoi(szValue); });
@@ -707,6 +714,11 @@ BOOL CMarkUVDI15::SaveAlignRecipe()
 			sprintf_s(szData, 256, "%u,", pstRecipe->align_type);
 			fputs(szData, fp);
 
+#ifdef USE_ALIGNMOTION
+			/* 얼라인 모션타입 */
+			sprintf_s(szData, 256, "%u,", pstRecipe->align_motion);
+			fputs(szData, fp);
+#endif
 
 			/* 램프 조명 타입(ring, coaxial) */
 			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_type);
@@ -775,6 +787,9 @@ VOID CMarkUVDI15::CopyAlignRecipe(LPG_RAAF source, LPG_RAAF target)
 	target->mark_type		= source->mark_type;
 	target->align_type		= source->align_type;
 
+#ifdef USE_ALIGNMOTION
+	target->align_motion = source->align_motion;
+#endif
 
 
 	target->lamp_type		= source->lamp_type;
@@ -1258,7 +1273,20 @@ BOOL CMarkUVDI15::IsRecipeSharedType()
 {
 	return FALSE; //아래보면 사실상 그냥 FALSE반환이다.
 
+	/*if (!m_pstSelected)	return FALSE;
+	switch (m_pstSelected->align_type)
+	{
+	case ENG_ATGL::en_global_4_local_0x0_n_point:
+	case ENG_ATGL::en_global_3_local_0x0_n_point:
+	case ENG_ATGL::en_global_2_local_0x0_n_point:
 
+	case ENG_ATGL::en_global_4_local_2x2_n_point:
+	case ENG_ATGL::en_global_4_local_3x2_n_point:
+	case ENG_ATGL::en_global_4_local_4x2_n_point:
+	case ENG_ATGL::en_global_4_local_5x2_n_point:
+		return FALSE;
+	}
+	return TRUE;*/
 }
 
 /*
@@ -1272,7 +1300,20 @@ BOOL CMarkUVDI15::IsExistLocalMark()
 	auto fiducial =  uvEng_Luria_GetLocalFiducial();
 	return fiducial->GetCount() != 0 ? TRUE : FALSE;
 
-
+	/*switch (m_pstSelected->align_type)
+	{
+	case ENG_ATGL::en_global_4_local_0x0_n_point:
+	case ENG_ATGL::en_global_4_local_2x2_n_point:
+	case ENG_ATGL::en_global_4_local_3x2_n_point:
+	case ENG_ATGL::en_global_4_local_4x2_n_point:
+	case ENG_ATGL::en_global_4_local_5x2_n_point:
+	case ENG_ATGL::en_global_4_local_2x2_s_point:
+	case ENG_ATGL::en_global_4_local_3x2_s_point:
+	case ENG_ATGL::en_global_4_local_4x2_s_point:
+	case ENG_ATGL::en_global_4_local_5x2_s_point:
+		return TRUE;
+	}*/
+//	return FALSE;
 }
 
 /*
@@ -1285,8 +1326,7 @@ UINT8 CMarkUVDI15::GetSelectRecipeLocalMarkCount()
 	if (!m_pstSelected)	return 0x00;
 
 	auto fiducial = uvEng_Luria_GetLocalFiducial();
-	return fiducial->GetCount(); // != 0 ? TRUE : FALSE;
-
+	return fiducial->GetCount(); 
 }
 
 /*
@@ -1296,119 +1336,127 @@ UINT8 CMarkUVDI15::GetSelectRecipeLocalMarkCount()
 		img_id	- [out] Camera Grabbed Image Number (Zero based)
  retn : TRUE or FALSE
 */
-BOOL CMarkUVDI15::GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id)
-{
-	UINT8 u8Count = GetSelectRecipeLocalMarkCount();
-	if (!m_pstSelected || u8Count < 1)	return FALSE;
-
-	/* 값 초기화 (반드시 Max 값으로 초기화) */
-	cam_id = 0xff;
-	img_id = 0xff;
-
-
-	//이쪽 아래 반드시 파괴해야함. 
-
-
-	UINT8 u8Coun4 = u8Count / 4;
-
-	UINT8 matrix2_2[16] = { 5, 4, 3, 2,
-							6, 7, 8, 9,
-							5, 4, 3, 2,
-							6, 7, 8, 9 };
-
-	UINT8 matrix3_2[24] = { 7,6,5,4,
-							3,2,8,9,
-							10,11,12,13,
-							7,6,5,4,
-							3,2,8,9,
-							10,11,12,13 };
-
-	UINT8 matrix4_2[32] = { 9, 8, 7, 6,
-							5, 4, 3, 2,
-							10, 11, 12, 13,
-							14, 15, 16, 17,
-							9, 8, 7, 6,
-							5, 4, 3, 2,
-							10, 11, 12, 13,
-							14, 15, 16, 17 };
-
-	UINT8 matrix5_2[40] = { 11,10,9,8,
-							7,6,5,4,
-							3,2,12,13,
-							14,15,16,17,
-							18,19,20,21,
-							11,10,9,8,
-							7,6,5,4,
-							3,2,12,13,
-							14,15,16,17,
-							18,19,20,21 };
-
-
-	cam_id = (mark < (u8Count / 2)) ? 0x01 : 0x02;;
-
-	switch (m_pstSelected->align_type)
-	{
-		//abh1000 0417
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-		img_id = matrix2_2[mark];	break;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-		img_id = matrix3_2[mark];	break;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-		img_id = matrix4_2[mark];	break;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-		img_id = matrix5_2[mark];	break;
-
-	case ENG_ATGL::en_global_4_local_2x2_s_point:
-	case ENG_ATGL::en_global_4_local_3x2_s_point:
-	case ENG_ATGL::en_global_4_local_4x2_s_point:
-	case ENG_ATGL::en_global_4_local_5x2_s_point:
-		if (mark < (u8Count / 3))
-		{
-			cam_id = 0x01;
-			img_id = mark + 2 /* Global Mark Number 0, 1이 있기 때문에 */;
-		}
-		else
-		{
-			cam_id = 0x02;
-			img_id = (mark - ((m_pstSelected->align_type & 0x0f) + 2)) + 2 /* Global Mark Number 0, 1이 있기 때문에 */;
-		}
-		break;
-
-	default:	return FALSE;
-	}
-
-	return TRUE;
-}
+//
+//BOOL CMarkUVDI15::GetLocalMarkToGrabNum(UINT8 mark, UINT8& cam_id, UINT8& img_id)
+//{
+//	UINT8 u8Count = GetSelectRecipeLocalMarkCount();
+//	if (!m_pstSelected || u8Count < 1)	return FALSE;
+//
+//	
+//
+//	
+//
+//	
+//
+//	return TRUE;
+//	/* 값 초기화 (반드시 Max 값으로 초기화) */
+//	cam_id = 0xff;
+//	img_id = 0xff;
+//
+//
+//	//이쪽 아래 반드시 파괴해야함. 
+//
+//
+//	UINT8 u8Coun4 = u8Count / 4;
+//
+//	UINT8 matrix2_2[16] = { 5, 4, 3, 2,
+//							6, 7, 8, 9,
+//							5, 4, 3, 2,
+//							6, 7, 8, 9 };
+//
+//	UINT8 matrix3_2[24] = { 7,6,5,4,
+//							3,2,8,9,
+//							10,11,12,13,
+//							7,6,5,4,
+//							3,2,8,9,
+//							10,11,12,13 };
+//
+//	UINT8 matrix4_2[32] = { 9, 8, 7, 6,
+//							5, 4, 3, 2,
+//							10, 11, 12, 13,
+//							14, 15, 16, 17,
+//							9, 8, 7, 6,
+//							5, 4, 3, 2,
+//							10, 11, 12, 13,
+//							14, 15, 16, 17 };
+//
+//	UINT8 matrix5_2[40] = { 11,10,9,8,
+//							7,6,5,4,
+//							3,2,12,13,
+//							14,15,16,17,
+//							18,19,20,21,
+//							11,10,9,8,
+//							7,6,5,4,
+//							3,2,12,13,
+//							14,15,16,17,
+//							18,19,20,21 };
+//
+//
+//	cam_id = (mark < (u8Count / 2)) ? 0x01 : 0x02;;
+//
+//	switch (m_pstSelected->align_type)
+//	{
+//		//abh1000 0417
+//	case ENG_ATGL::en_global_4_local_2x2_n_point:
+//		img_id = matrix2_2[mark];	break;
+//	case ENG_ATGL::en_global_4_local_3x2_n_point:
+//		img_id = matrix3_2[mark];	break;
+//	case ENG_ATGL::en_global_4_local_4x2_n_point:
+//		img_id = matrix4_2[mark];	break;
+//	case ENG_ATGL::en_global_4_local_5x2_n_point:
+//		img_id = matrix5_2[mark];	break;
+//
+//	case ENG_ATGL::en_global_4_local_2x2_s_point:
+//	case ENG_ATGL::en_global_4_local_3x2_s_point:
+//	case ENG_ATGL::en_global_4_local_4x2_s_point:
+//	case ENG_ATGL::en_global_4_local_5x2_s_point:
+//		if (mark < (u8Count / 3))
+//		{
+//			cam_id = 0x01;
+//			img_id = mark + 2 /* Global Mark Number 0, 1이 있기 때문에 */;
+//		}
+//		else
+//		{
+//			cam_id = 0x02;
+//			img_id = (mark - ((m_pstSelected->align_type & 0x0f) + 2)) + 2 /* Global Mark Number 0, 1이 있기 때문에 */;
+//		}
+//		break;
+//
+//	default:	return FALSE;
+//	}
+//
+//	return TRUE;
+//}
 
 /* 안함
  desc : 현재 Local Mark Index 값 값에 해당된 Scan 번호 값 반환
  parm : mark_id	- [in]  Local Mark Index 값 (0 or Later)
  retn : Scan Number (Zero Based)
 */
-UINT8 CMarkUVDI15::GetLocalMarkToScanNum(UINT8 mark_id)
-{
-	UINT8 u8Mark = 0;
-	if (!m_pstSelected || mark_id < 4)	return 0;
-
-	switch (m_pstSelected->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-		u8Mark = ((m_pstSelected->align_type & 0x0f) + 1) * 4;
-		break;
-
-	case ENG_ATGL::en_global_4_local_2x2_s_point:
-	case ENG_ATGL::en_global_4_local_3x2_s_point:
-	case ENG_ATGL::en_global_4_local_4x2_s_point:
-	case ENG_ATGL::en_global_4_local_5x2_s_point:
-		u8Mark = ((m_pstSelected->align_type & 0x0f) + 1) * 3;
-		break;
-	}
-
-	return (u8Mark > 0 && u8Mark <= mark_id) ? 0x01 : 0x00;
-}
+//UINT8 CMarkUVDI15::GetLocalMarkToScanNum(UINT8 mark_id)
+//{
+//	UINT8 u8Mark = 0;
+//	if (!m_pstSelected || mark_id < 4)	return 0;
+//
+//	switch (m_pstSelected->align_type)
+//	{
+//	case ENG_ATGL::en_global_4_local_2x2_n_point:
+//	case ENG_ATGL::en_global_4_local_3x2_n_point:
+//	case ENG_ATGL::en_global_4_local_4x2_n_point:
+//	case ENG_ATGL::en_global_4_local_5x2_n_point:
+//		u8Mark = ((m_pstSelected->align_type & 0x0f) + 1) * 4;
+//		break;
+//
+//	case ENG_ATGL::en_global_4_local_2x2_s_point:
+//	case ENG_ATGL::en_global_4_local_3x2_s_point:
+//	case ENG_ATGL::en_global_4_local_4x2_s_point:
+//	case ENG_ATGL::en_global_4_local_5x2_s_point:
+//		u8Mark = ((m_pstSelected->align_type & 0x0f) + 1) * 3;
+//		break;
+//	}
+//
+//	return (u8Mark > 0 && u8Mark <= mark_id) ? 0x01 : 0x00;
+//}
 
 /* 안함
  desc : 현재 Camera Index와 Grabbed Image를 가지고 몇 번째 인덱스에 저장되어 있는지 반환
@@ -1417,59 +1465,59 @@ UINT8 CMarkUVDI15::GetLocalMarkToScanNum(UINT8 mark_id)
 		mark	- [out] Mark Index (Zero based) 반환
  retn : TRUE or FALSE
 */
-BOOL CMarkUVDI15::GetGrabNumToLocalMark(UINT8 cam_id, UINT8 img_id, UINT8& mark)
-{
-	UINT8 u8Count = GetSelectRecipeLocalMarkCount();
-
-	if (!m_pstSelected || u8Count < 1)	return FALSE;
-	switch (m_pstSelected->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_2x2_n_point:
-	case ENG_ATGL::en_global_4_local_3x2_n_point:
-	case ENG_ATGL::en_global_4_local_4x2_n_point:
-	case ENG_ATGL::en_global_4_local_5x2_n_point:
-		mark = 4 * ((m_pstSelected->align_type & 0x0f) + 1) * (cam_id - 1) + img_id;
-		break;
-	case ENG_ATGL::en_global_4_local_2x2_s_point:
-	case ENG_ATGL::en_global_4_local_3x2_s_point:
-	case ENG_ATGL::en_global_4_local_4x2_s_point:
-	case ENG_ATGL::en_global_4_local_5x2_s_point:
-#if 0
-		mark = 3 * ((m_pstSelected->align_type & 0x0f) + 1) * (cam_id - 1) + img_id;
-#else
-		if (0x01 == cam_id)	mark = img_id;
-		else				mark = (m_pstSelected->align_type & 0x0f) + 2 + img_id;
-#endif
-		break;
-	default:	return FALSE;
-	}
-	return TRUE;
-}
+//BOOL CMarkUVDI15::GetGrabNumToLocalMark(UINT8 cam_id, UINT8 img_id, UINT8& mark)
+//{
+//	UINT8 u8Count = GetSelectRecipeLocalMarkCount();
+//
+//	if (!m_pstSelected || u8Count < 1)	return FALSE;
+//	switch (m_pstSelected->align_type)
+//	{
+//	case ENG_ATGL::en_global_4_local_2x2_n_point:
+//	case ENG_ATGL::en_global_4_local_3x2_n_point:
+//	case ENG_ATGL::en_global_4_local_4x2_n_point:
+//	case ENG_ATGL::en_global_4_local_5x2_n_point:
+//		mark = 4 * ((m_pstSelected->align_type & 0x0f) + 1) * (cam_id - 1) + img_id;
+//		break;
+//	case ENG_ATGL::en_global_4_local_2x2_s_point:
+//	case ENG_ATGL::en_global_4_local_3x2_s_point:
+//	case ENG_ATGL::en_global_4_local_4x2_s_point:
+//	case ENG_ATGL::en_global_4_local_5x2_s_point:
+//#if 0
+//		mark = 3 * ((m_pstSelected->align_type & 0x0f) + 1) * (cam_id - 1) + img_id;
+//#else
+//		if (0x01 == cam_id)	mark = img_id;
+//		else				mark = (m_pstSelected->align_type & 0x0f) + 2 + img_id;
+//#endif
+//		break;
+//	default:	return FALSE;
+//	}
+//	return TRUE;
+//}
 
 /* 안함
  desc : 현재 카메라마다 Grabbed Image 번호에 해당되는 방향 (스테이지 이동 방향) 정보 반환
  parm : img_id	- [in]  Camera Grabbed Image Number (Zero based)
  retn : TRUE (Normal : 정방향; 전진) or FALSE (역방향; 후진)
 */
-BOOL CMarkUVDI15::GetImageToStageDirect(UINT8 img_id)
-{
-	if (!m_pstSelected || img_id < 2)	return TRUE;	/* Global Mark인 경우 무조건 정방향 */
-	switch (m_pstSelected->align_type)
-	{
-		/* Normal Type */
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	if (5 >= img_id)	return FALSE;	break;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	if (7 >= img_id)	return FALSE;	break;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	if (9 >= img_id)	return FALSE;	break;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	if (11 >= img_id)	return FALSE;	break;
-		/* Shared Type */
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	if (4 >= img_id)	return FALSE;	break;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	if (5 >= img_id)	return FALSE;	break;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	if (6 >= img_id)	return FALSE;	break;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	if (7 >= img_id)	return FALSE;	break;
-	}
-
-	return TRUE;
-}
+//BOOL CMarkUVDI15::GetImageToStageDirect(UINT8 img_id)
+//{
+//	if (!m_pstSelected || img_id < 2)	return TRUE;	/* Global Mark인 경우 무조건 정방향 */
+//	switch (m_pstSelected->align_type)
+//	{
+//		/* Normal Type */
+//	case ENG_ATGL::en_global_4_local_2x2_n_point:	if (5 >= img_id)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_3x2_n_point:	if (7 >= img_id)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_4x2_n_point:	if (9 >= img_id)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_5x2_n_point:	if (11 >= img_id)	return FALSE;	break;
+//		/* Shared Type */
+//	case ENG_ATGL::en_global_4_local_2x2_s_point:	if (4 >= img_id)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_3x2_s_point:	if (5 >= img_id)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_4x2_s_point:	if (6 >= img_id)	return FALSE;	break;
+//	case ENG_ATGL::en_global_4_local_5x2_s_point:	if (7 >= img_id)	return FALSE;	break;
+//	}
+//
+//	return TRUE;
+//}
 
 /*
  desc : 얼라인 마크 검색을 위해 1 Scan 하게 되면, 검색되는 마크의 개수 즉,
@@ -1485,6 +1533,19 @@ UINT8 CMarkUVDI15::GetScanLocalMarkCount()
 	return alignMotion->status.gerberRowCnt;
 
 
+	//switch (m_pstSelected->align_type)
+	//{
+	//	/* Normal Type */
+	//case ENG_ATGL::en_global_4_local_2x2_n_point:	return 0x04;
+	//case ENG_ATGL::en_global_4_local_3x2_n_point:	return 0x06;
+	//case ENG_ATGL::en_global_4_local_4x2_n_point:	return 0x08;
+	//case ENG_ATGL::en_global_4_local_5x2_n_point:	return 0x0a;
+	//	/* Shared Type */
+	//case ENG_ATGL::en_global_4_local_2x2_s_point:	return 0x03;
+	//case ENG_ATGL::en_global_4_local_3x2_s_point:	return 0x04;
+	//case ENG_ATGL::en_global_4_local_4x2_s_point:	return 0x05;
+	//case ENG_ATGL::en_global_4_local_5x2_s_point:	return 0x06;
+	//}
 
-	return 0x00;
+	//return 0x00;
 }

@@ -7,6 +7,7 @@
 #include "../../MainApp.h"
 #include "WorkExpoAlign.h"
 #include "../../mesg/DlgMesg.h"
+#include "../../GlobalVariables.h"
 
 
 #ifdef	_DEBUG
@@ -51,7 +52,8 @@ BOOL CWorkExpoAlign::InitWork()
 	if (!CWork::InitWork())	return FALSE;
 
 	/* 전체 작업 단계 */
-	m_u8StepTotal	= 0x27;
+	//m_u8StepTotal	= 0x27;
+	 m_u8StepTotal	= 0x24;
 	//m_u8StepTotal = 0x1b;
 	/* 총 검색 대상의 마크 개수 얻기 */
 	m_u8MarkCount	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global) +
@@ -67,6 +69,8 @@ BOOL CWorkExpoAlign::InitWork()
 */
 VOID CWorkExpoAlign::DoWork()
 {
+
+#if(0)
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
@@ -120,7 +124,106 @@ VOID CWorkExpoAlign::DoWork()
 	case 0x26 : m_enWorkState = SetMovingUnloader();						break;	/* Stage Unloader 위치로 이동 */
 	case 0x27 : m_enWorkState = IsMovedUnloader();							break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
 	}
+#else
+	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
+	{
+	case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
+	case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
+	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
+	case 0x05: m_enWorkState = SetAlignMovingInit();						break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
+	case 0x06: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
+	case 0x07: m_enWorkState = IsAlignMovedInit();							break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
+	case 0x08: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
+	case 0x09: m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
+	case 0x0a: m_enWorkState = SetAlignMeasMode();							break;
+	case 0x0b: m_enWorkState = IsAlignMeasMode();							break;
+	case 0x0c: m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
+	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
+	case 0x0e:
+	{
+		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
+		CameraSetCamMode(ENG_VCCM::en_none);
+		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
+	}
 
+	case 0x0f: m_enWorkState = SetTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
+	case 0x10: m_enWorkState = IsTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 등록 확인 */
+	case 0x11:
+	{
+		m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);
+		m_enWorkState = ENG_JWNS::en_next;
+	}
+	break;	/* Stage X/Y, Camera 1/2 - Align (Local) 시작 위치 도착 여부 */
+
+	case 0x12:
+	{
+		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
+		m_enWorkState = ENG_JWNS::en_next;
+	}
+	break;	/* Cam None 모드로 변경 */
+
+	case 0x13: m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 위치 확인 */
+	case 0x14: m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 측정 완료 여부 */
+
+	case 0x15:
+		this_thread::sleep_for(chrono::milliseconds(200)); // 잠깐 기다려주는 이유가 바슬러 스레드에서 캠 데이터를 가져가는 스레드 리프레시 타임이 있기때문.
+		m_u8StepIt = GlobalVariables::getInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
+		m_enWorkState = ENG_JWNS::en_forceSet;
+		break;
+
+	case 0x16:
+		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
+		
+		break;	/* Cam None 모드로 변경 */
+
+	case 0x17: m_enWorkState = SetTrigEnable(FALSE);						break;
+	case 0x18: 
+	{
+		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);
+		
+	}
+		break;
+	case 0x19: 
+	{
+		m_enWorkState = IsSetMarkValidAll(0x01);
+		
+	}
+	break;
+
+	case 0x1a:
+	{
+		m_enWorkState = SetAlignMarkRegist();
+		
+	}
+	break;
+	case 0x1b: 
+	{
+		m_enWorkState = IsAlignMarkRegist();
+		
+	}
+		break;
+	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
+	
+	case 0x1d: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */
+	case 0x1e: m_enWorkState = IsPrePrinted();								break;	/* Luria Control - PrePrinted 확인 */
+	case 0x1f: 
+	{
+		m_enWorkState = SetPrinting();
+	}
+	break;	/* Luria Control - Printing */
+	case 0x20: m_enWorkState = IsPrinted();								break;	/* Luria Control - Printed 확인 */
+
+	case 0x21: m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
+	case 0x22: m_enWorkState = IsWorkWaitTime();							break;	/* 대기 완료 여부 확인 */
+
+	case 0x23: m_enWorkState = SetMovingUnloader();						break;	/* Stage Unloader 위치로 이동 */
+	case 0x24: m_enWorkState = IsMovedUnloader();							break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
+
+
+	}
+
+#endif
 	/* 다음 작업 진행 여부 판단 */
 	CWorkExpoAlign::SetWorkNext();
 	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
@@ -164,7 +267,7 @@ VOID CWorkExpoAlign::SetWorkNext()
 		/* Local Mark 존재 여부 확인 */
 		case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
 		/* 노광 작업이 완료된 이후, 바로 광학계 내 온도 값 요청 */
-		case 0x25: uvEng_Luria_ReqGetPhLedTempAll();	break;
+		case 0x24: uvEng_Luria_ReqGetPhLedTempAll();	break;
 		}
 
 		/* 모든 동작이 완료되었는지 확인 */
@@ -199,6 +302,13 @@ VOID CWorkExpoAlign::SetWorkNext()
 			}
 			else
 			{
+				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
+				if (g_u16PhilCommand == ePHILHMI_C2P_PROCESS_EXECUTE)
+				{
+					SetPhilProcessCompelet();
+				}
+
+
 				m_enWorkState = ENG_JWNS::en_comp;
 
 				/* 항상 호출*/

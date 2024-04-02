@@ -121,6 +121,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 {
 	UINT8 i, j, k		= 0x00;
 	UINT8 u8ACams		= uvEng_GetConfig()->set_cams.acam_count;
+	u8ACams = 2;
 	UINT8 u8ImgNo		= (page_no - 1) * u8ACams, u8ImgId, u8Index, u8Mark=0x00;
 	TCHAR tzMark[128]	= {NULL};
 	/*BOOL bRedraw		= FALSE;*/
@@ -128,9 +129,9 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 	LPG_REAF pstRecipe	= uvEng_ExpoRecipe_GetSelectRecipe();
 	COLORREF clrText[2]	= { RGB(255, 0, 0), RGB(34, 177, 76) };
 	CMyStatic *pText	= NULL;
-
+	
 	/* k = 1 or 2 ? Align Camera 1, 2 */
-	for (k=1, j=0; k<=u8ACams; k++)
+	for (k=1, j=0; k<=u8ACams; k++,j++)
 	{
 		/* Align Camera 마다 이미지 2개씩 (상/하) 출력 */
 		for (i=0; i<2; i++,u8Mark=0x01/*,bRedraw=FALSE*/)
@@ -142,9 +143,11 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 			/* Align Camera 2의 경우, Image Number = 2 or 3 (Global Mark),  8 ~ 11 or 16 ~ 19 (Local Mark) */
 			u8ImgId	= i + u8ImgNo;
 			pstMark	= uvEng_Camera_GetGrabbedMark(k, u8ImgId);
-			if (!pstMark)	continue;
+			if (!pstMark)	
+				continue;
+			
 			/* Output the grabbed images on screen */
-			uvEng_Camera_DrawMarkMBufID(m_hDraw[u8Index], m_rDraw[u8Index], k, i+u8ImgNo);
+			uvEng_Camera_DrawMarkMBufID(m_hDraw[u8Index], m_rDraw[u8Index], k, (j* u8ACams)+i, pstMark->img_id);
 			/* Update the grabbed results to the text buffer */
 			swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
 					   k, u8ImgId+1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
@@ -157,6 +160,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 			}
 			/* Output the grabbed results to the text control */
 			pText	= (CMyStatic *)CWnd::FromHandle(m_hText[u8Index]);
+			if (pText == nullptr) continue;
 			pText->SetWindowText(tzMark);
 			pText->SetTextColor(clrText[u8Mark]);
 			pText->Invalidate(FALSE);

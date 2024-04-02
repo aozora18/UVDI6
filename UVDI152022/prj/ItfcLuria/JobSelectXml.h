@@ -174,7 +174,7 @@ protected:
 
 	BOOL				SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
 								  CAtlList <STG_XMXY> &mark_xy);
-	BOOL				IsValidAlignType(ENG_ATGL align_type);
+	//BOOL				IsValidAlignType(ENG_ATGL align_type);
 
 // 공용 함수
 public:
@@ -211,10 +211,11 @@ public:
 
 	UINT32				GetLocalMarkDiffVertX(UINT8 scan,
 											  CAtlList <DOUBLE> &cam1, CAtlList <DOUBLE> &cam2);
- 
+	//BOOL				IsMarkDirectForward(UINT8 mark_no);
+
 	VOID				GetGerberSize(DOUBLE &width, DOUBLE &height);
 
-	BOOL				IsSharedAlignType(ENG_ATGL align_type);
+	//BOOL				IsSharedAlignType(ENG_ATGL align_type);
 
 	UINT16				GetMarkPosDirect(STG_XMXY mark);
 	UINT16				GetMarkType()				{	return m_u16MarkType;		}

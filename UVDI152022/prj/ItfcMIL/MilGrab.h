@@ -8,7 +8,7 @@ class CMilGrab : public CMilImage
 public:
 #ifndef _NOT_USE_MIL_
 	CMilGrab(LPG_CIEA config, LPG_VDSM shmem,
-			 UINT8 cam_id, /*MIL_ID ml_sys, MIL_ID ml_dis, */ENG_ERVM run_mode);
+			 UINT8 cam_id, /*, MIL_ID ml_dis, */MIL_ID ml_sys,ENG_ERVM run_mode);
 #else
 	CMilGrab(LPG_CIEA config, LPG_VDSM shmem,
 			UINT8 cam_id, ENG_ERVM run_mode);

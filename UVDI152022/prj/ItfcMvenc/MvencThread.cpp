@@ -997,7 +997,7 @@ BOOL CMvencThread::ReqWriteTriggerStrobe(BOOL enable)
 		//MvsEncClearAll(m_handle);
 		//MvsEncClearTriggerAll(m_handle);
 
-
+		MvsEncSetPositiveRun(m_handle, 0);
 
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
@@ -1094,11 +1094,11 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 			}
 		}
 
-
+#ifdef RUNTRIGGER
 		MvsEncSetPositiveRun(m_handle, 15);
 		Sleep(10);
 		MvsEncSetPositiveRun(m_handle, 0);
-
+#endif
 
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */

@@ -1,7 +1,13 @@
 ﻿#pragma once
 //이하는 전부 인라인 클래스임.
 
-using namespace std;
+
+
+#include <iostream>
+#include <filesystem>
+#include <chrono>
+
+
 #include <map>
 #include <string>
 #include <chrono>
@@ -19,15 +25,23 @@ using namespace std;
 #include <algorithm>
 #include <stack>
 #include <assert.h>
+#include <fstream>
+#include <regex>
 
 //아이고.... 뭐가 계속 추가되네...
+#include <filesystem>
 #include "../../inc/conf/conf_uvdi15.h"
 #include "../../inc/conf/conf_comn.h"
 #include "../../inc/conf/luria.h"
 #include "../../inc/itfe/EItfcMC2.h"
 #include "../../inc/itfe/EItfcCamera.h"
+#include "../../inc/recipe/ACamCali.h"
 #include "../../prj/ItfcLuria/JobSelectXml.h"
 
+using namespace std;
+namespace fs = std::filesystem;
+
+struct CaliPoint;
 
 	template <typename T>
 	class Singleton
@@ -88,13 +102,13 @@ using namespace std;
 			if (threads_.find(key) != threads_.end())
 				return;
 
-			std::unique_lock<std::mutex> lock(mutex_);
+			std::lock_guard<std::mutex> lock(mutex_);
 			threads_.emplace(key, std::make_unique<std::thread>(callback));
 		}
 
 		void removeThread(const std::string& key)
 		{
-			std::unique_lock<std::mutex> lock(mutex_);
+			std::lock_guard<std::mutex> lock(mutex_);
 			auto it = threads_.find(key);
 			if (it != threads_.end()) {
 				if (it->second->joinable()) {
@@ -106,7 +120,7 @@ using namespace std;
 
 		void waitForAllThreads()
 		{
-			std::unique_lock<std::mutex> lock(mutex_);
+			std::lock_guard<std::mutex> lock(mutex_);
 			for (auto& pair : threads_) {
 				if (pair.second->joinable()) {
 					pair.second->join();
@@ -117,7 +131,7 @@ using namespace std;
 
 		bool isThreadRunning(const std::string& key)
 		{
-			std::unique_lock<std::mutex> lock(mutex_);
+			std::lock_guard<std::mutex> lock(mutex_);
 			auto it = threads_.find(key);
 			return it != threads_.end() && it->second->joinable();
 		}
@@ -130,17 +144,203 @@ using namespace std;
 	};
 
  
+	class caliCalc
+	{
+	public:
+		bool caliInfoLoadComplete = false;
+	
+		struct CaliPoint
+		{
+			CaliPoint(double x,
+				double y,
+				double offsetX,
+				double offsetY)
+			{
+				this->x = x;
+				this->y = y;
+				this->offsetX = offsetX;
+				this->offsetY = offsetY;
+			}
+			CaliPoint() {}
+			double x;
+			double y;
+			double offsetX;
+			double offsetY;
+		} data;
+
+	protected:
+		map<int, vector<CaliPoint>> caliDataMap;
+
+		double LimittoMicro(double val)
+		{
+			return round(val * 1000.0) / 1000.0; //마이크로 단위 이하는 필요가 없음. 
+		}
+
+		void SortPos(std::vector<CaliPoint>& dataList)
+		{
+			std::sort(dataList.begin(), dataList.end(), [](const CaliPoint& a, const CaliPoint& b)
+				{
+					return a.y == b.y ? a.x < b.x : a.y < b.y;
+				});
+		}
+
+	
+		CaliPoint calculateAverageOffset(const std::vector<CaliPoint>& nearbyPoints)
+		{
+			double sumOffsetX = 0.0, sumOffsetY = 0.0;
+
+			for (const auto& point : nearbyPoints)
+			{
+				sumOffsetX += point.offsetX;
+				sumOffsetY += point.offsetY;
+			}
+			return { 0, 0,  LimittoMicro(sumOffsetX / nearbyPoints.size()) ,
+							LimittoMicro(sumOffsetY / nearbyPoints.size()) };
+		}
+	public:
+		void LoadCaliData(LPG_CIEA cfg)
+		{
+
+			auto tokenize = [&](string str, regex re) -> vector<double>
+				{
+					std::sregex_token_iterator it{ str.begin(), str.end(), re, -1 };
+					std::vector<string> tokenized{ it, {} };
+
+					tokenized.erase(std::remove_if(tokenized.begin(),
+						tokenized.end(), [](std::string const& s)
+						{
+							return s.size() == 0;
+						}),
+						tokenized.end());
+
+					std::vector<double> doubleVector;
+					std::transform(tokenized.begin(), tokenized.end(), std::back_inserter(doubleVector),
+						[](const std::string& str) { return std::stod(str); });
+
+					return doubleVector;
+				};
+
+
+			auto loadSeq = [=](LPG_CIEA cfg)
+				{
+					const int DATACOUNT = 4;
+					const std::regex re(R"([\s|,]+)");
+
+					//TCHAR			workDir[MAX_PATH] = { NULL };
+					
+					
+					//auto executablePath = std::filesystem::current_path();
+					//auto directoryOnly = executablePath.parent_path();
+
+					const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
+					int camCount = cfg->set_cams.acam_count;
+					for (int i = 0; i < camCount; i++)
+					{
+						try
+						{
+							auto name = cfg->file_dat.staticAcamCali[i];
+						//	swprintf_s(workDir, MAX_PATH, L"%s\\%s", directoryOnly.c_str(), name);
+							std::ifstream file(name);
+							
+							for (std::string line; std::getline(file, line);)
+							{
+								const std::vector<double> tokens = tokenize(line, re);
+								if (tokens.size() != DATACOUNT) continue;
+
+								caliDataMap[i+1].push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
+							}
+							if(caliDataMap[i + 1].size() != 0)
+								SortPos(caliDataMap[i]);
+							
+						}
+						catch (...)
+						{
+							caliInfoLoadComplete = false;
+						}
+						caliInfoLoadComplete = true;
+					}
+				};
+
+			if(caliInfoLoadComplete == false)
+				std::thread([=]() {loadSeq(cfg); }).detach();
+		}
+
+
+		CaliPoint EstimateOffset(int camIdx,  double stageX=0, double stageY=0,double camX=-1)
+		{
+			const int STAGE_CALI_INDEX = 3;
+			auto stageCaliData = caliDataMap[STAGE_CALI_INDEX];
+			auto camCaliData = caliDataMap[camIdx];
+
+			auto estimate = [=](vector<CaliPoint> points, double x, double y) -> CaliPoint
+			{
+				#undef max
+				double closestDistance = std::numeric_limits<double>::max();
+				double secondClosestDistance = std::numeric_limits<double>::max();
+
+				CaliPoint closestPoint{};
+				CaliPoint secondClosestPoint{};
+
+				bool fixX = x == -1 ? true : false;
+				bool fixY = y == -1 ? true : false;
+
+				for (const auto& point : points)
+				{
+					x = fixX && x != point.x ? point.x : x; //소팅축 고정
+					y = fixY && y != point.y ? point.y : y;
+
+					double currentDistance = std::sqrt(std::pow(point.x - x, 2) + std::pow(point.y - y, 2));
+
+					if (currentDistance < closestDistance)
+					{
+						secondClosestDistance = closestDistance;
+						secondClosestPoint = closestPoint;
+
+						closestDistance = currentDistance;
+						closestPoint = point;
+					}
+					else if (currentDistance < secondClosestDistance)
+					{
+						secondClosestDistance = currentDistance;
+						secondClosestPoint = point;
+					}
+				}
+
+				double totalInverseDistance = (1 / closestDistance) + (1 / secondClosestDistance);
+				double weightClosest = (1 / closestDistance) / totalInverseDistance;
+				double weightSecondClosest = (1 / secondClosestDistance) / totalInverseDistance;
+
+				CaliPoint weightedAverageOffset;
+				weightedAverageOffset.x = x;
+				weightedAverageOffset.y = y;
+				weightedAverageOffset.offsetX = (closestPoint.offsetX * weightClosest) + (secondClosestPoint.offsetX * weightSecondClosest);
+				weightedAverageOffset.offsetY = (closestPoint.offsetY * weightClosest) + (secondClosestPoint.offsetY * weightSecondClosest);
+
+				return weightedAverageOffset;
+			};
+			
+			CaliPoint stageOffset = estimate(stageCaliData, stageX, stageY);
+			CaliPoint camOffset = estimate(camCaliData, camX, -1);
+
+			return CaliPoint(0, 0, stageOffset.offsetX + camOffset.x, stageOffset.offsetY + camOffset.y);
+		}
+
+	};
 
 	class AlignMotion
 	{
 	public:
-		~AlignMotion()
-		{
-			int debug = 0;
-		}
+		mutex* motionMutex;
 		bool onUpdate = true;
 		LPG_CIEA pstCfg = nullptr;
 		
+		void Destroy()
+		{
+			lock_guard<mutex> lock(*motionMutex);
+			onUpdate = false;
+			motions.clear();
+		}
+
 		enum MovingDir
 		{
 			X,
@@ -156,6 +356,11 @@ using namespace std;
 			camera = 0b00000001,
 			etc = 0b00000010,
 		};
+
+		caliCalc::CaliPoint EstimateOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
+		{
+			 return caliCalcInst.EstimateOffset(camIdx, stageX, stageY, camX);
+		}
 
 		class Axis //이동가능한축만 등록하며, 특정기능을 담당한다면 옵션추가한다. 
 		{
@@ -189,9 +394,21 @@ using namespace std;
 				currPos = posCallback != nullptr ? posCallback() : min;
 			}
 		};
-
+	protected:
+		caliCalc caliCalcInst;
 		map<string, map<string, Axis>> motions;
 		
+	public:
+		
+		map<string, map<string, Axis>> GetMotion() {return motions;}
+		/// </summary>
+		/// <param name="camIndex"></param>
+		/// <param name="camXPos"></param>
+		/// <param name="stageX"></param>
+		/// <param name="stageY"></param>
+		/// <param name="X"></param>
+		/// <param name="Y"></param>
+		/// <returns></returns>
 		STG_XMXY GetGerberPosUsePosition(int camIndex, double camXPos, double stageX, double stageY, double& X, double& Y)
 		{
 			//역산으로 주어진 값으로 피두셜 얻어오기. 오차값이 좀 있긴한데 대략적인 값을 잘 반환하고있다. 
@@ -205,22 +422,20 @@ using namespace std;
 
 			double thresholdVal = markParams.thresholdPixel * pstCfg->acam_spec.GetPixelToMM(camIndex); //대충 2pxl이내에서 검색이 되야한다. 
 
-			
-		
-				vector<STG_XMXY>::iterator  it = find_if(markList[ENG_AMTF::en_local].begin(), markList[ENG_AMTF::en_local].end(),
+				vector<STG_XMXY>::iterator  it = find_if(status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end(),
 				[&](const STG_XMXY& elem)
 				{
 					double distance = std::sqrt(std::pow(tempGerberX - elem.mark_x, 3) + std::pow(tempGerberY - elem.mark_y, 3));
 					return distance <= thresholdVal; //오차값이내
 				});
 
-			if (it != markList[ENG_AMTF::en_local].end())
+			if (it != status.markList[ENG_AMTF::en_local].end())
 			{
 				X = tempGerberX;
 				Y = tempGerberY;
 			}
 
-			return it == markList[ENG_AMTF::en_local].end() ?  STG_XMXY() : *it;
+			return it == status.markList[ENG_AMTF::en_local].end() ?  STG_XMXY() : *it;
 		}
 
 
@@ -263,17 +478,27 @@ using namespace std;
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="camIndex"></param>
+		/// <param name="markType"></param>
+		/// <param name="markIndex"></param>
+		/// <param name="stageX"></param>
+		/// <param name="stageY"></param>
+		/// <param name="camX"></param>
+		/// <returns></returns>
 		bool GetMoveMotionOffset(int camIndex, ENG_AMTF markType, int markIndex, double& stageX, double& stageY, double& camX)
 		{
 			
-			vector<STG_XMXY>::iterator it = std::find_if(markList[markType].begin(), 
-														 markList[markType].end(),
+			vector<STG_XMXY>::iterator it = std::find_if(status.markList[markType].begin(),
+				status.markList[markType].end(),
 														[&](const STG_XMXY& XMXY)
 														{
 															return XMXY.tgt_id == markIndex;
 														});
 
-			if (it == markList[markType].end()) return false;
+			if (it == status.markList[markType].end()) return false;
 
 			
 
@@ -308,6 +533,11 @@ using namespace std;
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="camIndex"></param>
+		/// <returns></returns>
 		double GetCamMinRangeXInGerber(int camIndex)
 		{
 
@@ -325,6 +555,11 @@ using namespace std;
 			return temp;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="camIndex"></param>
+		/// <returns></returns>
 		double GetCamMaxRangeXInGerber(int camIndex)
 		{
 			string camName = "x" + std::to_string(camIndex);
@@ -358,6 +593,7 @@ using namespace std;
 
 		void Refresh() //바로 갱신이 필요하면 요거 다이렉트 호출 보통은 스레드에서 호출
 		{
+			lock_guard<mutex> lock(*motionMutex);
 			for (auto i = motions.begin(); i != motions.end(); i++)
 				for (auto j = i->second.begin(); j != i->second.end(); j++)
 				{
@@ -367,32 +603,12 @@ using namespace std;
 					if (j->second.onError == false && j->second.posCallback != nullptr)
 						j->second.currPos = j->second.posCallback();
 				}
+		}
 
-			////이하 테스트메서드
-			//auto _1 = GetCamMinRangeXInGerber(1);
-			//auto _2 = GetCamMinRangeXInGerber(2);
-
-			//auto _11 = GetCamMaxRangeXInGerber(1);
-			//auto _22 = GetCamMaxRangeXInGerber(2);
-
-
-			//double x = 0, x2 = 0, y = 0, y2 = 0;
-
-			//auto _33 = GetGerberPosUsePosition(1, motions["camera"]["x1"].currPos,
-			//	motions["stage"]["x"].currPos,
-			//	motions["stage"]["y"].currPos, x, y);
-
-			//
-			//GetCamLookatGerberPos(1, x, y);
-			//GetCamLookatGerberPos(2, x2, y2);
-
-			//double c1=0, c2=0;
-			//bool canMove1 = GetMoveMotionOffset(1, ENG_AMTF::en_global, 4 -1, x, y, c1); //캠1이 4번마크를 볼수있는가? 없어야한다.
-			//	 canMove1 = GetMoveMotionOffset(1, ENG_AMTF::en_global, 2 -1, x, y, c1); //캠1이 2번마크를 볼수있는가?있어야한다.
-			//
-			//bool canMove2 = GetMoveMotionOffset(2, ENG_AMTF::en_global, 2 -1, x, y, c2); //캠2이 2번마크를 볼수있는가? 없어야한다.
-			//	 canMove2 = GetMoveMotionOffset(2, ENG_AMTF::en_global, 4 -1, x, y, c2); //캠2이 2번마크를 볼수있는가? 있어야한다.
-
+		void LoadCaliData(LPG_CIEA cfg)
+		{
+			caliCalcInst.LoadCaliData(cfg);
+			
 		}
 
 
@@ -400,6 +616,9 @@ using namespace std;
 			struct Params //<주>테스트를 위해 오차를 감안하고 상수사용 스테이지 고치는동안은 요거 사용해야되...
 			{
 				double distC2C = 401.09992f;
+				
+				const double distXcam3WhenCam1MaxX = 202.7822;
+
 				const double stageXLookatMark2WithCam1 = 242.9995f;
 				const double stageYLookatMark2WithCam1 = 751.7946f;
 				const double cam1xLookatMark2 = 242.9995f;
@@ -425,18 +644,24 @@ using namespace std;
 				void Init()
 				{
 					SpiltMode spiltMode = SpiltMode::byCamCount;
-					//scanCount = 0;
+					
 					gerberRowCnt = 0;
 					gerberColCnt = 0;
 					localMarkCnt = 0;
 					globalMarkCnt = 0;
+
+					//scanCount = 0;
 					//cam1ProcessingColumn = 0;
 					//cam2ProcessingColumn = 0;
-
-					markPoolForCam.clear(); //카메라별 풀링.
-
-					markMapConst.clear(); //원본
 					//markMapProcess.clear(); //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
+					BufferClear();
+				}
+
+				void BufferClear()
+				{
+					markPoolForCamLocal.clear(); //카메라별 풀링.
+					markList.clear(); //column별 풀링
+					markMapConst.clear(); //원본
 				}
 
 				int acamCount = 0;
@@ -450,19 +675,15 @@ using namespace std;
 				//int cam2ProcessingColumn = 0;
 				int lastScanCount = 0;
 
-				map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
+				map<int, vector<STG_XMXY>> markPoolForCamGlobal; //카메라별 풀링.
+				map<int, vector<STG_XMXY>> markPoolForCamLocal; //카메라별 풀링.
 				map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것
 				//map<int, vector<STG_XMXY>> markMapProcess; //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
-				
-				
+				std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.	
 			};
 
-			std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.
-
 			Status status;
-
 			Params markParams;
-
 	public:
 		 
 
@@ -476,7 +697,7 @@ using namespace std;
 		{
 			map<double, double> mx, my;
 
-			for each (STG_XMXY fid in markList[types])
+			for each (STG_XMXY fid in status.markList[types])
 			{
 				mx[std::floor(fid.mark_x * 100.0f) / 100.0f] = fid.mark_x;
 				my[std::floor(fid.mark_y * 100.0f) / 100.0f] = fid.mark_y;
@@ -489,144 +710,89 @@ using namespace std;
 		/// <summary>
 		/// 
 		/// </summary>
+		/// <param name="scanCount"></param>
 		/// <returns></returns>
-		/*bool CheckAlignScanFinished()
-		{
-			for each (auto var in status.markMapProcess)
-			{
-				auto find = std::find_if(var.second.begin(), var.second.end(), [&](STG_XMXY& val) { return val.org_id != 1818; });
-				if (find != var.second.end())
-					return false;
-			}
-			return true;
-		}*/
-
 		bool CheckAlignScanFinished(int scanCount)
 		{
 			return status.lastScanCount <= scanCount ? true : false;
 		}
 
-		void MatchingGrabIndex(ENG_AMTF type,int skipNumber=0)
-		{
-			if (uvEng_Camera_TryEnterCS())
-			{
-				try
-				{
-					auto grabData = uvEng_Camera_GetGrabbedMarkAll();
-
-					if ((grabData == NULL || grabData->GetCount() == 0) ||
-						(ENG_AMTF::en_global == type && status.globalMarkCnt == 0) ||
-						(ENG_AMTF::en_local == type && status.localMarkCnt == 0))
-						throw std::exception();
-
-					std::map<int, vector<LPG_ACGR>> imgMap;
-
-					for (int i = 0; i < grabData->GetCount(); i++)
-					{
-						auto val = grabData->GetAt(grabData->FindIndex(i));
-						imgMap[val->cam_id].push_back(val);
-
-					}
-
-					//여기서 마크얼라인을 로컬만했는지 글로벌만했는지 뭐 이런거 따져서 나누면된다.
-					switch (type)
-					{
-						case ENG_AMTF::en_global:
-						{
-							//여기서 안씀.
-						}
-						break;
-
-						case ENG_AMTF::en_local:
-						{
-							
-						}
-						break;
-					}
-
-					throw std::exception();
-				}
-				catch (const std::exception&)
-				{
-					uvEng_Camera_ExitCS();
-					return;
-				}
-			}
-		}
-
 		/// <summary>
+		/// 
 		/// </summary>
-		/// <param name="columnIndex"></param>
-		/// <param name="reverse"></param>
-		/// <param name="removeAfterPooling"></param>
+		/// <param name="camIndex"></param>
+		/// <param name="startIndex"></param>
+		/// <param name="grabList"></param>
 		/// <returns></returns>
-		//vector<STG_XMXY> GetMarkOrder(int columnIndex, bool reverse, bool removeAfterPooling)
-		//{
-		//	if (status.markMapConst.find(columnIndex) == status.markMapConst.end())
-		//		return vector<STG_XMXY>();
+		int GetFiducialIndex(int camIndex, bool isGlobal , CAtlList <LPG_ACGR>* grabList)
+		{				 
+			auto grabData = grabList;
+			const int GLOBAL_FIDUCIAL_OFFSET = -1;
 
-		//	auto clone = status.markMapConst[columnIndex];
+			if ((grabData == NULL || grabData->GetCount() == 0))
+				return -1818;
 
-		//	if (reverse)
-		//		std::reverse(clone.begin(), clone.end());
+			std::map<int, vector<LPG_ACGR>> imgMap;
 
-		//	if (removeAfterPooling)
-		//		for each (auto val in status.markMapProcess[columnIndex])
-		//			val.org_id = 1818; //다쓴건 1818처리.. nullable이 안되니 이런 등신같은걸 한다. 
+			for (int i = isGlobal ? 0 : status.globalMarkCnt; i < grabData->GetCount(); i++)
+			{
+				auto val = grabData->GetAt(grabData->FindIndex(i));
+				imgMap[val->cam_id].push_back(val);
+			}
 
-		//	return clone;
-		//}
+			auto pool = isGlobal ? status.markPoolForCamGlobal[camIndex] : status.markPoolForCamLocal[camIndex];
 
-		//요건 한줄 빼온거.
-		//bool DoPoolingMarks(int camIndex, int columnIndex, bool reverse)
-		//{
-		//	status.markPoolForCam[camIndex].clear();
-		//	status.markPoolForCam[camIndex] = GetMarkOrder(columnIndex, reverse, true);
+			int currentCnt = imgMap[camIndex].size();
+			int poolSize = pool.size();
 
-		//	if (status.markPoolForCam[camIndex].size() == 0) return false; //종료.
+			if (poolSize <= currentCnt-1 || poolSize == 0)
+				return -1818;
 
-		//	return true; //아직할게남음
-		//}
+			return pool[currentCnt - 1].tgt_id *= isGlobal ? -1 : 1;
+		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="globalFiducial"></param>
 		/// <param name="localFiducial"></param>
-		/// <param name="fiducialCol"></param>
-		/// <param name="fiducialRow"></param>
-		/// <param name="leadIndex"></param>
+		/// <param name="acamCount"></param>
 		void SetFiducial(CFiducialData* globalFiducial, CFiducialData* localFiducial, int acamCount)
 		{
-			markList.clear();
-
-			STG_XMXY temp;
+			status.BufferClear();
 			
+			STG_XMXY temp;
+
+			acamCount = 2;
+
 			for (int i = 0; i < globalFiducial->GetCount(); i++)
 				if (globalFiducial->GetMark(i, temp))
 				{
-					markList[ENG_AMTF::en_global].push_back(temp);
+					status.markList[ENG_AMTF::en_global].push_back(temp);
 
-					if (temp.tgt_id != 1) continue;
-
-					markParams.mark2x = temp.mark_x;
-					markParams.mark2y = temp.mark_y;
+					if (temp.tgt_id == 1)
+					{
+						markParams.mark2x = temp.mark_x;
+						markParams.mark2y = temp.mark_y;
+					}
+					
+					status.markPoolForCamGlobal[(i/ acamCount)+1].push_back(temp);
 				}
 
 			for (int i = 0; i < localFiducial->GetCount(); i++)
 				if (localFiducial->GetMark(i, temp))
 				{
-					markList[ENG_AMTF::en_local].push_back(temp);
+					status.markList[ENG_AMTF::en_local].push_back(temp);
 				}
 
 			int tempX = 0, tempY = 0;
 			GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
 			status.gerberColCnt = tempX;
 			status.gerberRowCnt = tempY;
-			status.localMarkCnt = markList[ENG_AMTF::en_local].size();
-			status.globalMarkCnt = markList[ENG_AMTF::en_global].size();
+			status.localMarkCnt = status.markList[ENG_AMTF::en_local].size();
+			status.globalMarkCnt = status.markList[ENG_AMTF::en_global].size();
 
-			assert(tempX * tempY == markList[ENG_AMTF::en_local].size());
+			assert(tempX * tempY == status.markList[ENG_AMTF::en_local].size());
 
 			/*for (int i = 0; i < acamCount; i++)
 			{*/
@@ -640,13 +806,13 @@ using namespace std;
 			for (int i = 0; i < tempX; i++)
 			{
 				vector<STG_XMXY> temp;
-				std::copy(markList[ENG_AMTF::en_local].begin() + (i * tempY),
-					markList[ENG_AMTF::en_local].begin() + (i * tempY) + tempY,
+				std::copy(status.markList[ENG_AMTF::en_local].begin() + (i * tempY),
+					status.markList[ENG_AMTF::en_local].begin() + (i * tempY) + tempY,
 					std::back_inserter(temp));
 
 				std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
 
-				auto tgt = &status.markPoolForCam[i >= (tempX / acamCount) ? 2 : 1];
+				auto tgt = &status.markPoolForCamLocal[i >= (tempX / acamCount) ? 2 : 1];
 				
 				if (i == tempX / acamCount)
 					toUp = basicUp;
@@ -665,6 +831,8 @@ using namespace std;
 		void DoInitial(LPG_CIEA pstCfg)
 		{
 			this->pstCfg = pstCfg;
+
+			LoadCaliData(this->pstCfg);
 
 			motions["stage"]["x"] = Axis("x", MovingDir::X, (int)Parts::none,
 				(double)pstCfg->mc2_svc.min_dist[UINT8(ENG_MMDI::en_stage_x)],
@@ -700,11 +868,62 @@ using namespace std;
 	};
 
 
+	class Stuffs
+	{
+	private:
+		void RemoveOldfiles(const fs::path& path , int hours) 
+		{
+			auto now = std::chrono::system_clock::now();
+			std::chrono::hours ageLimit = std::chrono::hours(hours);
+
+			try 
+			{
+				if (!fs::exists(path) || !fs::is_directory(path))
+					return;
+				
+				for (auto& entry : fs::recursive_directory_iterator(path)) 
+				{
+					if (!fs::is_regular_file(entry))
+						continue;
+					
+					auto ftime = fs::last_write_time(entry);
+					auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+						ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+
+					if (now - sctp < ageLimit)
+						continue;
+
+					fs::remove(entry);
+				}
+			}
+			catch (...) {}
+		}
+	public: 
+
+		string GetCurrentExePath()
+		{
+			TCHAR execPath[_MAX_PATH];
+			GetModuleFileName(NULL, execPath, _MAX_PATH);
+			CString path = execPath;
+			auto spiltIndex = path.ReverseFind(L'\\');
+			return string(CT2CA(path.Left(spiltIndex)));
+		}
+
+		void RemoveOldFiles()
+		{
+			
+			RemoveOldfiles(GetCurrentExePath() + "\\save_img",1*24); //하루지난건 싹 삭제.
+		}
+			
+	};
+
+
 	//인라인클래스 
 	class GlobalVariables 
 	{
 
 	public: 
+		
 		static GlobalVariables* getInstance()
 		{
 			static GlobalVariables _inst;
@@ -714,7 +933,7 @@ using namespace std;
 	private:
 		map<string, atomic<int>> counter;
 		map<string, thread> waiter;
-
+		mutex motionMutex;
 		unique_ptr<AlignMotion> alignMotion;
 		//AlignMotion* alignMotion = nullptr;
 		template <typename MapType>
@@ -724,14 +943,24 @@ using namespace std;
 			return it != map.end();
 		}
 
+		Stuffs stuffUtils;
 
 	public:
+		Stuffs& GetStuffs()
+		{
+			return stuffUtils;
+		}
+
+
 		AlignMotion& GetAlignMotion() 
 		{
 			return *alignMotion;
 		}
-		~GlobalVariables()
+
+		void Destroy()
 		{
+			GetAlignMotion().Destroy();
+
 			for (auto it = waiter.begin(); it != waiter.end();) {
 				if (it->second.joinable())
 				{
@@ -746,6 +975,7 @@ using namespace std;
 
 			ThreadManager::getInstance().waitForAllThreads();
 		}
+
 		bool Waiter(string key, std::function<bool()> func, std::function<void()> callback, std::function<void()> timeoutCallback = nullptr, int timeoutDelay = 3000)
 		{
 			if (IsKeyExist(waiter, key) == true)
@@ -788,12 +1018,13 @@ using namespace std;
 			counter["strobeRecved"] = 0;
 			//alignMotion = new AlignMotion();
 			alignMotion = make_unique<AlignMotion>();
+			alignMotion.get()->motionMutex = &motionMutex;
 		}
 
-		GlobalVariables()
+		/*GlobalVariables()
 		{
-			
-		}
+			int debug = 0;
+		}*/
 
 		map<int, string> nameTag =
 		{
@@ -838,4 +1069,5 @@ using namespace std;
 			return GetCount(key);
 		}
 	};
+
 

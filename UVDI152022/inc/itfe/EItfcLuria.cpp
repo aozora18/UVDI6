@@ -146,9 +146,9 @@ API_EXPORT DOUBLE uvEng_Luria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 	return uvLuria_GetLocalMarkACam12DistX(mode, scan);
 }
 
-API_EXPORT VOID uvEng_Luria_SetAlignMotionInfo(AlignMotion& motion)
+API_EXPORT VOID uvEng_Luria_SetAlignMotionPtr(AlignMotion& motion)
 {
-	uvLuria_SetAlignMotionInfo(motion);
+	uvLuria_SetAlignMotionPtr(motion);
 }
 
 /*

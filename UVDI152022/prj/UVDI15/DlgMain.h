@@ -114,6 +114,7 @@ protected:
 	UINT64				m_u64StartTimeHMI;			/* 작업 시작 시간 저장 */
 
 	CMainThread			*m_pMainThread;
+	BOOL				m_bMainBusy;
 	/* Logo Images 출력 */
 	CImgCustomer		*m_pImgCustomer;
 	CImgPhil			*m_pImgPhil;
@@ -132,6 +133,7 @@ protected:
 	CDlgLoginAdmin		*m_pDlgLoginAdmin;
 	CDlgLoginManager	*m_pDlgLoginMgr;
 
+public:
 	/*노광 결과 기록*/
 	STG_CELA			m_stExpoLog;
 	STG_CPVE			m_stPhilStatus;
@@ -156,7 +158,7 @@ protected:
 	VOID				UpdateSafePosCheck();
 	VOID				UpdatePhilState();
 
-	BOOL				CreateMenu(UINT32 id);
+	//BOOL				CreateMenu(UINT32 id);
 	VOID				DeleteMenu();
 
 	VOID				ExitApp();
@@ -173,20 +175,19 @@ public:
 	VOID				WorkStop();
 	BOOL				IsBusyWorkJob();
 	ENG_BWOK			GetWorkJobID();
-
+	BOOL				CreateMenu(UINT32 id);
 	//VOID				PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv);
 	//VOID				PhilSendDelectRecipe(STG_PP_PACKET_RECV* stRecv);
 	//VOID				PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv);
 	//VOID				PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv);
 	//VOID				PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv);
+	BOOL				PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv, BOOL is_busy);
 	VOID				PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount);
 	VOID				PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv);
 	//VOID				PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv);
-	//VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy);
 	VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy);
 	VOID				PhilSendSubProcessExecute(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendEventNotify(STG_PP_PACKET_RECV* stRecv);

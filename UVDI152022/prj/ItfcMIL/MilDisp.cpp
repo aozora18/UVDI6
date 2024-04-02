@@ -113,7 +113,7 @@ VOID CMilDisp::CloseMilDisp()
 }
 
 /* desc : DispType 별로 Disp-Size/Org-Size 비율 반환 */
-CDPoint CMilDisp::GetRateDispToBuf(int fi_iCamNo, int fi_DispType)
+CDPoint CMilDisp::GetRateDispToBuf(int fi_DispType)
 {
 	CDPoint dRtnP;
 
@@ -173,7 +173,7 @@ CDPoint CMilDisp::GetRateDispToBuf(int fi_iCamNo, int fi_DispType)
 }
 
 /* desc : Cam번호로 원본Img 버퍼 사이즈 반환 */
-CPoint CMilDisp::GetOrgImgSize(int fi_iCamNo) // lk91 미사용!
+CPoint CMilDisp::GetOrgImgSize() // lk91 미사용!
 {
 	CPoint iRtnP;
 
@@ -281,6 +281,60 @@ void CMilDisp::AddCircleList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_
 		//clCircleList[fi_iDispType][fi_iNo].c[clCircleList[fi_iDispType][fi_iNo].cnt] = fi_color;
 		clCircleList[fi_iDispType][fi_iNo].cnt++;
 	}
+}
+
+//이것저것 다 그려진 결과를 뒤집든 아님 그리기전에 뒤집든 할때 필요 
+void CMilDisp::OverlayDC_Flip(MIL_ID fi_MilBuf, FlipDir dir)
+{
+#ifndef _NOT_USE_MIL_
+	MbufControl(fi_MilBuf, M_DC_ALLOC, M_DEFAULT);
+	HDC	OverlayDC = (HDC)MbufInquire(fi_MilBuf, M_DC_HANDLE, M_NULL);
+
+	int iCnt;
+	
+
+	if (OverlayDC != M_NULL)
+	{
+		CDC NewDC;
+
+		NewDC.Attach(OverlayDC);
+		NewDC.SetBkMode(TRANSPARENT);
+		NewDC.SelectStockObject(NULL_BRUSH);
+
+		CRect rect;
+		NewDC.GetClipBox(&rect); //이미지 크기 얻고 .
+
+		CBitmap flippedBitmap;
+		auto width = rect.right;
+		auto height = rect.bottom;
+
+		flippedBitmap.CreateCompatibleBitmap(&NewDC, rect.right, rect.bottom); // 이미지 생성하고 
+		
+		CDC flippedDC;
+		flippedDC.CreateCompatibleDC(&NewDC);
+		flippedDC.SelectObject(&flippedBitmap); //복사할 영역 만든다음에 
+		flippedDC.SetStretchBltMode(HALFTONE); // 이미지의 품질을 높이기 위한 설정
+
+
+		int srcX = dir == FlipDir::X ? width - 1 : 0;
+		int srcY = dir == FlipDir::Y ? height - 1 : 0;
+		int srcWidth = dir == FlipDir::X ? -width : width;
+		int srcHeight = dir == FlipDir::Y ? -height : height;
+
+		flippedDC.StretchBlt(0, 0, width, height, &NewDC, srcX, srcY, srcWidth, srcHeight, SRCCOPY);
+
+		NewDC.BitBlt(rect.left, rect.top, width, height, &flippedDC, 0, 0, SRCCOPY);
+
+		
+		flippedDC.SelectObject(GetStockObject(NULL_BRUSH)); 
+		flippedBitmap.DeleteObject(); // 비트맵 객체 해제
+		flippedDC.DeleteDC(); // DC 객체 해제
+
+		NewDC.DeleteDC();
+		NewDC.Detach();
+	}
+	MbufControl(fi_MilBuf, M_DC_FREE, M_DEFAULT);
+#endif
 }
 
 /* desc : Overlay 관련 함수 - Box List DC 출력 */
@@ -611,6 +665,16 @@ void CMilDisp::OverlayDC_Text(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, do
 	fi_iDispType : 0:Expo, 1:mark, 2 : Live, 3 : mark set
 	fi_iNo : Cam Num 혹은 Grab Mark Num (각자 Disp Type 에 맞춰서 사용)
 */
+
+
+void CMilDisp::ClearShapes(int fi_iDispType)
+{
+	
+	for(int i=0;i< PART_CNT;i++)
+	clBoxList[fi_iDispType][i].cnt = clCrossList[fi_iDispType][i].cnt = clPixelList[fi_iDispType][i].cnt
+	= clCircleList[fi_iDispType][i].cnt = clLineList[fi_iDispType][i].cnt = clTextList[fi_iDispType][i].cnt = 0;
+}
+
 void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 {
 	MIL_ID	MilBufTmp[2];
@@ -631,7 +695,7 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 		if(fi_iDispType != 1)
 			DrawBase(fi_iDispType, fi_iNo);
 	}
-	rateP = GetRateDispToBuf(fi_iNo, fi_iDispType);	
+	rateP = GetRateDispToBuf( fi_iDispType);	
 	
 #ifndef _NOT_USE_MIL_
 	if (fi_iDispType == DISP_TYPE_EXPO) { // expo
@@ -667,6 +731,7 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 	else if (fi_iDispType == DISP_TYPE_CALB_ACCR) {
 		MilBufTmp[0] = theApp.clMilMain.m_mOverlay_ACCR;
 		MdispControl(theApp.clMilMain.m_mDisID_ACCR, M_OVERLAY_CLEAR, M_DEFAULT);
+
 	}
 	else if (fi_iDispType == DISP_TYPE_MMPM_AUTOCENTER) { 
 		MilBufTmp[0] = theApp.clMilMain.m_mOverlay_MPMM_AutoCenter;
@@ -681,10 +746,24 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 		OverlayDC_Circle(MilBufTmp[i], fi_iDispType, fi_iNo + i, rateP.x, rateP.y);
 		OverlayDC_Line(MilBufTmp[i], fi_iDispType, fi_iNo + i, rateP.x, rateP.y);
 		OverlayDC_Pixel(MilBufTmp[i], fi_iDispType, fi_iNo + i, rateP.x, rateP.y);
-		OverlayDC_Text(MilBufTmp[i], fi_iDispType, fi_iNo + i, rateP.x, rateP.y);
+		MbufControl(MilBufTmp[i], M_MODIFIED, M_DEFAULT);
+		
+	}
 
+	if (fi_iDispType == DISP_TYPE_MARK_LIVE)
+	{
+		OverlayDC_Flip(theApp.clMilMain.m_mOverlay_Mark_Live, FlipDir::X);
+		MbufControl(theApp.clMilMain.m_mOverlay_Mark_Live, M_MODIFIED, M_DEFAULT);
+	}
+
+	for (int i = 0; i < repeat; i++) {
+		
+		OverlayDC_Text(MilBufTmp[i], fi_iDispType, fi_iNo + i, rateP.x, rateP.y);
 		MbufControl(MilBufTmp[i], M_MODIFIED, M_DEFAULT);
 	}
+	
+	
+
 #endif
 	return;
 }

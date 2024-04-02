@@ -8,7 +8,7 @@ class CMilImage
 public:
 #ifndef _NOT_USE_MIL_
 	CMilImage(LPG_CIEA config, LPG_VDSM shmem,
-			  UINT8 cam_id, /*MIL_ID ml_sys, MIL_ID ml_dis, */ENG_ERVM run_mode);
+			  UINT8 cam_id, /*, MIL_ID ml_dis, */MIL_ID ml_sys, ENG_ERVM run_mode);
 #else
 	CMilImage(LPG_CIEA config, LPG_VDSM shmem,
 		UINT8 cam_id, ENG_ERVM run_mode);
@@ -34,7 +34,7 @@ protected:
 	UINT32				m_u32ImgSize;		/* Grabbed Image Size (Bytes. 256 gray color) */
 
 #ifndef _NOT_USE_MIL_
-	//MIL_ID				m_mlSysID;			/* MIL System (Frame Grabber) */
+	MIL_ID				m_mlSysID;			/* MIL System (Frame Grabber) */
 	//MIL_ID				m_mlDisID;			/* Display */
 	MIL_ID				m_mlBufID;			/* Paterrn or Grabbed Image Buffer (영상) */
 											/* Source : 검색 대상의 패턴 이미지 */

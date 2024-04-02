@@ -26,7 +26,8 @@
 #define	MAX_HASH_VALUE_COUNT			64		/* 최대 Hash value 문자 개수 */
 #define	MAX_DCODE_LIST					400		/* 거버 내에 등록 가능한 최대 D-Code 개수 */
 #define	MAX_COORD_XY					400		/* Location에 대한 Coordination 최대 개수 */
-#define	MAX_GERBER_NAME					200		/* 최대 Job Path Name 길이 */
+//#define	MAX_GERBER_NAME					200		/* 최대 Job Path Name 길이 */
+#define	MAX_GERBER_NAME					512		/* 최대 Job Path Name 길이 */
 #define	MAX_WARP_COORD_XY				400		/* 최대 Warp Coordinate X/Y 개수 */
 #define	MAX_PANEL_SERIAL_STRING			32		/* 시리얼 문자열 최대 길이 */
 #define	MAX_PANEL_TEXT_STRING			32		/* 텍스트 문자열 최대 길이 */
@@ -42,7 +43,7 @@
 #define	WORK_NAME_LEN					128
 #define	STEP_NAME_LEN					128
 #define	MAX_GLOBAL_MARKS				4		/* Global Mark 최대 개수 */
-#define	MAX_LOCAL_MARKS					32		/* 최대 Local Mark (Fiducial) 개수 */
+#define	MAX_LOCAL_MARKS					1280		/* 최대 Local Mark (Fiducial) 개수 */
 #define	MAX_REGISTRATION_POINTS			(MAX_GLOBAL_MARKS + MAX_LOCAL_MARKS)	/* 얼라인 카메라에 의해 검사된 최대 마크 등록 개수 */
 #define	MAX_SELECT_VELO				4		/* MC2 jog이동시 스피드 선택 개수 */
 
@@ -81,36 +82,55 @@ typedef enum class __en_system_code_to_string__ : UINT8
 
 }	ENG_SCTS;
 
+//얼라인 모션
+typedef enum class __en_align_motion__ : UINT16
+{
+	en_onthefly_2cam	= 0b0000001000000001, //온더플라이 사이드캠
+	en_onthefly_3cam	= 0b0000001100000001, //온더플라이 센터캠
+	en_static_2cam      = 0b0000001000000010, //스테틱 사이드캠
+	en_static_3cam		= 0b0000001100000010, //스테틱 센터캠
+}	ENG_AMOS;
+
 /* Align Mark Type */
 typedef enum class __en_algin_type_global_local__ : UINT8
 {
 	/* Zero mark */
-	en_global_0_local_0x0_n_point	= 0x00,		/* Global (0) points / Local Division (0 x 0) (00) points */
-	/* Only 2 mark */
-	en_global_2_local_0x0_n_point	= 0x02,		/* Global (2) points / Local Division (0 x 0) (00) points */
-	/* Only 3 mark */
-	en_global_3_local_0x0_n_point	= 0x03,		/* Global (3) points / Local Division (0 x 0) (00) points */
-	/* Only 4 mark */
-	en_global_4_local_0x0_n_point	= 0x04,		/* Global (4) points / Local Division (0 x 0) (00) points */
-
-	/* None shared */
-	en_global_4_local_2x1_n_point	= 0x11,		/* Global (4) points / Local Division (2 x 1) (08) points */
-
-	en_global_4_local_2x2_n_point	= 0x21,		/* Global (4) points / Local Division (2 x 2) (16) points */
-	en_global_4_local_3x2_n_point	= 0x22,		/* Global (4) points / Local Division (3 x 2) (24) points */
-	en_global_4_local_4x2_n_point	= 0x23,		/* Global (4) points / Local Division (4 x 2) (32) points */
-	en_global_4_local_5x2_n_point	= 0x24,		/* Global (4) points / Local Division (5 x 2) (40) points */
-
-	/* Shared */
-	en_global_4_local_2x2_s_point	= 0x31,		/* Global (4) points / Local Division (2 x 2) (13) points */
-	en_global_4_local_3x2_s_point	= 0x32,		/* Global (4) points / Local Division (3 x 2) (16) points */
-	en_global_4_local_4x2_s_point	= 0x33,		/* Global (4) points / Local Division (4 x 2) (19) points */
-	en_global_4_local_5x2_s_point	= 0x34,		/* Global (4) points / Local Division (5 x 2) (22) points */
-
-	/* Not defined */
-	en_not_defined					= 0xff,
+	en_global_0_local_0x0_n_point = 0x00,
+	en_global_4_local_0_point = 0x04,
+	en_global_4_local_n_point = 0x05,
+	en_not_defined = 0xff,
 
 }	ENG_ATGL;
+//
+//typedef enum class __en_algin_type_global_local__ : UINT8
+//{
+//	/* Zero mark */
+//	en_global_0_local_0x0_n_point = 0x00,		/* Global (0) points / Local Division (0 x 0) (00) points */
+//	/* Only 2 mark */
+//	en_global_2_local_0x0_n_point = 0x02,		/* Global (2) points / Local Division (0 x 0) (00) points */
+//	/* Only 3 mark */
+//	en_global_3_local_0x0_n_point = 0x03,		/* Global (3) points / Local Division (0 x 0) (00) points */
+//	/* Only 4 mark */
+//	en_global_4_local_0x0_n_point = 0x04,		/* Global (4) points / Local Division (0 x 0) (00) points */
+//
+//	/* None shared */
+//	en_global_4_local_2x1_n_point = 0x11,		/* Global (4) points / Local Division (2 x 1) (08) points */
+//
+//	en_global_4_local_2x2_n_point = 0x21,		/* Global (4) points / Local Division (2 x 2) (16) points */
+//	en_global_4_local_3x2_n_point = 0x22,		/* Global (4) points / Local Division (3 x 2) (24) points */
+//	en_global_4_local_4x2_n_point = 0x23,		/* Global (4) points / Local Division (4 x 2) (32) points */
+//	en_global_4_local_5x2_n_point = 0x24,		/* Global (4) points / Local Division (5 x 2) (40) points */
+//
+//	/* Shared */
+//	en_global_4_local_2x2_s_point = 0x31,		/* Global (4) points / Local Division (2 x 2) (13) points */
+//	en_global_4_local_3x2_s_point = 0x32,		/* Global (4) points / Local Division (3 x 2) (16) points */
+//	en_global_4_local_4x2_s_point = 0x33,		/* Global (4) points / Local Division (4 x 2) (19) points */
+//	en_global_4_local_5x2_s_point = 0x34,		/* Global (4) points / Local Division (5 x 2) (22) points */
+//
+//	/* Not defined */
+//	en_not_defined = 0xff,
+//
+//}	ENG_ATGL;
 
 /* Job Work Next State */
 typedef enum class __en_job_work_next_state__ : UINT8
@@ -211,6 +231,8 @@ typedef enum class __en_mc2_motion_drive_id__ : UINT8
 {
 	en_stage_x						= 0x00,
 	en_stage_y						= 0x01,
+	//en_stage_y						= 0x02,
+
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_PODIS_LLS10)
 	en_align_cam1					= 0x04,
 	en_align_cam2					= 0x05,

@@ -141,11 +141,11 @@ API_EXPORT LPG_EDFR uvEng_Camera_GetEdgeDetectResultSearch(UINT8 cam_id, DOUBLE 
  parm : cam_id	- [in]  Camera Index (1 or 2)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvEng_Camera_RunModelFind(UINT8 cam_id, UINT8 mark_no) // 미사용
-{
-	/* 검색 작업 진행 */
-	return uvBasler_RunModelFind(cam_id, mark_no);
-}
+//API_EXPORT BOOL uvEng_Camera_RunModelFind(UINT8 cam_id, UINT8 mark_no) // 미사용
+//{
+//	/* 검색 작업 진행 */
+//	return uvBasler_RunModelFind(cam_id, mark_no);
+//}
 
 /*
  desc : 가장 최근 Grabbed Image의 매칭 검색 결과 구조체 포인터 반환
@@ -395,9 +395,9 @@ API_EXPORT BOOL uvEng_Camera_SetModelDefinePAT(UINT8 cam_id, PTCHAR name, PTCHAR
 						0xfe : Align Camera Angle Measuring Mode (얼라인 카메라 각도 측정하기 위함)
  retn : Calirbated Image의 정보가 저장된 구조체 포인터 반환
 */
-API_EXPORT LPG_ACGR uvEng_Camera_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc) // default : UINT8 mode=0xff
+API_EXPORT LPG_ACGR uvEng_Camera_RunModelCali(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc,int flipDir) // default : UINT8 mode=0xff
 {
-	return uvBasler_RunModelCali(cam_id, mode, dlg_id, mark_no, useMilDisp, img_proc);
+	return uvBasler_RunModelCali(cam_id, mode, dlg_id, mark_no, useMilDisp, img_proc,flipDir);
 }
 
 /*
@@ -410,6 +410,12 @@ API_EXPORT VOID uvEng_Camera_DrawCaliBitmap(HDC hdc, RECT draw)
 {
 	uvBasler_DrawCaliMarkBitmap(hdc, draw);
 }
+
+API_EXPORT VOID uvEng_Camera_SetAlignMotionPtr(AlignMotion& ptr)
+{
+	uvBasler_Camera_SetAlignMotionPtr(ptr);
+}
+
 
 /*
  desc : Outputs the most recently generated Buffer ID value to the window
@@ -445,9 +451,9 @@ API_EXPORT BOOL uvEng_Camera_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UI
 		img_id	- [in]  Camera Grabbed Image Index (0 or Later)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvEng_Camera_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 img_id)
+API_EXPORT BOOL uvEng_Camera_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 hwndIdx,UINT8 img_id)
 {
-	return uvBasler_DrawMarkMBufID(hwnd, draw, cam_id, img_id);
+	return uvBasler_DrawMarkMBufID(hwnd, draw, cam_id, hwndIdx,img_id);
 }
 
 /*
@@ -459,9 +465,9 @@ API_EXPORT BOOL uvEng_Camera_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, 
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_EXPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find)
+API_EXPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce, UINT8 flipFlag)
 {
-	uvBasler_DrawMarkDataBitmap(hdc, draw, grab, find);
+	uvBasler_DrawMarkDataBitmap(hdc, draw, grab, find,drawForce, flipFlag);
 }
 
 /*
@@ -662,6 +668,13 @@ API_EXPORT VOID uvEng_Camera_SetMarkMethod(ENG_MMSM method, UINT8 count)
 	return uvBasler_SetMarkMethod(method, count);
 }
 
+
+API_EXPORT UINT8 uvEng_SetMarkFoundCount(int camNum)
+{
+	return uvBasler_SetMarkFoundCount(camNum);
+}
+
+
 /*
  desc : 노광 모드 설정 즉, 직접 노광, 얼라인 노광, 보정 후 얼라인 노광
  parm : mode	- [in]  직접 노광 (0x00), 얼라인 노광 (0x01), 얼라인 카메라 보정 값 적용 후 얼라인 노광 (0x02)
@@ -783,9 +796,9 @@ API_EXPORT VOID uvEng_Camera_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BO
 }
 
 /* desc : MIL ID 로 저장된 이미지 화면 출력 */
-API_EXPORT VOID uvEng_Camera_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save) 
+API_EXPORT VOID uvEng_Camera_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save,int flipDir) 
 {
-	uvBasler_DrawImageBitmap(dispType, Num, cam_id, save);
+	uvBasler_DrawImageBitmap(dispType, Num, cam_id, save,flipDir);
 }
 
 /* desc : Set Live Disp Size */
@@ -1014,6 +1027,13 @@ API_EXPORT VOID uvEng_Camera_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, 
 {
 	uvBasler_DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo);
 }
+
+
+API_EXPORT VOID uvEng_Camera_ClearShapes(int fi_iDispType)
+{
+	uvBasler_Camera_ClearShapes( fi_iDispType);
+}
+
 
 /* desc : Overlay 관련 함수 - Box List 추가 */
 API_EXPORT VOID uvEng_Camera_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color)

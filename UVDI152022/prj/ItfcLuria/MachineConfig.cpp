@@ -1841,7 +1841,9 @@ VOID CMachineConfig::SetRecv2Bytes(UINT8 uid, PUINT8 data)
 														
 	case (UINT8)ENG_LCMC::en_xy_drive_id			:	m_pstShMem->xy_drive_id[data[0]-1][0]		= data[1];			/* X Motion Drive Id */
 														m_pstShMem->xy_drive_id[data[0]-1][1]		= data[2];	break;	/* Y Motion Drive Id */
-	case (UINT8)ENG_LCMC::en_table_print_direction	:	m_pstShMem->table_print_direction[data[0]-1]= data[1];	break;
+	case (UINT8)ENG_LCMC::en_table_print_direction	:	
+		m_pstShMem->table_print_direction[data[0]-1]= data[1];	
+		break;
 	}
 }
 

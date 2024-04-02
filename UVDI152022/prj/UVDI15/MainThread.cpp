@@ -268,9 +268,14 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 
 			case ENG_BWOK::en_mark_move		: m_pWorkJob = new CWorkMarkMove(UINT8(*data));		break;
 			//case ENG_BWOK::en_mark_test	: m_pWorkJob = new CWorkMarkTest();					break;
-			case ENG_BWOK::en_mark_test		: m_pWorkJob = new CWorkMarkTest(LPG_CELA(data));			break;
-
-				
+			case ENG_BWOK::en_mark_test		: 
+			{
+				auto workMarkTest = new CWorkMarkTest(LPG_CELA(data));
+				LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
+				workMarkTest->SetAlignMode((ENG_AMOS)alignRecipe->align_motion, (ENG_ATGL)alignRecipe->align_type);
+				m_pWorkJob = static_cast<CWorkStep*>(workMarkTest);
+			}
+			break;
 			//case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CPHE(data));	break;
 			case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CELA(data));	break;
 			case ENG_BWOK::en_expo_align	: m_pWorkJob = new CWorkExpoAlign();				break;

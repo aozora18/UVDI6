@@ -55,6 +55,9 @@ BOOL CWorkRecipeLoad::InitWork()
 	m_u8StepTotal	= 0x25;
 	//m_u8StepTotal = 37;
 
+	/*Recipe Comp 이벤트 Falue 변경*/
+	PhilRecipeInit();
+
 	return TRUE;
 }
 
@@ -158,6 +161,9 @@ VOID CWorkRecipeLoad::SetWorkNext()
 
 		if (m_u8StepIt == m_u8StepTotal)
 		{
+			/*Philhmi에 Load 성공 신호 보내기*/
+			PhilRecipeLoadComp(0x01);
+
 			m_enWorkState = ENG_JWNS::en_comp;
 			/* 초기 Luria Error 값 초기화 */
 			uvCmn_Luria_ResetLastErrorStatus();
@@ -182,6 +188,9 @@ VOID CWorkRecipeLoad::SetWorkNext()
 //#if (CUSTOM_CODE_TEST_UVDI15 == 1)
 	else if (ENG_JWNS::en_error == m_enWorkState)
 	{
+		/*Philhmi에 Load 실패 신호 보내기*/
+		PhilRecipeLoadComp(0x00);
+
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
@@ -476,7 +485,13 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 	GlobalVariables::getInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
 
 
- 
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+
+#endif
+	
 
 	/* GerberJobLoaded 대기 시간 및 카운팅 초기화 */
 	m_u64TickLoaded	= GetTickCount64();
@@ -516,5 +531,59 @@ ENG_JWNS CWorkRecipeLoad::IsGerberJobLoaded()
 
 	/* Job Param 데이터가 설정되어 있는지 여부 */
 	return bLoaded ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+}
+
+/*
+ desc : Philhmi에 Reicpe Load 완료 신호 보내기
+ parm : None
+ retn : None
+*/
+VOID CWorkRecipeLoad::PhilRecipeLoadComp(UINT8 state)
+{
+	STG_PP_P2C_EVENT_NOTIFY			stP2CEventNotify;
+	STG_PP_P2C_EVENT_NOTIFY_ACK		stEventNotifyAck;
+
+	stP2CEventNotify.Reset();
+	stEventNotifyAck.Reset();
+
+	if (state == 0x00)
+	{
+		stEventNotifyAck.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
+		stP2CEventNotify.bEventFlag = FALSE;
+	}
+	else
+	{
+		stP2CEventNotify.bEventFlag = TRUE;
+	}
+
+
+	sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_EVENT_NAME_LENGTH, "RECIPE_COMP");
+	uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
+
+
+}
+
+/*
+ desc : Philhmi에 Reicpe Load 초기화 신호
+ parm : None
+ retn : None
+*/
+VOID CWorkRecipeLoad::PhilRecipeInit()
+{
+	STG_PP_P2C_EVENT_NOTIFY			stP2CEventNotify;
+	STG_PP_P2C_EVENT_NOTIFY_ACK		stEventNotifyAck;
+
+	stP2CEventNotify.Reset();
+	stEventNotifyAck.Reset();
+
+
+	stEventNotifyAck.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
+	stP2CEventNotify.bEventFlag = FALSE;
+
+
+	sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_EVENT_NAME_LENGTH, "RECIPE_COMP");
+	uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
+
+
 }
 #endif

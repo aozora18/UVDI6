@@ -13,12 +13,17 @@ public:
 
 /* 가상함수 재정의 */
 protected:
+	enum class AlignMotionMode : UINT8
+	{
+		toInitialMoving = 0, //최초 스캔을 위해 검사 초기위치로 이동하는 스탭
+		toScanMoving = 1,    //스캔을 위해 이동하는 스텝
+	};
 public:
 
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();
-
-
+	int scanCount = 0;
+	ENG_AMOS alignMode = ENG_AMOS::en_onthefly_2cam;
 /* 로컬 변수 */
 protected:
 

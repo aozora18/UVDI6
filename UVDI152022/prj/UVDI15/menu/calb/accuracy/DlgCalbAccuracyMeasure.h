@@ -1,8 +1,12 @@
 ﻿#pragma once
 #include "../../DlgSubTab.h"
 #include "../DlgCalbAccuracy.h"
+#include "..\..\..\..\..\inc\conf\vision_uvdi15.h"
+
 
 #define DEF_DEFAULT_INTERLOCK_TIMEOUT	60 * 1000
+
+
 
 enum EnCalbAccuracyMeasureBtn
 {
@@ -50,15 +54,22 @@ enum EnCalbAccuracyMeasureTimer
 	eCALB_ACCURACY_MEASURE_TIMER_MAX
 };
 
+
+
 // CDlgCalbAccuracyMeasure 대화 상자
 
 class CDlgCalbAccuracyMeasure : public CDlgSubTab
 {
 public:
+
+
 	/* 생성자 / 파괴자 */
 	CDlgCalbAccuracyMeasure(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgCalbAccuracyMeasure();
-	
+	const int CAMER_ACOUNT = uvEng_GetConfig()->set_cams.acam_count;
+
+
+
 	enum EN_GRID_OPTION
 	{
 		eOPTION_COL_NAME = 0,
@@ -68,6 +79,7 @@ public:
 		eOPTION_ROW_X_DRV = 0,
 		eOPTION_ROW_USE_CAL,
 		eOPTION_ROW_CAL_FILE_PATH,
+		eOPTION_DOUBLE_MARK,
 		eOPTION_ROW_MAX,
 	};
 
@@ -95,7 +107,7 @@ public:
 
 	enum EN_ACCURACY_MEASURE_DEFINES
 	{
-		DEF_CAMERA_COUNT = 2,
+		//DEF_CAMERA_COUNT = 3,
 		DEF_DEFAULT_GRID_ROW_SIZE = 35,
 	};
 
@@ -138,6 +150,7 @@ protected:
 	VOID				SetLiveView(BOOL bLive);
 	VOID				UpdateLiveView();
 	VOID				ResetDataViewPoint(UINT32 u32Row);
+	bool IsSearchMarkTypeChanged();
 	BOOL				SaveClacFile();
 
 	VOID				LoadMeasureField();
@@ -183,3 +196,5 @@ protected:
 	afx_msg	void		OnClickGridData(NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg void		OnTimer(UINT_PTR nIDEvent);
 };
+
+

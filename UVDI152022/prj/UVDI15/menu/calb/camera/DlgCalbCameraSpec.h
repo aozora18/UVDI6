@@ -73,7 +73,7 @@ public:
 	/* 생성자 / 파괴자 */
 	CDlgCalbCameraSpec(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgCalbCameraSpec();
-	
+	const int CAMER_ACOUNT = uvEng_GetConfig()->set_cams.acam_count;
 	enum EN_GRID_SETTING
 	{
 		eSETTING_COL_NAME = 0,
@@ -140,7 +140,7 @@ public:
 
 	enum EN_CAMERA_SPEC_DEFINES
 	{
-		DEF_CAMERA_COUNT = 2,
+		//DEF_CAMERA_COUNT = 3,
 		DEF_DEFAULT_GRID_ROW_SIZE = 40,
 	};
 

@@ -52,9 +52,9 @@ VOID CDrawType::Draw()
 	/* 현재 선택된 얼라인 마크의 구성 정보 */
 	switch (m_enType)
 	{
-	case ENG_ATGL::en_global_0_local_0x0_n_point : wcscpy_s(tzName, 64, L"global_0_local_0x0_n");	break;
-	case ENG_ATGL::en_global_4_local_0x0_n_point : wcscpy_s(tzName, 64, L"global_4_local_0x0_n");	break;
-	case ENG_ATGL::en_global_4_local_2x2_n_point : wcscpy_s(tzName, 64, L"global_4_local_2x2_n");	break;
+	case ENG_ATGL::en_global_0_local_0x0_n_point : wcscpy_s(tzName, 64, L"global_0_local_0");	break;
+	case ENG_ATGL::en_global_4_local_n_point : wcscpy_s(tzName, 64, L"global_4_local_n");	break;
+	case ENG_ATGL::en_global_4_local_0_point : wcscpy_s(tzName, 64, L"global_4_local_0");	break;
 	default	:	return;
 	}
 	/* 통신 상태 아이콘 파일 설정 */
@@ -99,15 +99,15 @@ VOID CDrawType::DrawType(ENG_ATGL type)
  parm : None
  retn : Array Type 값 (ENG_ATGL)
 */
-ENG_ATGL CDrawType::GetNextType()
-{
-	/* 현재 선택된 얼라인 마크의 구성 정보 */
-	switch (m_enType)
-	{
-	case ENG_ATGL::en_global_0_local_0x0_n_point: m_enType = ENG_ATGL::en_global_4_local_0x0_n_point;	break;
-	case ENG_ATGL::en_global_4_local_0x0_n_point: m_enType = ENG_ATGL::en_global_4_local_2x2_n_point;	break;
-	case ENG_ATGL::en_global_4_local_2x2_n_point: m_enType = ENG_ATGL::en_global_0_local_0x0_n_point;	break;
-	}
-
-	return m_enType;
-}
+//ENG_ATGL CDrawType::GetNextType()
+//{
+//	/* 현재 선택된 얼라인 마크의 구성 정보 */
+//	switch (m_enType)
+//	{
+//	case ENG_ATGL::en_global_0_local_0x0_n_point: m_enType = ENG_ATGL::en_global_4_local_0x0_n_point;	break;
+//	case ENG_ATGL::en_global_4_local_0x0_n_point: m_enType = ENG_ATGL::en_global_4_local_2x2_n_point;	break;
+//	case ENG_ATGL::en_global_4_local_2x2_n_point: m_enType = ENG_ATGL::en_global_0_local_0x0_n_point;	break;
+//	}
+//
+//	return m_enType;
+//}

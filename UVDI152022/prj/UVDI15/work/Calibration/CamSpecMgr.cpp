@@ -142,10 +142,15 @@ BOOL CCamSpecMgr::ACamMovingSide(int nTimeOut, double dDiffDistance)
 			enACamDrv = ENG_MMDI::en_align_cam2;
 			dPos = pstCfgMC2->max_dist[(UINT8)enACamDrv];
 		}
-		else
+		else if (0x02 == m_u8ACamID)
 		{
 			enACamDrv = ENG_MMDI::en_align_cam1;
 			dPos = pstCfgMC2->min_dist[(UINT8)enACamDrv];
+		}
+		else
+		{
+			enACamDrv = ENG_MMDI::en_align_cam2;
+			dPos = pstCfgMC2->max_dist[(UINT8)enACamDrv];
 		}
 
 		/* 현재 이동하고자 하는 모션의 Toggled 값 얻기 */
@@ -217,13 +222,26 @@ BOOL CCamSpecMgr::ACamMovingZAxisQuartz()
 */
 BOOL CCamSpecMgr::ACamMovingQuartz(int nTimeOut, double dDiffDistance)
 {
-	ENG_MMDI enACamDrv = (0x01 == m_u8ACamID) ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	//ENG_MMDI enACamDrv = (0x01 == m_u8ACamID) ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	ENG_MMDI enACamDrv;
+	if (0x01 == m_u8ACamID)			enACamDrv = ENG_MMDI::en_align_cam1;
+	else if (0x02 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_align_cam2;
+	else if (0x03 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_align_cam2;
+
 	double dMoveACamPos = 0, dMoveXPos = 0, dMoveYPos = 0;
 	double dDiffACamPos = 0, dDiffXPos = 0, dDiffYPos = 0;
 	CTactTimeCheck cTime;
 
 	/* Quartz Position */
-	dMoveXPos = uvEng_GetConfig()->acam_spec.quartz_stage_x;
+	if (0x03 == m_u8ACamID)
+	{
+		dMoveXPos = uvEng_GetConfig()->acam_spec.quartz_acam[m_u8ACamID - 1];
+	}
+	else
+	{
+		dMoveXPos = uvEng_GetConfig()->acam_spec.quartz_stage_x;
+	}
+
 	dMoveYPos = uvEng_GetConfig()->acam_spec.quartz_stage_y[m_u8ACamID - 1];
 	dMoveACamPos = uvEng_GetConfig()->acam_spec.quartz_acam[m_u8ACamID - 1];
 
@@ -339,7 +357,9 @@ BOOL CCamSpecMgr::WaitTrigEnabled(int nTimeOut/* = 60000*/)
 BOOL CCamSpecMgr::GrabQuartzData(STG_ACGR &stGrab, BOOL bRunMode, int nRetryCount)
 {
 	CTactTimeCheck cTime;
-	UINT8 u8ChNo = (1 == m_u8ACamID) ? 0x01 : 0x02;		/* Camera Number가 Channel Number */
+	//UINT8 u8ChNo = (1 == m_u8ACamID) ? 0x01 : 0x02;		/* Camera Number가 Channel Number */
+	UINT8 u8ChNo = m_u8ACamID;
+
 	UINT8 u8Mode = (TRUE == bRunMode) ? 0xFF : 0xFE;
 	LPG_ACGR pstGrab = NULL;
 
@@ -409,7 +429,12 @@ BOOL CCamSpecMgr::MotionMoving(double dMoveX, double dMoveY, int nTimeOut, doubl
 {
 	CTactTimeCheck cTime;
 	UINT8 u8InstAngle = uvEng_GetConfig()->set_cams.acam_inst_angle; // 카메라가 설치될 때, 회전 여부 (0: 회전 없음, 1: 180도 회전)
-	ENG_MMDI enACamDrv = m_u8ACamID == 0x01 ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	//ENG_MMDI enACamDrv = m_u8ACamID == 0x01 ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	ENG_MMDI enACamDrv;
+	if (0x01 == m_u8ACamID)			enACamDrv = ENG_MMDI::en_align_cam1;
+	else if (0x02 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_align_cam2;
+	else if (0x03 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_stage_x;
+	
 	double dACamPosX = 0.0f, dStagePosY = 0.0f;
 	double dDiffACamPos = 0, dDiffYPos = 0;
 	double dVel = uvEng_GetConfig()->mc2_svc.step_velo;
@@ -601,6 +626,7 @@ BOOL CCamSpecMgr::Measurement(HWND hHwnd/* = NULL*/)
 	BOOL bRunState = TRUE;
 
 	STG_ACGR stGrab;
+	stGrab.Init();
 	STG_DBXY stGrabCentXY[eCOUNT_OF_CAMERA];
 
 	if (NULL != hHwnd)

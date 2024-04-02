@@ -884,20 +884,18 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 						pComboCell1->SetText(_T("Ph_step"));
 					}
 				}
-				else if (stParam.strName == _T("ALIGN_TYPE"))
+				else if (stParam.strName == _T("ALIGN_MOTION"))
 				{
 					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
 
 
-
 					CStringArray options;
-					options.Add(_T("Global 0 Local 0_0"));	/*Global(0) points / Local Division(0 x 0) (00) points */
-					options.Add(_T("Global 4 Local 0_0"));	/* Global (4) points / Local Division (0 x 0) (00) points */
-					options.Add(_T("Global 4 Local 2_1"));	/* Global (4) points / Local Division (2 x 1) (08) points */
-					options.Add(_T("Global 4 Local 2_2"));	/* Global (4) points / Local Division (2 x 2) (16) points */
-					options.Add(_T("Global 4 Local 3_2"));	/* Global (4) points / Local Division (3 x 2) (24) points */
-					options.Add(_T("Global 4 Local 4_2"));	/* Global (4) points / Local Division (4 x 2) (32) points */
-					options.Add(_T("Global 4 Local 5_2"));	/* Global (4) points / Local Division (5 x 2) (40) points */
+					auto nameTag = GlobalVariables::getInstance()->nameTag;
+
+					for (const auto& pair : nameTag) 
+					{
+						options.Add(CString(pair.second.c_str()));
+					}
 
 					CGridCellCombo* pComboCell2 = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
 
@@ -907,34 +905,75 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 
 					pComboCell2->SetOptions(options);
 					pComboCell2->SetStyle(CBS_DROPDOWN);
+					try
+					{
+						auto value = nameTag.find(stParam.GetInt());
+						pComboCell2->SetText(CString(value != nameTag.end() ? value->second.c_str() : "error"));
+					}
+					catch(exception e)
+					{
+						pComboCell2->SetText(CString(nameTag.at(0).c_str()));
+					}
+
+				}
+				else if (stParam.strName == _T("ALIGN_TYPE"))
+				{
+					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
+
+
+
+					CStringArray options;
+					options.Add(_T("Global 0 Local 0"));	/*Global(0) points / Local Division(0 x 0) (00) points */
+					options.Add(_T("Global 4 Local 0"));	/* Global (4) points / Local Division (0 x 0) (00) points */
+					options.Add(_T("Global 4 Local n"));	/* Global (4) points / Local Division (2 x 1) (08) points */
+					
+					//options.Add(_T("Global 4 Local 2_2"));	/* Global (4) points / Local Division (2 x 2) (16) points */
+					//options.Add(_T("Global 4 Local 3_2"));	/* Global (4) points / Local Division (3 x 2) (24) points */
+					//options.Add(_T("Global 4 Local 4_2"));	/* Global (4) points / Local Division (4 x 2) (32) points */
+					//options.Add(_T("Global 4 Local 5_2"));	/* Global (4) points / Local Division (5 x 2) (40) points */
+
+					CGridCellCombo* pComboCell2 = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
+
+					pGrid->SetListMode(FALSE);
+					pGrid->EnableDragAndDrop(TRUE);
+					pGrid->SetItemState(nRow, eJOB_GRD_COL_PARAMETER_VALUE, 0x00);
+
+					pComboCell2->SetOptions(options);
+					pComboCell2->SetStyle(CBS_DROPDOWN);
+
 					if (0x00 == stParam.GetInt())
 					{
-						pComboCell2->SetText(_T("Global 0 Local 0_0"));
+						pComboCell2->SetText(_T("Global 0 Local 0"));
 					}
 					else if (0x04 == stParam.GetInt())
 					{
-						pComboCell2->SetText(_T("Global 4 Local 0_0"));
+						pComboCell2->SetText(_T("Global 4 Local 0"));
 					}
-					else if (0x11 == stParam.GetInt())
+					else
 					{
-						pComboCell2->SetText(_T("Global 4 Local 2_1"));
+						pComboCell2->SetText(_T("Global 4 Local n"));
 					}
-					else if (0x21 == stParam.GetInt())
-					{
-						pComboCell2->SetText(_T("Global 4 Local 2_2"));
-					}
-					else if (0x22 == stParam.GetInt())
-					{
-						pComboCell2->SetText(_T("Global 4 Local 2_3"));
-					}
-					else if (0x23 == stParam.GetInt())
-					{
-						pComboCell2->SetText(_T("Global 4 Local 2_4"));
-					}
-					else if (0x24 == stParam.GetInt())
-					{
-						pComboCell2->SetText(_T("Global 4 Local 2_5"));
-					}
+
+					//else if (0x11 == stParam.GetInt())
+					//{
+					//	pComboCell2->SetText(_T("Global 4 Local 2_1"));
+					//}
+					//else if (0x21 == stParam.GetInt())
+					//{
+					//	pComboCell2->SetText(_T("Global 4 Local 2_2"));
+					//}
+					//else if (0x22 == stParam.GetInt())
+					//{
+					//	pComboCell2->SetText(_T("Global 4 Local 2_3"));
+					//}
+					//else if (0x23 == stParam.GetInt())
+					//{
+					//	pComboCell2->SetText(_T("Global 4 Local 2_4"));
+					//}
+					//else if (0x24 == stParam.GetInt())
+					//{
+					//	pComboCell2->SetText(_T("Global 4 Local 2_5"));
+					//}
 				}
 				else
 				{
@@ -1826,7 +1865,7 @@ void CDlgJob::OnClickGridAlignParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 				{
 					return;
 				}
-				else if (stParam.strName == _T("ALIGN_TYPE"))
+				else if (stParam.strName == _T("ALIGN_TYPE") || stParam.strName == _T("ALIGN_MOTION")) 
 				{
 					return;
 				}
@@ -2104,21 +2143,37 @@ void CDlgJob::OnClickGridAlignParameterChanged(NMHDR* pNotifyStruct, LRESULT* pR
 				return;
 			}
 		}
+#ifdef USE_ALIGNMOTION
+		else if (stParam.strName == _T("ALIGN_MOTION"))
+		{
+			auto nameTag = GlobalVariables::getInstance()->nameTag;
 
+			std::wstring wstr(static_cast<const wchar_t*>(strValue));
+			std::string targetValue(wstr.begin(), wstr.end());
+			
+			auto it = std::find_if(nameTag.begin(), nameTag.end(),
+				[targetValue](const std::pair<int, std::string>& element) {
+					return element.second == targetValue;
+				});
+
+			options = it != nameTag.end() ? it->first : (int)ENG_AMOS::en_onthefly_2cam;
+		}
+#endif
 		else if (stParam.strName == _T("ALIGN_TYPE"))
 		{
 			options = 0;
-			if (_T("Global 0 Local 0_0") == strValue)			options = 0x00;
-			else if (_T("Global 4 Local 0_0") == strValue)		options = 0x04;
-			else if (_T("Global 4 Local 2_1") == strValue)		options = 0x11;
-			else if (_T("Global 4 Local 2_2") == strValue)		options = 0x21;
+			if (_T("Global 0 Local 0") == strValue)			options = 0x00;
+			else if (_T("Global 4 Local 0") == strValue)		options = 0x04;
+			else if (_T("Global 4 Local n") == strValue)		options = 0x05;
+			/*else if (_T("Global 4 Local 2_2") == strValue)		options = 0x21;
 			else if (_T("Global 4 Local 2_3") == strValue)		options = 0x22;
 			else if (_T("Global 4 Local 2_4") == strValue)		options = 0x23;
-			else if (_T("Global 4 Local 2_5") == strValue)		options = 0x24;
+			else if (_T("Global 4 Local 2_5") == strValue)		options = 0x24;*/
 			else
 			{
 				return;
 			}
+
 		}
 
 		stParam.SetValue(options);
@@ -2261,7 +2316,7 @@ VOID CDlgJob::CalcMarkDist()
 
 	/* 거버에 대한 마크 정보 얻기 */
 	if (0x00 != uvEng_Luria_GetGlobalMarkJobName(tzGerb, lstX, lstY,
-		ENG_ATGL::en_global_4_local_0x0_n_point))
+		ENG_ATGL::en_global_4_local_0_point))
 	{
 		dlgMesg.MyDoModal(L"Failed to get the mark info. of gerber file", 0x01);
 	}
@@ -2434,6 +2489,16 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 		bUpdated = CRecipeManager::GetInstance()->CreateRecipe(strRecipeName);
 		/* 등록 성공 여부 */
 		if (!bUpdated)	return;
+		/*PhilHMI에 연결 되어 있다면 보고*/
+		if (uvEng_Philhmi_IsConnected())
+		{
+		/*	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();*/
+
+		/*	CString strSelectRecipe = m_grd_ctl[ePHILHMI_GRD_RECIPE_LIST].GetItemText(pItem->iRow, ePHILHMI_GRD_COL_RECIPE_LIST_NAME);*/
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(strRecipeName.GetBuffer());
+
+			CRecipeManager::GetInstance()->PhilSendCreateRecipe(pstRecipe);
+		}
 
 		/* 새롭게 등록된 레시피 갱신 */
 		InitGridRecipeList();
@@ -2443,6 +2508,12 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 		bUpdated = CRecipeManager::GetInstance()->SaveRecipe(strRecipeName, eRECIPE_MODE_VIEW);		
 		/* 등록 성공 여부 */
 		if (!bUpdated)	return;
+		/*PhilHMI에 연결 되어 있다면 보고*/
+		if (uvEng_Philhmi_IsConnected())
+		{
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+			CRecipeManager::GetInstance()->PhilSendModifyRecipe(pstRecipe);
+		}
 
 		for (int i = 0; i <= EN_RECIPE_TAB::ALIGN; i++)
 		{
@@ -2465,6 +2536,11 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 		bUpdated = CRecipeManager::GetInstance()->DeleteRecipe(strRecipeName);
 		/* 등록 성공 여부 */
 		if (!bUpdated)	return;
+		/*PhilHMI에 연결 되어 있다면 보고*/
+		if (uvEng_Philhmi_IsConnected())
+		{
+			CRecipeManager::GetInstance()->PhilSendDeleteRecipe(strRecipeName);
+		}
 
 		// 삭제 후 현재 레시피로 변경
 		SelectRecipe(m_nSelectRecipe[eRECIPE_MODE_SEL], eRECIPE_MODE_VIEW);
@@ -2494,6 +2570,11 @@ VOID CDlgJob::RecipeSelect()
 	{
 		ShowMsg(eWARN, L"Failed to select the gerber recipe", 0x01);
 		return;
+	}
+	/*PhilHMI에 연결 되어 있다면 보고*/
+	if (uvEng_Philhmi_IsConnected())
+	{
+		CRecipeManager::GetInstance()->PhilSendSelectRecipe(strRecipeName);
 	}
 
 	CString strReicpe, strExpo, strAlign;

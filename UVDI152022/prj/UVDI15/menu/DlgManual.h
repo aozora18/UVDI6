@@ -11,7 +11,7 @@
 #define DEF_UI_MANUAL_BTN		(IDC_MANUAL_STT_PREVIEW + 30)
 #define DEF_UI_MANUAL_PRG		(IDC_MANUAL_STT_PREVIEW + 40)
 #define DEF_UI_OFFSET			5
-#define DEF_UI_GRD_ROW_OFFSET	40
+#define DEF_UI_GRD_ROW_OFFSET	35
 
 class CDrawPrev;	/* Gerber Preivew File */
 
@@ -44,6 +44,7 @@ JHMI_ENUM(EN_GRD_INFORMATION_ROW, int
 	, GERBER_NAME
 	, REAL_SCALE
 	, REAL_ROTATION
+	, REAL_THICK
 )
 
 JHMI_ENUM(EN_GRD_PARAMETER_ROW, int
@@ -82,7 +83,7 @@ protected:
 	virtual VOID		DoDataExchange(CDataExchange* dx);
 	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
 	VOID				UpdateBtn(UINT64 tick, BOOL is_busy);
-
+	VOID				MakeMarkOffsetField();
 
 public:
 

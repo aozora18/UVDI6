@@ -14,7 +14,7 @@
 typedef enum class __en_data_input_text_mode__ : UINT8
 {
 	en_none		= 0x00, /* unknown */
-
+	
 	en_int8		= 0x01,
 	en_uint8	= 0x02,
 	en_int16	= 0x03,
@@ -31,7 +31,6 @@ typedef enum class __en_data_input_text_mode__ : UINT8
 	en_hex8		= 0x13,	/* octal input */
 	en_hex10	= 0x14,	/* decimal input */
 	en_hex16	= 0x15,	/* hexa-decimal input */
-
 }	ENM_DITM;
 
 typedef enum class __en_data_input_language_mode__ : UINT8

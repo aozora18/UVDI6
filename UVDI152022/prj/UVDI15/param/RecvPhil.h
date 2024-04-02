@@ -1,5 +1,6 @@
 #pragma once
 
+class CDlgMain;
 
 class CRecvPhil
 {
@@ -16,14 +17,20 @@ public:
 	VOID				PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendDelectRecipe(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy);
 	VOID				PhilSendListRecipe(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv);
-	//VOID				PhilSendMove(STG_PP_PACKET_RECV* stRecv);
+
+	VOID				PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy);
 	VOID				PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv);
-	VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst);
+	VOID				PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy);
+
 	//VOID				PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv);
 	//VOID				PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv);
+
+	VOID				PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst);
+	VOID				PhilSendInterruptStop(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst);
 protected:
 	CRecvPhil();
 	CRecvPhil(const CRecvPhil&); // Prohibit Copy Constructor

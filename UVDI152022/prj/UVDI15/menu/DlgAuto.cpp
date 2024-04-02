@@ -213,7 +213,7 @@ VOID CDlgAuto::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	UpdateGridProcess();
 	UpdateGridProduct();
 	UpdateQuickIOStatus();
-	DrawMarkData();
+	//DrawMarkData();
 
 	if (!is_busy)
 	{

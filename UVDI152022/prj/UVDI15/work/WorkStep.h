@@ -160,6 +160,8 @@ protected:
 	ENG_JWNS			SetHysteresis(UINT8 offset=0xff);
 	ENG_JWNS			IsSetHysteresis();
 
+	
+
 	/* 단일로 동작되는 시니라오 함수 */
 	ENG_JWNS			SetTrigPosReset();
 	ENG_JWNS			SetTrigPosCalcSaved();

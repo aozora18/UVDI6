@@ -155,14 +155,22 @@ API_EXPORT BOOL uvEng_Mvenc_ReqWriteAreaTrigPos(BOOL direct,
 
 	if (!uvMvenc_IsConnected() && GetConfig()->IsRunDemo())	return TRUE;
 
-	//for (; i<count1; i++)
-	//{
-	//	i32Trig[0][i]	= pos1[i];	/* Align Camera 1 */
-	//	i32Trig[1][i]	= pos2[i];	/* Align Camera 2 */
-	//}
+	vector <INT32> vNum1;
+	vector <INT32> vNum2;
 
-	//vector <INT32> vNum1;
-	//vector <INT32> vNum2;
+	for (; i<count1; i++)
+	{
+		//	vNum1.push_back(pos1[i]);
+	//	vNum2.push_back(pos2[i]);
+
+		vNum1.push_back(abs(pos1[i]));	/* Align Camera 1 */
+		vNum2.push_back(abs(pos2[i]));	/* Align Camera 2 */
+		
+		i32Trig[0][i]	= pos1[i];	/* Align Camera 1 */
+		i32Trig[1][i]	= pos2[i];	/* Align Camera 2 */
+	}
+
+	
 	//for (; i < count1; i++)
 	//{
 	//	vNum1.push_back(pos1[i]);
@@ -176,9 +184,16 @@ API_EXPORT BOOL uvEng_Mvenc_ReqWriteAreaTrigPos(BOOL direct,
 	//}
 	//else
 	//{
-	//	sort(vNum1.begin(), vNum1.end(), greater<INT32>());
-	//	sort(vNum2.begin(), vNum2.end(), greater<INT32>());
+		sort(vNum1.begin(), vNum1.end(), greater<INT32>());
+		sort(vNum2.begin(), vNum2.end(), greater<INT32>());
 	//}
+
+		for (int i = 0; i < vNum1.size(); i++)
+		{
+			//i32Trig[0][i] = enable == ENG_TEED::en_negative ? vNum1[i] * -1 : vNum1[i];
+		//	i32Trig[1][i] = enable == ENG_TEED::en_negative ? vNum2[i] * -1 : vNum2[i];
+		}
+
 
 	//for (; i < count1; i++)
 	//{

@@ -8,7 +8,8 @@
 #include "global.h"
 #include "conf_comn.h"
 
-#define RECIPE_NAME_LENGTH						128
+//#define RECIPE_NAME_LENGTH						128
+#define RECIPE_NAME_LENGTH						512
 #define MAX_LOT_DATE_LENGTH						16
 #define MAX_GLOBAL_MARK_DIST_CHECK_COUNT		6			/* Align 인식 후 Global Mark 간의 최대 허용 오차 한계 측정(검사) 개수 */
 #define LED_POWER_NAME_LENGTH					128

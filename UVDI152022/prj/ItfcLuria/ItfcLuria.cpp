@@ -581,10 +581,14 @@ API_EXPORT DOUBLE uvLuria_GetExposeEnergy(UINT8 step_size, UINT8 duty_cycle,
 	{
 		//dbSumWatt	+= ((watt[i] * pstLuria->illum_filter_rate[i] * 
 		//				pstLuria->correction_factor * dbDMDAreaCM) / dbSensorAreaCM) / 1000.0f;
-		dbSumWatt += watt[i] / 10.0f;
+		//dbSumWatt += watt[i] / 10.0f;
+		//dbSumWatt += ((watt[i] * 100 *
+		//	pstLuria->correction_factor * dbDMDAreaCM) / dbSensorAreaCM) / 1000.0f;
+		dbSumWatt += watt[i];
 	}
 	/* LED 4개 기준으로, DMD 1개 영역에서 나오는 Power (Watt / cm^2) */
-	dbPowerCM	= dbSumWatt / (dbDMDAreaMM / (10.0f * 10.0f) /* mm^2 to cm^2 */);
+	//dbPowerCM	= dbSumWatt / (dbDMDAreaMM / (10.0f * 10.0f) /* mm^2 to cm^2 */);
+	dbPowerCM = dbSumWatt / dbDMDAreaCM;
 	/* 현재 광학계의 총 Energy (mJ) */
 	return dbTimePoint * (dbPowerCM * 1000.0f);
 }
@@ -628,16 +632,20 @@ API_EXPORT UINT16 uvLuria_GetEnergyToSpeed(UINT8 step_size, DOUBLE expo_energy,
 	DOUBLE dbExpoSpeed;
 	DOUBLE dbMaxSpeed = 0.0f;
 	LPG_CLSI pstLuria = &g_pstConfig->luria_svc;
+	DOUBLE dbSensorAreaCM, dbDMDAreaCM;
 
 #if _DEBUG
 	if (g_pstShMemLuria->machine.scroll_rate == 0.0f)	g_pstShMemLuria->machine.scroll_rate = 12500;
 #endif
 
-
+	/* Sensor Diameter의 면적 즉, 원의 면적 구하기 (unit: cm^2) */
+	dbSensorAreaCM = ((M_PI * pow(pstLuria->sensor_diameter / 2.0f, 2)) / 100.0f /* mm^2 to cm^2 */);
 	/* Mirror 크기 즉, Pixel Size (mm) */
 	dbPixelSizeMM = g_pstConfig->luria_svc.pixel_size / 1000.0f;	/* um to mm */
 	/* DMD 영역이 노광하는 면적 (mm^2) (Mirror 1개 크기 (um to mm) 구한 후, 가로 x 세로 함 */
 	dbDMDAreaMM = (pstLuria->mirror_count_xy[0] * dbPixelSizeMM) * (pstLuria->mirror_count_xy[1] * dbPixelSizeMM);
+	/* DMD Image Area (면적) 구하기 (unit: cm^2) */
+	dbDMDAreaCM = dbDMDAreaMM / (10.0f * 10.0f /* mm^2 to cm^2*/);
 
 
 	/* 현재 광학계의 LED 마다 부여된 Power 값 모두 더함 */
@@ -645,11 +653,14 @@ API_EXPORT UINT16 uvLuria_GetEnergyToSpeed(UINT8 step_size, DOUBLE expo_energy,
 	{
 		//dbSumWatt += ((watt[i] * pstLuria->illum_filter_rate[i] *
 		//	pstLuria->correction_factor * dbDMDAreaCM) / dbSensorAreaCM) / 1000.0f;
-		//dbSumWatt += watt[i];
-		dbSumWatt += watt[i] / 10.0f;
+		//dbSumWatt += watt[i] / 10.0f;
+		//dbSumWatt += ((watt[i] * 100 *
+		//	pstLuria->correction_factor * dbDMDAreaCM) / dbSensorAreaCM) / 1000.0f;
+		dbSumWatt += watt[i];
 	}
 	/* LED 4개 기준으로, DMD 1개 영역에서 나오는 Power (Watt / cm^2) */
-	dbPowerCM = dbSumWatt / (dbDMDAreaMM / (10.0f * 10.0f) /* mm^2 to cm^2 */);
+	//dbPowerCM = dbSumWatt / (dbDMDAreaMM / (10.0f * 10.0f) /* mm^2 to cm^2 */);
+	dbPowerCM = dbSumWatt / dbDMDAreaCM;
 
 	dbExpoSpeed = (dbPixelSizeMM * pstLuria->mirror_count_xy[1] * (duty_cycle / 100.0f)) / (expo_energy / (dbPowerCM * 1000));
 
@@ -1076,6 +1087,15 @@ API_EXPORT DOUBLE uvLuria_GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index)
 	return g_pSelJobXml->GetGlobalBaseMarkLocalDiffY(direct, index);
 }
 
+/*
+ desc : 마크 구성 정보를 보고, 입력된 마크 위치(번호)가 정방향에 속하는지 역방향에 속하는지 확인
+ parm : mark_no	- [in]  Align Mark Number (0 or Later)
+ retn : TRUE (Forward) or FALSE (Backward)
+*/
+//API_EXPORT BOOL uvLuria_IsMarkDirectForward(UINT8 mark_no)
+//{
+//	return g_pSelJobXml->IsMarkDirectForward(mark_no);
+//}
 
 /*
  desc : XML 파일로에 설정(저장)된 총 노광 횟수 즉, Stripe 개수
@@ -1366,7 +1386,7 @@ API_EXPORT DOUBLE uvLuria_GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 	return g_pSelJobXml->GetLocalMarkACam12DistX(mode, scan);
 }
 
-API_EXPORT VOID	 uvLuria_SetAlignMotionInfo(AlignMotion& motion)
+API_EXPORT VOID	 uvLuria_SetAlignMotionPtr(AlignMotion& motion)
 {
 	g_pSelJobXml->alignMotion = &motion;
 }

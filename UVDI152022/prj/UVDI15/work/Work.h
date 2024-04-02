@@ -71,7 +71,7 @@ protected:
 
 	BOOL				SetTrigPosCalcSaved(INT32 acam_diff_y/*, INT32 mark_diff_y*/);
 	BOOL				SetAlignACamCaliX();
-
+	void				LocalTrigRegist();//로컬트리거 등록
 	BOOL				ResetExpoReady();
 
 	BOOL				IsSendCmdTime(UINT32 wait);

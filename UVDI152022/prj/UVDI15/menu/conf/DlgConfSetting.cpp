@@ -1063,6 +1063,7 @@ VOID CDlgConfSetting::LoadConfig()
 	LoadSetupAlign(pstCfg);
 	LoadMarkFind(pstCfg);
 	LoadStrobeLamp(pstCfg);
+	LoadFlatness(pstCfg);
 #if 0	/* Not currently in use */
 	LoadMarkFind(pstCfg);
 #endif
@@ -1087,6 +1088,7 @@ VOID CDlgConfSetting::SaveConfig()
 	SaveSetupAlign(pstCfg);
 	SeveMarkFind(pstCfg);
 	SaveStrobeLamp(pstCfg);
+	SaveFlatness(pstCfg);
 #if 0	/* Not currently in use */
 	SaveMarkFind(pstCfg);
 #endif
@@ -1497,5 +1499,43 @@ VOID CDlgConfSetting::SaveStrobeLamp(LPG_CIEA conf)
 	conf->set_strobe_lamp.u16StrobeValue[4] = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_6);
 	conf->set_strobe_lamp.u16StrobeValue[5] = _ttoi(strValue);
+
+}
+
+
+
+/*
+ desc : 환경 설정 파일 적재 - Flatness
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::LoadFlatness(LPG_CIEA conf)
+{
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_THICK_CHECK, conf->measure_flat.u8UseThickCheck);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::RANG_START_Y, conf->measure_flat.dRangStartYPos);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::RANG_END_Y, conf->measure_flat.dRangEndYPos);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::OFFSET_Z, conf->measure_flat.dOffsetZPOS);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LIMIT_Z, conf->measure_flat.dLimitZPOS);
+}
+
+/*
+ desc : 환경 설정 파일 저장 - Setip Align
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::SaveFlatness(LPG_CIEA conf)
+{
+	CString strValue;
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_THICK_CHECK);
+	conf->measure_flat.u8UseThickCheck = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::RANG_START_Y);
+	conf->measure_flat.dRangStartYPos = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::RANG_END_Y);
+	conf->measure_flat.dRangEndYPos = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::OFFSET_Z);
+	conf->measure_flat.dOffsetZPOS = _ttof(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LIMIT_Z);
+	conf->measure_flat.dLimitZPOS = _ttof(strValue);
 
 }

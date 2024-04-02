@@ -20,7 +20,8 @@
 #define MAX_MODEL_REGIST_PARAM					5		/* 모델 별로 최대 등록 가능한 파라미터 개수 */
 #define	MAX_REGIST_MODEL						48		/* 최대 등록 가능한 모델 개수 */
 
-#define RECIPE_NAME_LENGTH						128
+//#define RECIPE_NAME_LENGTH						128
+#define RECIPE_NAME_LENGTH						512
 #define LED_POWER_NAME_LENGTH					128
 /* --------------------------------------------------------------------------------------------- */
 /*                                             열거형                                            */

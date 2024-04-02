@@ -71,7 +71,7 @@ VOID DrawGrabMarkBitmap_MMPM(HDC hdc, RECT draw, LPG_ACGR grab, INT32 Grab_No, U
 	/* Memory DC 영역에 Live Image 출력 그리기 */
 	CDPoint dRateP;
 #ifndef _NOT_USE_MIL_
-	dRateP = theApp.clMilDisp.GetRateDispToBuf(0, DISP_TYPE_MMPM);
+	dRateP = theApp.clMilDisp.GetRateDispToBuf(DISP_TYPE_MMPM);
 	MbufClear(theApp.clMilMain.m_mImgDisp_MMPM, 0L);
 	MimResize(theApp.clMilMain.m_mImg_Grab[Grab_No], theApp.clMilMain.m_mImgDisp_MMPM, dRateP.x, dRateP.y, M_DEFAULT);
 
@@ -255,7 +255,7 @@ VOID GetDrawMarkArea(LPG_DBWH in_size, LPG_DBXY in_cent, DOUBLE resize_rate,
 		move	- [in]  실제 출력되는 이미지 시작 위치
  retn : None
 */
-VOID DrawGrabImage(HDC hdc, LPG_ACGR grab, RECT area, CSize *resize, POINT *move)
+VOID DrawGrabImage(HDC hdc, LPG_ACGR grab, RECT area, CSize *resize, POINT *move, UINT8 flipFlag=0xff)
 {
 	DOUBLE dbAngle	= 0.0f;
 	/* Memory DC 영역에 Grabbed Image 출력 및 검색된 결과 값 그리기 */
@@ -293,10 +293,14 @@ VOID DrawGrabImage(HDC hdc, LPG_ACGR grab, RECT area, CSize *resize, POINT *move
 			/* 이미지 회전 진행 */
 			//if (g_pMilMain)
 			//{
+			if(flipFlag != 0xFF)
+				theApp.clMilMain.ImageFlip(grab->grab_data, g_pGrabBuff, grab->grab_width, grab->grab_height, flipFlag);
+			else
 				theApp.clMilMain.ImageRotate(grab->grab_data, g_pGrabBuff,
-										grab->grab_width, grab->grab_height,
-										180.0f/*g_pstConfig->set_cams.acam_inst_angle*/,
-										grab->grab_width/2, grab->grab_height/2);
+					grab->grab_width, grab->grab_height,
+					180.0f/*g_pstConfig->set_cams.acam_inst_angle*/,
+					grab->grab_width / 2, grab->grab_height / 2);
+
 			//}
 			/* Memory DC 영역에 DIB로 출력 */
 			::StretchDIBits(hMemDC, 0, 0, grab->grab_width, grab->grab_height,
@@ -570,7 +574,7 @@ VOID DrawGrabMarkCent(HDC hdc, LPG_ACGR grab, DOUBLE resize_rate, POINT *move)
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-VOID DrawGrabMarkBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find) 
+VOID DrawGrabMarkBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,UINT8 flipFlag=0xff)
 {
 	UINT8 i, u8Find;
 	DOUBLE dbRate;
@@ -596,7 +600,7 @@ VOID DrawGrabMarkBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find)
 	ptMove.y= (LONG)ROUNDED(DOUBLE((rDraw.bottom- rDraw.top) - szTgt.cy) / 2.0f, 0) + rDraw.top;
 
 	/* Grabbed Image 출력 */
-	DrawGrabImage(hdc, grab, draw, &szTgt, &ptMove); 
+	DrawGrabImage(hdc, grab, draw, &szTgt, &ptMove, flipFlag);
 	/* Grabbed Image의 중심에 기호 (전체 라인) ('+') 출력 */
 //	DrawGrabImageCent(hdc, grab, dbRate, &ptMove);
 	DrawGrabImageCent(hdc, draw); 
@@ -940,6 +944,13 @@ API_EXPORT BOOL uvMIL_RunModelExam(PUINT8 image, UINT32 width, UINT32 height,DOU
 	// if (!g_pMilMain)	return FALSE;
 	return  theApp.clMilMain.RunModelExam(image, width, height, score, scale, results, img_id, dlg_id, mark_no);
 }
+
+API_EXPORT BOOL uvMIL_RunModelExam2(PUINT8 image, UINT32 width, UINT32 height, DOUBLE score, DOUBLE scale, LPG_ACGR results)
+{
+	//if (!g_pMilMain)	return FALSE;
+	return  theApp.clMilMain.RunModelExam2(image, width, height, score, scale, results);
+}
+
 
 /*
  desc : 가장 최근 Grabbed Image의 매칭 검색 결과 구조체 포인터 반환
@@ -1352,6 +1363,7 @@ API_EXPORT BOOL uvMIL_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UINT8 img
 	if (pstGrab->grab_width < 1 || pstGrab->grab_height < 1 || !pstGrab->grab_data)	return TRUE;
 
 	INT32 Grab_No = (cam_id - 1) * 2 + img_id;
+	//INT32 Grab_No = (cam_id - 1) * 2 + (img_id - 1); // lk91 OnImageGrabbed() 함수 참고... uvMIL_RegistMILGrabImg((m_u8CamID - 1) * 2 + (m_u8GrabIndex - 1), pstMark->grab_width, pstMark->grab_height, pstMark->grab_data);
 	theApp.clMilMain.RegistMILGrabImg(Grab_No, pstGrab->grab_width, pstGrab->grab_height, pstGrab->grab_data); 
 	DrawGrabMarkBitmap_MMPM(hdc, draw, pstGrab, Grab_No, find); 
 	return TRUE;
@@ -1365,11 +1377,11 @@ API_EXPORT BOOL uvMIL_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UINT8 img
 		img_id	- [in]  Camera Grabbed Image Index (0 or Later) (if img_id == 0xff then Calibration Method)
  retn : None
 */
-API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 img_id)
+API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 hwndIdx,UINT8 img_id)
 {
 #ifndef _NOT_USE_MIL_
 	UINT8 i, u8Find		= 0x00;
-	DOUBLE dbAngle		= g_pstConfig->set_cams.acam_inst_angle == 0 ? 0.0f : 180.0f;
+	DOUBLE dbAngle = 0; //g_pstConfig->set_cams.acam_inst_angle == 0 ? 0.0f : 180.0f;
 	//BUFATTRTYPE bufType	= M_IMAGE+M_PROC+M_DISP;
 	MIL_INT64 bufType = M_IMAGE + M_PROC + M_DISP; 
 	MIL_ID mlBufID		= M_NULL, mlBufResize, mlBufRotate = M_NULL;
@@ -1388,7 +1400,8 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 	// if (!g_pMilMain)	return;
 	/* Get the buffer id of the recognized mark */
 	mlBufID	= theApp.clMilMain.GetMarkBufID(cam_id, img_id);
-	if (!mlBufID)	return;
+	if (!mlBufID)	
+		return;
 
 #if 0
 	/* Mark 찾은 결과 값 가져오기 */
@@ -1437,6 +1450,8 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 			//			MbufExport(L"g:\\download\\qcells\\export_rotate.bmp", M_BMP, mlBufRotate);
 			/* 이미지 크기 재조정 후 임시 버퍼에 할당 */
 			MimResize(mlBufRotate, mlBufResize, M_FILL_DESTINATION, M_FILL_DESTINATION, M_INTERPOLATE);
+
+			MimFlip(mlBufResize, mlBufResize, M_FLIP_HORIZONTAL, M_DEFAULT);
 			// lk91 test ////////////////////////
 			//CDPoint dRtnP;
 			//dRtnP.x = (double)szTgt.cx / (double)ACA1920_SIZE_X;
@@ -1446,7 +1461,7 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 			//MimResize(mlBufRotate, mlBufResize, M_FILL_DESTINATION, M_FILL_DESTINATION, M_INTERPOLATE);
 			/* 이미지 버퍼의 내용을 특정 윈도 영역에 출력 */
 			//MdispSelectWindow(theApp.clMilMain.GetDispID(DISP_TYPE_EXPO), mlBufResize, hwnd); // lk91 미사용..?
-			MdispSelectWindow(theApp.clMilMain.m_mDisID_EXPO[img_id], mlBufResize, hwnd);
+			MdispSelectWindow(theApp.clMilMain.m_mDisID_EXPO[hwndIdx], mlBufResize, hwnd);
 
 			/* 회전 버퍼 메모리 해제 */
 			MbufFree(mlBufRotate);
@@ -1491,6 +1506,12 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 					{
 						dbRotateCentX	= pstFind[i].cent_x;
 						dbRotateCentY	= pstFind[i].cent_y;
+						
+						POINT half;
+						half.x = szSrc.cx / 2.0f;
+						half.y = szSrc.cy / 2.0f;
+						auto withGab =  half.x - dbRotateCentX;
+						dbRotateCentX += dbRotateCentX < half.x ? abs(withGab) * 2  : abs(withGab) * -2;
 						if (dbAngle != 0.0f && pstFind[i].manual_set == 0x00)
 						{
 							/* Returns the center coordinate value of the current mark, */
@@ -1601,20 +1622,7 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 							::LineTo(hDC,	ptLine[3].x+ptMove.x,	ptLine[3].y+ptMove.y);
 							::LineTo(hDC,	ptLine[0].x+ptMove.x,	ptLine[0].y+ptMove.y);
 
-							//int div = 100;
-							//int divWidth = abs(ptLine[0].x - ptLine[2].x);
-							//int divHeight = abs(ptLine[0].y - ptLine[2].y);
-							//divWidth /= div;
-							//divHeight /= div;
-
-							//for (int i = 0; i < div; i++) {
-							//	::MoveToEx(hDC, ptLine[0].x + ptMove.x + divWidth * (i + 1), ptLine[0].y + ptMove.y, NULL);
-							//	::LineTo(hDC, ptLine[0].x + ptMove.x + divWidth * (i + 1), ptLine[2].y + ptMove.y);
-							//}
-							//for (int i = 0; i < div; i++) {
-							//	::MoveToEx(hDC, ptLine[0].x + ptMove.x, ptLine[0].y + ptMove.y + divHeight * (i + 1), NULL);
-							//	::LineTo(hDC, ptLine[2].x + ptMove.x, ptLine[0].y + ptMove.y + divHeight * (i + 1));
-							//}
+							
 
 						}
 					}
@@ -1644,14 +1652,14 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 i
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_EXPORT VOID uvMIL_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find)
+API_EXPORT VOID uvMIL_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find , bool drawForce,UINT8 flipFlag)
 {
 	// if (!g_pMilMain)	return;
 
 	/* 256 Gray Color 이미지 영역에 출력 */
-	if (grab && grab->score_rate > 0.0f)
+	if (grab && grab->score_rate > 0.0f || drawForce)
 	{
-		DrawGrabMarkBitmap(hdc, draw, grab, find);
+		DrawGrabMarkBitmap(hdc, draw, grab, find, flipFlag);
 	}
 }
 
@@ -1834,6 +1842,21 @@ API_EXPORT VOID uvMIL_SetMarkMethod(ENG_MMSM method, UINT8 count)
 	//if (g_pMilMain)	
 		theApp.clMilMain.SetMarkMethod(method, count);
 }
+
+API_EXPORT UINT8 uvMIL_SetMarkFindSetCount(int camNum)
+{
+	return theApp.clMilMain.GetMarkFindSetCount(camNum);
+	
+}
+
+
+API_EXPORT UINT8 uvMIL_SetMarkFoundCount(int camNum)
+{
+	return theApp.clMilMain.GetMarkFindedCount(camNum);
+
+}
+
+
 
 /*
  desc : 이미지의 가로 혹은 세로의 경계선 중심 위치 얻기
@@ -2090,6 +2113,71 @@ API_EXPORT VOID uvMIL_SetMMPMDispSize(CSize fi_size)
 	theApp.clMilMain.MMPM_DISP_SIZE_X = fi_size.cx;
 	theApp.clMilMain.MMPM_DISP_SIZE_Y = fi_size.cy;
 }
+ 
+
+/* desc : MIL ID 로 저장된 이미지 화면 출력 */
+API_EXPORT VOID uvMIL_DrawImageBitmapFlip(int dispType, int Num, LPG_ACGR grab, DOUBLE angle, int cam_id, int  flipOption)
+{
+#ifndef _NOT_USE_MIL_
+	PUINT8 pImgBuff = NULL;
+	CSize szSrc(grab->grab_width, grab->grab_height), szTgt;
+	
+	CDPoint dRateP;
+	dRateP = theApp.clMilDisp.GetRateDispToBuf( dispType);
+
+	MIL_ID srcID[2] = { 0L,0L };
+	MIL_ID dstID[2] = { 0L,0L };
+
+	srcID[0] = dispType == DISP_TYPE_EXPO ? theApp.clMilMain.m_mImgProc[cam_id] :
+				dispType == DISP_TYPE_MARK ? theApp.clMilMain.m_mImg_Mark[Num] :
+				dispType == DISP_TYPE_MARK_LIVE ? theApp.clMilMain.m_mImgProc[cam_id] :
+				dispType == DISP_TYPE_MARKSET ? theApp.clMilMain.m_mImg_MarkSet :
+				dispType == DISP_TYPE_MMPM ? theApp.clMilMain.m_mImg_Grab[Num] :
+				dispType == DISP_TYPE_CALB_CAMSPEC ? theApp.clMilMain.m_mImg_CALI_CAMSPEC[cam_id] :
+				dispType == DISP_TYPE_CALB_EXPO ? theApp.clMilMain.m_mImg_CALI_STEP[0] :
+				dispType == DISP_TYPE_CALB_ACCR ? theApp.clMilMain.m_mImg_ACCR[cam_id] :
+				dispType == DISP_TYPE_MMPM_AUTOCENTER ? theApp.clMilMain.m_mImg_MPMM_AutoCenter : srcID[0];
+
+	srcID[1] = dispType == DISP_TYPE_CALB_EXPO ? theApp.clMilMain.m_mImg_CALI_STEP[1] : srcID[1];
+
+	dstID[0] = dispType == DISP_TYPE_EXPO ? theApp.clMilMain.m_mImgDisp_EXPO[Num] :
+		dispType == DISP_TYPE_MARK ? theApp.clMilMain.m_mImgDisp_Mark[Num] :
+		dispType == DISP_TYPE_MARK_LIVE ? theApp.clMilMain.m_mImgDisp_Mark_Live :
+		dispType == DISP_TYPE_MARKSET ? theApp.clMilMain.m_mImgDisp_MarkSet :
+		dispType == DISP_TYPE_MMPM ? theApp.clMilMain.m_mImgDisp_MMPM :
+		dispType == DISP_TYPE_CALB_CAMSPEC ? theApp.clMilMain.m_mImgDisp_CALI_CAMSPEC :
+		dispType == DISP_TYPE_CALB_EXPO ? theApp.clMilMain.m_mImgDisp_CALI_STEP[0] :
+		dispType == DISP_TYPE_CALB_ACCR ? theApp.clMilMain.m_mImgDisp_ACCR :
+		dispType == DISP_TYPE_MMPM_AUTOCENTER ? theApp.clMilMain.m_mImgDisp_MPMM_AutoCenter : dstID[0];
+
+	dstID[1] = dispType == DISP_TYPE_CALB_EXPO ? theApp.clMilMain.m_mImgDisp_CALI_STEP[1] : dstID[1];
+	
+	
+	for (int i = 0; i < 2; i++) if (srcID[i] != 0)
+	{
+		MbufClear(dstID[i], 0L);
+		MIL_ID milID = 0L;
+		if (flipOption == -1)
+		{
+			MimResize(srcID[i], dstID[i], dRateP.x, dRateP.y, M_DEFAULT);
+		}
+		else
+		{
+			MIL_ID milID = MbufAlloc2d(theApp.clMilMain.GetMilSysID(), szSrc.cx, szSrc.cy, 8 + M_UNSIGNED, M_IMAGE + M_PROC + M_DISP, M_NULL);
+			MimResize(srcID[i], milID, dRateP.x, dRateP.y, M_DEFAULT);
+			MimFlip(milID, dstID[i], flipOption == 0 ? M_FLIP_HORIZONTAL : M_FLIP_VERTICAL, M_DEFAULT);
+			MbufFree(milID);
+		}
+	}
+	
+	theApp.clMilDisp.DrawOverlayDC(true, dispType, Num);
+
+	//theApp.clMilDisp.DrawBase(dispType, Num);
+	//theApp.clMilDisp.DrawOverlayDC(true, dispType, Num);
+
+#endif
+}
+
 
 /* desc : MIL ID 로 저장된 이미지 화면 출력 */
 API_EXPORT VOID uvMIL_DrawImageBitmap(int dispType, int Num, LPG_ACGR grab, DOUBLE angle, int cam_id)
@@ -2101,7 +2189,7 @@ API_EXPORT VOID uvMIL_DrawImageBitmap(int dispType, int Num, LPG_ACGR grab, DOUB
 	//HDC hdc = ::GetDC(hWnd);
 	/* Memory DC 영역에 Live Image 출력 그리기 */
 	CDPoint dRateP;
-	dRateP = theApp.clMilDisp.GetRateDispToBuf(Num, dispType);
+	dRateP = theApp.clMilDisp.GetRateDispToBuf( dispType);
 	
 #ifndef _NOT_USE_MIL_
 	if (dispType == DISP_TYPE_EXPO) {	// EXPO
@@ -2381,6 +2469,14 @@ API_EXPORT VOID uvMIL_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_
 {
 	theApp.clMilDisp.DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo);
 }
+
+
+API_EXPORT VOID uvMIL_Camera_ClearShapes(int fi_iDispType)
+{
+	theApp.clMilDisp.ClearShapes(fi_iDispType);
+}
+
+
 
 /* desc : Overlay 관련 함수 - Box List 추가 */
 API_EXPORT VOID uvMIL_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color)

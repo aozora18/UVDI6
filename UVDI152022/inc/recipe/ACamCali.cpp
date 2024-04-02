@@ -68,7 +68,7 @@ VOID CACamCali::RemoveAlignCaliData()
 VOID CACamCali::ResetAllCaliData()
 {
 	UINT32 u32Size, u32Temp;
-	UINT32 u32ACamCount	= GetConfig()->set_cams.acam_count;
+	UINT32 u32ACamCount = 2;// GetConfig()->set_cams.acam_count;
 
 	/* 등록된 Mark Position의 개수가 없다 */
 	m_u8MarkCount	= 0x00;
@@ -220,7 +220,9 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 				pstPosXY[j].stage_y	= m_pstCali[i].stage_y + m_pstCali[i].row_gap * (j / m_pstCali[i].col_cnt);
 			}
 #elif (0x20 == (0x20 & USE_ALIGN_CAMERA_2D_CALI_VER))
-			if (i32Len != 41/*included the '\r\n'*/)	break;
+			//if (i32Len != 41/*included the '\r\n'*/)	break;
+			if (i32Len < 38 || i32Len > 43)
+				break;
 			/* Get the measurement location of align_camera_x and stage_y */
 			ptzVal	= wcstok_s(tzVal, L",", &ptzContext);
 			pstPosXY[j].a_cam_x	= (INT32)ROUNDED(_wtof(ptzVal) * 10000.0f, 0);	/* 0.1 um or 100 nm */
@@ -263,17 +265,28 @@ UINT8 CACamCali::SetTrigPosCaliApply()
 	UINT8 i = 0x00, u8MarkSet = 0xff, u8MarkCnt = 0x00;
 	UINT8 u8ACamCount	= GetConfig()->set_cams.acam_count;
 	LPG_ACCE pstCaliData= NULL;
-
+	u8ACamCount = 2;
 	/* 현재 등록된 2D Calibration Data가 없는 경우인지 확인 */
 	if (!m_pstCali || m_u8MarkCount < 0x01)	return 0x00;
 	/* 만약 카메라 개수가 1 혹은 2개 아니면 실패 처리 T.T */
 	if (u8ACamCount != 0x01 && u8ACamCount != 0x02)	return 0x00;
 
 	/* 만약 Align Camera가 1개인 경우 */
-	if (0x03 == u8ACamCount)
+	if (0x01 == u8ACamCount)
 	{
-	 
-	 	
+		for (; i<m_u8MarkCount; i++)
+		{
+			/* 얼라인 카메라가 1개인 경우, 마크 4개까지 Global Position 값임 */
+			if (i < 0x04)	pstCaliData	= m_pstShMem->cali_global[0x00][i];
+			else			pstCaliData	= m_pstShMem->cali_local[0x00][i-0x04];
+			/* 트리거 발생 위치에 해당되는 Calibration XY 오차 값 얻기 */
+			u8MarkSet	= GetCaliPos(0x00,
+									 pstCaliData->acam_motion_x, pstCaliData->stage_motion_y,
+									 pstCaliData->acam_cali_x, pstCaliData->stage_cali_y);
+			if (0x00 == u8MarkSet)	return 0x00;
+			/* If it does not exist the calibration area, increase the number */
+			if (0x02 == u8MarkSet)	u8MarkCnt++;
+		}
 	}
 	else if (0x02 == u8ACamCount)
 	{
@@ -513,7 +526,8 @@ VOID CACamCali::AddMarkPos(UINT8 cam_id, ENG_AMTF mark, UINT8 axis, UINT8 idx, D
 
 	/* in case : Global Mark */
 	if (ENG_AMTF::en_global == mark)	pstCali	= m_pstShMem->cali_global[cam_id-1][idx];
-	else								pstCali	= m_pstShMem->cali_local[cam_id-1][idx];
+	else								
+		pstCali	= m_pstShMem->cali_local[cam_id-1][idx];
 
 	/* X Axis 즉, Align Camera X 축 Motion 위치 값인 경우 */
 	if (0x00 == axis)	pstCali->acam_motion_x	= (INT32)ROUNDED(pos * 10000.0f, 0);

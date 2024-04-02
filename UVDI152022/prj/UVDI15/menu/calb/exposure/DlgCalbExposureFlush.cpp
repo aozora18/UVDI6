@@ -628,17 +628,21 @@ VOID CDlgCalbExposureFlush::InitGridOption()
 	CResizeUI	clsResizeUI;
 	CRect		rGrid;
 
-	std::vector <int>			vRowSize(7);
+	//std::vector <int>			vRowSize(7);
+	std::vector <int>			vRowSize(6);
 	std::vector <int>			vColSize(3);
-	std::vector <std::wstring>	vTitle[7];
+	//std::vector <std::wstring>	vTitle[7];
+	std::vector <std::wstring>	vTitle[6];
 
 	vTitle[0] = { _T("Stage X Pos"),		_T("0"),		_T("mm") };
 	vTitle[1] = { _T("Stage Y Pos"),		_T("0"),		_T("mm") };
 	vTitle[2] = { _T("Start ACam X Pos"),	_T("0"),		_T("mm") };
 	vTitle[3] = { _T("Frame Rate"),			_T("0.5"),		_T("[0.1~1.0]") };
-	vTitle[4] = { _T("Scroll Mode"),		_T("1"),		_T("Level") };
-	vTitle[5] = { _T("Grab Width"),			_T("1200"),		_T("Pixel") };
-	vTitle[6] = { _T("Grab Height"),		_T("600"),		_T("Pixel") };
+	//vTitle[4] = { _T("Scroll Mode"),		_T("1"),		_T("Level") };
+	//vTitle[5] = { _T("Grab Width"),			_T("1200"),		_T("Pixel") };
+	//vTitle[6] = { _T("Grab Height"),		_T("600"),		_T("Pixel") };
+	vTitle[4] = { _T("Expose Round"),		_T("1"),		_T("cnt") };
+	vTitle[5] = { _T("Expose Y Pos Plus"),	_T("20"),		_T("mm") };
 
 	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
 
@@ -875,7 +879,13 @@ VOID CDlgCalbExposureFlush::SetLiveView(BOOL bLive/* = TRUE*/)
 
 VOID CDlgCalbExposureFlush::DoPrint()
 {
+	STG_CELA stExpo = { NULL };
+	stExpo.Init();
+	stExpo.ready_mode = 1; //단차 모드 변경
 
+	m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_onlyfem);
+
+	m_pDlgMain->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&stExpo));
 }
 
 
@@ -1186,25 +1196,37 @@ void CDlgCalbExposureFlush::OnClickGridOption(NMHDR* pNotifyStruct, LRESULT* pRe
 		u8DecPts = 4;
 		break;
 
-	case eOPTION_ROW_FRAME_RATE:
-		dMin = 0.1;
-		dMax = 1.0;
-		enType = ENM_DITM::en_double;
+		//case eOPTION_ROW_FRAME_RATE:
+		//	dMin = 0.1;
+		//	dMax = 1.0;
+		//	enType = ENM_DITM::en_double;
+		//	u8DecPts = 1;
+		//	break;
+
+		//case eOPTION_ROW_SCROLL_MODE:
+		//	dMin = 1;
+		//	dMax = 7;
+		//	enType = ENM_DITM::en_int16;
+		//	break;
+
+		//case eOPTION_ROW_GRAB_WIDTH:
+		//case eOPTION_ROW_GRAB_HEIGHT:
+		//	dMin = 0;
+		//	dMax = 9999;
+		//	enType = ENM_DITM::en_int16;
+		//	break;
+
+	case eOPTION_ROW_EXPOSE_ROUND:
+		dMin = 1;
+		dMax = 30;
+		enType = ENM_DITM::en_int16;
 		u8DecPts = 1;
 		break;
 
-	case eOPTION_ROW_SCROLL_MODE:
+	case eOPTION_ROW_STAGE_Y_PLUS:
 		dMin = 1;
-		dMax = 7;
-		enType = ENM_DITM::en_int16;
-		break;
-
-	case eOPTION_ROW_GRAB_WIDTH:
-	case eOPTION_ROW_GRAB_HEIGHT:
-		dMin = 0;
-		dMax = 9999;
-		enType = ENM_DITM::en_int16;
-		break;
+		dMax = 500;
+		enType = ENM_DITM::en_double;
 
 	default:
 		return;
@@ -1385,11 +1407,15 @@ VOID CDlgCalbExposureFlush::LoadOption()
 	pGrid->SetItemDouble(eOPTION_ROW_STAGE_X, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.start_xy[0x00], 4);
 	pGrid->SetItemDouble(eOPTION_ROW_STAGE_Y, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.start_xy[0x01], 4);
 	pGrid->SetItemDouble(eOPTION_ROW_CAM_X, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.start_acam_x, 4);
-// 	pGrid->SetItemText(eOPTION_ROW_FRAME_RATE, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.frame_rate);
-	pGrid->SetItemText(eOPTION_ROW_SCROLL_MODE, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.scroll_mode);
+	//	pGrid->SetItemText(eOPTION_ROW_FRAME_RATE, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.frame_rate);
+   //	pGrid->SetItemText(eOPTION_ROW_SCROLL_MODE, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.scroll_mode);
 
-	pGrid->SetItemText(eOPTION_ROW_GRAB_WIDTH, eOPTION_COL_VALUE, uvEng_GetConfig()->set_cams.soi_size[0]);
-	pGrid->SetItemText(eOPTION_ROW_GRAB_HEIGHT, eOPTION_COL_VALUE, uvEng_GetConfig()->set_cams.soi_size[1]);
+	pGrid->SetItemText(eOPTION_ROW_EXPOSE_ROUND, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.expose_round);
+	pGrid->SetItemDouble(eOPTION_ROW_STAGE_Y_PLUS, eOPTION_COL_VALUE, uvEng_GetConfig()->ph_step.y_pos_plus);
+
+	//	pGrid->SetItemText(eOPTION_ROW_GRAB_WIDTH, eOPTION_COL_VALUE, uvEng_GetConfig()->set_cams.soi_size[0]);
+	//	pGrid->SetItemText(eOPTION_ROW_GRAB_HEIGHT, eOPTION_COL_VALUE, uvEng_GetConfig()->set_cams.soi_size[1]);
+
 
 	pGrid->Refresh();
 }
@@ -1408,10 +1434,14 @@ VOID CDlgCalbExposureFlush::SaveOption()
 	uvEng_GetConfig()->ph_step.start_xy[0x01] = pGrid->GetItemTextToFloat(eOPTION_ROW_STAGE_Y, eOPTION_COL_VALUE);
 	uvEng_GetConfig()->ph_step.start_acam_x = pGrid->GetItemTextToFloat(eOPTION_ROW_CAM_X, eOPTION_COL_VALUE);
 
-// 	uvEng_GetConfig()->ph_step.frame_rate = (UINT16)pGrid->GetItemTextToInt(eOPTION_ROW_FRAME_RATE, eOPTION_COL_VALUE);
-	uvEng_GetConfig()->ph_step.scroll_mode = (UINT8)pGrid->GetItemTextToInt(eOPTION_ROW_SCROLL_MODE, eOPTION_COL_VALUE);
-	uvEng_GetConfig()->set_cams.soi_size[0] = (UINT16)pGrid->GetItemTextToInt(eOPTION_ROW_GRAB_WIDTH, eOPTION_COL_VALUE);
-	uvEng_GetConfig()->set_cams.soi_size[1] = (UINT16)pGrid->GetItemTextToInt(eOPTION_ROW_GRAB_HEIGHT, eOPTION_COL_VALUE);
+	uvEng_GetConfig()->ph_step.expose_round = pGrid->GetItemTextToFloat(eOPTION_ROW_EXPOSE_ROUND, eOPTION_COL_VALUE);
+	uvEng_GetConfig()->ph_step.y_pos_plus = pGrid->GetItemTextToFloat(eOPTION_ROW_STAGE_Y_PLUS, eOPTION_COL_VALUE);
+
+	// 	uvEng_GetConfig()->ph_step.frame_rate = (UINT16)pGrid->GetItemTextToInt(eOPTION_ROW_FRAME_RATE, eOPTION_COL_VALUE);
+	//	uvEng_GetConfig()->ph_step.scroll_mode = (UINT8)pGrid->GetItemTextToInt(eOPTION_ROW_SCROLL_MODE, eOPTION_COL_VALUE);
+	//	uvEng_GetConfig()->set_cams.soi_size[0] = (UINT16)pGrid->GetItemTextToInt(eOPTION_ROW_GRAB_WIDTH, eOPTION_COL_VALUE);
+	//	uvEng_GetConfig()->set_cams.soi_size[1] = (UINT16)pGrid->GetItemTextToInt(eOPTION_ROW_GRAB_HEIGHT, eOPTION_COL_VALUE);
+
 
 	uvEng_SaveConfig();
 	uvEng_Camera_Reconnect();
@@ -1717,12 +1747,18 @@ VOID CDlgCalbExposureFlush::MoveStartPos()
 	uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_x, uvEng_GetConfig()->ph_step.start_xy[0x00], dbVelo);
 
 	/* Stage Y 이동 */
-	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, uvEng_GetConfig()->ph_step.start_xy[0x01]))
+	DOUBLE StepY;
+	UINT8 expose_round = uvEng_GetConfig()->ph_step.expose_round;
+	DOUBLE	y_pos_plus = uvEng_GetConfig()->ph_step.y_pos_plus;
+	DOUBLE				start_x = uvEng_GetConfig()->ph_step.start_xy[0x00];
+	DOUBLE				start_y = uvEng_GetConfig()->ph_step.start_xy[0x01];
+	StepY = (uvEng_GetConfig()->ph_step.expose_round-1) * uvEng_GetConfig()->ph_step.y_pos_plus;
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, uvEng_GetConfig()->ph_step.start_xy[0x01] + StepY))
 	{
 		return;
 	}
 	dbVelo = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
-	uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_y, uvEng_GetConfig()->ph_step.start_xy[0x01], dbVelo);
+	uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_y, uvEng_GetConfig()->ph_step.start_xy[0x01] + StepY, dbVelo);
 }
 
 
@@ -1776,21 +1812,21 @@ BOOL CDlgCalbExposureFlush::OpenStepPopup(LPG_OSSD pstStep)
 	stParam.enFormat = ENM_DITM::en_uint16;
 	stVctParam.push_back(stParam);
 
-// 	stParam.Init();
-// 	stParam.strName = _T("Delay in positive moving dir");
-// 	stParam.strValue.Format(_T("%d"), pstStep->delay_posi_nsec);
-// 	stParam.strUnit = _T("nSec");
-// 	stParam.enFormat = ENM_DITM::en_uint32;
-// 	stVctParam.push_back(stParam);
-// 
-// 	stParam.Init();
-// 	stParam.strName = _T("Delay in negative moving dir");
-// 	stParam.strValue.Format(_T("%d"), pstStep->delay_nega_nsec);
-// 	stParam.strUnit = _T("nSec");
-// 	stParam.enFormat = ENM_DITM::en_uint32;
-// 	stVctParam.push_back(stParam);
+ 	stParam.Init();
+ 	stParam.strName = _T("Delay in positive moving dir");
+ 	stParam.strValue.Format(_T("%d"), pstStep->delay_posi_nsec);
+ 	stParam.strUnit = _T("nSec");
+ 	stParam.enFormat = ENM_DITM::en_uint32;
+ 	stVctParam.push_back(stParam);
+ 
+ 	stParam.Init();
+ 	stParam.strName = _T("Delay in negative moving dir");
+ 	stParam.strValue.Format(_T("%d"), pstStep->delay_nega_nsec);
+ 	stParam.strUnit = _T("nSec");
+ 	stParam.enFormat = ENM_DITM::en_uint32;
+ 	stVctParam.push_back(stParam);
 
-	for (int i = 1; i <= uvEng_GetConfig()->luria_svc.ph_count; i++)
+	for (int i = 2; i <= uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 		stParam.Init();
 		stParam.strName.Format(_T("PH%d Step X"), i);
@@ -1818,7 +1854,8 @@ BOOL CDlgCalbExposureFlush::OpenStepPopup(LPG_OSSD pstStep)
 	pstStep->delay_posi_nsec = _ttoi(stVctParam[3].strValue);
 	pstStep->delay_nega_nsec = _ttoi(stVctParam[4].strValue);
 
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+	//for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count-1; i++)
 	{
 		pstStep->step_x_nm[i] = _ttoi(stVctParam[5 + (i * 2)].strValue);
 		pstStep->step_y_nm[i] = _ttoi(stVctParam[6 + (i * 2)].strValue);
@@ -1838,16 +1875,22 @@ VOID CDlgCalbExposureFlush::SaveStepData(STG_OSSD stStep)
 	}
 
 	/* 환경 파일에 광학계 단차 값 저장 */
+	DOUBLE ph_offset_x;
+	DOUBLE ph_offset_y;
 	for (int i = 1; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
-		uvEng_GetConfig()->luria_svc.ph_offset_x[i]	+= (INT8)stStep.step_x_nm[i] / 1000000.0f;
-		uvEng_GetConfig()->luria_svc.ph_offset_y[i]	+= stStep.step_y_nm[i] / 1000000.0f;
+		ph_offset_x = uvEng_GetConfig()->luria_svc.ph_offset_x[i];
+		ph_offset_y = uvEng_GetConfig()->luria_svc.ph_offset_y[i];
+		//uvEng_GetConfig()->luria_svc.ph_offset_x[i]	+= (INT8)stStep.step_x_nm[i] / 1000000.0f;
+		//uvEng_GetConfig()->luria_svc.ph_offset_y[i]	+= stStep.step_y_nm[i] / 1000000.0f;
+		uvEng_GetConfig()->luria_svc.ph_offset_x[i] = ph_offset_x + (stStep.step_x_nm[i] / 1000000.0f);
+		uvEng_GetConfig()->luria_svc.ph_offset_y[i] = ph_offset_y - (stStep.step_y_nm[i] / 1000000.0f);
 	}
 
 	uvEng_GetConfig()->luria_svc.hys_type_1_scroll_mode		= stStep.scroll_mode;
 	uvEng_GetConfig()->luria_svc.hys_type_1_negative_offset	= stStep.nega_offset_px;
-// 	uvEng_GetConfig()->luria_svc.hys_type_1_delay_offset[eDIR_FWD] = stStep.delay_posi_nsec / 1000000.0f;
-// 	uvEng_GetConfig()->luria_svc.hys_type_1_delay_offset[eDIR_BWD] = stStep.delay_nega_nsec / 1000000.0f;
+ 	uvEng_GetConfig()->luria_svc.hys_type_1_delay_offset[eDIR_FWD] = stStep.delay_posi_nsec / 1000000.0f;
+ 	uvEng_GetConfig()->luria_svc.hys_type_1_delay_offset[eDIR_BWD] = stStep.delay_nega_nsec / 1000000.0f;
 
 	/* 환경 파일 저장 */
 	uvEng_SaveConfig();

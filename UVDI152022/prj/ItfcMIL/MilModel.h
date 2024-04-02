@@ -9,12 +9,17 @@ class CMilModel : public CMilImage
 public:
 #ifndef _NOT_USE_MIL_
 	CMilModel(LPG_CIEA config, LPG_VDSM sheme,
-			  UINT8 cam_id, /*MIL_ID ml_sys, MIL_ID ml_dis, */ENG_ERVM run_mode);
+			  UINT8 cam_id, /*, MIL_ID ml_dis, */MIL_ID ml_sys,ENG_ERVM run_mode);
 #else
 	CMilModel(LPG_CIEA config, LPG_VDSM sheme,
 		UINT8 cam_id, ENG_ERVM run_mode);
 #endif
 	virtual ~CMilModel();
+
+public:
+	UINT8 GetMarkFindSetCount() {return m_u8MarkFindSet;}
+	UINT8 GetMarkFindedCount() { return m_u8MarkFindGet; }
+
 
 /* 가상 함수 */
 protected:
@@ -26,7 +31,7 @@ protected:
 
 	UINT8				m_u8MarkFindSet;	/* 검색될 마크 개수 */
 	UINT8				m_u8MarkFindGet;	/* 검색된 마크 개수 */
-	//UINT8				m_u8ModelRegist;	/* 검색 대상인 모델 등록 개수 */
+	UINT8				m_u8ModelRegist;	/* 검색 대상인 모델 등록 개수 */
 
 	INT32				m_i32EdgeFindGet;	/* 검색된 Edge Result 개수 */
 
@@ -96,7 +101,7 @@ protected:
 	VOID				ResetMarkResult();
 	VOID				ReleaseMarkResult();
 
-	BOOL				SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth=0.0f,
+	BOOL				SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markIdx,DOUBLE smooth=0.0f,
 									   DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
 									   DOUBLE score_min=0.0f,DOUBLE score_tgt=0.0f);
 
@@ -123,13 +128,16 @@ public:
 									   DOUBLE *param4, DOUBLE *param5, UINT8 mark_no,
 									   DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
 									   DOUBLE score_min=0.0f, DOUBLE score_tgt=0.0f);
+
 	BOOL				SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, LPG_CMPV model,
 									   UINT8 mark_no, DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
 									   DOUBLE score_min=0.0f, DOUBLE score_tgt=0.0f);
+
 	BOOL				SetModelDefineLoad(UINT8 speed, UINT8 level, DOUBLE smooth,
 										   DOUBLE scale_min, DOUBLE scale_max,
 										   DOUBLE score_min, DOUBLE score_tgt,
 										   PTCHAR name, CStringArray &file);
+
 	BOOL				SetModelDefineMMF(PTCHAR name, PTCHAR mmf, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
 	BOOL				SetModelDefinePAT(PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
 
@@ -145,14 +153,18 @@ public:
 
 	/* 등록된 Mark Model 정보 반환 */
 	LPG_CMPV			GetModelDefine()				{	return m_pstMarkModel;				};
-	//UINT8				GetModelRegistCount()			{	return m_u8ModelRegist;				}
-	UINT8				GetFindMarkAllCount()			{	return m_u8MarkFindGet;				}
+	UINT8				GetModelRegistCount()			{	return m_u8ModelRegist;				}
+	UINT8				GetFindMarkAllCount()			
+	{	
+		return m_u8MarkFindGet;				
+	}
 	/* 회전된 패턴 이미지 검색 */
 
 	INT32				GetEdgeDetectCount() { return m_i32EdgeFindGet; };
 #ifndef _NOT_USE_MIL_
 	BOOL				RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8 saved);
 	BOOL				RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc);
+	BOOL				RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle);
 	BOOL				RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no, int* roi_left, int* roi_right, int* roi_top, int* roi_bottom, int row, int col);
 	
 	BOOL				RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp);
@@ -167,7 +179,11 @@ public:
 
 	/* 검색 결과 반환 */
 	LPG_GMFR			GetFindMark(UINT8 index)		{	return &m_pstModResult[index];		};
-	LPG_GMFR			GetFindMarkAll()				{	return m_pstModResult;				};
+	LPG_GMFR			GetFindMarkAll()				
+	{	
+		return m_pstModResult;				
+	};
+
 	LPG_GMFR			GetFindMark();
 	LPG_GMFR			GetFindMarkResultCentSide()		{	return &m_stModResult;				};
 	UINT32				GetModelWidth(UINT8 index);

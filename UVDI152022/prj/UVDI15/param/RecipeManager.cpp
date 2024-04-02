@@ -592,10 +592,20 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				case EN_RECIPE_ALIGN::ALIGN_NAME:
 					strcpy_s(stAlignRecipe.align_name, RECIPE_NAME_LENGTH, csCnv.Uni2Ansi(strValue.GetBuffer())); strValue.ReleaseBuffer();
 					break;
-				case EN_RECIPE_ALIGN::MARK_TYPE: stAlignRecipe.mark_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				case EN_RECIPE_ALIGN::MARK_TYPE: 
+					stAlignRecipe.mark_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
-				case EN_RECIPE_ALIGN::ALIGN_TYPE: stAlignRecipe.align_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				case EN_RECIPE_ALIGN::ALIGN_TYPE: 
+					stAlignRecipe.align_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
+
+				case EN_RECIPE_ALIGN::ALIGN_MOTION:
+				{
+					stAlignRecipe.align_motion = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				}
+				break;
+
+
 				case EN_RECIPE_ALIGN::LAMP_TYPE: stAlignRecipe.lamp_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
@@ -838,6 +848,8 @@ BOOL CRecipeManager::UpdateAlignRecipe(STG_RAAF& stRecipe, EN_RECIPE_MODE eRecip
 				break;
 			case EN_RECIPE_ALIGN::ALIGN_TYPE: stRecipe.align_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 				break;
+			case EN_RECIPE_ALIGN::ALIGN_MOTION: stRecipe.align_motion = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				break;
 			case EN_RECIPE_ALIGN::LAMP_TYPE: stRecipe.lamp_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 				break;
 			case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
@@ -1029,6 +1041,11 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 					break;
 				case EN_RECIPE_ALIGN::LAMP_TYPE				: stParam.SetValue(pstAlignRecipe->lamp_type);
 					break;
+
+				case EN_RECIPE_ALIGN::ALIGN_MOTION:			
+					stParam.SetValue(pstAlignRecipe->align_motion);
+					break;
+
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1		:
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2		:	
 					stParam.SetValue(pstAlignRecipe->gain_level[nCntParam - EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1]);
@@ -1216,6 +1233,9 @@ BOOL CRecipeManager::LoadRecipe(CString strJobName, CString strExpoName, CString
 					break;
 				case EN_RECIPE_ALIGN::LAMP_TYPE: stParam.SetValue(pstAlignRecipe->lamp_type);
 					break;
+				case EN_RECIPE_ALIGN::ALIGN_MOTION: stParam.SetValue(pstAlignRecipe->align_motion);
+					break;
+
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2:
 					stParam.SetValue(pstAlignRecipe->gain_level[nCntParam - EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1]);
@@ -1411,6 +1431,10 @@ BOOL CRecipeManager::LoadAlignRecipe(CString strName, EN_RECIPE_MODE eRecipeMode
 				break;
 			case EN_RECIPE_ALIGN::ALIGN_TYPE: stParam.SetValue(pstAlignRecipe->align_type);
 				break;
+
+			case EN_RECIPE_ALIGN::ALIGN_MOTION: stParam.SetValue(pstAlignRecipe->align_motion);
+				break;
+
 			case EN_RECIPE_ALIGN::LAMP_TYPE: stParam.SetValue(pstAlignRecipe->lamp_type);
 				break;
 			case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:

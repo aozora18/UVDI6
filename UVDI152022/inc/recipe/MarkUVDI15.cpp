@@ -328,7 +328,10 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 		stTempRecipe.align_type = value;
 	});
 #ifdef USE_ALIGNMOTION
-	commandList.push([&](char* szValue) { stTempRecipe.align_motion = (UINT16)std::atoi(szValue); }); //요런식으로 구조를 바꾸면 중간에 아이템을 추가하더라도 인덱스 번호가 바뀔일이 없다. 
+	commandList.push([&](char* szValue) 
+		{ 
+			stTempRecipe.align_motion = (UINT16)std::atoi(szValue); 
+		}); //요런식으로 구조를 바꾸면 중간에 아이템을 추가하더라도 인덱스 번호가 바뀔일이 없다. 
 #endif
 	commandList.push([&](char* szValue) { stTempRecipe.lamp_type = (UINT8)std::atoi(szValue); });
 	commandList.push([&](char* szValue) { stTempRecipe.gain_level[0] = (UINT8)std::atoi(szValue); });
@@ -687,7 +690,7 @@ BOOL CMarkUVDI15::SaveAlignRecipe()
 	
 	/* 주석 입력 */
 	//fputs("; Recipe Name,Mark Type (0:Geomatrix,1:Pattern Image),Mark Count,Align Camera Number (1 or 2),Mark Model Name (Pattern File),,,\n", fp);
-	fputs(	";Recipe Name, Save Count, Mark Type (0:Geomatrix,1:Pattern Image), Align Type, Lamp Type, Gain Level[2]," 
+	fputs(	";Recipe Name, Save Count, Mark Type (0:Geomatrix,1:Pattern Image), Align Type,Align Motion, Lamp Type, Gain Level[2]," 
 			"Search Type, Search Count, mark_area_w, Align Camera Number (1 or 2),Mark Model Name (Pattern File),,,\n", fp);
 
 	pPos	= m_lstAlignRecipe.GetHeadPosition();

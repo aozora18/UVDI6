@@ -1,0 +1,5 @@
+;Recipe Name, Save Count, Mark Type (0:Geomatrix,1:Pattern Image), Align Type, Lamp Type, Gain Level[2],Search Type, Search Count, mark_area_w, Align Camera Number (1 or 2),Mark Model Name (Pattern File),,,
+Align1,2,0,4,513,1,60,60,1,1,0,0,0,C_1000_W,0,C_1000_W,
+Align2_L,2,0,17,513,1,200,200,1,1,0,0,0,C_1000_W,0,C_1000_W,
+Align3_L,2,0,33,513,1,200,200,1,1,1,1,1,C_1000_W,1,C_1000_W,
+Align2,2,0,33,513,1,250,250,1,1,1,1,1,C_1000_W,1,C_1000_W,

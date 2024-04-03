@@ -386,9 +386,12 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	m_pstCfg->set_align.mark2_stage_x			= GetConfigDouble(L"MARK2_STAGE_X");
 
 	m_pstCfg->set_align.use_Localmark_offset = GetConfigDouble(L"USE_LOCAL_MARK_OFFSET");
-	
-	m_pstCfg->set_align.distCam2Cam[0] = GetConfigDouble(L"DIST_CAM1TO3");
-	m_pstCfg->set_align.distCam2Cam[1] = GetConfigDouble(L"DIST_CAM2TO3");
+
+	const int _1to3 = 0;
+	const int _2to3 = 1;
+
+	m_pstCfg->set_align.distCam2Cam[_1to3] = GetConfigDouble(L"DIST_CAM1TO3");
+	m_pstCfg->set_align.distCam2Cam[_2to3] = GetConfigDouble(L"DIST_CAM2TO3");
 
 	for (i=1; i<=m_pstCfg->luria_svc.table_count; i++)
 	{

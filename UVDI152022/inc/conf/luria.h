@@ -2801,7 +2801,7 @@ typedef struct __st_xml_mark_x_y__
 	UINT32				tgt_id;		/* Sorting 이후에 저장된 메모리 저장 위치 (얼라인 마크 검사를 위한 순서) */
 	DOUBLE				mark_x;		/* 단위: mm */
 	DOUBLE				mark_y;		/* 단위: mm */
-
+	UINT32				reserve;    //리저브
 }	STG_XMXY,	*LPG_XMXY;
 
 typedef struct __st_mark_info__

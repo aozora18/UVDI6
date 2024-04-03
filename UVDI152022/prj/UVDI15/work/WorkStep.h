@@ -52,7 +52,7 @@ protected:
 #endif
 	/* 2개의 쌍으로 구성된 시나리오 함수 */
 	ENG_JWNS			SetTrigEnable(BOOL enable);
-	ENG_JWNS			IsTrigEnabled(BOOL enable);
+	ENG_JWNS			IsTrigEnabled(BOOL enable) { return ENG_JWNS::en_next; }
 
 	ENG_JWNS			SetMovingUnloader();
 	ENG_JWNS			IsMovedUnloader();

@@ -55,15 +55,30 @@ BOOL CWorkMarkTest::InitWork()
 	localMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
 
 	m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
-	
-
-		
-
-	/* 전체 작업 단계 */
-	m_u8StepTotal = 0x21;
 
 	return TRUE;
 }
+
+void CWorkMarkTest::DoInitStatic2cam()
+{
+	int debug = 0;
+}
+
+void CWorkMarkTest::DoInitStatic3cam()
+{
+	int debug = 0;
+}
+
+void CWorkMarkTest::DoInitOnthefly3cam()
+{
+	int debug = 0;
+}
+
+void CWorkMarkTest::DoInitOnthefly2cam()
+{
+	m_u8StepTotal = 0x21;
+}
+
 
 /*
  desc : 주기적으로 작업 수행
@@ -72,7 +87,7 @@ BOOL CWorkMarkTest::InitWork()
 */
 VOID CWorkMarkTest::DoWork()
 {
-	const int processWork = 0, checkWorkstep = 1;
+	const int Initstep = 0 , processWork = 1, checkWorkstep = 2;
 	try
 	{
 		alignCallback[alignMode][processWork]();
@@ -124,17 +139,50 @@ void CWorkMarkTest::DoAlignStatic2cam()
 
 }
 
-ENG_JWNS CWorkMarkTest::GeneratePath(ENG_AMOS mode, bool globalMark)
+void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XMXY>& path)
 {
-
 	globalMarkCnt = globalMarkCnt;
 	localMarkCnt = localMarkCnt;
 	m_u8MarkCount = m_u8MarkCount;
 
-	if(globalMarkCnt == 0 && globalMark)
-		return ENG_JWNS::en_error;
+	auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+	
+	switch (mode)
+	{
+		case ENG_AMOS::en_onthefly_2cam:
+		{
 
+		}
+		break;
 
+		case ENG_AMOS::en_onthefly_3cam:
+		{
+
+		}
+		break;
+
+		case ENG_AMOS::en_static_2cam:
+		{
+
+		}
+		break;
+
+		case ENG_AMOS::en_static_3cam:
+		{
+			STG_XMXY lookat;
+			const int centercam = 3;
+			bool res = true;
+			
+			motions.GetGerberPosUseCamPos(centercam, lookat);
+			
+			STG_XMXY current = lookat;
+
+			while (res == true)
+				if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? AlignMotion::SearchFlag::global : AlignMotion::SearchFlag::all, path, current))
+					path.push_back(current);
+		}
+		break;
+	}
 
 	//auto motions = GlobalVariables::getInstance()->GetAlignMotion().motions;
 
@@ -165,11 +213,35 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
 			case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 			case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
-			case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
-			case 0x05: m_enWorkState = GeneratePath(alignMode , true);				break;	//3캠 이동위치 경로설정
+			case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */	
+			case 0x05: 
+			{
+				grabMarkPath.clear();
+				GeneratePath(alignMode, aligntype, grabMarkPath);
+				m_enWorkState = ENG_JWNS::en_next;
+			}
+			break;	//3캠 이동위치 경로설정
 
+			case 0x06:
+			{
 
+				m_enWorkState = ENG_JWNS::en_next;
+			}
+			break;
 
+			case 0x07:
+			case 0x08:
+			case 0x09:
+			case 0x0a:
+			case 0x0b:
+			case 0x0c:
+			case 0x0d:
+			case 0x0e:
+			case 0x0f:
+			{
+				m_enWorkState = ENG_JWNS::en_next;
+			}
+			break;
 
 		}
 	}
@@ -270,7 +342,61 @@ VOID CWorkMarkTest::SetWorkNextStatic2cam()
 
 VOID CWorkMarkTest::SetWorkNextStatic3cam()
 {
+	UINT8 u8WorkTotal = m_u8StepTotal;
+	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
+	/* 매 작업 구간마다 시간 값 증가 처리 */
+	uvEng_UpdateJobWorkTime(u64JobTime);
+
+	/* 모든 작업이 종료 되었는지 여부 */
+	if (ENG_JWNS::en_error == m_enWorkState)
+	{
+		TCHAR tzMesg[128] = { NULL };
+		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
+		SaveExpoResult(0x00);
+		m_u8StepIt = 0x01;
+		m_enWorkState = ENG_JWNS::en_error;
+	}
+	else if (ENG_JWNS::en_next == m_enWorkState)
+	{
+		/* 작업률 계산 후 임시 저장 */
+		CWork::CalcStepRate();
+		/* 현재 Global Mark까지 인식 했는지 여부 */
+		if (m_u8StepIt == 0x0d)
+		{
+
+			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
+			//if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1a;
+			if (IsMarkTypeOnlyGlobal())
+				m_u8StepIt = 0x16;
+		}
+		if (m_u8StepTotal == m_u8StepIt)
+		{
+			/* 작업 완료 후 각종 필요한 정보 저장 */
+			SaveExpoResult(0x01);
+
+			if (++m_u32ExpoCount != m_stExpoLog.expo_count)
+			{
+				m_u8StepIt = 0x01;
+			}
+			else
+			{
+				m_enWorkState = ENG_JWNS::en_comp;
+				/* 항상 호출*/
+				CWork::EndWork();
+			}
+
+		}
+		else
+		{
+			/* 다음 작업 단계로 이동 */
+			m_u8StepIt++;
+		}
+		/* 가장 최근에 Waiting 한 시간 저장 */
+		m_u64DelayTime = GetTickCount64();
+	}
 }
 
 
@@ -282,7 +408,7 @@ VOID CWorkMarkTest::SetWorkNextStatic3cam()
 VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 {
 	
-	UINT8 u8WorkTotal = IsMarkTypeOnlyGlobal() ? (m_u8StepTotal) : m_u8StepTotal;
+	UINT8 u8WorkTotal = m_u8StepTotal; //IsMarkTypeOnlyGlobal() ? (m_u8StepTotal) : m_u8StepTotal;
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
 	/* 매 작업 구간마다 시간 값 증가 처리 */

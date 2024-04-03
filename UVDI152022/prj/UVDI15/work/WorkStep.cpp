@@ -136,23 +136,23 @@ ENG_JWNS CWorkStep::SetTrigEnable(BOOL enable)
  parm : enable	- [in]  TRUE: Enabled, FALSE: Disabled
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkStep::IsTrigEnabled(BOOL enable)
-{
-	/* Trigger 상태 Enable 여부 */
-	//if (enable)
-	//{
-	//	if (!IsWorkRepeat())	SetStepName(L"Is.Trig.Enabled");
-	//	return uvCmn_Mvenc_IsStrobEnable() ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
-	//}
-	///* Trigger 상태 Disable 여부 */
-	//else
-	//{
-	//	if (!IsWorkRepeat())	SetStepName(L"Is.Trig.Disabled");
-	//	return uvCmn_Mvenc_IsStrobDisable() ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
-	//}
-
-	return ENG_JWNS::en_next;
-}
+//ENG_JWNS CWorkStep::IsTrigEnabled(BOOL enable)
+//{
+//	/* Trigger 상태 Enable 여부 */
+//	//if (enable)
+//	//{
+//	//	if (!IsWorkRepeat())	SetStepName(L"Is.Trig.Enabled");
+//	//	return uvCmn_Mvenc_IsStrobEnable() ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+//	//}
+//	///* Trigger 상태 Disable 여부 */
+//	//else
+//	//{
+//	//	if (!IsWorkRepeat())	SetStepName(L"Is.Trig.Disabled");
+//	//	return uvCmn_Mvenc_IsStrobDisable() ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+//	//}
+//
+//	return ENG_JWNS::en_next;
+//}
 #if 1
 /*
  desc : 스테이지 초기 시작 위치 (Unloader)로 이동

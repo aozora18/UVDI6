@@ -480,9 +480,9 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 	}
 
 	
-	
-	GlobalVariables::getInstance()->GetAlignMotion().SetFiducial(uvEng_Luria_GetGlobalFiducial(),uvEng_Luria_GetLocalFiducial(), uvEng_GetConfig()->set_cams.acam_count);
 	GlobalVariables::getInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
+	GlobalVariables::getInstance()->GetAlignMotion().SetFiducial(uvEng_Luria_GetGlobalFiducial(),uvEng_Luria_GetLocalFiducial(), uvEng_GetConfig()->set_cams.acam_count);
+	
 
 
 

@@ -37,6 +37,9 @@
 #include "../../inc/itfe/EItfcCamera.h"
 #include "../../inc/recipe/ACamCali.h"
 #include "../../prj/ItfcLuria/JobSelectXml.h"
+#include "../../inc/conf/recipe_uvdi15.h"
+#include "../../inc/itfe/EItfcRcpUVDI15.h"
+#include "../../inc/itfe/EItfcThickCali.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -352,9 +355,9 @@ struct CaliPoint;
 
 		enum Parts
 		{
-			none = 0b00000000,
+			none =	 0b00000000,
 			camera = 0b00000001,
-			etc = 0b00000010,
+			etc =    0b00000010,
 		};
 
 		caliCalc::CaliPoint EstimateOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
@@ -409,74 +412,74 @@ struct CaliPoint;
 		/// <param name="X"></param>
 		/// <param name="Y"></param>
 		/// <returns></returns>
-		STG_XMXY GetGerberPosUsePosition(int camIndex, double camXPos, double stageX, double stageY, double& X, double& Y)
-		{
-			//역산으로 주어진 값으로 피두셜 얻어오기. 오차값이 좀 있긴한데 대략적인 값을 잘 반환하고있다. 
+		//STG_XMXY GetGerberPosUsePosition(int camIndex, double camXPos, double stageX, double stageY, double& X, double& Y)
+		//{
+		//	//역산으로 주어진 값으로 피두셜 얻어오기. 오차값이 좀 있긴한데 대략적인 값을 잘 반환하고있다. 
 
-			double tempGerberX = markParams.mark2x + (camXPos - markParams.cam1xLookatMark2) + (stageX - markParams.stageXLookatMark2WithCam1) + (camIndex == 1 ? 0 : markParams.distC2C);
-			double tempGerberY = markParams.mark2y + (stageY - markParams.stageYLookatMark2WithCam1);
+		//	double tempGerberX = markParams.mark2x + (camXPos - markParams.cam1xLookatMark2) + (stageX - markParams.stageXLookatMark2WithCam1) + (camIndex == 1 ? 0 : markParams.distC2C);
+		//	double tempGerberY = markParams.mark2y + (stageY - markParams.stageYLookatMark2WithCam1);
 
-			//각 카메라별로 설치오차 회전값 적용필
-			// ---->  calcParam.Cam1PhyTCorrectAngle, calcParam.Cam2PhyTCorrectAngle;
+		//	//각 카메라별로 설치오차 회전값 적용필
+		//	// ---->  calcParam.Cam1PhyTCorrectAngle, calcParam.Cam2PhyTCorrectAngle;
 
 
-			double thresholdVal = markParams.thresholdPixel * pstCfg->acam_spec.GetPixelToMM(camIndex); //대충 2pxl이내에서 검색이 되야한다. 
+		//	double thresholdVal = markParams.threshold * pstCfg->acam_spec.GetPixelToMM(camIndex); //대충 2pxl이내에서 검색이 되야한다. 
 
-				vector<STG_XMXY>::iterator  it = find_if(status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end(),
-				[&](const STG_XMXY& elem)
-				{
-					double distance = std::sqrt(std::pow(tempGerberX - elem.mark_x, 3) + std::pow(tempGerberY - elem.mark_y, 3));
-					return distance <= thresholdVal; //오차값이내
-				});
+		//		vector<STG_XMXY>::iterator  it = find_if(status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end(),
+		//		[&](const STG_XMXY& elem)
+		//		{
+		//			double distance = std::sqrt(std::pow(tempGerberX - elem.mark_x, 3) + std::pow(tempGerberY - elem.mark_y, 3));
+		//			return distance <= thresholdVal; //오차값이내
+		//		});
 
-			if (it != status.markList[ENG_AMTF::en_local].end())
-			{
-				X = tempGerberX;
-				Y = tempGerberY;
-			}
+		//	if (it != status.markList[ENG_AMTF::en_local].end())
+		//	{
+		//		X = tempGerberX;
+		//		Y = tempGerberY;
+		//	}
 
-			return it == status.markList[ENG_AMTF::en_local].end() ?  STG_XMXY() : *it;
-		}
+		//	return it == status.markList[ENG_AMTF::en_local].end() ?  STG_XMXY() : *it;
+		//}
 
 
 		/// <summary>
 		/// 
 		/// </summary>
-		bool GetMoveMotionOffset(int camIndex, double gerberPosX, double gerberPosY, double& stageX, double& stageY, double& camX)
-		{
-			auto AreEqual = [&](double a, double b, int precision = 4)->bool
-				{
-					double epsilon = std::pow(10, -precision);
-					return std::fabs(a - b) < epsilon;
-				};
+		//bool GetMoveMotionOffset(int camIndex, double gerberPosX, double gerberPosY, double& stageX, double& stageY, double& camX)
+		//{
+		//	auto AreEqual = [&](double a, double b, int precision = 4)->bool
+		//		{
+		//			double epsilon = std::pow(10, -precision);
+		//			return std::fabs(a - b) < epsilon;
+		//		};
 
 
-			double lookatX = 0, lookatY = 0;
-			GetCamLookatGerberPos(camIndex, lookatX, lookatY); //현재 카메라가 보고있는 거버좌표 얻어옴.
+		//	double lookatX = 0, lookatY = 0;
+		//	GetCamLookatGerberPos(camIndex, lookatX, lookatY); //현재 카메라가 보고있는 거버좌표 얻어옴.
 
-			string camStr = "x" + std::to_string(camIndex);
+		//	string camStr = "x" + std::to_string(camIndex);
 
-			double maxRange = GetCamMaxRangeXInGerber(camIndex);
-			double minRange = GetCamMinRangeXInGerber(camIndex);
+		//	double maxRange = GetCamMaxRangeXInGerber(camIndex);
+		//	double minRange = GetCamMinRangeXInGerber(camIndex);
 
-			double clamped = std::clamp(gerberPosX, minRange, maxRange);
+		//	double clamped = std::clamp(gerberPosX, minRange, maxRange);
 
-			bool inRange = AreEqual(gerberPosX, clamped); //x가 이동가능한 범위인가? y는 따로 검사하지 않는다. 
-			if (inRange == false) return false;
+		//	bool inRange = AreEqual(gerberPosX, clamped); //x가 이동가능한 범위인가? y는 따로 검사하지 않는다. 
+		//	if (inRange == false) return false;
 
-			//Refresh(); <- 이동중에 계산되야한다면 한번 호출해줘야한다. 왜냐면 1초에 한번씩 갱신이라서.
-			stageX = motions["stage"]["x"].currPos;
-			camX = motions["camera"][camStr].currPos + (gerberPosX - lookatX);
-			stageY = motions["stage"]["y"].currPos + (gerberPosY - lookatY);
+		//	//Refresh(); <- 이동중에 계산되야한다면 한번 호출해줘야한다. 왜냐면 1초에 한번씩 갱신이라서.
+		//	stageX = motions["stage"]["x"].currPos;
+		//	camX = motions["camera"][camStr].currPos + (gerberPosX - lookatX);
+		//	stageY = motions["stage"]["y"].currPos + (gerberPosY - lookatY);
 
-			return true;
+		//	return true;
 
-			/*stageX
-			stageY
-			camX*/
+		//	/*stageX
+		//	stageY
+		//	camX*/
 
 
-		}
+		//}
 
 		/// <summary>
 		/// 
@@ -488,7 +491,7 @@ struct CaliPoint;
 		/// <param name="stageY"></param>
 		/// <param name="camX"></param>
 		/// <returns></returns>
-		bool GetMoveMotionOffset(int camIndex, ENG_AMTF markType, int markIndex, double& stageX, double& stageY, double& camX)
+		/*bool GetMoveMotionOffset(int camIndex, ENG_AMTF markType, int markIndex, double& stageX, double& stageY, double& camX)
 		{
 			
 			vector<STG_XMXY>::iterator it = std::find_if(status.markList[markType].begin(),
@@ -503,7 +506,7 @@ struct CaliPoint;
 			
 
 			return GetMoveMotionOffset(camIndex, it->mark_x, it->mark_y, stageX, stageY, camX);
-		}
+		}*/
 
 		/// <summary>
 		/// 
@@ -511,70 +514,70 @@ struct CaliPoint;
 		/// <param name="camIndex"></param>
 		/// <param name="X"></param>
 		/// <param name="Y"></param>
-		void GetCamLookatGerberPos(int camIndex, double& X, double& Y)
-		{
-			double stageX = motions["stage"]["x"].currPos;
-			double stageY = motions["stage"]["y"].currPos;
+		//void GetCamLookatGerberPos(int camIndex, double& X, double& Y)
+		//{
+		//	double stageX = motions["stage"]["x"].currPos;
+		//	double stageY = motions["stage"]["y"].currPos;
 
-			string camName = "x" + std::to_string(camIndex);
+		//	string camName = "x" + std::to_string(camIndex);
 
-			double camX = motions["camera"][camName].currPos;
+		//	double camX = motions["camera"][camName].currPos;
 
-			double tempX, tempY;
-			//tempX = calcParam.mark2x + (stageX - calcParam.stageXLookatMark2WithCam1) + (camIndex == 1 ? camX - calcParam.cam1xLookatMark2 : calcParam.distC2C + camX);
-			tempX = markParams.mark2x + (camIndex == 1 ? 0 : markParams.distC2C) + (stageX - markParams.stageXLookatMark2WithCam1) + (camIndex == 1 ? camX - markParams.cam1xLookatMark2 : camX);
-			tempY = markParams.mark2y + (stageY - markParams.stageYLookatMark2WithCam1);
+		//	double tempX, tempY;
+		//	//tempX = calcParam.mark2x + (stageX - calcParam.stageXLookatMark2WithCam1) + (camIndex == 1 ? camX - calcParam.cam1xLookatMark2 : calcParam.distC2C + camX);
+		//	tempX = markParams.mark2x + (camIndex == 1 ? 0 : markParams.distC2C) + (stageX - markParams.stageXLookatMark2WithCam1) + (camIndex == 1 ? camX - markParams.cam1xLookatMark2 : camX);
+		//	tempY = markParams.mark2y + (stageY - markParams.stageYLookatMark2WithCam1);
 
-			//각 카메라별로 설치오차 회전값 적용필
-			// ---->  calcParam.Cam1PhyTCorrectAngle, calcParam.Cam2PhyTCorrectAngle;
+		//	//각 카메라별로 설치오차 회전값 적용필
+		//	// ---->  calcParam.Cam1PhyTCorrectAngle, calcParam.Cam2PhyTCorrectAngle;
 
-			X = tempX;
-			Y = tempY;
+		//	X = tempX;
+		//	Y = tempY;
 
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="camIndex"></param>
-		/// <returns></returns>
-		double GetCamMinRangeXInGerber(int camIndex)
-		{
-
-			string camName = "x" + std::to_string(camIndex);
-
-			double camX = motions["camera"][camName].currPos;
-			double minXLimCam = motions["camera"][camName].min;
-			double maxXLimCam = motions["camera"][camName].max;
-
-			double stageX = motions["stage"]["x"].currPos;
-			double minXLimStage = motions["stage"]["x"].min;
-
-			//캠이 현재 커버가능한 거버상의 X좌표 최저값
-			double temp = markParams.mark2x + (camIndex == 1 ? 0 : markParams.distC2C) - (camX - minXLimCam) + (markParams.camMoveOnly ? 0 : (stageX - minXLimStage));
-			return temp;
-		}
+		//}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="camIndex"></param>
 		/// <returns></returns>
-		double GetCamMaxRangeXInGerber(int camIndex)
-		{
-			string camName = "x" + std::to_string(camIndex);
-			double camX = motions["camera"][camName].currPos;
-			double minXLimCam = motions["camera"][camName].min;
-			double maxXLimCam = motions["camera"][camName].max;
+		//double GetCamMinRangeXInGerber(int camIndex)
+		//{
 
-			double stageX = motions["stage"]["x"].currPos;
-			double minXLimStage = motions["stage"]["x"].min;
-			double maxXLimStage = motions["stage"]["x"].max;
+		//	string camName = "x" + std::to_string(camIndex);
 
-			//캠이 현재 커버가능한 거버상의 X좌표 최대값
-			double temp = markParams.mark2x + (camIndex == 2 ? markParams.cam1xLookatMark2 + markParams.distC2C : 0) + (maxXLimCam - camX) + (markParams.camMoveOnly ? 0 : (maxXLimStage - stageX));
-			return temp;
-		}
+		//	double camX = motions["camera"][camName].currPos;
+		//	double minXLimCam = motions["camera"][camName].min;
+		//	double maxXLimCam = motions["camera"][camName].max;
+
+		//	double stageX = motions["stage"]["x"].currPos;
+		//	double minXLimStage = motions["stage"]["x"].min;
+
+		//	//캠이 현재 커버가능한 거버상의 X좌표 최저값
+		//	double temp = markParams.mark2x + (camIndex == 1 ? 0 : markParams.distC2C) - (camX - minXLimCam) + (markParams.camMoveOnly ? 0 : (stageX - minXLimStage));
+		//	return temp;
+		//}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="camIndex"></param>
+		/// <returns></returns>
+		//double GetCamMaxRangeXInGerber(int camIndex)
+		//{
+		//	string camName = "x" + std::to_string(camIndex);
+		//	double camX = motions["camera"][camName].currPos;
+		//	double minXLimCam = motions["camera"][camName].min;
+		//	double maxXLimCam = motions["camera"][camName].max;
+
+		//	double stageX = motions["stage"]["x"].currPos;
+		//	double minXLimStage = motions["stage"]["x"].min;
+		//	double maxXLimStage = motions["stage"]["x"].max;
+
+		//	//캠이 현재 커버가능한 거버상의 X좌표 최대값
+		//	double temp = markParams.mark2x + (camIndex == 2 ? markParams.cam1xLookatMark2 + markParams.distC2C : 0) + (maxXLimCam - camX) + (markParams.camMoveOnly ? 0 : (maxXLimStage - stageX));
+		//	return temp;
+		//}
 
 		//////////////////////////////////////////////////////////
 
@@ -608,24 +611,126 @@ struct CaliPoint;
 		void LoadCaliData(LPG_CIEA cfg)
 		{
 			caliCalcInst.LoadCaliData(cfg);
-			
+		}
+		
+		enum SearchFlag
+		{
+			global,
+			local,
+			all,
+		};
+
+		bool GetNearFid(STG_XMXY currentPos, SearchFlag flag,vector<STG_XMXY> skipList, STG_XMXY& findFid)
+		{
+			std::vector<STG_XMXY> temp = (flag == SearchFlag::global ? status.markList[ENG_AMTF::en_global] :
+								          flag == SearchFlag::local ? status.markList[ENG_AMTF::en_local] : vector<STG_XMXY>());
+				
+			if (flag == SearchFlag::all)
+			{
+				temp.insert(temp.end(), status.markList[ENG_AMTF::en_global].begin(), status.markList[ENG_AMTF::en_global].end());
+				temp.insert(temp.end(), status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end());
+			}
+
+			for (const auto& item : skipList) 
+			{
+				auto it = std::find_if(temp.begin(), temp.end(), [&](const STG_XMXY& c) { return c.org_id == item.org_id && c.org_id == item.org_id && c.org_id == item.org_id; });
+				if (it != temp.end()) 
+					temp.erase(it);
+			}
+
+			auto FindNear = [&](vector<STG_XMXY> posList, STG_XMXY pos) -> int
+			{
+				double minDist = std::numeric_limits<double>::max();
+				int idx = -1;
+
+				for (int i=0;i<posList.size();i++) 
+				{
+					int dx = posList[i].mark_x - pos.mark_x;
+					int dy = posList[i].mark_y - pos.mark_y;
+
+					double dist = std::sqrt(dx * dx + dy * dy);
+					if (dist < minDist)
+					{
+						minDist = dist; idx = i;
+					}
+				}
+				return idx;
+			};
+
+			if (auto findIdx = FindNear(temp, currentPos) != -1)
+			{
+				findFid = temp[findIdx];
+				return true;
+			} 
+			return false;
 		}
 
+		bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point)
+		{
+			const int _1to3 = 0;
+			const int _3to2 = 1;
+
+			double mark2Xgab = (markParams.currGerbermark2x - markParams.caliGerbermark2x);
+			double mark2Ygab = (markParams.currGerbermark2y - markParams.caliGerbermark2y);
+
+			double stageXgab = (motions["stage"]["x"].currPos - markParams.mark2StageX);
+			double stageYgab = (motions["stage"]["y"].currPos - markParams.mark2cam1Y);
+
+			double camPos[] = {motions["camera"]["x1"].currPos ,motions["camera"]["x2"].currPos};
+
+			double camOffset = camNum == 1 ? camPos[0] - markParams.mark2Cam1X :
+							camNum == 2 ? (markParams.distCam2cam[_1to3] - camPos[0]) + (markParams.distCam2cam[_3to2] + camPos[0]) :
+							camNum == 3 ? markParams.distCam2cam[0] - camPos[0] : 0;
+
+		
+			//역산시작
+			double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camOffset;
+			double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab;
+
+			point.mark_x = tempGerberX;
+			point.mark_y = tempGerberY;
+			return true;
+
+
+			////역산으로 주어진 값으로 피두셜 얻어오기. 오차값이 좀 있긴한데 대략적인 값을 잘 반환하고있다. 
+
+			//double tempGerberX = markParams.mark2x + (camXPos - markParams.cam1xLookatMark2) + (stageX - markParams.stageXLookatMark2WithCam1) + (camIndex == 1 ? 0 : markParams.distC2C);
+			//double tempGerberY = markParams.mark2y + (stageY - markParams.stageYLookatMark2WithCam1);
+
+			////각 카메라별로 설치오차 회전값 적용필
+			//// ---->  calcParam.Cam1PhyTCorrectAngle, calcParam.Cam2PhyTCorrectAngle;
+
+
+			//double thresholdVal = markParams.threshold * pstCfg->acam_spec.GetPixelToMM(camIndex); //대충 2pxl이내에서 검색이 되야한다. 
+
+			//	vector<STG_XMXY>::iterator  it = find_if(status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end(),
+			//	[&](const STG_XMXY& elem)
+			//	{
+			//		double distance = std::sqrt(std::pow(tempGerberX - elem.mark_x, 3) + std::pow(tempGerberY - elem.mark_y, 3));
+			//		return distance <= thresholdVal; //오차값이내
+			//	});
+
+			//if (it != status.markList[ENG_AMTF::en_local].end())
+			//{
+			//	X = tempGerberX;
+			//	Y = tempGerberY;
+			//}
+
+			//return it == status.markList[ENG_AMTF::en_local].end() ?  STG_XMXY() : *it;
+		}
 
 		public:
-			struct Params //<주>테스트를 위해 오차를 감안하고 상수사용 스테이지 고치는동안은 요거 사용해야되...
+			struct Params 
 			{
-				double distC2C = 401.09992f;
-				
-				const double distXcam3WhenCam1MaxX = 202.7822;
-
-				const double stageXLookatMark2WithCam1 = 242.9995f;
-				const double stageYLookatMark2WithCam1 = 751.7946f;
-				const double cam1xLookatMark2 = 242.9995f;
-				double mark2x = 0, mark2y = 0;
-				double Cam1PhyTCorrectAngle = 0, Cam2PhyTCorrectAngle = 0;
-				bool camMoveOnly = true;
-				int thresholdPixel = 10;
+				double currGerbermark2x = 0, currGerbermark2y = 0;
+				double caliGerbermark2x = 0, caliGerbermark2y = 0;
+				int threshold = 10;
+				double mark2StageX=0;
+				double mark2cam1Y = 0;
+				double mark2cam2Y = 0;
+				double mark2Cam1X = 0;
+				double mark2Cam2X = 0;
+				double distCam2cam[2] = { 0, };
 			};
 
 			struct Status
@@ -751,6 +856,39 @@ struct CaliPoint;
 			return pool[currentCnt - 1].tgt_id *= isGlobal ? -1 : 1;
 		}
 
+
+		void UpdateParamValues()
+		{
+			LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
+			if (job == nullptr) return;
+
+			LPG_MACP thick = uvEng_ThickCali_GetRecipe(job->cali_thick);
+			if (thick == nullptr) return;
+			
+			//double mark2x = 0, mark2y = 0;
+			//int threshold = 10;
+			//double mark2StageX = 0;
+			//double mark2StaegY = 0;
+			//double mark2Cam1X = 0;
+			//double mark2Cam2X = 0;
+			//double distCam2cam[2] = { 0, };
+			
+			const int _1to3 = 0;
+			const int _2to3 = 1;
+			markParams.distCam2cam[_1to3] = pstCfg->set_align.distCam2Cam[_1to3];
+			markParams.distCam2cam[_2to3] = pstCfg->set_align.distCam2Cam[_2to3];
+			markParams.mark2StageX = pstCfg->set_align.table_unloader_xy[0][0];
+			
+			markParams.caliGerbermark2x = pstCfg->set_align.mark2_org_gerb_xy[0];
+			markParams.caliGerbermark2y = pstCfg->set_align.mark2_org_gerb_xy[1];
+
+			markParams.mark2cam1Y = thick->mark2_stage_y[0];
+			markParams.mark2cam2Y = thick->mark2_stage_y[0];
+			//markParams.mark2StageY = thick->mark2_stage_y[1];
+			markParams.mark2Cam1X = thick->mark2_acam_x[0];
+			markParams.mark2Cam2X = thick->mark2_acam_x[1];
+		}
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -760,20 +898,26 @@ struct CaliPoint;
 		void SetFiducial(CFiducialData* globalFiducial, CFiducialData* localFiducial, int acamCount)
 		{
 			status.BufferClear();
-			
+			UpdateParamValues();
+
 			STG_XMXY temp;
 
 			acamCount = 2;
 
+			const UINT32 GLOBAL_FLAG = 0b00000000000000000000000000000001;
+			const UINT32 LOCAL_FLAG  = 0b00000000000000000000000000000010;
+
 			for (int i = 0; i < globalFiducial->GetCount(); i++)
 				if (globalFiducial->GetMark(i, temp))
 				{
+					temp.reserve = GLOBAL_FLAG;
 					status.markList[ENG_AMTF::en_global].push_back(temp);
-
+					status.markList[ENG_AMTF::en_mixed].push_back(temp);
+					
 					if (temp.tgt_id == 1)
 					{
-						markParams.mark2x = temp.mark_x;
-						markParams.mark2y = temp.mark_y;
+						markParams.currGerbermark2x = temp.mark_x; //현재 읽은 거버에서의 mark2
+						markParams.currGerbermark2y = temp.mark_y;
 					}
 					
 					status.markPoolForCamGlobal[(i/ acamCount)+1].push_back(temp);
@@ -782,7 +926,9 @@ struct CaliPoint;
 			for (int i = 0; i < localFiducial->GetCount(); i++)
 				if (localFiducial->GetMark(i, temp))
 				{
+					temp.reserve = LOCAL_FLAG;
 					status.markList[ENG_AMTF::en_local].push_back(temp);
+					status.markList[ENG_AMTF::en_mixed].push_back(temp);
 				}
 
 			int tempX = 0, tempY = 0;

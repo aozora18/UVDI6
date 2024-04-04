@@ -1394,6 +1394,10 @@ API_IMPORT BOOL uvCmn_Luria_IsConnected();
  retn : Error Code 값
 */
 API_IMPORT UINT16 uvCmn_Luria_GetLastErrorStatus();
+
+
+API_IMPORT LPG_LDSM uvCmn_Luria_GetShMem();
+
 /*
  desc : 가장 최근에 발생된 에러 코드에 대한 메시지 출력
  parm : mesg	- [in]  Return buffer

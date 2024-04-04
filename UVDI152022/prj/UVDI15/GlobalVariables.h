@@ -665,6 +665,28 @@ struct CaliPoint;
 			return false;
 		}
 
+
+		bool MovetoGerberPos(int camNum, STG_XMXY tgtPos)
+		{
+			Refresh();
+			//캠1,2은 캠과 스테이지가 동시에 
+			//캠3은 스테이지만 
+			//자. 단순하다. 
+			//현재 캠이 보고있는 거버내 좌표위치와 가야할 거버위치의 차를 이용해 이동해야할 총량을 구한다. 
+			STG_XMXY gbrPos;
+			GetGerberPosUseCamPos(camNum, gbrPos);
+
+			int dx = gbrPos.mark_x - tgtPos.mark_x;
+			int dy = gbrPos.mark_y - tgtPos.mark_y;
+
+			//pstCfg->
+			//가급적 스테이지를 먼저 움직이고
+
+			//스테이지를 움직일수가 없다면 카메라축을 움직인다. 
+			
+		}
+
+
 		bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point)
 		{
 			const int _1to3 = 0;
@@ -731,6 +753,8 @@ struct CaliPoint;
 				double mark2Cam1X = 0;
 				double mark2Cam2X = 0;
 				double distCam2cam[2] = { 0, };
+				vector<tuple<ENG_MMDI, double, double>> axisLimit;
+
 			};
 
 			struct Status
@@ -887,6 +911,23 @@ struct CaliPoint;
 			//markParams.mark2StageY = thick->mark2_stage_y[1];
 			markParams.mark2Cam1X = thick->mark2_acam_x[0];
 			markParams.mark2Cam2X = thick->mark2_acam_x[1];
+
+
+
+			
+			auto person = std::make_tuple("John", 30);
+
+			// 요소에 이름 지정
+			auto [name, age] = person;
+
+			vector<tuple<ENG_MMDI, double, double>> axisLimit =
+			{
+				{ENG_MMDI::en_stage_x,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_stage_x],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_stage_x]},
+				{ENG_MMDI::en_stage_y,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_stage_y],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_stage_y]},
+				{ENG_MMDI::en_align_cam1,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_align_cam1],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_align_cam1]},
+				{ENG_MMDI::en_align_cam2,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_align_cam2],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_align_cam2]},
+			};
+
 		}
 
 		/// <summary>

@@ -44,19 +44,19 @@ public:
 									}},
 		{ENG_AMOS::en_onthefly_3cam,
 									{
-										[&]() {DoInitOnthefly2cam(); },
+										[&]() {DoInitOnthefly3cam(); },
 										[&]() {DoAlignOnthefly3cam(); },
 										[&]() {SetWorkNextOnthefly3cam(); }
 									}},
 		{ENG_AMOS::en_static_2cam,
 									{
-										[&]() {DoInitOnthefly2cam(); },
+										[&]() {DoInitStatic2cam(); },
 										[&]() {DoAlignStatic2cam(); },
 										[&]() {SetWorkNextStatic2cam(); }
 									}},
 		{ENG_AMOS::en_static_3cam,
 									{
-										[&]() {DoAlignOnthefly2cam(); },
+										[&]() {DoInitStatic3cam(); },
 										[&]() {DoAlignStatic3cam(); },
 										[&]() {SetWorkNextStatic3cam(); }
 									}},

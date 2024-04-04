@@ -2643,6 +2643,11 @@ API_EXPORT UINT16 uvCmn_Luria_GetLastErrorStatus()
 	return GetShMemLuria()->link.u16_error_code;
 }
 
+API_EXPORT LPG_LDSM uvCmn_Luria_GetShMem()
+{
+	return GetShMemLuria();
+}
+
 /*
  desc : 가장 최근에 발생된 에러 코드에 대한 메시지 출력
  parm : mesg	- [in]  Return buffer

@@ -345,10 +345,8 @@ VOID CWorkMarkTest::SetWorkNextStatic3cam()
 	UINT8 u8WorkTotal = m_u8StepTotal;
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
-	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
 
-	/* 모든 작업이 종료 되었는지 여부 */
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
 		TCHAR tzMesg[128] = { NULL };
@@ -361,20 +359,9 @@ VOID CWorkMarkTest::SetWorkNextStatic3cam()
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
-		/* 작업률 계산 후 임시 저장 */
 		CWork::CalcStepRate();
-		/* 현재 Global Mark까지 인식 했는지 여부 */
-		if (m_u8StepIt == 0x0d)
-		{
-
-			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
-			//if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1a;
-			if (IsMarkTypeOnlyGlobal())
-				m_u8StepIt = 0x16;
-		}
 		if (m_u8StepTotal == m_u8StepIt)
 		{
-			/* 작업 완료 후 각종 필요한 정보 저장 */
 			SaveExpoResult(0x01);
 
 			if (++m_u32ExpoCount != m_stExpoLog.expo_count)
@@ -384,17 +371,13 @@ VOID CWorkMarkTest::SetWorkNextStatic3cam()
 			else
 			{
 				m_enWorkState = ENG_JWNS::en_comp;
-				/* 항상 호출*/
 				CWork::EndWork();
 			}
-
 		}
 		else
 		{
-			/* 다음 작업 단계로 이동 */
 			m_u8StepIt++;
 		}
-		/* 가장 최근에 Waiting 한 시간 저장 */
 		m_u64DelayTime = GetTickCount64();
 	}
 }

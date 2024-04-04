@@ -825,6 +825,11 @@ INT32 CDirectPhComn::SetRecvLedPower(UINT8 ph_no, PUINT8 data)
 		return (0x00000005);
 	}
 	
+	swprintf_s(tzMesg, 96, L"LED (%d) illumination value set received from PH (%d) = %d step",
+		u16LedNo, ph_no, u16Power);
+
+	LOG_MESG(ENG_EDIC::en_luria, tzMesg);
+
 	/* LED On or Off 값 설정 */
 	m_pstShMemDP->light_source_driver_amplitude[ph_no-1][u16LedNo]	= u16Power;
 

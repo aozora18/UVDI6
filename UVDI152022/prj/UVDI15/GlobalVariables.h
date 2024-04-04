@@ -40,6 +40,8 @@
 #include "../../inc/itfe/EItfcRcpUVDI15.h"
 #include "../../inc/itfe/EItfcThickCali.h"
 #include "../../inc/itfc/ItfcUVDI15.h"
+#include "param/InterLockManager.h"
+
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -657,7 +659,8 @@ struct CaliPoint;
 				return idx;
 			};
 
-			if (auto findIdx = FindNear(temp, currentPos) != -1)
+			auto findIdx = FindNear(temp, currentPos);
+			if (findIdx != -1)
 			{
 				findFid = temp[findIdx];
 				return true;
@@ -689,9 +692,6 @@ struct CaliPoint;
 			return false;
 		}
 
-		
-
-
 		bool MovetoGerberPos(int camNum, STG_XMXY tgtPos)
 		{
 			if (NowOnMoving())
@@ -703,16 +703,49 @@ struct CaliPoint;
 			//자. 단순하다. 
 			//현재 캠이 보고있는 거버내 좌표위치와 가야할 거버위치의 차를 이용해 이동해야할 총량을 구한다. 
 			STG_XMXY gbrPos;
+
 			GetGerberPosUseCamPos(camNum, gbrPos);
 
-			int dx = gbrPos.mark_x - tgtPos.mark_x;
-			int dy = gbrPos.mark_y - tgtPos.mark_y;
+			int dx = tgtPos.mark_x - gbrPos.mark_x;
+			int dy = tgtPos.mark_y - gbrPos.mark_y;
+
+			dx = motions["stage"]["x"].currPos + dx;
+			dy = motions["stage"]["y"].currPos + dy;
+
+			if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, dx) ||
+				CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dy))
+				return false;
+			
+
+			uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
+			uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+
+			ENG_MMDI vecAxis;
+			if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
+				dx,dy,uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)],vecAxis))
+			{
+				return false;
+			}
+
+			bool arrived = false;
+
+			while (arrived == false)
+			{
+				//arrived = isArrive("stage", "x", dx) == true && isArrive("stage", "y", dy) == true;
+				if (ENG_MMDI::en_axis_none == vecAxis ||
+					uvCmn_MC2_IsDrvDoneToggled(vecAxis))
+				{
+					arrived = true;
+				}
+
+				Sleep(100);
+			}
 
 			//pstCfg->
 			//가급적 스테이지를 먼저 움직이고
 
 			//스테이지를 움직일수가 없다면 카메라축을 움직인다. 
-			
+			return arrived;
 		}
 
 
@@ -1168,7 +1201,7 @@ struct CaliPoint;
 			ThreadManager::getInstance().waitForAllThreads();
 		}
 
-		bool Waiter(string key, std::function<bool()> func, std::function<void()> callback, std::function<void()> timeoutCallback = nullptr, int timeoutDelay = 3000)
+		bool Waiter(string key, std::function<bool()> func, std::function<void()> callback=nullptr, std::function<void()> timeoutCallback = nullptr, int timeoutDelay = 3000)
 		{
 			if (IsKeyExist(waiter, key) == true)
 			{
@@ -1193,7 +1226,7 @@ struct CaliPoint;
 					}
 
 					if (condition)
-						callback();
+						if(callback != nullptr)callback();
 					else
 						if (timeoutCallback != nullptr)
 							timeoutCallback();

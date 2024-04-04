@@ -206,6 +206,9 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 //스테틱 3캠
 void CWorkMarkTest::DoAlignStatic3cam()
 {
+
+	auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+
 	try
 	{
 		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
@@ -227,22 +230,36 @@ void CWorkMarkTest::DoAlignStatic3cam()
 				if (grabMarkPath.size() == 0)
 					m_enWorkState = ENG_JWNS::en_error;
 
-				auto motions = GlobalVariables::getInstance()->GetAlignMotion();
-				
-				bool onError = false;
-				while (onError == false)
+				bool onError = false; bool complete = false;
+				while (onError == false && complete == false)
 				{
+					if (motions.NowOnMoving() == true)
+					{
+						Sleep(100);
+						continue;
+					}
+
 					auto first = grabMarkPath.begin();
-					onError = motions.MovetoGerberPos(3, *first);
-					if (onError == false)
+					auto arrival = motions.MovetoGerberPos(3, *first);
+					if (arrival == true)
 					{
 						///그랩치기.
+						Sleep(3000);
+					}
+					else
+					{
+						onError = true;
 					}
 					grabMarkPath.erase(first);
+					if (grabMarkPath.size() == 0)
+					{
+						complete = true;
+						m_enWorkState = ENG_JWNS::en_next;
+					}
+
 				}
 
-				if (grabMarkPath.size() == 0)
-					int debug = 0;
+				
 			}
 			break;
 

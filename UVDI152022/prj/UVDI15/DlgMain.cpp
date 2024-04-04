@@ -681,30 +681,30 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	/// <summary>
 	/// PHILHMI 요청
 	/// </summary>
-	case ePHILHMI_C2P_RECIPE_CREATE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_CREATE:
 		CRecvPhil::GetInstance()->PhilSendCreateRecipe(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_RECIPE_DELETE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_DELETE:
 		CRecvPhil::GetInstance()->PhilSendDelectRecipe(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_RECIPE_MODIFY:
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_MODIFY:
 		CRecvPhil::GetInstance()->PhilSendModifyRecipe(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_RECIPE_SELECT:
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_SELECT:
 		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil, this, m_bMainBusy);
 	break;
 
-	case ePHILHMI_C2P_RECIPE_LIST:
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST:
 		CRecvPhil::GetInstance()->PhilSendListRecipe(pstPhil);
 		break;
-	case ePHILHMI_C2P_RECIPE_INFORMATION:
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_INFORMATION:
 		CRecvPhil::GetInstance()->PhilSendInfoRecipe(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_ABS_MOVE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE:
 		/*Recv 정상 수신 확인*/
 		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
@@ -715,11 +715,11 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		}
 		break;
 
-	case ePHILHMI_C2P_ABS_MOVE_COMPLETE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE_COMPLETE:
 		PhilSendMoveComplete(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_REL_MOVE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE:
 		/*Recv 정상 수신 확인*/
 		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
@@ -730,11 +730,11 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		}
 		break;
 
-	case ePHILHMI_C2P_REL_MOVE_COMPLETE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE_COMPLETE:
 		PhilSendMoveComplete(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_CHAR_MOVE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE:
 		/*Recv 정상 수신 확인*/
 		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
@@ -746,42 +746,42 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 
-	case ePHILHMI_C2P_CHAR_MOVE_COMPLETE	 :
+	case (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE_COMPLETE	 :
 		PhilSendMoveComplete(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_PROCESS_EXECUTE		 :
+	case (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE		 :
 		CRecvPhil::GetInstance()->PhilSendProcessExecute(pstPhil, this, m_bMainBusy);
 		break; 
 
-	case ePHILHMI_C2P_SUB_PROCESS_EXECUTE	 :
+	case (int)ENG_PHPC::ePHILHMI_C2P_SUB_PROCESS_EXECUTE	 :
 		PhilSendSubProcessExecute(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_STATUS_VALUE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_STATUS_VALUE:
 		CRecvPhil::GetInstance()->PhilSendStatusValue(pstPhil); 
 		break;
 
-	case ePHILHMI_C2P_MODE_CHANGE			 :
+	case (int)ENG_PHPC::ePHILHMI_C2P_MODE_CHANGE			 :
 		CRecvPhil::GetInstance()->PhilSendChageMode(pstPhil, this);
 		//PhilSendChageMode(pstPhil);
 		break;
-	case ePHILHMI_C2P_INITIAL_EXECUTE:
+	case (int)ENG_PHPC::ePHILHMI_C2P_INITIAL_EXECUTE:
 		CRecvPhil::GetInstance()->PhilSendInitialExecute(pstPhil, this, m_bMainBusy);
 		break;
-	case ePHILHMI_C2P_EVENT_STATUS:
+	case (int)ENG_PHPC::ePHILHMI_C2P_EVENT_STATUS:
 		PhilSendEventStatus(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_EVENT_NOTIFY:
+	case (int)ENG_PHPC::ePHILHMI_C2P_EVENT_NOTIFY:
 		PhilSendEventNotify(pstPhil);
 		break;
 
-	case ePHILHMI_C2P_TIME_SYNC:
+	case (int)ENG_PHPC::ePHILHMI_C2P_TIME_SYNC:
 		CRecvPhil::GetInstance()->PhilSendTimeSync(pstPhil, this);
 		break;
 
-	case ePHILHMI_C2P_INTERRUPT_STOP:
+	case (int)ENG_PHPC::ePHILHMI_C2P_INTERRUPT_STOP:
 		CRecvPhil::GetInstance()->PhilSendInterruptStop(pstPhil, this);
 		break;
 
@@ -1952,7 +1952,7 @@ BOOL CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 	}
 
 	/*ABS 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
-	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE)
+	if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE)
 	{
 		STG_PP_C2P_ABS_MOVE_ACK stAbsAck;
 		stAbsAck.Reset();
@@ -1962,7 +1962,7 @@ BOOL CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 		uvEng_Philhmi_Send_C2P_ABS_MOVE_ACK(stAbsAck);
 	}
 	/*REL 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
-	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE)
+	else if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE)
 	{
 		STG_PP_C2P_REL_MOVE_ACK stRelAck;
 		stRelAck.Reset();
@@ -1972,7 +1972,7 @@ BOOL CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 		uvEng_Philhmi_Send_C2P_REL_MOVE_ACK(stRelAck);
 	}
 	/*CHAR 이동 동작 신호가 정상 수신 되었다는 확인 신호*/
-	else if (g_u16PhilCommand == ePHILHMI_C2P_CHAR_MOVE)
+	else if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE)
 	{
 		STG_PP_C2P_CHAR_MOVE_ACK stCharAck;
 		stCharAck.Reset();
@@ -2000,7 +2000,7 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 
 	/*이동 동작 실행*/
 	g_u16PhilCommand = stRecv->st_header.nCommand;
-	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE)
+	if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE)
 	{
 		/*Axis 이름*/
 		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_abs_move.stMove[AxisCount].szAxisName));
@@ -2026,7 +2026,7 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 		m_stPhilStatus.move_dist = dTargetPos;
 	}
 	//else if (mode == en_menu_phil_move_rel)
-	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE)
+	else if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE)
 	{
 		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rel_move.stMove[AxisCount].szAxisName));
 		dTargetPos = stRecv->st_c2p_rel_move.stMove[AxisCount].dPosition;
@@ -2056,7 +2056,7 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 		m_stPhilStatus.move_dist = dTargetPos;
 	}
 
-	else if (g_u16PhilCommand == ePHILHMI_C2P_CHAR_MOVE)
+	else if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE)
 	{
 		//EFEM_POS
 		strAxis.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szAxisName));
@@ -2207,7 +2207,7 @@ VOID CDlgMain::PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv)
 	g_u16PhilCommand = stRecv->st_header.nCommand;
 
 	/*ABS 이동 완료 동작 신호*/
-	if (g_u16PhilCommand == ePHILHMI_C2P_ABS_MOVE_COMPLETE)
+	if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE_COMPLETE)
 	{
 		STG_PP_C2P_ABS_MOVE_COMP_ACK stAbsComplete;
 		stAbsComplete.Reset();
@@ -2217,7 +2217,7 @@ VOID CDlgMain::PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv)
 		uvEng_Philhmi_Send_C2P_ABS_MOVE_COMP_ACK(stAbsComplete);
 	}
 	/*REL 이동 완료 동작 신호*/
-	else if (g_u16PhilCommand == ePHILHMI_C2P_REL_MOVE_COMPLETE)
+	else if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE_COMPLETE)
 	{
 		STG_PP_C2P_REL_MOVE_COMP_ACK stRelComplete;
 		stRelComplete.Reset();
@@ -2226,7 +2226,7 @@ VOID CDlgMain::PhilSendMoveComplete(STG_PP_PACKET_RECV* stRecv)
 
 		uvEng_Philhmi_Send_C2P_REL_MOVE_COMP_ACK(stRelComplete);
 	}
-	else if (g_u16PhilCommand == ePHILHMI_C2P_CHAR_MOVE_COMPLETE)
+	else if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE_COMPLETE)
 	{
 		STG_PP_C2P_CHAR_MOVE_COMP_ACK stCharComplete;
 		stCharComplete.Reset();

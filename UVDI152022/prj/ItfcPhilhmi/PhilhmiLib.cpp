@@ -25,26 +25,26 @@ CPhilhmiLib::CPhilhmiLib()
 	m_u64RecvTime = GetTickCount64();
 	m_u64SendTime = GetTickCount64();
 
-	m_vReplyMsg.push_back(ePHILHMI_P2C_RECIPE_CREATE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_RECIPE_DELETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_RECIPE_MODIFY);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_RECIPE_SELECT);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_IO_STATUS);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_OUTPUT_ONOFF);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_ABS_MOVE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_ABS_MOVE_COMPLETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_REL_MOVE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_REL_MOVE_COMPLETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_CHAR_MOVE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_CHAR_MOVE_COMPLETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_PROCESS_STEP);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_PROCESS_COMPLETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_SUB_PROCESS_COMPLETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_EC_MODIFY);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_INITIAL_COMPLETE);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_ALARM_OCCUR);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_EVENT_NOTIFY);
-	m_vReplyMsg.push_back(ePHILHMI_P2C_INTERRUPT_STOP);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_RECIPE_CREATE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_RECIPE_DELETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_RECIPE_MODIFY);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_RECIPE_SELECT);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_IO_STATUS);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_OUTPUT_ONOFF);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_ABS_MOVE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_ABS_MOVE_COMPLETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_REL_MOVE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_REL_MOVE_COMPLETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_CHAR_MOVE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_CHAR_MOVE_COMPLETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_PROCESS_STEP);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_PROCESS_COMPLETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_SUB_PROCESS_COMPLETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_EC_MODIFY);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_INITIAL_COMPLETE);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_ALARM_OCCUR);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_EVENT_NOTIFY);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_INTERRUPT_STOP);
 
 	for (int i = 0; i < (int)m_vReplyMsg.size(); i++)
 	{

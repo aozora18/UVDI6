@@ -321,19 +321,17 @@ void CDlgCalbUVPower::OnBnClickedCalbUvpowerBtnSubmenuPowerShow()
 
 		if (shmem == nullptr) return;
 		for (int ph = 0; ph < cfg->luria_svc.ph_count; ph++)
-			for (int led = 0; led < cfg->luria_svc.led_count; led++)
-			{
-				CString temp;
-				temp.Format(_T("ph%d , led %d"), ph+1,led+1);
-				stParam.Init();
-				stParam.strName = temp;
-				stParam.strValue = CStringA(std::to_string(stepMap[ph][led]).c_str());
-				stParam.strUnit = _T("step");
-				stParam.enFormat = ENM_DITM::en_int16;
-				stParam.u8DecPts = 1;
-				stVctParam.push_back(stParam);
-
-			}
+		{
+			CString temp;
+			temp.Format(_T("ph%d , led 1-4"), ph + 1);
+			stParam.Init();
+			stParam.strName = temp;
+			temp.Format(_T("%d, %d, %d, %d"), stepMap[ph][0], stepMap[ph][1], stepMap[ph][2], stepMap[ph][3]);
+			stParam.strValue = temp;
+			stParam.strUnit = _T("step");
+			stParam.enFormat = ENM_DITM::en_none;
+			stVctParam.push_back(stParam);
+		}
 
 		dlg.MyDoModal(stVctParam);
 	};

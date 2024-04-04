@@ -37,12 +37,12 @@ extern "C"
 		return uvStrobeLamp_IsConnected();
 	}
 
-	API_EXPORT int uvEng_StrobeLamp_Send_ChannelDelayControl(const uint8_t page, const uint8_t channel, const uint8_t delayValue, int nTimeout/* = 10000*/)
+	API_EXPORT int uvEng_StrobeLamp_Send_ChannelDelayControl(const uint8_t page, const uint8_t channel, const uint16_t delayValue, int nTimeout/* = 10000*/)
 	{
 		return uvStrobeLamp_Send_ChannelDelayControl(page, channel, delayValue, nTimeout);
 	}
 
-	API_EXPORT int uvEng_StrobeLamp_Send_ChannelStrobeControl(const uint8_t page, const uint8_t channel, const uint8_t strobeValue, int nTimeout /*= 10000*/)
+	API_EXPORT int uvEng_StrobeLamp_Send_ChannelStrobeControl(const uint8_t page, const uint8_t channel, const uint16_t strobeValue, int nTimeout /*= 10000*/)
 	{
 		return uvStrobeLamp_Send_ChannelStrobeControl(page, channel, strobeValue, nTimeout);
 	}
@@ -52,7 +52,7 @@ extern "C"
 		return uvStrobeLamp_Send_ChannelWrite(page, channel, delayValue, strobeValue, nTimeout);
 	}
 
-	API_EXPORT int uvEng_StrobeLamp_Send_PageDataWrite(const uint8_t page, const uint8_t channelCount, const uint16_t* delayValues, const uint16_t* strobeValues, int nTimeout /*= 10000*/)
+	API_EXPORT int uvEng_StrobeLamp_Send_PageDataWrite(const uint8_t page, const uint8_t channelCount, const uint16_t* delayValues, const uint16_t* strobeValues, const uint8_t* strobeLowValues, int nTimeout /*= 10000*/)
 	{
 		return uvStrobeLamp_Send_PageDataWrite(page, channelCount, delayValues, strobeValues, nTimeout);
 	}

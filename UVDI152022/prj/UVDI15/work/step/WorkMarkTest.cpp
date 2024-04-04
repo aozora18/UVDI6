@@ -224,8 +224,25 @@ void CWorkMarkTest::DoAlignStatic3cam()
 
 			case 0x06:
 			{
+				if (grabMarkPath.size() == 0)
+					m_enWorkState = ENG_JWNS::en_error;
 
-				m_enWorkState = ENG_JWNS::en_next;
+				auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+				
+				bool onError = false;
+				while (onError == false)
+				{
+					auto first = grabMarkPath.begin();
+					onError = motions.MovetoGerberPos(3, *first);
+					if (onError == false)
+					{
+						///±×·¦Ä¡±â.
+					}
+					grabMarkPath.erase(first);
+				}
+
+				if (grabMarkPath.size() == 0)
+					int debug = 0;
 			}
 			break;
 

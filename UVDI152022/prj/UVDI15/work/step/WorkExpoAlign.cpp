@@ -295,7 +295,7 @@ VOID CWorkExpoAlign::SetWorkNext()
 
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
 				//if (g_u8Romote == en_menu_phil_mode_auto)
-				if(g_u16PhilCommand== ePHILHMI_C2P_PROCESS_EXECUTE)
+				if(g_u16PhilCommand== (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
@@ -303,7 +303,7 @@ VOID CWorkExpoAlign::SetWorkNext()
 			else
 			{
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				if (g_u16PhilCommand == ePHILHMI_C2P_PROCESS_EXECUTE)
+				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}

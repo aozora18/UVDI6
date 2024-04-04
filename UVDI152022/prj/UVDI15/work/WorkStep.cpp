@@ -948,6 +948,7 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
  º¯¼ö :	None
  retn : wait, error, complete or next
 */
+
 ENG_JWNS CWorkStep::IsAlignMovedInit()
 {
 	if (!IsWorkRepeat())	SetStepName(L"Is.Align.Moved.Init");

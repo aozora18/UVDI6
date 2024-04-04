@@ -37,7 +37,7 @@
 /* --------------------------------------------------------------------------------------------- */
 
 /* Packet Command */
-enum __en_philhmi_packet_command__
+typedef enum class __en_philhmi_packet_command__ : UINT16
 {
 ePHILHMI_C2P_RECIPE_CREATE			= 101,	
 	ePHILHMI_C2P_RECIPE_DELETE				,	
@@ -202,7 +202,7 @@ typedef struct __st_phil_packet_cp2_recipe_information__ : public __st_phil_pack
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_INFORMATION;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_INFORMATION;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -219,7 +219,7 @@ typedef struct __st_phil_packet_cp2_recipe_information_ack__ : public __st_phil_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_INFORMATION;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_INFORMATION;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -244,7 +244,7 @@ typedef struct __st_phil_packet_c2p_recipe_list__ : public __st_phil_packet_head
 
 	void Reset()
 	{
-		nCommand	= ePHILHMI_C2P_RECIPE_LIST;
+		nCommand	= (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST;
 		ulDataLen	= sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID	= 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -256,7 +256,7 @@ typedef struct __st_phil_packet_c2p_recipe_list_ack__ : public __st_phil_packet_
 {
 	void Reset()
 	{
-		nCommand		= ePHILHMI_C2P_RECIPE_LIST;
+		nCommand		= (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST;
 		ulDataLen		= sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID		= 0;
 		usErrorCode		= ePHILHMI_ERR_OK;
@@ -280,7 +280,7 @@ typedef struct __st_phil_packet_c2p_recipe_select__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand	= ePHILHMI_C2P_RECIPE_SELECT;
+		nCommand	= (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_SELECT;
 		ulDataLen	= sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID	= 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -296,7 +296,7 @@ typedef struct __st_phil_packet_c2p_recipe_select_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_SELECT;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_SELECT;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -308,7 +308,7 @@ typedef struct __st_phil_packet_p2c_recipe_select__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_SELECT;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_SELECT;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -324,7 +324,7 @@ typedef struct __st_phil_packet_p2c_recipe_select_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_SELECT;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_SELECT;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -339,7 +339,7 @@ typedef struct __st_phil_packet_c2p_recipe_create__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_CREATE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_CREATE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -359,7 +359,7 @@ typedef struct __st_phil_packet_c2p_recipe_create_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_CREATE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_CREATE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -371,7 +371,7 @@ typedef struct __st_phil_packet_p2c_recipe_create__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_CREATE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_CREATE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -391,7 +391,7 @@ typedef struct __st_phil_packet_p2c_recipe_create_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_CREATE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_CREATE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -406,7 +406,7 @@ typedef struct __st_phil_packet_c2p_recipe_delete__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_DELETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_DELETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -422,7 +422,7 @@ typedef struct __st_phil_packet_c2p_recipe_delete_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_DELETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_DELETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -434,7 +434,7 @@ typedef struct __st_phil_packet_p2c_recipe_delete__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_DELETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_DELETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -450,7 +450,7 @@ typedef struct __st_phil_packet_p2c_recipe_delete_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_DELETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_DELETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -463,7 +463,7 @@ typedef struct __st_phil_packet_c2p_recipe_modify__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand	= ePHILHMI_C2P_RECIPE_MODIFY;
+		nCommand	= (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_MODIFY;
 		ulDataLen	= sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID	= 0;
 		usErrorCode	= ePHILHMI_ERR_OK;
@@ -483,7 +483,7 @@ typedef struct __st_phil_packet_c2p_recipe_modify_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_RECIPE_MODIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_MODIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -495,7 +495,7 @@ typedef struct __st_phil_packet_p2c_recipe_modify__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_MODIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_MODIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -515,7 +515,7 @@ typedef struct __st_phil_packet_p2c_recipe_modify_ack__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_RECIPE_MODIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_RECIPE_MODIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -530,7 +530,7 @@ typedef struct __st_phil_packet_p2c_io_status__ : public __st_phil_packet_header
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_IO_STATUS;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_IO_STATUS;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -542,7 +542,7 @@ typedef struct __st_phil_packet_p2c_io_status_ack__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_IO_STATUS;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_IO_STATUS;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -567,7 +567,7 @@ typedef struct __st_phil_packet_p2c_output_onoff__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_OUTPUT_ONOFF;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_OUTPUT_ONOFF;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -585,7 +585,7 @@ typedef struct __st_phil_packet_p2c_output_onoff_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_OUTPUT_ONOFF;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_OUTPUT_ONOFF;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -627,7 +627,7 @@ typedef struct __st_phil_packet_c2p_abs_move__ : public __st_phil_packet_header_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_ABS_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -645,7 +645,7 @@ typedef struct __st_phil_packet_c2p_abs_move_ack__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_ABS_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -656,7 +656,7 @@ typedef struct __st_phil_packet_c2p_abs_move_complete__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_ABS_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -669,7 +669,7 @@ typedef struct __st_phil_packet_c2p_abs_move_complete_ack__ : public __st_phil_p
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_ABS_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -681,7 +681,7 @@ typedef struct __st_phil_packet_p2c_abs_move__ : public __st_phil_packet_header_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_ABS_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_ABS_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -699,7 +699,7 @@ typedef struct __st_phil_packet_p2c_abs_move_ack__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_ABS_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_ABS_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -711,7 +711,7 @@ typedef struct __st_phil_packet_p2c_abs_move_complete__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_ABS_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_ABS_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -724,7 +724,7 @@ typedef struct __st_phil_packet_p2c_abs_move_complete_ack__ : public __st_phil_p
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_ABS_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_ABS_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -739,7 +739,7 @@ typedef struct __st_phil_packet_c2p_rel_move__ : public __st_phil_packet_header_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_REL_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -757,7 +757,7 @@ typedef struct __st_phil_packet_c2p_rel_move_ack__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_REL_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -769,7 +769,7 @@ typedef struct __st_phil_packet_c2p_rel_move_complete__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_REL_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -782,7 +782,7 @@ typedef struct __st_phil_packet_c2p_rel_move_complete_ack__ : public __st_phil_p
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_REL_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -794,7 +794,7 @@ typedef struct __st_phil_packet_p2c_rel_move__ : public __st_phil_packet_header_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_REL_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_REL_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -812,7 +812,7 @@ typedef struct __st_phil_packet_p2c_rel_move_ack__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_REL_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_REL_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -824,7 +824,7 @@ typedef struct __st_phil_packet_p2c_rel_move_complete__ : public __st_phil_packe
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_REL_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_REL_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -837,7 +837,7 @@ typedef struct __st_phil_packet_p2c_rel_move_complete_ack__ : public __st_phil_p
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_REL_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_REL_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -852,7 +852,7 @@ typedef struct __st_phil_packet_c2p_char_move__ : public __st_phil_packet_header
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_CHAR_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -870,7 +870,7 @@ typedef struct __st_phil_packet_c2p_char_move_ack__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_CHAR_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -882,7 +882,7 @@ typedef struct __st_phil_packet_c2p_char_move_complete__ : public __st_phil_pack
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_CHAR_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -895,7 +895,7 @@ typedef struct __st_phil_packet_c2p_char_move_complete_ack__ : public __st_phil_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_CHAR_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -907,7 +907,7 @@ typedef struct __st_phil_packet_p2c_char_move__ : public __st_phil_packet_header
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_CHAR_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_CHAR_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -925,7 +925,7 @@ typedef struct __st_phil_packet_p2c_char_move_ack__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_CHAR_MOVE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_CHAR_MOVE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -937,7 +937,7 @@ typedef struct __st_phil_packet_p2c_char_move_complete__ : public __st_phil_pack
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_CHAR_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_CHAR_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -950,7 +950,7 @@ typedef struct __st_phil_packet_p2c_char_move_complete_ack__ : public __st_phil_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_CHAR_MOVE_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_CHAR_MOVE_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -965,7 +965,7 @@ typedef struct __st_phil_packet_c2p_process_execute__ : public __st_phil_packet_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_PROCESS_EXECUTE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -983,7 +983,7 @@ typedef struct __st_phil_packet_c2p_process_execute_ack__ : public __st_phil_pac
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_PROCESS_EXECUTE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1001,7 +1001,7 @@ typedef struct __st_phil_packet_p2c_process_complete__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_PROCESS_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_PROCESS_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1025,7 +1025,7 @@ typedef struct __st_phil_packet_p2c_process_complete_ack__ : public __st_phil_pa
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_PROCESS_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_PROCESS_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1046,7 +1046,7 @@ typedef struct __st_phil_packet_c2p_subprocess_execute__ : public __st_phil_pack
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_SUB_PROCESS_EXECUTE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_SUB_PROCESS_EXECUTE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1062,7 +1062,7 @@ typedef struct __st_phil_packet_c2p_subprocess_execute_ack__ : public __st_phil_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_SUB_PROCESS_EXECUTE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_SUB_PROCESS_EXECUTE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1078,7 +1078,7 @@ typedef struct __st_phil_packet_p2c_subprocess_complete__ : public __st_phil_pac
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_SUB_PROCESS_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_SUB_PROCESS_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1095,7 +1095,7 @@ typedef struct __st_phil_packet_p2c_subprocess_complete_ack__ : public __st_phil
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_SUB_PROCESS_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_SUB_PROCESS_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1114,7 +1114,7 @@ typedef struct __st_phil_packet_p2c_process_step__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_PROCESS_STEP;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_PROCESS_STEP;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1132,7 +1132,7 @@ typedef struct __st_phil_packet_p2c_process_step_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_PROCESS_STEP;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_PROCESS_STEP;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1158,7 +1158,7 @@ typedef struct __st_phil_packet_c2p_mode_change__ : public __st_phil_packet_head
 
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_MODE_CHANGE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_MODE_CHANGE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1181,7 +1181,7 @@ typedef struct __st_phil_packet_c2p_mode_change_ack__ : public __st_phil_packet_
 
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_MODE_CHANGE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_MODE_CHANGE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1200,7 +1200,7 @@ typedef struct __st_phil_packet_c2p_initial_execute__ : public __st_phil_packet_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_INITIAL_EXECUTE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_INITIAL_EXECUTE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1212,7 +1212,7 @@ typedef struct __st_phil_packet_c2p_c2p_initial_execute_ack__ : public __st_phil
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_INITIAL_EXECUTE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_INITIAL_EXECUTE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1228,7 +1228,7 @@ typedef struct __st_phil_packet_c2p_event_status__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_EVENT_STATUS;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_EVENT_STATUS;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1244,7 +1244,7 @@ typedef struct __st_phil_packet_c2p_event_status_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_EVENT_STATUS;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_EVENT_STATUS;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1259,7 +1259,7 @@ typedef struct __st_phil_packet_p2c_event_status__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_EVENT_STATUS;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_EVENT_STATUS;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1275,7 +1275,7 @@ typedef struct __st_phil_packet_p2c_event_status_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_EVENT_STATUS;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_EVENT_STATUS;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1293,7 +1293,7 @@ typedef struct __st_phil_packet_c2p_event_notify__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_EVENT_NOTIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_EVENT_NOTIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1310,7 +1310,7 @@ typedef struct __st_phil_packet_c2p_event_notify_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_EVENT_NOTIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_EVENT_NOTIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1322,7 +1322,7 @@ typedef struct __st_phil_packet_p2c_event_notify__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_EVENT_NOTIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_EVENT_NOTIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1339,7 +1339,7 @@ typedef struct __st_phil_packet_p2c_event_notify_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_EVENT_NOTIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_EVENT_NOTIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1354,7 +1354,7 @@ typedef struct __st_phil_packet_c2p_time_sync__ : public __st_phil_packet_header
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_TIME_SYNC;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_TIME_SYNC;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1371,7 +1371,7 @@ typedef struct __st_phil_packet_c2p_time_sync_ack__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_TIME_SYNC;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_TIME_SYNC;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1386,7 +1386,7 @@ typedef struct __st_phil_packet_c2p_interrupt_stop__ : public __st_phil_packet_h
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_INTERRUPT_STOP;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_INTERRUPT_STOP;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1398,7 +1398,7 @@ typedef struct __st_phil_packet_c2p_interrupt_stop_ack__ : public __st_phil_pack
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_INTERRUPT_STOP;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_INTERRUPT_STOP;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1410,7 +1410,7 @@ typedef struct __st_phil_packet_p2c_interrupt_stop__ : public __st_phil_packet_h
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_INTERRUPT_STOP;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_INTERRUPT_STOP;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1422,7 +1422,7 @@ typedef struct __st_phil_packet_p2c_interrupt_stop_ack__ : public __st_phil_pack
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_INTERRUPT_STOP;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_INTERRUPT_STOP;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1437,7 +1437,7 @@ typedef struct __st_phil_packet_c2p_status_value__ : public __st_phil_packet_hea
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_STATUS_VALUE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_STATUS_VALUE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1448,7 +1448,7 @@ typedef struct __st_phil_packet_c2p_status_value_ack__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_C2P_STATUS_VALUE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_STATUS_VALUE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1469,7 +1469,7 @@ typedef struct __st_phil_packet_p2c_ec_modify__ : public __st_phil_packet_header
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_EC_MODIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_EC_MODIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1487,7 +1487,7 @@ typedef struct __st_phil_packet_p2c_ec_modify_ack__ : public __st_phil_packet_he
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_EC_MODIFY;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_EC_MODIFY;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1502,7 +1502,7 @@ typedef struct __st_phil_packet_p2c_initial_complete__ : public __st_phil_packet
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_INITIAL_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_INITIAL_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1514,7 +1514,7 @@ typedef struct __st_phil_packet_p2c_initial_complete_ack__ : public __st_phil_pa
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_INITIAL_COMPLETE;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_INITIAL_COMPLETE;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1529,7 +1529,7 @@ typedef struct __st_phil_packet_p2c_alarm_occur__ : public __st_phil_packet_head
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_ALARM_OCCUR;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_ALARM_OCCUR;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
@@ -1541,7 +1541,7 @@ typedef struct __st_phil_packet_p2c_alarm_occur_ack__ : public __st_phil_packet_
 {
 	void Reset()
 	{
-		nCommand = ePHILHMI_P2C_ALARM_OCCUR;
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_ALARM_OCCUR;
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;

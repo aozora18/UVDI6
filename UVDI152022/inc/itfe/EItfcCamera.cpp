@@ -1122,7 +1122,7 @@ API_EXPORT CDPoint uvCmn_Camera_trZoomPoint(int fi_iDispType, int cam_id, CPoint
 	return uvBasler_trZoomPoint(fi_iDispType, cam_id, fi_point);
 }
 API_EXPORT BOOL uvEng_Camera_SetModelDefine_tot(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
-	LPG_CMPV model, UINT32 fi_No, TCHAR* file,
+	LPG_CMPV model, UINT8 fi_No, TCHAR* file,
 	DOUBLE scale_min, DOUBLE scale_max,
 	DOUBLE score_min, DOUBLE score_tgt)
 {

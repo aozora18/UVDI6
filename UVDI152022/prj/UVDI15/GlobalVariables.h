@@ -1,8 +1,6 @@
 ﻿#pragma once
 //이하는 전부 인라인 클래스임.
 
-
-
 #include <iostream>
 #include <filesystem>
 #include <chrono>
@@ -30,6 +28,7 @@
 
 //아이고.... 뭐가 계속 추가되네...
 #include <filesystem>
+
 #include "../../inc/conf/conf_uvdi15.h"
 #include "../../inc/conf/conf_comn.h"
 #include "../../inc/conf/luria.h"
@@ -40,6 +39,7 @@
 #include "../../inc/conf/recipe_uvdi15.h"
 #include "../../inc/itfe/EItfcRcpUVDI15.h"
 #include "../../inc/itfe/EItfcThickCali.h"
+#include "../../inc/itfc/ItfcUVDI15.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -469,7 +469,7 @@ struct CaliPoint;
 
 		//	//Refresh(); <- 이동중에 계산되야한다면 한번 호출해줘야한다. 왜냐면 1초에 한번씩 갱신이라서.
 		//	stageX = motions["stage"]["x"].currPos;
-		//	camX = motions["camera"][camStr].currPos + (gerberPosX - lookatX);
+		//	camX = motions["cam"][camStr].currPos + (gerberPosX - lookatX);
 		//	stageY = motions["stage"]["y"].currPos + (gerberPosY - lookatY);
 
 		//	return true;
@@ -521,7 +521,7 @@ struct CaliPoint;
 
 		//	string camName = "x" + std::to_string(camIndex);
 
-		//	double camX = motions["camera"][camName].currPos;
+		//	double camX = motions["cam"][camName].currPos;
 
 		//	double tempX, tempY;
 		//	//tempX = calcParam.mark2x + (stageX - calcParam.stageXLookatMark2WithCam1) + (camIndex == 1 ? camX - calcParam.cam1xLookatMark2 : calcParam.distC2C + camX);
@@ -546,9 +546,9 @@ struct CaliPoint;
 
 		//	string camName = "x" + std::to_string(camIndex);
 
-		//	double camX = motions["camera"][camName].currPos;
-		//	double minXLimCam = motions["camera"][camName].min;
-		//	double maxXLimCam = motions["camera"][camName].max;
+		//	double camX = motions["cam"][camName].currPos;
+		//	double minXLimCam = motions["cam"][camName].min;
+		//	double maxXLimCam = motions["cam"][camName].max;
 
 		//	double stageX = motions["stage"]["x"].currPos;
 		//	double minXLimStage = motions["stage"]["x"].min;
@@ -566,9 +566,9 @@ struct CaliPoint;
 		//double GetCamMaxRangeXInGerber(int camIndex)
 		//{
 		//	string camName = "x" + std::to_string(camIndex);
-		//	double camX = motions["camera"][camName].currPos;
-		//	double minXLimCam = motions["camera"][camName].min;
-		//	double maxXLimCam = motions["camera"][camName].max;
+		//	double camX = motions["cam"][camName].currPos;
+		//	double minXLimCam = motions["cam"][camName].min;
+		//	double maxXLimCam = motions["cam"][camName].max;
 
 		//	double stageX = motions["stage"]["x"].currPos;
 		//	double minXLimStage = motions["stage"]["x"].min;
@@ -665,9 +665,38 @@ struct CaliPoint;
 			return false;
 		}
 
+		bool isArrive(string drive,string axis ,double dest,  float threshold = 0.001)
+		{
+			return abs(motions[drive][axis].currPos - dest) < threshold;
+		}
+
+		bool NowOnMoving()
+		{
+			
+			if (pstCfg->IsRunDemo()) return false;
+
+			LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
+
+			if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
+				pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
+				!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
+				!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
+				!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
+				!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
+			{
+				return true;
+			}
+			return false;
+		}
+
+		
+
 
 		bool MovetoGerberPos(int camNum, STG_XMXY tgtPos)
 		{
+			if (NowOnMoving())
+				return false;
+
 			Refresh();
 			//캠1,2은 캠과 스테이지가 동시에 
 			//캠3은 스테이지만 
@@ -698,7 +727,7 @@ struct CaliPoint;
 			double stageXgab = (motions["stage"]["x"].currPos - markParams.mark2StageX);
 			double stageYgab = (motions["stage"]["y"].currPos - markParams.mark2cam1Y);
 
-			double camPos[] = {motions["camera"]["x1"].currPos ,motions["camera"]["x2"].currPos};
+			double camPos[] = {motions["cam"]["x1"].currPos ,motions["cam"]["x2"].currPos};
 
 			double camOffset = camNum == 1 ? camPos[0] - markParams.mark2Cam1X :
 							camNum == 2 ? (markParams.distCam2cam[_1to3] - camPos[0]) + (markParams.distCam2cam[_3to2] + camPos[0]) :
@@ -889,14 +918,6 @@ struct CaliPoint;
 			LPG_MACP thick = uvEng_ThickCali_GetRecipe(job->cali_thick);
 			if (thick == nullptr) return;
 			
-			//double mark2x = 0, mark2y = 0;
-			//int threshold = 10;
-			//double mark2StageX = 0;
-			//double mark2StaegY = 0;
-			//double mark2Cam1X = 0;
-			//double mark2Cam2X = 0;
-			//double distCam2cam[2] = { 0, };
-			
 			const int _1to3 = 0;
 			const int _2to3 = 1;
 			markParams.distCam2cam[_1to3] = pstCfg->set_align.distCam2Cam[_1to3];
@@ -911,22 +932,6 @@ struct CaliPoint;
 			//markParams.mark2StageY = thick->mark2_stage_y[1];
 			markParams.mark2Cam1X = thick->mark2_acam_x[0];
 			markParams.mark2Cam2X = thick->mark2_acam_x[1];
-
-
-
-			
-			auto person = std::make_tuple("John", 30);
-
-			// 요소에 이름 지정
-			auto [name, age] = person;
-
-			vector<tuple<ENG_MMDI, double, double>> axisLimit =
-			{
-				{ENG_MMDI::en_stage_x,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_stage_x],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_stage_x]},
-				{ENG_MMDI::en_stage_y,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_stage_y],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_stage_y]},
-				{ENG_MMDI::en_align_cam1,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_align_cam1],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_align_cam1]},
-				{ENG_MMDI::en_align_cam2,pstCfg->mc2_svc.min_dist[(UINT8)ENG_MMDI::en_align_cam2],pstCfg->mc2_svc.max_dist[(UINT8)ENG_MMDI::en_align_cam2]},
-			};
 
 		}
 
@@ -1033,13 +1038,13 @@ struct CaliPoint;
 				[&]()->double {return (double)uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y); },
 				[&]()->BOOL {return uvCmn_MC2_IsDriveError(ENG_MMDI::en_stage_y); });
 
-			motions["camera"]["x1"] = Axis("x1", MovingDir::X, (int)Parts::camera,
+			motions["cam"]["x1"] = Axis("x1", MovingDir::X, (int)Parts::camera,
 				(double)pstCfg->mc2_svc.min_dist[UINT8(ENG_MMDI::en_align_cam1)],
 				(double)pstCfg->mc2_svc.max_dist[UINT8(ENG_MMDI::en_align_cam1)],
 				[&]()->double {return (double)uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1); },
 				[&]()->BOOL {return uvCmn_MC2_IsDriveError(ENG_MMDI::en_align_cam1); });
 
-			motions["camera"]["x2"] = Axis("x2", MovingDir::X, (int)Parts::camera,
+			motions["cam"]["x2"] = Axis("x2", MovingDir::X, (int)Parts::camera,
 				(double)pstCfg->mc2_svc.min_dist[UINT8(ENG_MMDI::en_align_cam2)],
 				(double)pstCfg->mc2_svc.max_dist[UINT8(ENG_MMDI::en_align_cam2)],
 				[&]()->double {return (double)uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam2); },

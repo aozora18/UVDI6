@@ -2,10 +2,17 @@
 //
 
 #include "pch.h"
+
 #include "DlgCalbUVPower.h"
+
 #include "./uvpower/DlgCalbUVPowerMeasure.h"
 #include "./uvpower/DlgCalbUVPowerCheck.h"
 #include "afxdialogex.h"
+#include "../../../../inc/conf/luria.h"
+#include "../../../../inc/conf/conf_uvdi15.h"
+
+#include <string>
+#include <map>
 
 
 /*
@@ -43,6 +50,8 @@ VOID CDlgCalbUVPower::DoDataExchange(CDataExchange* dx)
 	u32StartID = IDC_CALB_UVPOWER_BTN_SUBMENU_POWER_MEASURE;
 	for (i = 0; i < eCALB_UVPOWER_BTN_MAX; i++)		DDX_Control(dx, u32StartID + i, m_btn_ctl[i]);
 
+	
+
 	/* static - picture */
 	u32StartID = IDC_CALB_UVPOWER_PIC_MENU;
 	for (i = 0; i < eCALB_UVPOWER_PIC_MAX; i++)		DDX_Control(dx, u32StartID + i, m_pic_ctl[i]);
@@ -51,6 +60,7 @@ VOID CDlgCalbUVPower::DoDataExchange(CDataExchange* dx)
 BEGIN_MESSAGE_MAP(CDlgCalbUVPower, CDlgSubMenu)
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_CALB_UVPOWER_BTN_SUBMENU_POWER_MEASURE, IDC_CALB_UVPOWER_BTN_SUBMENU_POWER_CHECK, OnBtnClick)
 	ON_WM_TIMER()
+	ON_BN_CLICKED(IDC_CALB_UVPOWER_BTN_SUBMENU_POWER_SHOW, &CDlgCalbUVPower::OnBnClickedCalbUvpowerBtnSubmenuPowerShow)
 END_MESSAGE_MAP()
 
 /*
@@ -199,7 +209,8 @@ VOID CDlgCalbUVPower::InitCtrl()
 */
 BOOL CDlgCalbUVPower::InitObject()
 {
-
+	
+	
 	return TRUE;
 }
 
@@ -277,4 +288,55 @@ void CDlgCalbUVPower::OnTimer(UINT_PTR nIDEvent)
 	}
 
 	CDlgSubMenu::OnTimer(nIDEvent);
+}
+
+
+
+void CDlgCalbUVPower::OnBnClickedCalbUvpowerBtnSubmenuPowerShow()
+{
+	auto uiWorks = [&]()
+	{
+		CDlgParam dlg;
+		DLG_PARAM stParam;
+		VCT_DLG_PARAM stVctParam;
+		LPG_CIEA cfg = uvEng_GetConfig();
+		LPG_LDSM shmem = uvCmn_Luria_GetShMem();
+
+		for (int ph = 0; ph < cfg->luria_svc.ph_count; ph++)
+			for (int led = 0; led < cfg->luria_svc.led_count; led++)
+				stepMap[ph][led] = shmem->directph.light_source_driver_amplitude[ph][led];
+
+		for (int led = 0; led < cfg->luria_svc.led_count; led++)
+		{
+			int sum = 0;
+			for (int ph = 0; ph < cfg->luria_svc.ph_count; ph++)
+			{
+				sum += stepMap[ph][led];
+			}
+			if(sum == 0 && GetTickCount() > ampvalueCallTick + 3000)
+				uvEng_Luria_ReqGetLedPowerLedAll((ENG_LLPI)((int)ENG_LLPI::en_365nm + led));
+		}
+
+		ampvalueCallTick = GetTickCount();
+
+		if (shmem == nullptr) return;
+		for (int ph = 0; ph < cfg->luria_svc.ph_count; ph++)
+			for (int led = 0; led < cfg->luria_svc.led_count; led++)
+			{
+				CString temp;
+				temp.Format(_T("ph%d , led %d"), ph+1,led+1);
+				stParam.Init();
+				stParam.strName = temp;
+				stParam.strValue = CStringA(std::to_string(stepMap[ph][led]).c_str());
+				stParam.strUnit = _T("step");
+				stParam.enFormat = ENM_DITM::en_int16;
+				stParam.u8DecPts = 1;
+				stVctParam.push_back(stParam);
+
+			}
+
+		dlg.MyDoModal(stVctParam);
+	};
+
+	uiWorks();
 }

@@ -1213,7 +1213,9 @@ BOOL CPowerMeasureMgr::PowerMeasure(HWND hHwnd/* = NULL*/)
 			}
 			else
 			{
-				uvEng_Luria_ReqSetLightIntensity(m_u8Head, ENG_LLPI(m_u8Led), m_stVctMeasureTable[i].u16Index);
+				if (uvEng_Luria_ReqSetLightIntensity(m_u8Head, ENG_LLPI(m_u8Led), m_stVctMeasureTable[i].u16Index))
+					uvEng_Luria_ReqGetLedPower(m_u8Head, ENG_LLPI(m_u8Led));
+
 			}
 
 			Wait(1000);

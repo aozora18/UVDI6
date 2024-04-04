@@ -1,11 +1,13 @@
 ﻿#pragma once
 #include "../DlgSubMenu.h"
 #include "../DlgSubTab.h"
-
+#include "../../pops/DlgParam.h"
+#include <map>
 enum EnCalbUVPowerBtn
 {
 	eCALB_UVPOWER_BTN_MEASURE,
 	eCALB_UVPOWER_BTN_CHECK,
+	eCALB_UVPOWER_BTN_SHOWSTEP,
 	eCALB_UVPOWER_BTN_MAX,
 };
 
@@ -37,6 +39,8 @@ enum EnHead
 class CDlgCalbUVPower : public CDlgSubMenu
 {
 public:
+	std::map<int, std::map<int, int>> stepMap;
+	int ampvalueCallTick = 0;
 
 	/* 생성자 / 파괴자 */
 	CDlgCalbUVPower(UINT32 id, CWnd* parent = NULL);
@@ -91,4 +95,5 @@ protected:
 	afx_msg VOID		OnBtnClick(UINT32 id);
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnBnClickedCalbUvpowerBtnSubmenuPowerShow();
 };

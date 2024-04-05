@@ -37,6 +37,7 @@ CWorkMarkMove::~CWorkMarkMove()
 {
 }
 
+
 /*
  desc : 초기 작업 수행
  parm : None
@@ -47,13 +48,12 @@ BOOL CWorkMarkMove::InitWork()
 	/* 내부 멤버 변수 값 초기화 */
 	if (!CWork::InitWork())	return FALSE;
 
-	/* 전체 작업 단계 */
-	m_u8StepTotal	= 0x09;
+	LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
+	SetAlignMode((ENG_AMOS)alignRecipe->align_motion, (ENG_ATGL)alignRecipe->align_type);
+
 
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 	
-	
-
 	return TRUE;
 }
 
@@ -64,7 +64,21 @@ BOOL CWorkMarkMove::InitWork()
 */
 VOID CWorkMarkMove::DoWork()
 {
-	/* 작업 단계 별로 동작 처리 */
+	const int Initstep = 0, processWork = 1, checkWorkstep = 2;
+	try
+	{
+		markMoveCallback[alignMode][processWork]();
+		markMoveCallback[alignMode][checkWorkstep]();
+		CheckWorkTimeout();
+	}
+	catch (const std::exception&){}
+}
+
+/// <summary>
+///							진행.
+/// </summary>
+void CWorkMarkMove::DoMovingOnthefly2cam()
+{
 	switch (m_u8StepIt)
 	{
 	case 0x01 : 
@@ -83,11 +97,116 @@ VOID CWorkMarkMove::DoWork()
 	case 0x08 : m_enWorkState = SetMovingAlignMark();		break;
 	case 0x09 : m_enWorkState = IsMovedAlignMark();			break;
 	}
+	
+	/* 다음 작업 진행 여부 판단 */
+	CWork::SetWorkNext();
+	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
+	CheckWorkTimeout();
+}
+
+void CWorkMarkMove::DoMovingOnthefly3cam()
+{
+
+}
+
+void CWorkMarkMove::DoMovingStatic2cam()
+{
+
+}
+
+void CWorkMarkMove::DoMovingStatic3cam()
+{
+	/* 작업 단계 별로 동작 처리 */
+	
+	auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+
+	switch (m_u8StepIt)
+	{
+	case 0x01:
+	{
+
+		m_enWorkState = IsSetTrigPosResetAll();
+		uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);/* Grab Mode 설정 */
+	}
+	break;
+	case 0x02: m_enWorkState = IsMotorDriveStopAll();		break;
+	case 0x03: m_enWorkState = SetTrigEnable(FALSE);		break;
+	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);		break;
+	case 0x05: m_enWorkState = IsLoadedGerberCheck();		break;
+	case 0x06:
+	{
+
+		STG_XMXY markPos;
+		uvEng_Luria_GetGlobalMark(m_u8MarkNo - 1, &markPos);
+		auto arrival = motions.MovetoGerberPos(3, markPos);
+
+		if (arrival == true)
+			m_enWorkState = ENG_JWNS::en_next;
+	}
+	break;
+
+	case 0x07:
+		m_enWorkState = ENG_JWNS::en_next;
+	break;
+	}
 
 	/* 다음 작업 진행 여부 판단 */
 	CWork::SetWorkNext();
 	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
 	CheckWorkTimeout();
+}
+
+
+/// <summary>
+///							스텝관리
+/// </summary>
+void CWorkMarkMove::SetWorkNextOnthefly2cam()
+{
+
+}
+
+void CWorkMarkMove::SetWorkNextOnthefly3cam()
+{
+
+}
+
+void CWorkMarkMove::SetWorkNextStatic3cam()
+{
+
+}
+
+void CWorkMarkMove::SetWorkNextStatic2cam()
+{
+
+}
+
+
+
+/// <summary>
+///							초기화
+/// </summary>
+void CWorkMarkMove::DoInitStatic2cam()
+{
+
+}
+
+void CWorkMarkMove::DoInitStatic3cam()
+{
+	/* 전체 작업 단계 */
+	m_u8StepTotal = 0x07;
+}
+
+void CWorkMarkMove::DoInitOnthefly3cam()
+{
+	
+}
+
+void CWorkMarkMove::DoInitOnthefly2cam()
+{
+	
+	m_u8StepTotal = 0x09;
+	
+
 }
 
 /*
@@ -155,8 +274,8 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 
 	AlignMotion& alignMotion = GlobalVariables::getInstance()->GetAlignMotion();
 
-	auto stageX =  alignMotion.GetMotion()["stage"]["x"].currPos;
-	auto exti =  alignMotion.EstimateOffset(1, dbPosStageY, stageX, dbPosACamX);
+	auto stageX =  alignMotion.GetAxises()["stage"]["x"].currPos;
+	//auto exti =  alignMotion.EstimateOffset(1, dbPosStageY, stageX, dbPosACamX);
 
 	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dbPosStageY))
 	{

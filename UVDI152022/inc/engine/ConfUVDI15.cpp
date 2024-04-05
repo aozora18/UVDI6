@@ -389,9 +389,12 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 
 	const int _1to3 = 0;
 	const int _2to3 = 1;
+	const int _1to3_Y_OFFSET = 2;
 
 	m_pstCfg->set_align.distCam2Cam[_1to3] = GetConfigDouble(L"DIST_CAM1TO3");
 	m_pstCfg->set_align.distCam2Cam[_2to3] = GetConfigDouble(L"DIST_CAM2TO3");
+	m_pstCfg->set_align.distCam2Cam[_1to3_Y_OFFSET] = GetConfigDouble(L"RELATE_Y_CAM1TO3");
+	
 
 	for (i=1; i<=m_pstCfg->luria_svc.table_count; i++)
 	{
@@ -446,13 +449,9 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 	SetConfigDouble(L"MARK2_ORG_GERB_Y",		m_pstCfg->set_align.mark2_org_gerb_xy[1],	4);
 	SetConfigDouble(L"MARK2_STAGE_X",			m_pstCfg->set_align.mark2_stage_x,			4);
 
-	
-
-
 	SetConfigDouble(L"DIST_CAM1TO3", m_pstCfg->set_align.distCam2Cam[0], 4);
 	SetConfigDouble(L"DIST_CAM2TO3", m_pstCfg->set_align.distCam2Cam[1], 4);
-
-	
+	SetConfigDouble(L"RELATE_Y_CAM1TO3", m_pstCfg->set_align.distCam2Cam[2], 4);
 
 	for (i=1; i<=m_pstCfg->luria_svc.table_count; i++)
 	{

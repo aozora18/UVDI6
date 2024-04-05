@@ -793,8 +793,14 @@ BOOL CPowerMeasureMgr::PhotoLedOnOff(UINT8 u8Head, UINT8 u8Led, UINT16 u16PwrInd
 
 	if (bOn == TRUE)
 	{
-		if (FALSE == uvEng_Luria_ReqSetLightIntensity(u8Head, ENG_LLPI(u8Led), u16PwrIndex))	return FALSE;
-		if (FALSE == uvEng_Luria_ReqSetLightPulseDuration(u8Head, LIGHT_PULSE_DURATION))		return FALSE;
+		auto res = uvEng_Luria_ReqSetLightIntensity(u8Head, ENG_LLPI(u8Led), u16PwrIndex);
+		if (res)
+		{
+			uvEng_Luria_ReqGetLedPower(u8Head, ENG_LLPI(u8Led));
+			res = uvEng_Luria_ReqSetLightPulseDuration(u8Head, LIGHT_PULSE_DURATION);
+			if (res == false) return FALSE;
+		}
+		
 	}
 	
 	//이미지 적재
@@ -1210,26 +1216,17 @@ BOOL CPowerMeasureMgr::PowerMeasure(HWND hHwnd/* = NULL*/)
 			if (0 == i)
 			{
 				PhotoLedOnOff(m_u8Head, m_u8Led, m_stVctMeasureTable[i].u16Index, TRUE);
+				Wait(1000);
 			}
-			else
+			
+			if (uvEng_Luria_ReqSetLightIntensity(m_u8Head, ENG_LLPI(m_u8Led), m_stVctMeasureTable[i].u16Index))
 			{
-				if (uvEng_Luria_ReqSetLightIntensity(m_u8Head, ENG_LLPI(m_u8Led), m_stVctMeasureTable[i].u16Index))
-					uvEng_Luria_ReqGetLedPower(m_u8Head, ENG_LLPI(m_u8Led));
+				uvEng_Luria_ReqGetLedPower(m_u8Head, ENG_LLPI(m_u8Led));
 
+				Wait(1000);
 			}
 
-			Wait(1000);
 
-			if (TRUE == m_bStop)
-			{
-				strText.Format(_T("[HEAD%d][%dnm] STOP"), m_u8Head, uvEng_Luria_GetLedNoToFreq(m_u8Led));
-				pstrText = &strText;
-				::SendMessageTimeout(hHwnd, eMSG_UV_POWER_INPUT_PROGRESS, (WPARAM)GetProgressPercent(m_u16Index), (LPARAM)pstrText, SMTO_NORMAL, 500, NULL);
-
-				PhotoLedOnOff(m_u8Head, m_u8Led, 0, FALSE);
-				LOG_MESG(ENG_EDIC::en_led_power_cali, _T("STOP"));
-				return FALSE;
-			}
 
 #ifdef LED_SIMUL
 			m_stVctMeasureTable[i].dPower = DOUBLE(uvCmn_GetRandNumerI32(0x00, 3) / 1000.0f);

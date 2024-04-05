@@ -578,7 +578,7 @@ struct CaliPoint;
 			return arrived;
 		}
 
-
+		 
 		bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point)
 		{
 			const int _1to3 = 0;
@@ -586,22 +586,22 @@ struct CaliPoint;
 			const int _1to3_Y_OFFSET = 2;
 			const int _1to2_Y_OFFSET = 3;
 
-			double mark2Xgab = (markParams.caliGerbermark2x - markParams.currGerbermark2x );
+			double mark2Xgab = (markParams.caliGerbermark2x - markParams.currGerbermark2x);
 			double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
 
 			double stageXgab = (axises["stage"]["x"].currPos - markParams.mark2StageX);
 			double stageYgab = (axises["stage"]["y"].currPos - markParams.mark2cam1Y);
 
-			double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos};
+			double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos };
 
 			double camXOffset = camNum == 1 ? camPos[0] - markParams.mark2Cam1X :
-							camNum == 2 ? (markParams.distCam2cam[_1to3] - camPos[0]) + (markParams.distCam2cam[_3to2] + camPos[0]) :
-							camNum == 3 ? markParams.distCam2cam[_1to3] - camPos[0] : 0;
+				camNum == 2 ? (markParams.distCam2cam[_1to3] - camPos[0]) + (markParams.distCam2cam[_3to2] + camPos[0]) :
+				camNum == 3 ? markParams.distCam2cam[0] - markParams.mark2Cam1X : 0;
 
-		
+
 
 			double camYOffset = camNum == 3 ? markParams.distCam2cam[_1to3_Y_OFFSET] :
-								camNum == 2 ? markParams.distCam2cam[_1to2_Y_OFFSET] : 0;
+				camNum == 2 ? markParams.distCam2cam[_1to2_Y_OFFSET] : 0;
 
 			//역산시작
 			double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;
@@ -609,7 +609,8 @@ struct CaliPoint;
 
 			point.mark_x = tempGerberX;
 			point.mark_y = tempGerberY;
-			return true; 
+			return true;
+
 		}
 
 		public:

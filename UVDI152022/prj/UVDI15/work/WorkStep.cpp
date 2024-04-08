@@ -1823,7 +1823,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 		// ----------------------------  여기부터 로컬 ----------------------------
 		
-		auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+		auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 		//lstMarks.RemoveAll();
 
 		for (i = 0; i < u8MarkL; i++)
@@ -2440,7 +2440,7 @@ ENG_JWNS CWorkStep::IsSetMarkValid(ENG_AMTF type, UINT8 scan)
  parm : mode	- [in]  0x00 : Align Mark (Text), 0x01 : Align Mark (Expose)
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode)
+ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, int* camNum)
 {
 	TCHAR tzTitle[128]	= {NULL};
 	BOOL bSucc	= FALSE, bMultiMark = FALSE;
@@ -2464,12 +2464,12 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode)
 	u8Local	= (IsMarkTypeOnlyGlobal() == true ? 0 : uvEng_Luria_GetMarkCount(ENG_AMTF::en_local));
 	u8Total	= u8Local + u8Global;
 	/* Global (혹은 Local 포함) Mark가 모두 인식되었는지 여부 확인 */
-	bSucc	= uvEng_Camera_GetGrabbedCount() == (u8Global + u8Local);
+	bSucc	= uvEng_Camera_GetGrabbedCount(camNum) == (u8Global + u8Local);
 	//return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
 	/* 검색된 마크가 유효한지 확인 */
 	// by sysandj : 변수없음(수정)
 	if (pstRecipeAlign)	bMultiMark	= pstRecipeAlign->search_type == (UINT8)ENG_MMSM::en_multi_only;		//search_type
-	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept))
+	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept,camNum))
 	{
 		/* 오로지 Global Mark 4 Point만 존재하는 경우에만 해당 됨 */
 		if (mode && uvEng_GetConfig()->set_align.use_invalid_mark_cali &&
@@ -2497,7 +2497,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode)
 	}
 
 	/* Title 설정 */
-	swprintf_s(tzTitle, 128, L"Mark.Grabbed (%u / %u)", uvEng_Camera_GetGrabbedCount(), u8Total);
+	swprintf_s(tzTitle, 128, L"Mark.Grabbed (%u / %u)", uvEng_Camera_GetGrabbedCount(camNum), u8Total);
 	SetStepName(tzTitle);
 
 	return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
@@ -3716,10 +3716,12 @@ ENG_JWNS CWorkStep::IsMovedMarkACam1()
 		delay	- [in]  Grabbed Image 개수가 모두 도착하는데 대기하는 시간 (단위: msec)
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkStep::IsGrabbedImageCount(UINT16 count, UINT64 delay)
+ENG_JWNS CWorkStep::IsGrabbedImageCount(UINT16 count, UINT64 delay, int* camNum)
 {
-	UINT16 u16Grab	= uvEng_Camera_GetGrabbedCount();
-
+	UINT16 u16Grab = 0;
+	
+	u16Grab = uvEng_Camera_GetGrabbedCount(camNum);
+	
 	/*Camera 정지 모드*/
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 	/*Mc2 트리거 모드 노광 모드로 변경*/

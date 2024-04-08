@@ -349,7 +349,7 @@ BOOL CWork::IsGerberMarkValidCheck()
 	/* 마크 유효성 검증 */
 	if (!IsValidMarkCount())	return FALSE;
 
-	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 
 	int localCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
 	const int CAM1 = 1, CAM2 = 2, FIRST_SCAN = 0, FIRST_MARK = 0, SECOND_MARK = 1;
@@ -436,7 +436,7 @@ BOOL CWork::GetLocalLeftRightTopMarkIndex(UINT8 scan, UINT8 &left, UINT8 &right)
 	
 	//스캔은 각 캠 중앙에서 이루어진다. 
 
-	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 
 	
 	int centerCol = status.GetCenterColumn();
@@ -527,7 +527,7 @@ BOOL CWork::GetLocalLeftRightBottomMarkIndex(UINT8 scan, UINT8 &left, UINT8 &rig
 
 	
 
-	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 
 	if (status.gerberColCnt <= 0 || status.gerberRowCnt <= 0) return FALSE;
 
@@ -867,7 +867,7 @@ void CWork::LocalTrigRegist()
 	double stageYMark2 = (pstThickCali->mark2_stage_y[0] - yGab) * 10000.0f; //마크2를 바라보는 스테이지 y 좌표를 의미함. 
 
 	int markOrder = 0;
-	auto status = GlobalVariables::getInstance()->GetAlignMotion().status;
+	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 	auto scans = status.gerberColCnt / WANG_BOCK;
 	UINT8 u8ScanMarks = uvEng_Recipe_GetScanLocalMarkCount();		/* 1 Scan 기준 - 저장된 Fiducial 개수 */
 	auto centerCol = status.GetCenterColumn();
@@ -1076,8 +1076,8 @@ BOOL CWork::SetAlignACamCaliX()
 		/* --------------------------------------------------------------------------- */
 		/* [Local] Luria의 Fiducial 값에 넣어 줄때, 값에 부호를 설정하는데 상당히 중요 */
 		/* --------------------------------------------------------------------------- */
-		i32ScanMark = (INT32)GlobalVariables::getInstance()->GetAlignMotion().status.gerberRowCnt;  // uvEng_Luria_GetLocalMarkCountPerScan();
-		auto columnCnt = (INT32)GlobalVariables::getInstance()->GetAlignMotion().status.gerberColCnt;
+		i32ScanMark = (INT32)GlobalVariables::GetInstance()->GetAlignMotion().status.gerberRowCnt;  // uvEng_Luria_GetLocalMarkCountPerScan();
+		auto columnCnt = (INT32)GlobalVariables::GetInstance()->GetAlignMotion().status.gerberColCnt;
 		int scanCnt =  columnCnt / WANGBOK;
 		
 		//stMarkLocal = new STG_XMXY[scanCnt];

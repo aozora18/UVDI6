@@ -248,14 +248,25 @@ BOOL CCamThread::SetGrabbedMark(LPG_ACGR grab, LPG_GMFR gmfr, LPG_GMSR gmsr)
  parm : None
  retn : 개수
 */
-UINT16 CCamThread::GetGrabbedCount()
+UINT16 CCamThread::GetGrabbedCount(int* camNum = nullptr)
 {
 	UINT16 u16Count	= 0;
 
 	/* 동기화 진입 */
 	if (m_syncGrab.Enter())
 	{
-		u16Count = (UINT16)m_lstGrab.GetCount();
+
+		u16Count = camNum == nullptr ? (UINT16)m_lstGrab.GetCount() : [&]()->int
+	{
+		int grab = 0;
+
+		for (int i = 0; i < m_lstGrab.GetCount(); i++)
+		{
+			auto val = m_lstGrab.GetAt(m_lstGrab.FindIndex(i));
+			grab = val->cam_id == *camNum ? grab + 1: grab;
+		}
+		return grab;
+	}();
 
 		/* 동기화 해제 */
 		m_syncGrab.Leave();
@@ -403,7 +414,7 @@ BOOL CCamThread::SetGrabbedMarkIndex(UINT8 index, LPG_ACGR grab)
 							(If 0.0f is unchecked)
  retn : TRUE or FALSE
 */
-BOOL CCamThread::IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score)
+BOOL CCamThread::IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score,int* camNum)
 {
 	BOOL bIsValid	= TRUE;
 	POSITION pPos	= NULL;
@@ -419,6 +430,9 @@ BOOL CCamThread::IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score)
 			while (bIsValid && pPos)
 			{
 				pstGrab	= m_lstGrab.GetNext(pPos);
+				if (camNum != nullptr && pstGrab->cam_id != *camNum)
+					continue;
+
 				bIsValid= pstGrab->IsMarkValid(multi_mark) && pstGrab->marked;
 				if (bIsValid)
 				{

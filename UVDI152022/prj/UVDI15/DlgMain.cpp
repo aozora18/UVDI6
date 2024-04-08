@@ -145,16 +145,16 @@ BOOL CDlgMain::OnInitDlg()
 {
 	
 	UINT32 u32Size	= 0, i = 0;
-	GlobalVariables::getInstance()->GetStuffs().RemoveOldFiles();
+	GlobalVariables::GetInstance()->GetStuffs().RemoveOldFiles();
 #if (USE_ENGINE_LIB)
 	/* 라이브러리 초기화 */
 	if (!InitLib())		return FALSE;
 #endif
 
 	
-	uvEng_Luria_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
-	uvEng_Mark_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
-	uvEng_Camera_SetAlignMotionPtr(GlobalVariables::getInstance()->GetAlignMotion());
+	uvEng_Luria_SetAlignMotionPtr(GlobalVariables::GetInstance()->GetAlignMotion());
+	uvEng_Mark_SetAlignMotionPtr(GlobalVariables::GetInstance()->GetAlignMotion());
+	uvEng_Camera_SetAlignMotionPtr(GlobalVariables::GetInstance()->GetAlignMotion());
 	
 	// by sysandj : 폰트 적용
 	CreateUserFont();
@@ -314,7 +314,7 @@ VOID CDlgMain::OnExitDlg()
 	CloseLib();
 #endif
 
-	GlobalVariables::getInstance()->Destroy();
+	GlobalVariables::GetInstance()->Destroy();
 
 	/* 프로그램 종료 대기 알림 */
 	if (m_pDlgWait)
@@ -959,7 +959,7 @@ LRESULT CDlgMain::OnMsgMainStrobeLamp(WPARAM wparam, LPARAM lparam)
 		recvPage			= pstRecv->body.channelStrobeControl.page;
 		recvChannel			= pstRecv->body.channelStrobeControl.channel;
 		recvStrobeValue = pstRecv->body.channelStrobeControl.strobeHighValue << 8 | pstRecv->body.channelStrobeControl.strobeLowValue;
-		GlobalVariables::getInstance()->IncCount("strobeRecved");
+		GlobalVariables::GetInstance()->IncCount("strobeRecved");
 
 		//recvStrobeHighValue = pstRecv->body.channelStrobeControl.strobeHighValue;
 		//recvStrobeLowValue	= pstRecv->body.channelStrobeControl.strobeLowValue;
@@ -1000,7 +1000,7 @@ LRESULT CDlgMain::OnMsgMainStrobeLamp(WPARAM wparam, LPARAM lparam)
 			/*스트로브에서 읽은 값 임시저장*/
 			uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[i] = recvStrobeValues[i];
 		}
-		GlobalVariables::getInstance()->IncCount("strobeRecved");
+		GlobalVariables::GetInstance()->IncCount("strobeRecved");
 
 		//memcpy(recvDelayHighValues,  pstRecv->body.pageDataReadResponse.delayHighValue, 8);
 		//memcpy(recvDelayLowValues,   pstRecv->body.pageDataReadResponse.delayLowValue, 8);

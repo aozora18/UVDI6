@@ -890,7 +890,7 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 
 
 					CStringArray options;
-					auto nameTag = GlobalVariables::getInstance()->nameTag;
+					auto nameTag = GlobalVariables::GetInstance()->nameTag;
 
 					for (const auto& pair : nameTag) 
 					{
@@ -2146,7 +2146,7 @@ void CDlgJob::OnClickGridAlignParameterChanged(NMHDR* pNotifyStruct, LRESULT* pR
 #ifdef USE_ALIGNMOTION
 		else if (stParam.strName == _T("ALIGN_MOTION"))
 		{
-			auto nameTag = GlobalVariables::getInstance()->nameTag;
+			auto nameTag = GlobalVariables::GetInstance()->nameTag;
 
 			std::wstring wstr(static_cast<const wchar_t*>(strValue));
 			std::string targetValue(wstr.begin(), wstr.end());

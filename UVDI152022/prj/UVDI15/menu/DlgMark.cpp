@@ -727,13 +727,13 @@ VOID CDlgMark::OnBtnClick(UINT32 id)
 	case IDC_MARK_BTN_STROBE_GET: 
 		/*스트로브에 현재 세팅값 확인 요청*/
 		
-		int strobeRecved = GlobalVariables::getInstance()->ResetCounter("strobeRecved");
+		int strobeRecved = GlobalVariables::GetInstance()->ResetCounter("strobeRecved");
 		uvEng_StrobeLamp_Send_PageDataReadRequest(0);
 
-		GlobalVariables::getInstance()->Waiter("strobe", 
+		GlobalVariables::GetInstance()->Waiter("strobe", 
 		[] 
 		{
-			return  GlobalVariables::getInstance()->GetCount("strobeRecved") != 0;
+			return  GlobalVariables::GetInstance()->GetCount("strobeRecved") != 0;
 		}, 
 		[this]
 		{
@@ -3662,7 +3662,7 @@ VOID CDlgMark::setStrobeValue()
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[6]);
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 
-	GlobalVariables::getInstance()->ResetCounter("strobeRecved");
+	GlobalVariables::GetInstance()->ResetCounter("strobeRecved");
 
 	/*Cam1*/
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0] = (UINT16)pGrid->GetItemTextToInt(1, 0);
@@ -3692,10 +3692,10 @@ VOID CDlgMark::setStrobeValue()
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5]);
 	Sleep(100);
 
-	GlobalVariables::getInstance()->Waiter("strobe",
+	GlobalVariables::GetInstance()->Waiter("strobe",
 	[]
 	{
-		return GlobalVariables::getInstance()->GetCount("strobeRecved") == 6;
+		return GlobalVariables::GetInstance()->GetCount("strobeRecved") == 6;
 	},
 	[]
 	{
@@ -3703,7 +3703,7 @@ VOID CDlgMark::setStrobeValue()
 	},
 	[&]
 	{
-		std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::getInstance()->GetCount("strobeRecved")) + L"\t";
+		std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::GetInstance()->GetCount("strobeRecved")) + L"\t";
 		MessageBoxEx(nullptr, info.c_str(), _T("failed"), MB_OK, LANG_ENGLISH);
 	}
 	);

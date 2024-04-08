@@ -11,6 +11,7 @@ public:
 	CWorkStep();
 	virtual ~CWorkStep();
 
+	vector<int> selCamNum;
 /* 가상함수 재정의 */
 protected:
 public:
@@ -108,7 +109,7 @@ protected:
 	ENG_JWNS			IsACamZAxisMovedAll(unsigned long& lastuniqueID);
 
 	ENG_JWNS			IsSetMarkValid(ENG_AMTF type, UINT8 scan);
-	ENG_JWNS			IsSetMarkValidAll(UINT8 mode);
+	ENG_JWNS			IsSetMarkValidAll(UINT8 mode,int* camNum=nullptr);
 
 	ENG_JWNS			SetGerberRegist();
 	ENG_JWNS			IsGerberRegisted();
@@ -170,7 +171,7 @@ protected:
 	ENG_JWNS			ACam2HomingStop();
 	ENG_JWNS			InitializeHWInit();
 	ENG_JWNS			SetExposeReady(BOOL in_mark, BOOL detect, BOOL vaccum, UINT32 count);
-	ENG_JWNS			IsGrabbedImageCount(UINT16 count, UINT64 delay);
+	ENG_JWNS			IsGrabbedImageCount(UINT16 count, UINT64 delay,int* camNum=nullptr);
 	ENG_JWNS			SetTrigOutOneACam(UINT8 cam_id);
 	ENG_JWNS			GetJobLists(UINT32 time);
 

@@ -168,7 +168,7 @@ VOID CWorkExpoAlign::DoWork()
 
 	case 0x15:
 		this_thread::sleep_for(chrono::milliseconds(200)); // 잠깐 기다려주는 이유가 바슬러 스레드에서 캠 데이터를 가져가는 스레드 리프레시 타임이 있기때문.
-		m_u8StepIt = GlobalVariables::getInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
+		m_u8StepIt = GlobalVariables::GetInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
 		m_enWorkState = ENG_JWNS::en_forceSet;
 		break;
 

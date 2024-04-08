@@ -396,10 +396,10 @@ API_EXPORT BOOL uvBasler_IsConnectedAll()
  parm : None
  retn : 저장된 이미지 개수 반환
 */
-API_EXPORT UINT16 uvBasler_GetGrabbedCount()
+API_EXPORT UINT16 uvBasler_GetGrabbedCount(int* CamNum = nullptr)
 {
 	if (!g_pCamThread)	return 0x0000;
-	return g_pCamThread->GetGrabbedCount();
+	return g_pCamThread->GetGrabbedCount(CamNum);
 }
 
 /*
@@ -541,9 +541,9 @@ API_EXPORT BOOL uvBasler_SetGrabbedMarkIndex(UINT8 index, LPG_ACGR grab)
 		 					(If 0.0f is unchecked) 
  retn : TRUE (유효함) or FALSE (4개 중 1개라도 제대로 인식 안됨)
 */
-API_EXPORT BOOL uvBasler_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score)
+API_EXPORT BOOL uvBasler_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score, int* camNum)
 {
-	return !g_pCamThread ? FALSE : g_pCamThread->IsGrabbedMarkValidAll(multi_mark, set_score);
+	return !g_pCamThread ? FALSE : g_pCamThread->IsGrabbedMarkValidAll(multi_mark, set_score,camNum);
 }
 
 /*

@@ -66,7 +66,7 @@ void CWorkMarkTest::DoInitStatic2cam()
 
 void CWorkMarkTest::DoInitStatic3cam()
 {
-	int debug = 0;
+	m_u8StepTotal = 0x0f;
 }
 
 void CWorkMarkTest::DoInitOnthefly3cam()
@@ -143,9 +143,9 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 {
 	globalMarkCnt = globalMarkCnt;
 	localMarkCnt = localMarkCnt;
-	m_u8MarkCount = m_u8MarkCount;
+	//m_u8MarkCount = m_u8MarkCount;
 
-	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	
 	switch (mode)
 	{
@@ -184,7 +184,7 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 		break;
 	}
 
-	//auto motions = GlobalVariables::getInstance()->GetAlignMotion().motions;
+	//auto motions = GlobalVariables::GetInstance()->GetAlignMotion().motions;
 
 
 	/*
@@ -203,11 +203,13 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 
 }
 
+
 //스테틱 3캠
 void CWorkMarkTest::DoAlignStatic3cam()
 {
+	int CENTER_CAM = 3;
 
-	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	try
 	{
@@ -221,52 +223,70 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			{
 				grabMarkPath.clear();
 				GeneratePath(alignMode, aligntype, grabMarkPath);
-				m_enWorkState = ENG_JWNS::en_next;
+				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 			}
 			break;	//3캠 이동위치 경로설정
 
 			case 0x06:
 			{
-				if (grabMarkPath.size() == 0)
-					m_enWorkState = ENG_JWNS::en_error;
+				uvEng_Camera_ResetGrabbedImage();
+				uvEng_ACamCali_ResetAllCaliData();
+				m_enWorkState =  CameraSetCamMode(ENG_VCCM::en_grab_mode);
 
-				bool onError = false; bool complete = false;
-				while (onError == false && complete == false)
-				{
-					if (motions.NowOnMoving() == true)
-					{
-						Sleep(100);
-						continue;
-					}
-
-					auto first = grabMarkPath.begin();
-					auto arrival = motions.MovetoGerberPos(3, *first);
-					if (arrival == true)
-					{
-						///그랩치기.
-						Sleep(3000);
-					}
-					else
-					{
-						onError = true;
-					}
-					grabMarkPath.erase(first);
-					if (grabMarkPath.size() == 0)
-					{
-						complete = true;
-						m_enWorkState = ENG_JWNS::en_next;
-					}
-
-				}
-
-				
 			}
 			break;
 
 			case 0x07:
+			{
+				auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne(camIndex, 0x00, FALSE);};
+
+				bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					
+					const int STABLE_TIME = 1000; 
+					if (motions.NowOnMoving() == true)
+					{
+						this_thread::sleep_for(chrono::milliseconds(100));
+					}
+					else
+					{
+						if (grabMarkPath.size() == 0) 
+							return true;
+						auto first = grabMarkPath.begin();
+						auto arrival = motions.MovetoGerberPos(CENTER_CAM, *first);
+						
+						if (arrival == true)
+						{
+							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+							
+							if (SingleGrab(CENTER_CAM))
+								grabMarkPath.erase(first);
+						}
+					}
+					return false;
+				}, 60 * 1000 * 2);
+				m_enWorkState = complete == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+			}
+			break;
+
 			case 0x08:
+			{
+				m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
+			}
+			break;
+
 			case 0x09:
+			{
+				m_enWorkState = IsSetMarkValidAll(0x01,&CENTER_CAM);
+			}
+			break;
+
 			case 0x0a:
+			{
+				m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
+			}
+			break;
+
 			case 0x0b:
 			case 0x0c:
 			case 0x0d:
@@ -330,7 +350,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 
 	case 0x15:
 		this_thread::sleep_for(chrono::milliseconds(200)); // 잠깐 기다려주는 이유가 바슬러 스레드에서 캠 데이터를 가져가는 스레드 리프레시 타임이 있기때문.
-		m_u8StepIt = GlobalVariables::getInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
+		m_u8StepIt = GlobalVariables::GetInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
 		m_enWorkState = ENG_JWNS::en_forceSet;
 		break;
 

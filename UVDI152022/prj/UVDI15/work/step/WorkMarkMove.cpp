@@ -118,7 +118,7 @@ void CWorkMarkMove::DoMovingStatic3cam()
 {
 	/* 작업 단계 별로 동작 처리 */
 	
-	auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	switch (m_u8StepIt)
 	{
@@ -141,7 +141,8 @@ void CWorkMarkMove::DoMovingStatic3cam()
 			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos);
 			m_enWorkState = arrival == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		}
-		else m_enWorkState = ENG_JWNS::en_error;
+		else
+			m_enWorkState = ENG_JWNS::en_error;
 	}
 	break;
 
@@ -273,7 +274,7 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam2);
 	/* Stage Moving (Vector) */
 
-	AlignMotion& alignMotion = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	auto stageX =  alignMotion.GetAxises()["stage"]["x"].currPos;
 	//auto exti =  alignMotion.EstimateOffset(1, dbPosStageY, stageX, dbPosACamX);

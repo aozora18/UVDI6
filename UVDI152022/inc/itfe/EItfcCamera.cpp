@@ -303,13 +303,13 @@ API_EXPORT VOID uvEng_Camera_DrawStripBitmap(HDC hdc, RECT draw, UINT8 cam_id, L
  변수 :	None
  retn : 처리된 마크 개수 반환
 */
-API_EXPORT UINT16 uvEng_Camera_GetGrabbedCount()
+API_EXPORT UINT16 uvEng_Camera_GetGrabbedCount(int* camNum )
 {
 	if (!GetConfig())	return 0;
 	ENG_VCPK enACamKind	= (ENG_VCPK)GetConfig()->set_comn.align_camera_kind;
 	switch (enACamKind)
 	{
-	case ENG_VCPK::en_camera_basler_ipv4	:	return uvBasler_GetGrabbedCount();
+	case ENG_VCPK::en_camera_basler_ipv4	:	return uvBasler_GetGrabbedCount(camNum);
 //	case ENG_VCPK::en_camera_basler_ipv4	:	uvIDS_DrawLive(hwnd);
 	}
 	return 0;
@@ -584,10 +584,10 @@ API_EXPORT DOUBLE uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD direct)
 		 					(If 0.0f is unchecked) 
  retn : TRUE (유효함) or FALSE (4개 중 1개라도 제대로 인식 안됨)
 */
-API_EXPORT BOOL uvEng_Camera_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score)
+API_EXPORT BOOL uvEng_Camera_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score, int* camNum)
 {
 	if (GetConfig()->IsRunDemo())	return TRUE;
-	return uvBasler_IsGrabbedMarkValidAll(multi_mark, set_score);
+	return uvBasler_IsGrabbedMarkValidAll(multi_mark, set_score,camNum);
 }
 
 /*

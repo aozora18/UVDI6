@@ -375,6 +375,11 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		dx = axises["stage"]["x"].currPos + dx;
 		dy = axises["stage"]["y"].currPos + dy;
 
+
+		if (isArrive("stage", "x", dx) == true && isArrive("stage", "y", dy) == true)
+			return true;
+
+
 		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, dx) ||
 			CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dy))
 			return false;
@@ -390,10 +395,12 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		bool arrived = false;
 
 		if (isArrive("stage", "x", dx) == false || isArrive("stage", "y", dy) == false)
-			arrived = GlobalVariables::getInstance()->Waiter([&]()->bool
-				{
-					if (ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis)) return true;
-				});
+		arrived = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			bool res = ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis);
+			return res;
+
+		},10000);
 
 		//pstCfg->
 		//가급적 스테이지를 먼저 움직이고

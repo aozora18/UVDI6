@@ -129,7 +129,7 @@ API_IMPORT BOOL uvBasler_IsConnectedAll();
  parm : None
  retn : 저장된 이미지 개수 반환
 */
-API_IMPORT UINT16 uvBasler_GetGrabbedCount();
+API_IMPORT UINT16 uvBasler_GetGrabbedCount(int* camNum);
 /*
  desc : Grabbed Images 모두 Score 값이 유효한지 값 반환
  parm : set_score	- [in]  If the score of the searched mark is higher than this set score, it is valid
@@ -183,7 +183,7 @@ API_IMPORT BOOL uvBasler_SetGrabbedMarkIndex(UINT8 index, LPG_ACGR grab);
  							(If 0.0f is unchecked) 
  retn : TRUE (유효함) or FALSE (4개 중 1개라도 제대로 인식 안됨)
 */
-API_IMPORT BOOL uvBasler_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score);
+API_IMPORT BOOL uvBasler_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score, int* camNum = nullptr);
 /*
  desc : Global 4개의 Mark에 대해서 모두 유효한지 검사
  변수 :	cam_id	- [in]  Camera Index (1 or 2)

@@ -69,7 +69,7 @@ BOOL CMainApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
-	GlobalVariables::getInstance()->Init();
+	GlobalVariables::GetInstance()->Init();
 
 	// OLE √ ±‚»≠
 	AfxOleInit();

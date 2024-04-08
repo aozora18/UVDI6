@@ -402,7 +402,7 @@ enum SearchFlag
 
 	public: 
 		
-		static GlobalVariables* getInstance()
+		static GlobalVariables* GetInstance()
 		{
 			static GlobalVariables _inst;
 			return &_inst;
@@ -458,7 +458,7 @@ enum SearchFlag
 		{
 			const int CHECKTERM = 100; int elapsedMS=0;
 			bool res = false;
-			while (res == false || elapsedMS < timeoutDelay)
+			while (res == false && elapsedMS < timeoutDelay)
 			{
 				try
 				{

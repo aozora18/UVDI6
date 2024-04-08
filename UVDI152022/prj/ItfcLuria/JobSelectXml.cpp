@@ -1261,7 +1261,7 @@ UINT8 CJobSelectXml::GetMarkCount(ENG_AMTF mark)
 //타격위치.
 UINT8 CJobSelectXml::GetLocalMarkCountPerScan()
 {
-	UINT8 u8Count = alignMotion->status.gerberRowCnt;// GlobalVariables::getInstance()->GetAlignMotion().status.gerberRowCnt;
+	UINT8 u8Count = alignMotion->status.gerberRowCnt;// GlobalVariables::GetInstance()->GetAlignMotion().status.gerberRowCnt;
 	return u8Count;
 
 

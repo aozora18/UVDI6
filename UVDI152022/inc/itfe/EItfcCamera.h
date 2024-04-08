@@ -186,7 +186,7 @@ API_IMPORT VOID uvEng_Camera_DrawStripBitmap(HDC hdc, RECT draw, UINT8 cam_id, L
  변수 :	None
  retn : 처리된 마크 개수 반환
 */
-API_IMPORT UINT16 uvEng_Camera_GetGrabbedCount();
+API_IMPORT UINT16 uvEng_Camera_GetGrabbedCount(int* camNum=nullptr);
 /*
  desc : 로컬 시스템 (저장소)에 저장되어 있는 패턴 매칭 원본 이미지 적재
  parm : cam_id		- [in]  Camera Index (0x01 ~ MAX_INSTALL_CAMERA_COUNT)
@@ -382,7 +382,7 @@ API_IMPORT DOUBLE uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD direct);
  							(If 0.0f is unchecked) 
  retn : TRUE (유효함) or FALSE (4개 중 1개라도 제대로 인식 안됨)
 */
-API_IMPORT BOOL uvEng_Camera_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score);
+API_IMPORT BOOL uvEng_Camera_IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score, int* camNum=nullptr);
 /*
  desc : Grabbed Image의 결과 반환
  parm : cam_id	- [in]  Camera Index (1 or 2)

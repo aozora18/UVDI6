@@ -197,7 +197,7 @@ int CDlgMarkShow::GetMarkACamNoFromIndex(int index, BOOL bIsLocal)
 	// 현재 global 4개 기준으로만 되어 있음
 	//int nACamNo = m_nMarkIndex / 2 + 1;
 	
-	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 	auto pool = bIsLocal ? status.markPoolForCamLocal : status.markPoolForCamGlobal;
 	
@@ -224,7 +224,7 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 	//int nImgID = m_nMarkIndex % 2;
 	int nImgID =-1;
 
-	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 
 	auto pool = bIsLocal ? status.markPoolForCamLocal[camIndex] : status.markPoolForCamGlobal[camIndex];

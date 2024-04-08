@@ -78,10 +78,10 @@ public:
 	// 연결 여부
 	BOOL				IsConnected(UINT8 cam_id);
 	VOID				ResetGrabbedImage();
-	BOOL				IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score);
+	BOOL				IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score, int* camNum=nullptr);
 
 	// Grabbed Image Result
-	UINT16				GetGrabbedCount();
+	UINT16				GetGrabbedCount(int* camNum=nullptr);
 	BOOL				IsScoreValidAll(DOUBLE set_score);
 	LPG_ACGR			GetGrabbedMark(UINT8 cam_id, UINT8 img_id);
 	BOOL				SetGrabbedMark(LPG_ACGR grab);

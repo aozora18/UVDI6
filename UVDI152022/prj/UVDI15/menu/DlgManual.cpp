@@ -1212,8 +1212,8 @@ VOID CDlgManual::MakeMarkOffsetField()
 	CAtlList <LPG_ACGR>* grabMark = uvEng_Camera_GetGrabbedMarkAll();
 
 	auto markCount = grabMark->GetCount();
-	auto alignMotion = GlobalVariables::getInstance()->GetAlignMotion();
-	auto globalMarkCnt = alignMotion.status.globalMarkCnt;
+	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
+	auto globalMarkCnt = motions.status.globalMarkCnt;
 	
 	auto temp = { grabFindFunc(1, 0, grabMark),
 								grabFindFunc(1, 1, grabMark),

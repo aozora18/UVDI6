@@ -298,6 +298,7 @@
     <ClCompile Include="db\DBData.cpp" />
     <ClCompile Include="db\DBMgr.cpp" />
     <ClCompile Include="db\Sqlite\CppSQLite3.cpp" />
+    <ClCompile Include="GlobalVariables.cpp" />
     <ClCompile Include="imgs\Images.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="menu\calb\accuracy\DlgCalbAccuracyMeasure.cpp" />

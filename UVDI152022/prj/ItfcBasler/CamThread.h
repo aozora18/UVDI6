@@ -3,8 +3,10 @@
 
 #include "../../inc/comn/ThinThread.h"
 
+
 class CCamMain;
 class AlignMotion;
+
 class CCamThread : public CThinThread
 {
 // 생성자/파괴자

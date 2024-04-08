@@ -905,6 +905,9 @@
     <ClCompile Include="menu\DlgMMPMAutoCenter.cpp">
       <Filter>01.기본 파일</Filter>
     </ClCompile>
+    <ClCompile Include="GlobalVariables.cpp">
+      <Filter>02.메인 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="UVDI15.rc">

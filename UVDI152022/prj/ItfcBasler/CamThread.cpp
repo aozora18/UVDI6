@@ -8,9 +8,9 @@
 #include "CamThread.h"
 #include "CamMain.h"
 #include <timeapi.h>
+
 #include "../UVDI15/GlobalVariables.h"
 
-class AlignMotion;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -191,8 +191,6 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 			{
 				globalGrab = false;
 				bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, LOCAL_MARK, FALSE, img_proc); // local mark
-				//auto find = temp.GetFiducialIndex(cam_id, 4);
-				
 			}
 			/* Get the search result value of mark regardless of success or failure of the search */
 			pstGrab	= uvMIL_GetLastGrabbedMark();

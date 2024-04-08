@@ -145,7 +145,7 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 	localMarkCnt = localMarkCnt;
 	m_u8MarkCount = m_u8MarkCount;
 
-	auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
 	
 	switch (mode)
 	{
@@ -178,7 +178,7 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 			STG_XMXY current = lookat;
 
 			while (res == true)
-				if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? AlignMotion::SearchFlag::global : AlignMotion::SearchFlag::all, path, current))
+				if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, path, current))
 					path.push_back(current);
 		}
 		break;
@@ -207,7 +207,7 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 void CWorkMarkTest::DoAlignStatic3cam()
 {
 
-	auto motions = GlobalVariables::getInstance()->GetAlignMotion();
+	AlignMotion& motions = GlobalVariables::getInstance()->GetAlignMotion();
 
 	try
 	{

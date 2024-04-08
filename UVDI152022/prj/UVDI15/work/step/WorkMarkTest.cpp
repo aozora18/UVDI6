@@ -328,8 +328,9 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	{
 		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
 		CameraSetCamMode(ENG_VCCM::en_none);
-		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
+		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	
 	}
+	break;
 
 	case 0x0f: m_enWorkState = SetTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
 	case 0x10: m_enWorkState = IsTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 등록 확인 */
@@ -367,6 +368,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 		//m_enWorkState = ENG_JWNS::en_next;
 	}
 	break;
+
 	case 0x1b: m_enWorkState = IsAlignMarkRegist();							break;
 	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
 	case 0x1d: m_enWorkState = SetWorkWaitTime(2000);						break;
@@ -472,7 +474,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 
 			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
 			//if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1a;
-			if (IsMarkTypeOnlyGlobal())	
+			if (!IsMarkTypeOnlyGlobal() && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) == 0)
 				m_u8StepIt = 0x16;
 		}
 		if (m_u8StepTotal == m_u8StepIt)

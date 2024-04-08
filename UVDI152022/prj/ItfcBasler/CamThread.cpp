@@ -248,7 +248,7 @@ BOOL CCamThread::SetGrabbedMark(LPG_ACGR grab, LPG_GMFR gmfr, LPG_GMSR gmsr)
  parm : None
  retn : °³¼ö
 */
-UINT16 CCamThread::GetGrabbedCount(int* camNum = nullptr)
+UINT16 CCamThread::GetGrabbedCount(int* camNum)
 {
 	UINT16 u16Count	= 0;
 

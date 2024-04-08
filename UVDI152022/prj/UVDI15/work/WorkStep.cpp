@@ -1851,7 +1851,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		
 		auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
 
-		if(IsMarkTypeOnlyGlobal() == false)
+		if(!IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
 		for ( j=u8MarkG; j<u8MarkG+u8MarkL;j++)
 		{
 			

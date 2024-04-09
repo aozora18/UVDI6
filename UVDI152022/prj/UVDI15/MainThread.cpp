@@ -278,7 +278,14 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 			break;
 			//case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CPHE(data));	break;
 			case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CELA(data));	break;
-			case ENG_BWOK::en_expo_align	: m_pWorkJob = new CWorkExpoAlign();				break;
+			case ENG_BWOK::en_expo_align	: 
+			{
+				auto expoAlign = new CWorkExpoAlign();
+				LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
+				expoAlign->SetAlignMode((ENG_AMOS)alignRecipe->align_motion, (ENG_ATGL)alignRecipe->align_type);
+				m_pWorkJob = static_cast<CWorkStep*>(expoAlign);
+			}
+			break;
 			//case ENG_BWOK::en_expo_align: m_pWorkJob = new CWorkExpoAlign(LPG_CELA(data));
 
 			case ENG_BWOK::en_gerb_expofem	: m_pWorkJob = new CWorkFEMExpo(HWND(data));		break;

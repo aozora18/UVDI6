@@ -183,24 +183,6 @@ void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XM
 		}
 		break;
 	}
-
-	//auto motions = GlobalVariables::GetInstance()->GetAlignMotion().motions;
-
-
-	/*
-	글로벌마크가 있나?
-	없으면 에러.
-	마크그랩 순서를 기록
-	기록순서대로 4포인트 진행
-	
-	로컬마크도 있나?
-	없으면 나감
-	마크그랩 순서를 기록
-	로컬 있으면 가장 가까운 마크부터 진행
-	*/
-
-	//다 끝나면 정리.
-
 }
 
 

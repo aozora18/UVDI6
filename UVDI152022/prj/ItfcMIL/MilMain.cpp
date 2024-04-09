@@ -2864,12 +2864,12 @@ BOOL CMilMain::RegistMILImg(INT32 cam_id, INT32 width, INT32 height, PUINT8 imag
 	if (m_mImgProc[cam_id])
 		MbufClear(m_mImgProc[cam_id], 0L);
 	MbufCopy(m_mImg[cam_id], m_mImgProc[cam_id]);
-	if(cam_id == 0)
-		MbufSave(_T("D:\\klk\\cam1.bmp"), m_mImgProc[0]); //lk91 tmp
-	else if(cam_id == 1)
-		MbufSave(_T("D:\\klk\\cam2.bmp"), m_mImgProc[1]); //lk91 tmp
-	else if (cam_id == 2)
-		MbufSave(_T("D:\\klk\\cam3.bmp"), m_mImgProc[2]); //lk91 tmp
+	//if(cam_id == 0)
+	//	MbufSave(_T("D:\\klk\\cam1.bmp"), m_mImgProc[0]); //lk91 tmp
+	//else if(cam_id == 1)
+	//	MbufSave(_T("D:\\klk\\cam2.bmp"), m_mImgProc[1]); //lk91 tmp
+	//else if (cam_id == 2)
+	//	MbufSave(_T("D:\\klk\\cam3.bmp"), m_mImgProc[2]); //lk91 tmp
 #endif
 	return TRUE;
 }

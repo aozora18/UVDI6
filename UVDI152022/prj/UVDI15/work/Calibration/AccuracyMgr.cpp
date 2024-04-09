@@ -198,7 +198,9 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 
 
 	double dRadian = degreesToRadians(dAngle);
-	bool reverse = false;
+
+	bool useTurnback = false;   //<--------------이 부분이 true일땐 x좌표가 다시 감소방향으로 turnback 하게 됨 즉, 0에서 시작해서 50까지 갔다면 다시 45,40,35~ 0 으로 돌아옴, false일땐 50까지 갔다면 다시 0으로 돌아와 50까지 감. 
+	bool turnBackFlag = false;
 
 	buffer.push_back(dpStartPos);
 
@@ -213,7 +215,7 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 
 		if (buffer.size() == cpMaxPoint.x)
 		{
-			if (reverse)
+			if (turnBackFlag)
 				std::reverse(buffer.begin(), buffer.end());
 
 			for each (CDPoint var in buffer)
@@ -221,7 +223,8 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 				strLine.Format(_T("%.4f,%.4f,\n"), var.x, var.y);
 				strWrite += strLine;
 			}
-			reverse = !reverse;
+
+			turnBackFlag = useTurnback ? !turnBackFlag : turnBackFlag;
 			buffer.clear();
 		}
 	}
@@ -237,63 +240,6 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 
 	return FALSE;
 }
-
-
-
-//
-//BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint)
-//{
-//	CFileException ex;
-//	CStdioFile sFile;
-//	CString strWrite;
-//	CString strLine;
-//	CDPoint dpPos;
-//	int nMaxIndex = cpMaxPoint.x * cpMaxPoint.y;
-//
-//	vector<CDPoint> buffer;
-//
-//
-//	double dRadian = degreesToRadians(dAngle);
-//	bool reverse = false;
-//
-//	buffer.push_back(dpStartPos);
-//
-//
-//	for (int i = 1; i < nMaxIndex; i++)
-//	{
-//		CDPoint tempPoint = CDPoint((double)(dpStartPos.x + ((i % cpMaxPoint.x) * dPitch)),
-//			(double)(dpStartPos.y + ((i / cpMaxPoint.x) * dPitch)));
-//
-//		CDPoint tempRotated = rotatePointAroundAnotherPoint(tempPoint, dpStartPos, dRadian);
-//
-//		buffer.push_back(tempRotated);
-//
-//		if (buffer.size() == cpMaxPoint.x)
-//		{
-//			if (reverse)
-//				std::reverse(buffer.begin(), buffer.end());
-//
-//			for each (CDPoint var in buffer)
-//			{
-//				strLine.Format(_T("%.4f,%.4f,\n"), var.x, var.y);
-//				strWrite += strLine;
-//			}
-//			reverse = !reverse;
-//			buffer.clear();
-//		}
-//	}
-//
-//
-//	if (TRUE == sFile.Open(strPath, CFile::modeWrite | CFile::modeCreate | CFile::modeNoTruncate, &ex))
-//	{
-//		sFile.SeekToBegin();
-//		sFile.WriteString(strWrite);
-//		sFile.Close();
-//		return TRUE;
-//	}
-//
-//	return FALSE;
-//}
 
 
 BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)

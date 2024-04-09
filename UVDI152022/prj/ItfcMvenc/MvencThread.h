@@ -70,6 +70,8 @@ public:
 	BOOL				ReqWriteBoardReset();
 	BOOL				ReqWriteEncoderOut(UINT32 enc_out);
 	BOOL				ReqWriteTrigOutOne(UINT32 enc_out);
+	BOOL				ReqWriteTrigOutOne_(UINT32 channelBit, int trigTime=20);
+
 	BOOL				ReqWriteTriggerStrobe(BOOL enable);
 	BOOL				ReqWriteAreaTrigPos(BOOL direct,
 											UINT8 start1, UINT8 count1, PINT32 pos1,

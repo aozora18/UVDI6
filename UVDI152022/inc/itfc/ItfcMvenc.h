@@ -146,6 +146,9 @@ API_IMPORT BOOL uvMvenc_ReqEncoderOutReset();
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvMvenc_ReqTrigOutOneOnly(UINT8 cam_id, UINT8 lamp_type);
+
+API_IMPORT BOOL uvMvenc_ReqTrigOutOne_(UINT8 channelBit);
+
 /*
  desc : 트리거 1개 발생 시킴 (Trigger Enable -> Trigger Event -> Trigger Disable)
  parm : cam_id	- [in]  Align Camera Index (1 or 2)

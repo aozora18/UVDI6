@@ -924,6 +924,8 @@ BOOL CMvencThread::ReqWriteTriggerStrobe(BOOL enable)
 
 		//현재위치 초기화
 		uiStatus = MvsEncClearEncoderPositionAll(m_handle);
+
+
 		if (uiStatus != 0x00)
 		{
 			TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
@@ -934,7 +936,8 @@ BOOL CMvencThread::ReqWriteTriggerStrobe(BOOL enable)
 
 		/* 트리거 이벤트 설정 */
 		//if (enable)	SetTrigEvent(TRUE, stPktData.trig_set);
-		if (enable)	SetTrigEvent(TRUE, m_pstShMemTrig->trig_set);
+		if (enable)	
+			SetTrigEvent(TRUE, m_pstShMemTrig->trig_set);
 
 		/* --------------------------------------------------------------------------------- */
 		/* Triger & Strobe Enable 내지 Disable든 기존 등록된 Trigger Position 값 모두 초기화 */
@@ -951,7 +954,7 @@ BOOL CMvencThread::ReqWriteTriggerStrobe(BOOL enable)
 
 		
 		//트리거출력 카운트 초기화
-		uiStatus = MvsEncClearTriggerAll(m_handle);
+		
 		if (uiStatus != 0x00)
 		{
 			TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
@@ -1067,11 +1070,11 @@ BOOL CMvencThread::ReqWriteEncoderOut(UINT32 enc_out)
 */
 BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 {
+
 	BOOL bSucc			= TRUE;
 	UINT uiStatus		= 0;
 	STG_TPQR stPktData	= {NULL};
 
-	/* 동기 진입 */
 	if (m_syncSend.Enter())
 	{
 		/* 명령어 설정 */
@@ -1094,11 +1097,45 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 			}
 		}
 
-#ifdef RUNTRIGGER
-		MvsEncSetPositiveRun(m_handle, 15);
+		MvsEncSetPositiveRun(m_handle, 0b1000 | (1 << (enc_out - 1)));
 		Sleep(10);
 		MvsEncSetPositiveRun(m_handle, 0);
-#endif
+
+		m_u64SendTime = GetTickCount64();
+		/* 동기 해제 */
+		m_syncSend.Leave();
+	
+	}
+
+	/* 현재 상태 값 읽기 요청 */
+	return bSucc ? ReqReadSetup() : FALSE;
+}
+
+
+
+/*
+ desc : 개별 채널 별로 트리거 1개만 발생
+ parm : enc_out	- [in]  1 바이트 씩 의미가 있음 (4 Bytes 이므로, 총 4채널)
+ retn : TRUE or FALSE
+*/
+BOOL CMvencThread::ReqWriteTrigOutOne_(UINT32 channelBit,int trigTime)
+{
+	//return true;
+	BOOL bSucc = TRUE;
+	UINT uiStatus = 0;
+	STG_TPQR stPktData = { NULL };
+
+	/* 동기 진입 */
+	if (m_syncSend.Enter())
+	{
+		/* 명령어 설정 */
+		stPktData.command = (UINT32)ENG_TBPC::en_trig_out_one;
+		stPktData.enc_out_val = channelBit;
+
+
+		MvsEncSetPositiveRun(m_handle, channelBit);
+		Sleep(trigTime);
+		MvsEncSetPositiveRun(m_handle, 0);
 
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
@@ -1108,6 +1145,8 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 	/* 현재 상태 값 읽기 요청 */
 	return bSucc ? ReqReadSetup() : FALSE;
 }
+
+
 
 /*
  desc : Reset Trigger Count

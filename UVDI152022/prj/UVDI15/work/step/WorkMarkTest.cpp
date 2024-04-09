@@ -238,7 +238,7 @@ void CWorkMarkTest::DoAlignStatic3cam()
 
 			case 0x07:
 			{
-				auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne(camIndex, 0x00, FALSE);};
+				auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne_(0b1100); };
 
 				bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{

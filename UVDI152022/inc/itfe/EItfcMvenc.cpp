@@ -88,6 +88,14 @@ API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOne(UINT8 ch_no, UINT8 lamp_type, BOOL ena
 	return uvMvenc_ReqTrigOutOne(ch_no, lamp_type, enable);
 }
 
+API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOne_(int channelBit)
+{
+	if (!uvMvenc_IsConnected() && GetConfig()->IsRunDemo())	return TRUE;
+	return uvMvenc_ReqTrigOutOne_(channelBit);
+}
+
+
+
 #if 1
 /*
  desc : Trigger Board에 처음 연결되고 난 이후, 환경 파일에 설정된 값으로 초기화 진행

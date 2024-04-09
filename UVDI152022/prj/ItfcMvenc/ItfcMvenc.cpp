@@ -417,7 +417,7 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id, UINT8 lamp_type, BOOL enabl)
 
 	if (!IsConnected())	return FALSE;
 	/* Trigger & Strobe : Enabled */
-	bSucc	= uvMvenc_ReqTriggerStrobe(TRUE);
+	//bSucc	= uvMvenc_ReqTriggerStrobe(TRUE);
 #if 0
 	/* Trigger Out : one pulse */
 	if (bSucc)
@@ -434,14 +434,24 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id, UINT8 lamp_type, BOOL enabl)
 	}
 #else
 	//bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
-	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
+//	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
+	bSucc = g_pMvencThread->ReqWriteTrigOutOne_(0b1000 | (1 << (cam_id-1)));
 
 #endif
 	/* Trigger & Strobe : Disabled */
-	if (bSucc && enabl)	bSucc = uvMvenc_ReqTriggerStrobe(FALSE);
+	//if (bSucc && enabl)	bSucc = uvMvenc_ReqTriggerStrobe(FALSE);
 
 	return bSucc;
 }
+
+API_EXPORT BOOL uvMvenc_ReqTrigOutOne_(UINT8 channelBit)
+{
+	if (!IsConnected())	return FALSE;
+	BOOL bSucc = g_pMvencThread->ReqWriteTrigOutOne_(channelBit);
+	return bSucc;
+}
+
+
 
 /*
  desc : 기존에 입력된 Trigger 위치 값과 Trigger Board로부터 수신된 입력 값 비교

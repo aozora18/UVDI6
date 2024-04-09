@@ -59,6 +59,7 @@ API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOneOnly(UINT8 ch_no, UINT8 lamp_type);
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOne(UINT8 ch_no, UINT8 lamp_type, BOOL enable=TRUE);
+API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOne_(int channelBit);
 #if 1
 /*
  desc : Trigger Board에 처음 연결되고 난 이후, 환경 파일에 설정된 값으로 초기화 진행

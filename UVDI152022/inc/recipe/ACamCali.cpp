@@ -255,8 +255,9 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 			auto Sorting = [&](map<int, vector< STM_ACCP>>& pointVec, LPM_ACCP ptr)
 			{
 				std::map<int, std::vector<STM_ACCP>, std::less<int>> sortedValmap(pointVec.begin(), pointVec.end());
-				for each (auto var in sortedValmap)
-					std::sort(var.second.begin(), var.second.end(), [&](const STM_ACCP& a, const STM_ACCP& b) {return a.stage_y < b.stage_y; });
+				
+				for (auto& var : sortedValmap) 
+					std::sort(var.second.begin(), var.second.end(), [&](const STM_ACCP& a, const STM_ACCP& b) {return a.stage_y < b.stage_y;});
 				
 				auto rowCnt = sortedValmap.begin()->second.size();
 

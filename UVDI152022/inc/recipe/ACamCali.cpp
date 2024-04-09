@@ -7,11 +7,19 @@
 #include "ACamCali.h"
 #include <io.h>
 
+#include <vector>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static CHAR THIS_FILE[] = __FILE__;
 #endif
+
 
 
 /*
@@ -194,6 +202,9 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 		/* 오차 값이 저장될 구조체 포인터 연결 */
 		pstPosXY	= m_pstCali[i].pos_xy;
 		/* 각 개별 카메라의 Calibration 위치 값 얻기 */
+
+		map<int, vector< STM_ACCP>> temp;
+
 		for (j=0; j<i32Total; j++)
 		{
 			wmemset(tzVal, 0x00, 64);
@@ -235,9 +246,38 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 			pstPosXY[j].error_y	= (INT32)ROUNDED(_wtof(ptzVal) * 10000.0f, 0);	/* 0.1 um or 100 nm */
 #else
 #endif
+
+			temp[pstPosXY[j].a_cam_x].push_back(pstPosXY[j]);
 			/* 파일의 끝까지 읽어들였는지 */
 			if (feof(fpCali))	break;
 		}
+			
+			auto Sorting = [&](map<int, vector< STM_ACCP>>& pointVec, LPM_ACCP ptr)
+			{
+				std::map<int, std::vector<STM_ACCP>, std::less<int>> sortedValmap(pointVec.begin(), pointVec.end());
+				for each (auto var in sortedValmap)
+					std::sort(var.second.begin(), var.second.end(), [&](const STM_ACCP& a, const STM_ACCP& b) {return a.stage_y < b.stage_y; });
+				
+				auto rowCnt = sortedValmap.begin()->second.size();
+
+				for(int i=0;i<rowCnt;i++)
+				for (auto& pair : sortedValmap) 
+				{
+					if (pair.second.empty())
+						continue;
+
+					STM_ACCP& firstElement = pair.second.front();						
+					LPM_ACCP tgt = ptr++;
+					tgt->error_x = firstElement.error_x;
+					tgt->error_y = firstElement.error_y;
+					tgt->a_cam_x = firstElement.a_cam_x;
+					tgt->stage_y = firstElement.stage_y;
+					pair.second.erase(pair.second.begin());
+				}
+			};
+
+		Sorting(temp, m_pstCali[i].pos_xy);
+		
 		/* 파일 닫기 */
 		fclose(fpCali);
 	}

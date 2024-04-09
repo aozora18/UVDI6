@@ -80,111 +80,6 @@ VOID CWorkExpoAlign::DoWork()
 	}
 }
 
-/*
- desc : 다음 단계로 이동하기 위한 처리
- parm : None
- retn : None
-*/
-VOID CWorkExpoAlign::SetWorkNext()
-{
-	UINT64 u64TickCount	= GetTickCount64();
-	UINT64 u64JobTime	= u64TickCount - m_u64StartTime;
-
-	/* 매 작업 구간마다 시간 값 증가 처리 */
-	uvEng_UpdateJobWorkTime(u64JobTime);
-
-	/* 모든 작업이 종료 되었는지 여부 */
-	if (ENG_JWNS::en_error == m_enWorkState)
-	{
-		SaveExpoResult(0x00);
-		m_u8StepIt	= 0x01;
-
-		TCHAR tzMesg[128] = { NULL };
-		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-
-		//m_enWorkState = ENG_JWNS::en_comp;
-		m_enWorkState = ENG_JWNS::en_error;
-	}
-	else if (ENG_JWNS::en_next == m_enWorkState)
-	{
-		/* 작업률 계산 후 임시 저장 */
-		CWork::CalcStepRate();
-
-		/* 필요에 따라 분기 처리 */
-		switch (m_u8StepIt)
-		{
-		/* Local Mark 존재 여부 확인 */
-		case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
-		/* 노광 작업이 완료된 이후, 바로 광학계 내 온도 값 요청 */
-		case 0x24: uvEng_Luria_ReqGetPhLedTempAll();	break;
-		}
-
-		/* 모든 동작이 완료되었는지 확인 */
-		if (m_u8StepTotal == m_u8StepIt)
-		{
-			/* 작업 완료 후 각종 필요한 정보 저장 */
-			SaveExpoResult(0x01);
-
-			//if (++m_u32ExpoCount != 10000)
-			if (++m_u32ExpoCount != 2)
-			{
-				m_u8StepIt = 0x01;
-
-#ifdef _DEBUG
-				TCHAR szMesg[LOG_MESG_SIZE] = { NULL };
-
-				swprintf_s(szMesg, LOG_MESG_SIZE, L"Expo Only Step :  m_u32ExpoCount= %d / m_u8StepTotal = 10000\n"
-					, m_u32ExpoCount);
-
-				/*Log 기록*/
-				m_strLog.Format(szMesg);
-				txtWrite(m_strLog);
-#endif
-
-
-				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				//if (g_u8Romote == en_menu_phil_mode_auto)
-				if(g_u16PhilCommand== (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
-				{
-					SetPhilProcessCompelet();
-				}
-			}
-			else
-			{
-				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
-				{
-					SetPhilProcessCompelet();
-				}
-
-
-				m_enWorkState = ENG_JWNS::en_comp;
-
-				/* 항상 호출*/
-				CWork::EndWork();
-			}
-
-		}
-		else
-		{
-			/* 다음 작업 단계로 이동 */
-			m_u8StepIt++;
-		}
-		/* Align Mark를 정상 인식 후, 노광을 진행할 것인지 여부 물어보기 */
-		if (m_u8StepIt == 0x1f && uvEng_GetConfig()->set_uvdi15.check_query_expo)
-		{
-			CDlgMesg dlgMesg;
-			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to expose?", 0x02))
-			{
-				m_u8StepIt	= 0x00;
-				m_enWorkState = ENG_JWNS::en_comp;
-			}
-		}
-		/* 가장 최근에 Waiting 한 시간 저장 */
-		m_u64DelayTime	= GetTickCount64();
-	}
-}
 
 void CWorkExpoAlign::SetAlignMode(ENG_AMOS mode, ENG_ATGL aligntype)
 {
@@ -475,15 +370,109 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 
 	}
-	/* 다음 작업 진행 여부 판단 */
-	CWorkExpoAlign::SetWorkNext();
-	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
-	CheckWorkTimeout();
+	
+	
 }
 
 void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 {
+	UINT64 u64TickCount = GetTickCount64();
+	UINT64 u64JobTime = u64TickCount - m_u64StartTime;
 
+	/* 매 작업 구간마다 시간 값 증가 처리 */
+	uvEng_UpdateJobWorkTime(u64JobTime);
+
+	/* 모든 작업이 종료 되었는지 여부 */
+	if (ENG_JWNS::en_error == m_enWorkState)
+	{
+		SaveExpoResult(0x00);
+		m_u8StepIt = 0x01;
+
+		TCHAR tzMesg[128] = { NULL };
+		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
+		//m_enWorkState = ENG_JWNS::en_comp;
+		m_enWorkState = ENG_JWNS::en_error;
+	}
+	else if (ENG_JWNS::en_next == m_enWorkState)
+	{
+		/* 작업률 계산 후 임시 저장 */
+		CWork::CalcStepRate();
+
+		/* 필요에 따라 분기 처리 */
+		switch (m_u8StepIt)
+		{
+			/* Local Mark 존재 여부 확인 */
+		case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
+			/* 노광 작업이 완료된 이후, 바로 광학계 내 온도 값 요청 */
+		case 0x24: uvEng_Luria_ReqGetPhLedTempAll();	break;
+		}
+
+		/* 모든 동작이 완료되었는지 확인 */
+		if (m_u8StepTotal == m_u8StepIt)
+		{
+			/* 작업 완료 후 각종 필요한 정보 저장 */
+			SaveExpoResult(0x01);
+
+			//if (++m_u32ExpoCount != 10000)
+			if (++m_u32ExpoCount != 2)
+			{
+				m_u8StepIt = 0x01;
+
+#ifdef _DEBUG
+				TCHAR szMesg[LOG_MESG_SIZE] = { NULL };
+
+				swprintf_s(szMesg, LOG_MESG_SIZE, L"Expo Only Step :  m_u32ExpoCount= %d / m_u8StepTotal = 10000\n"
+					, m_u32ExpoCount);
+
+				/*Log 기록*/
+				m_strLog.Format(szMesg);
+				txtWrite(m_strLog);
+#endif
+
+
+				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
+				//if (g_u8Romote == en_menu_phil_mode_auto)
+				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				{
+					SetPhilProcessCompelet();
+				}
+			}
+			else
+			{
+				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
+				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				{
+					SetPhilProcessCompelet();
+				}
+
+
+				m_enWorkState = ENG_JWNS::en_comp;
+
+				/* 항상 호출*/
+				CWork::EndWork();
+			}
+
+		}
+		else
+		{
+			/* 다음 작업 단계로 이동 */
+			m_u8StepIt++;
+		}
+		/* Align Mark를 정상 인식 후, 노광을 진행할 것인지 여부 물어보기 */
+		if (m_u8StepIt == 0x1f && uvEng_GetConfig()->set_uvdi15.check_query_expo)
+		{
+			CDlgMesg dlgMesg;
+			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to expose?", 0x02))
+			{
+				m_u8StepIt = 0x00;
+				m_enWorkState = ENG_JWNS::en_comp;
+			}
+		}
+		/* 가장 최근에 Waiting 한 시간 저장 */
+		m_u64DelayTime = GetTickCount64();
+	}
 }
 	 
 void CWorkExpoAlign::DoInitOnthefly3cam()
@@ -519,16 +508,180 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 void CWorkExpoAlign::DoInitStatic3cam()
 {
 
+	m_u8StepTotal = 0x0f;
+
+	
 }
 
 void CWorkExpoAlign::DoAlignStatic3cam()
 {
+	int CENTER_CAM = 3;
 
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	try
+	{
+		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
+		{
+		case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
+		case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+		case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
+		case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
+		case 0x05:
+		{
+			grabMarkPath.clear();
+			GeneratePath(alignMode, aligntype, grabMarkPath);
+			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
+		}
+		break;	//3캠 이동위치 경로설정
+
+		case 0x06:
+		{
+			uvEng_Camera_ResetGrabbedImage();
+			uvEng_ACamCali_ResetAllCaliData();
+			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
+
+		}
+		break;
+
+		case 0x07:
+		{
+			auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne_(0b1100); };
+
+			bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+
+					const int STABLE_TIME = 1000;
+					if (motions.NowOnMoving() == true)
+					{
+						this_thread::sleep_for(chrono::milliseconds(100));
+					}
+					else
+					{
+						if (grabMarkPath.size() == 0)
+							return true;
+						auto first = grabMarkPath.begin();
+						auto arrival = motions.MovetoGerberPos(CENTER_CAM, *first);
+
+						if (arrival == true)
+						{
+							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+
+							if (SingleGrab(CENTER_CAM))
+								grabMarkPath.erase(first);
+						}
+					}
+					return false;
+				}, 60 * 1000 * 2);
+			m_enWorkState = complete == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+		}
+		break;
+
+		case 0x08:
+		{
+			m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
+		}
+		break;
+
+		case 0x09:
+		{
+			m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
+		}
+		break;
+
+		case 0x0a:
+		{
+			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
+		}
+		break;
+
+		case 0x0b:
+		case 0x0c:
+		case 0x0d:
+		case 0x0e:
+		case 0x0f:
+		{
+			m_enWorkState = ENG_JWNS::en_next;
+		}
+		break;
+
+		}
+	}
+	catch (const std::exception&)
+	{
+
+	}
 }
 
 void CWorkExpoAlign::SetWorkNextStatic3cam()
 {
+	UINT8 u8WorkTotal = m_u8StepTotal;
+	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
+	uvEng_UpdateJobWorkTime(u64JobTime);
+
+	if (ENG_JWNS::en_error == m_enWorkState)
+	{
+		TCHAR tzMesg[128] = { NULL };
+		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
+		SaveExpoResult(0x00);
+		m_u8StepIt = 0x01;
+		m_enWorkState = ENG_JWNS::en_error;
+	}
+	else if (ENG_JWNS::en_next == m_enWorkState)
+	{
+		CWork::CalcStepRate();
+		if (m_u8StepTotal == m_u8StepIt)
+		{
+			SaveExpoResult(0x01);
+
+			if (++m_u32ExpoCount != 2)
+			{
+				m_u8StepIt = 0x01;
+
+#ifdef _DEBUG
+				TCHAR szMesg[LOG_MESG_SIZE] = { NULL };
+
+				swprintf_s(szMesg, LOG_MESG_SIZE, L"Expo Only Step :  m_u32ExpoCount= %d / m_u8StepTotal = 10000\n"
+					, m_u32ExpoCount);
+
+				/*Log 기록*/
+				m_strLog.Format(szMesg);
+				txtWrite(m_strLog);
+#endif
+
+
+				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
+				//if (g_u8Romote == en_menu_phil_mode_auto)
+				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				{
+					SetPhilProcessCompelet();
+				}
+			}
+			else
+			{
+				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
+				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				{
+					SetPhilProcessCompelet();
+				}
+
+
+				m_enWorkState = ENG_JWNS::en_comp;
+
+				/* 항상 호출*/
+				CWork::EndWork();
+			}
+		}
+		else
+		{
+			m_u8StepIt++;
+		}
+		m_u64DelayTime = GetTickCount64();
+	}
+	
 }
 
 

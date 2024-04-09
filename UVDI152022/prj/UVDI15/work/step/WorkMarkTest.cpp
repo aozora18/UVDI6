@@ -92,7 +92,7 @@ VOID CWorkMarkTest::DoWork()
 	{
 		alignCallback[alignMode][processWork]();
 		alignCallback[alignMode][checkWorkstep]();
-		CheckWorkTimeout();
+		
 	}
 	catch (const std::exception&)
 	{
@@ -418,6 +418,7 @@ VOID CWorkMarkTest::SetWorkNextStatic3cam()
 		}
 		m_u64DelayTime = GetTickCount64();
 	}
+	CheckWorkTimeout();
 }
 
 

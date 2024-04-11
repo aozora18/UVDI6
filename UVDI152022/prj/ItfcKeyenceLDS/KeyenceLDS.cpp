@@ -10,7 +10,7 @@ static char THIS_FILE[] = __FILE__;
 CKeyenceLDS::CKeyenceLDS() : CSocketCComm()
 {
 	m_bListen = FALSE;
-	m_bReadStart = FALSE;
+	//m_bReadStart = FALSE;
 
 	m_dBaseValue = 0;
 	m_dDecimalPos = 0.001;
@@ -44,19 +44,15 @@ bool CKeyenceLDS::Connect()
 
 long CKeyenceLDS::RecvProcess(long lSize, BYTE *pbyData)
 {
-	if (0 >= lSize || FALSE == m_bListen)
+	if (0 >= lSize)
 		return -1;
 
 	std::string strBuf = std::string(pbyData, pbyData + lSize);
 
-	if (strBuf.find(m_strCMD) != std::string::npos)
+	if (TryEnterCriticalSection(&m_csRecv))
 	{
-		m_bReadStart = TRUE;
-	}
-
-	if (TRUE == m_bReadStart)
-	{
-		m_strBuffer += strBuf;
+		m_strBuffer += strBuf;	
+		LeaveCriticalSection(&m_csRecv);
 	}
 	
 	return 0;
@@ -68,33 +64,37 @@ long CKeyenceLDS::WaitReply(char* pszRecv, DWORD dwTimeout)
 
 	while ((GetTickCount() - dwTime) < dwTimeout)
 	{
-		// Error
-		if (m_strBuffer.find(DEF_CMD_ERROR) != std::string::npos)
+		if (TryEnterCriticalSection(&m_csRecv))
 		{
-			m_strBuffer.replace(0, m_strBuffer.find(m_strCMD) + 3, "");
-			m_strBuffer.replace(m_strBuffer.find(DEF_CMD_END), m_strBuffer.size(), "");
-
-			return eCOMM_ERROR_INVALIDDATA;
-		}
-		else if (m_strBuffer.find(DEF_CMD_END) != std::string::npos)
-		{
-			while (m_strBuffer.find(m_strCMD) != std::string::npos)
+		
+			
+			if (m_strBuffer.find(DEF_CMD_ERROR) != std::string::npos)
 			{
 				m_strBuffer.replace(0, m_strBuffer.find(m_strCMD) + 3, "");
+				m_strBuffer.replace(m_strBuffer.find(DEF_CMD_END), m_strBuffer.size(), "");
+				LeaveCriticalSection(&m_csRecv);
+				return eCOMM_ERROR_INVALIDDATA;
 			}
-
-			m_strBuffer.replace(m_strBuffer.find(DEF_CMD_END), m_strBuffer.size(), "");
-			
-			if (NULL != pszRecv)
+			else if (m_strBuffer.size() != 0 && m_strBuffer.find(DEF_CMD_END) != std::string::npos)
 			{
-				memcpy(pszRecv, m_strBuffer.data(), m_strBuffer.length());
+				while (m_strBuffer.find(m_strCMD) != std::string::npos)
+				{
+					m_strBuffer.replace(0, m_strBuffer.find(m_strCMD) + 3, "");
+				}
+
+				m_strBuffer.replace(m_strBuffer.find(DEF_CMD_END), m_strBuffer.size(), "");
+
+				if (NULL != pszRecv)
+				{
+					memcpy(pszRecv, m_strBuffer.data(), m_strBuffer.length());
+				}
+
+				m_strBuffer.clear();
+				LeaveCriticalSection(&m_csRecv);
+				return eCOMM_RESULT_OK;
 			}
-
-			m_strBuffer.clear();
-			//return eERR_NONE;
-			return eCOMM_RESULT_OK;
+			LeaveCriticalSection(&m_csRecv);
 		}
-
 		Sleep(10);
 	}
 
@@ -110,10 +110,8 @@ long CKeyenceLDS::ReadData(char* pszRecv, DWORD dwTimeout, BOOL bReadStatus)
 		return eCOMM_ERROR_DISCONNECTED;/*return eERR_CONNECT;*/
 
 	EnterCriticalSection(&m_csSend);
-
 	m_strCMD = (TRUE == bReadStatus) ? DEF_CMD_STATUS_READ : DEF_CMD_READ;
-	m_strBuffer.clear();
-
+	
 	CString strMsg;
 
 	strMsg = m_strCMD.c_str();
@@ -123,31 +121,32 @@ long CKeyenceLDS::ReadData(char* pszRecv, DWORD dwTimeout, BOOL bReadStatus)
 	char *szMsg = new char[lSize];
 
 	memcpy(szMsg, CStringA(strMsg), lSize);
-
-	m_bListen = TRUE;
 	Send(lSize, (BYTE*)szMsg);
-
-	long lRet = WaitReply(pszRecv, dwTimeout);
-
-	m_bReadStart = FALSE;
-	m_bListen = FALSE;
 	delete[] szMsg;
 
 	LeaveCriticalSection(&m_csSend);
+
+	long lRet = WaitReply(pszRecv, dwTimeout);
 
 	return lRet;
 }
 
 long CKeyenceLDS::WriteData(int nModuleIdx, int nCode, DWORD dwTimeout)
 {
+
+	if (TryEnterCriticalSection(&m_csRecv))
+	{
+		m_strBuffer.clear();
+		LeaveCriticalSection(&m_csRecv);
+	}
+
 	if (FALSE == ChkConnect())
 		return eCOMM_ERROR_DISCONNECTED;/*return eERR_CONNECT;*/
 
 	EnterCriticalSection(&m_csSend);
 
 	m_strCMD = DEF_CMD_SELECT_WRITE;
-	m_strBuffer.clear();
-
+	
 	CString strMsg;
 
 	strMsg.Format(_T("%s,%02d,%03d,%s%s"), _T(DEF_CMD_SELECT_WRITE), nModuleIdx, nCode, _T(DEF_CMD_EXECUTED), _T(DEF_CMD_END));
@@ -162,8 +161,6 @@ long CKeyenceLDS::WriteData(int nModuleIdx, int nCode, DWORD dwTimeout)
 
 	long lRet = WaitReply(NULL, dwTimeout);
 
-	m_bReadStart = FALSE;
-	m_bListen = FALSE;
 	delete[] szMsg;
 
 	LeaveCriticalSection(&m_csSend);

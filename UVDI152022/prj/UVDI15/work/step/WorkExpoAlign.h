@@ -32,19 +32,19 @@ public:
 
 	void DoInitOnthefly2cam();
 	void DoAlignOnthefly2cam();
-	VOID SetWorkNextOnthefly2cam();
+	void SetWorkNextOnthefly2cam();
 
 	void DoInitOnthefly3cam();
 	void DoAlignOnthefly3cam();
-	VOID SetWorkNextOnthefly3cam();
+	void SetWorkNextOnthefly3cam();
 
 	void DoInitStatic2cam();
 	void DoAlignStatic2cam();
-	VOID SetWorkNextStatic2cam();
+	void SetWorkNextStatic2cam();
 
 	void DoInitStatic3cam();
 	void DoAlignStatic3cam();
-	VOID SetWorkNextStatic3cam();
+	void SetWorkNextStatic3cam();
 
 
 

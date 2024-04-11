@@ -183,37 +183,52 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 		// 현재 Grabbed Image가 존재한다면 ...
 		if (pstGrab && pstGrab->grab_data)
 		{
+			//여기서 또 바꿔줘야하네 ...
+			ENG_AMOS alignMotion = alignMotionPtr->markParams.alignMotion;
 
-			/* Model Find */
-			if(pstGrab->img_id < 2) //<-이거 뭔의미야.
-				bFinded	= uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, GLOBAL_MARK, FALSE, img_proc); // global mark
-			else
+			switch (alignMotion)
 			{
-				globalGrab = false;
-				bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, LOCAL_MARK, FALSE, img_proc); // local mark
+				case ENG_AMOS::en_onthefly_2cam:
+				{
+					const int SIDE_2CAM_NUM = 2;
+					globalGrab = pstGrab->img_id < SIDE_2CAM_NUM ? true : false;
+					bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, pstGrab->img_id < SIDE_2CAM_NUM ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
+				}
+				break;
+
+				case ENG_AMOS::en_static_3cam:
+				{
+					bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, alignMotionPtr->status.globalMarkCnt - 1 > pstGrab->img_id ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
+				}
+				break;
+
+				default:
+				{
+					throw ACCESS_EXCEPTION("not implement.");
+				}
+				break;
 			}
+
 			/* Get the search result value of mark regardless of success or failure of the search */
 			pstGrab	= uvMIL_GetLastGrabbedMark();
-			
-			pstGrab->grabTime = timeGetTime();
-			pstGrab->fiducialMarkIndex = -1818;
 
 			if (!pstGrab)	LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 			else
 			{
-				
+				pstGrab->grabTime = timeGetTime();
+				pstGrab->fiducialMarkIndex = -1818;
+				pstGrab->marked = UINT8(bFinded);
+
 
 				if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
 				{
 					m_lstGrab.AddTail(pstGrab);
-					//grabPtrQueue.push(pstGrab);
+					pstGrab->fiducialMarkIndex = alignMotionPtr == NULL ? -1818 : alignMotionPtr->GetFiducialIndex(cam_id, globalGrab, &m_lstGrab);
 				}
 				else
 				{
 					LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 				}
-				pstGrab->marked = UINT8(bFinded);
-				pstGrab->fiducialMarkIndex = alignMotionPtr == NULL ? -1818 : alignMotionPtr->GetFiducialIndex(cam_id, globalGrab, &m_lstGrab);
 			}
 		}
 		/* 동기화 해제 */

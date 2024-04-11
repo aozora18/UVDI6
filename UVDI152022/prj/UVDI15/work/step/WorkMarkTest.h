@@ -5,6 +5,7 @@
 #include <map>
 #include <array>
 #include "../../../../inc/itfe/EItfcLuria.h"
+#include "../../GlobalVariables.h"
 
 class CWorkMarkTest : public CWorkStep
 {
@@ -30,6 +31,8 @@ public:
 		this->aligntype = aligntype;
 		const int INIT_STEP = 0;
 		alignCallback[mode][INIT_STEP]();
+
+		GlobalVariables::GetInstance()->GetAlignMotion().SetAlignMode(mode, aligntype);
 	}
 	
 	static const int endPointPair = 3;

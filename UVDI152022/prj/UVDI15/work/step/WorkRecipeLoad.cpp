@@ -460,6 +460,7 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 {
 	CUniToChar	csCnv;
 	ENG_ATGL enType		= ENG_ATGL::en_not_defined;
+	ENG_AMOS enMotion = ENG_AMOS::en_onthefly_2cam;
 	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe();
 	//LPG_RAAF pstAlignRecipe = uvEng_Mark_GetSelectAlignRecipe();
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
@@ -472,20 +473,21 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 	//	return ENG_JWNS::en_error;
 	//}
 
+		
 	enType	= ENG_ATGL(pstAlignRecipe->align_type);
+	enMotion = ENG_AMOS(pstAlignRecipe->align_motion);
+
 	if (!uvEng_Luria_LoadSelectJobXML(enType))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to load the xml file for selected recipe");
 		return ENG_JWNS::en_error;
 	}
 
-	
 	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
-	GlobalVariables::GetInstance()->GetAlignMotion().SetFiducial(uvEng_Luria_GetGlobalFiducial(),uvEng_Luria_GetLocalFiducial(), uvEng_GetConfig()->set_cams.acam_count);
+	GlobalVariables::GetInstance()->GetAlignMotion().UpdateParamValues();
+
+	//GlobalVariables::GetInstance()->GetAlignMotion().SetFiducial(uvEng_Luria_GetGlobalFiducial(),uvEng_Luria_GetLocalFiducial(), uvEng_GetConfig()->set_cams.acam_count);
 	
-
-
-
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)

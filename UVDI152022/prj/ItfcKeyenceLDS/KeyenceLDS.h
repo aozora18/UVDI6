@@ -87,11 +87,12 @@ public:
 
 private:
 	BOOL m_bListen;
-	BOOL m_bReadStart;
+	//BOOL m_bReadStart;
 
 	std::string m_strCMD;
 	std::string m_strBuffer;
 	CRITICAL_SECTION m_csSend;
+	CRITICAL_SECTION m_csRecv;
 
 	double m_dBaseValue;
 	double m_dDecimalPos;

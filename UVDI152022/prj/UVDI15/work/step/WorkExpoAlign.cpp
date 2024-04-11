@@ -87,6 +87,10 @@ void CWorkExpoAlign::SetAlignMode(ENG_AMOS mode, ENG_ATGL aligntype)
 	this->aligntype = aligntype;
 	const int INIT_STEP = 0;
 	alignCallback[mode][INIT_STEP]();
+	auto alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	//GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool(ENG_AMOS mode, ENG_ATGL aligntype);
+	GlobalVariables::GetInstance()->GetAlignMotion().SetAlignMode(mode, aligntype);
 }
 
 
@@ -131,6 +135,10 @@ void CWorkExpoAlign::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_
 		while (res == true)
 			if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, path, current))
 				path.push_back(current);
+
+
+		//motions
+
 	}
 	break;
 	}
@@ -279,7 +287,13 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
-	case 0x05: m_enWorkState = SetAlignMovingInit();						break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
+	case 0x05: 
+	{
+		GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
+		m_enWorkState = SetAlignMovingInit();
+	}
+	break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
+
 	case 0x06: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
 	case 0x07: m_enWorkState = IsAlignMovedInit();							break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
 	case 0x08: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
@@ -321,45 +335,19 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		break;
 
 	case 0x16:
-		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
-
-		break;	/* Cam None 모드로 변경 */
+		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);break;	/* Cam None 모드로 변경 */
 
 	case 0x17: m_enWorkState = SetTrigEnable(FALSE);						break;
-	case 0x18:
-	{
-		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);
+	case 0x18:m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);break;
+	case 0x19:m_enWorkState = IsSetMarkValidAll(0x01);break;
 
-	}
-	break;
-	case 0x19:
-	{
-		m_enWorkState = IsSetMarkValidAll(0x01);
-
-	}
-	break;
-
-	case 0x1a:
-	{
-		m_enWorkState = SetAlignMarkRegist();
-
-	}
-	break;
-	case 0x1b:
-	{
-		m_enWorkState = IsAlignMarkRegist();
-
-	}
-	break;
+	case 0x1a:m_enWorkState = SetAlignMarkRegist();break;
+	case 0x1b:m_enWorkState = IsAlignMarkRegist();break;
 	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
 
 	case 0x1d: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */
 	case 0x1e: m_enWorkState = IsPrePrinted();								break;	/* Luria Control - PrePrinted 확인 */
-	case 0x1f:
-	{
-		m_enWorkState = SetPrinting();
-	}
-	break;	/* Luria Control - Printing */
+	case 0x1f:m_enWorkState = SetPrinting();	break;	/* Luria Control - Printing */
 	case 0x20: m_enWorkState = IsPrinted();								break;	/* Luria Control - Printed 확인 */
 
 	case 0x21: m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
@@ -508,7 +496,7 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 void CWorkExpoAlign::DoInitStatic3cam()
 {
 
-	m_u8StepTotal = 0x0f;
+	m_u8StepTotal = 0x14;
 
 	
 }
@@ -568,7 +556,10 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 
 							if (SingleGrab(CENTER_CAM))
+							{
+								//여기서 칼리브 데이터 추가해야함
 								grabMarkPath.erase(first);
+							}
 						}
 					}
 					return false;
@@ -577,33 +568,26 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		}
 		break;
 
-		case 0x08:
-		{
-			m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
-		}
-		break;
+		case 0x08:m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);break;
 
-		case 0x09:
-		{
-			m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
-		}
-		break;
+		case 0x09:m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM); break;
+		
+		case 0x0a:m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none); break;
+		
+		case 0x0b:m_enWorkState = SetAlignMarkRegist(); break;
+		
+		case 0x0c:m_enWorkState = IsAlignMarkRegist(); break;
+		
+		
+		case 0x0d: m_enWorkState = SetPrePrinting();							break;
+		case 0x0e:m_enWorkState = IsPrePrinted();
+		case 0x0f:m_enWorkState = SetPrinting(); break;
+		case 0x10:m_enWorkState = IsPrinted();								break;
+		case 0x11:m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
+		case 0x12:m_enWorkState = IsWorkWaitTime();							break;	/* 대기 완료 여부 확인 */
+		case 0x13: m_enWorkState = SetMovingUnloader();						break;	/* Stage Unloader 위치로 이동 */
+		case 0x14: m_enWorkState = IsMovedUnloader();							break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
 
-		case 0x0a:
-		{
-			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
-		}
-		break;
-
-		case 0x0b:
-		case 0x0c:
-		case 0x0d:
-		case 0x0e:
-		case 0x0f:
-		{
-			m_enWorkState = ENG_JWNS::en_next;
-		}
-		break;
 
 		}
 	}

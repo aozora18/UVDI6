@@ -167,6 +167,8 @@ enum SearchFlag
 		double mark2Cam1X = 0;
 		double mark2Cam2X = 0;
 		double distCam2cam[4] = { 0, };
+		ENG_AMOS alignMotion;
+		ENG_ATGL alignType;
 		vector<tuple<ENG_MMDI, double, double>> axisLimit;
 
 	};
@@ -266,8 +268,11 @@ enum SearchFlag
 		bool onUpdate = true;
 		LPG_CIEA pstCfg = nullptr;
 
-		void Destroy();
+		
 
+		Status status;
+		Params markParams;
+		
 
 		enum Parts
 		{
@@ -277,6 +282,7 @@ enum SearchFlag
 		};
 
 		CaliPoint EstimateOffset(int camIdx, double stageX, double stageY, double camX);
+		void Destroy();
 
 	protected:
 		CaliCalc caliCalcInst;
@@ -294,8 +300,6 @@ enum SearchFlag
 
 		void LoadCaliData(LPG_CIEA cfg);
 
-
-
 		bool GetNearFid(STG_XMXY currentPos, SearchFlag flag, vector<STG_XMXY> skipList, STG_XMXY& findFid);
 
 		bool isArrive(string drive, string axis, double dest, float threshold);
@@ -304,15 +308,15 @@ enum SearchFlag
 
 		bool MovetoGerberPos(int camNum, STG_XMXY tgtPos);
 
-
 		bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point);
 
 
-		Status status;
-		Params markParams;
+		
 
 		void GetFiducialDimension(ENG_AMTF types, int& x, int& y);
 		bool CheckAlignScanFinished(int scanCount);
+		void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);
+
 		
 		int GetFiducialIndex(int camIndex, bool isGlobal, CAtlList <LPG_ACGR>* grabList)
 		{
@@ -335,15 +339,16 @@ enum SearchFlag
 			int currentCnt = imgMap[camIndex].size();
 			int poolSize = pool.size();
 
-			if (poolSize <= currentCnt - 1 || poolSize == 0)
+			if (currentCnt == 0 || poolSize <= currentCnt - 1 || poolSize == 0)
 				return -1818;
+			
 
 			return pool[currentCnt - 1].tgt_id *= isGlobal ? -1 : 1;
 		}
 
 
 		void UpdateParamValues();
-		void SetFiducial(CFiducialData* globalFiducial, CFiducialData* localFiducial, int acamCount);
+		void SetFiducialPool(bool useDefault = true, ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam, ENG_ATGL alignType = ENG_ATGL::en_global_4_local_0_point);
 		void DoInitial(LPG_CIEA pstCfg);
 	};
 

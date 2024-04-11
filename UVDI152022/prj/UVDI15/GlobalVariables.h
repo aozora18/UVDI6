@@ -238,7 +238,8 @@ enum SearchFlag
 
 		void BufferClear()
 		{
-			markPoolForCamLocal.clear(); //카메라별 풀링.
+			//markPoolForCamLocal.clear(); //카메라별 풀링.
+			markPoolForCam.clear();
 			markList.clear(); //column별 풀링
 			markMapConst.clear(); //원본
 		}
@@ -254,8 +255,8 @@ enum SearchFlag
 		//int cam2ProcessingColumn = 0;
 		int lastScanCount = 0;
 
-		map<int, vector<STG_XMXY>> markPoolForCamGlobal; //카메라별 풀링.
-		map<int, vector<STG_XMXY>> markPoolForCamLocal; //카메라별 풀링.
+		//map<int, vector<STG_XMXY>> markPoolForCamGlobal; //카메라별 풀링.
+		map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
 		map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것
 		//map<int, vector<STG_XMXY>> markMapProcess; //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
 		std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.	
@@ -315,7 +316,7 @@ enum SearchFlag
 
 		void GetFiducialDimension(ENG_AMTF types, int& x, int& y);
 		bool CheckAlignScanFinished(int scanCount);
-		void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);
+		//void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);
 
 		
 		int GetFiducialIndex(int camIndex, bool isGlobal, CAtlList <LPG_ACGR>* grabList)
@@ -334,7 +335,7 @@ enum SearchFlag
 				imgMap[val->cam_id].push_back(val);
 			}
 
-			auto pool = isGlobal ? status.markPoolForCamGlobal[camIndex] : status.markPoolForCamLocal[camIndex];
+			auto pool = status.markPoolForCam[camIndex]; //isGlobal ? status.markPoolForCamGlobal[camIndex] : status.markPoolForCamLocal[camIndex];
 
 			int currentCnt = imgMap[camIndex].size();
 			int poolSize = pool.size();
@@ -346,7 +347,7 @@ enum SearchFlag
 			return pool[currentCnt - 1].tgt_id *= isGlobal ? -1 : 1;
 		}
 
-
+		vector<STG_XMXY> GetFiducialPool(int camNum);
 		void UpdateParamValues();
 		void SetFiducialPool(bool useDefault = true, ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam, ENG_ATGL alignType = ENG_ATGL::en_global_4_local_0_point);
 		void DoInitial(LPG_CIEA pstCfg);

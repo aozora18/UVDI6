@@ -39,6 +39,16 @@ CWorkMarkTest::~CWorkMarkTest()
 {
 }
 
+void CWorkMarkTest::SetAlignMode()
+{
+	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	this->alignMotion = motion.markParams.alignMotion;
+	this->aligntype = motion.markParams.alignType;
+	const int INIT_STEP = 0;
+	alignCallback[alignMotion][INIT_STEP]();
+}
+
+
 /*
  desc : 초기 작업 수행
  parm : None
@@ -55,7 +65,7 @@ BOOL CWorkMarkTest::InitWork()
 	localMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
 
 	m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
-
+	SetAlignMode();
 	return TRUE;
 }
 
@@ -90,8 +100,8 @@ VOID CWorkMarkTest::DoWork()
 	const int Initstep = 0 , processWork = 1, checkWorkstep = 2;
 	try
 	{
-		alignCallback[alignMode][processWork]();
-		alignCallback[alignMode][checkWorkstep]();
+		alignCallback[alignMotion][processWork]();
+		alignCallback[alignMotion][checkWorkstep]();
 		
 	}
 	catch (const std::exception&)
@@ -135,56 +145,7 @@ void CWorkMarkTest::DoAlignStatic2cam()
 	{
 		throw(e);
 	}
-	
-
 }
-
-void CWorkMarkTest::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType,vector<STG_XMXY>& path)
-{
-	globalMarkCnt = globalMarkCnt;
-	localMarkCnt = localMarkCnt;
-	//m_u8MarkCount = m_u8MarkCount;
-
-	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	
-	switch (mode)
-	{
-		case ENG_AMOS::en_onthefly_2cam:
-		{
-
-		}
-		break;
-
-		case ENG_AMOS::en_onthefly_3cam:
-		{
-
-		}
-		break;
-
-		case ENG_AMOS::en_static_2cam:
-		{
-
-		}
-		break;
-
-		case ENG_AMOS::en_static_3cam:
-		{
-			STG_XMXY lookat;
-			const int centercam = 3;
-			bool res = true;
-			
-			motions.GetGerberPosUseCamPos(centercam, lookat);
-			
-			STG_XMXY current = lookat;
-
-			while (res == true)
-				if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, path, current))
-					path.push_back(current);
-		}
-		break;
-	}
-}
-
 
 //스테틱 3캠
 void CWorkMarkTest::DoAlignStatic3cam()
@@ -203,8 +164,8 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */	
 			case 0x05: 
 			{
-				grabMarkPath.clear();
-				GeneratePath(alignMode, aligntype, grabMarkPath);
+				motions.SetFiducialPool();
+				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 			}
 			break;	//3캠 이동위치 경로설정
@@ -462,7 +423,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 
 			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
 			//if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1a;
-			if (!IsMarkTypeOnlyGlobal() && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) == 0)
+			if (IsMarkTypeOnlyGlobal() || uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) == 0)
 				m_u8StepIt = 0x16;
 		}
 		if (m_u8StepTotal == m_u8StepIt)

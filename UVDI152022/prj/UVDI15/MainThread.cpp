@@ -271,8 +271,6 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 			case ENG_BWOK::en_mark_test		: 
 			{
 				auto workMarkTest = new CWorkMarkTest(LPG_CELA(data));
-				LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
-				//workMarkTest->SetAlignMode((ENG_AMOS)alignRecipe->align_motion, (ENG_ATGL)alignRecipe->align_type);
 				m_pWorkJob = static_cast<CWorkStep*>(workMarkTest);
 			}
 			break;
@@ -282,8 +280,6 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 			case ENG_BWOK::en_expo_align	: 
 			{
 				auto expoAlign = new CWorkExpoAlign();
-				LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
-				//expoAlign->SetAlignMode((ENG_AMOS)alignRecipe->align_motion, (ENG_ATGL)alignRecipe->align_type);
 				m_pWorkJob = static_cast<CWorkStep*>(expoAlign);
 			}
 			break;

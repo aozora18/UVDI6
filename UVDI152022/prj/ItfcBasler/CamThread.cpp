@@ -198,7 +198,8 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 
 				case ENG_AMOS::en_static_3cam:
 				{
-					bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, alignMotionPtr->status.globalMarkCnt - 1 > pstGrab->img_id ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
+					globalGrab = alignMotionPtr->status.globalMarkCnt - 1 > pstGrab->img_id ? true : false;
+					bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, globalGrab == true ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
 				}
 				break;
 

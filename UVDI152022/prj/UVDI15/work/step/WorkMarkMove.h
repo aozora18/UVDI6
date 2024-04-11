@@ -3,6 +3,7 @@
 
 #include "../WorkStep.h"
 #include <map>
+#include "../../GlobalVariables.h"
 
 class CWorkMarkMove : public CWorkStep
 {
@@ -31,15 +32,16 @@ protected:
 	ENG_JWNS			SetMovingAlignMark();
 	ENG_JWNS			IsMovedAlignMark();
 
-	ENG_AMOS alignMode = ENG_AMOS::en_onthefly_2cam;
+	ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam;
 	ENG_ATGL aligntype = ENG_ATGL::en_global_4_local_0_point;
 
-	void SetAlignMode(ENG_AMOS mode, ENG_ATGL aligntype)
+	void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype)
 	{
-		alignMode = mode;
+		alignMotion = motion;
 		this->aligntype = aligntype;
 		const int INIT_STEP = 0;
-		markMoveCallback[mode][INIT_STEP]();
+		markMoveCallback[motion][INIT_STEP]();
+		
 	}
 
 	void DoInitStatic2cam();

@@ -57,6 +57,8 @@ BOOL CWorkExpoAlign::InitWork()
 	 m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
 
 
+	 SetAlignMode();
+
 	return TRUE;
 }
 
@@ -70,8 +72,8 @@ VOID CWorkExpoAlign::DoWork()
 	const int Initstep = 0, processWork = 1, checkWorkstep = 2;
 	try
 	{
-		alignCallback[alignMode][processWork]();
-		alignCallback[alignMode][checkWorkstep]();
+		alignCallback[alignMotion][processWork]();
+		alignCallback[alignMotion][checkWorkstep]();
 		CheckWorkTimeout();
 	}
 	catch (const std::exception&)
@@ -81,68 +83,69 @@ VOID CWorkExpoAlign::DoWork()
 }
 
 
-void CWorkExpoAlign::SetAlignMode(ENG_AMOS mode, ENG_ATGL aligntype)
+void CWorkExpoAlign::SetAlignMode()
 {
-	alignMode = mode;
-	this->aligntype = aligntype;
+	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	this->alignMotion = motion.markParams.alignMotion;
+	this->aligntype = motion.markParams.alignType;
 	const int INIT_STEP = 0;
-	alignCallback[mode][INIT_STEP]();
-	auto alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
+	alignCallback[alignMotion][INIT_STEP]();
+	//auto alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	//GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool(ENG_AMOS mode, ENG_ATGL aligntype);
-	GlobalVariables::GetInstance()->GetAlignMotion().SetAlignMode(mode, aligntype);
+	//GlobalVariables::GetInstance()->GetAlignMotion().SetAlignMode(motion, aligntype);
 }
 
 
-void CWorkExpoAlign::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path)
-{
-	globalMarkCnt = globalMarkCnt;
-	localMarkCnt = localMarkCnt;
-	//m_u8MarkCount = m_u8MarkCount;
-
-	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-
-	switch (mode)
-	{
-	case ENG_AMOS::en_onthefly_2cam:
-	{
-
-	}
-	break;
-
-	case ENG_AMOS::en_onthefly_3cam:
-	{
-
-	}
-	break;
-
-	case ENG_AMOS::en_static_2cam:
-	{
-
-	}
-	break;
-
-	case ENG_AMOS::en_static_3cam:
-	{
-		STG_XMXY lookat;
-		const int centercam = 3;
-		bool res = true;
-
-		motions.GetGerberPosUseCamPos(centercam, lookat);
-
-		STG_XMXY current = lookat;
-
-		while (res == true)
-			if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, path, current))
-				path.push_back(current);
-
-
-		//motions
-
-	}
-	break;
-	}
-}
+//void CWorkExpoAlign::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path)
+//{
+//	globalMarkCnt = globalMarkCnt;
+//	localMarkCnt = localMarkCnt;
+//	//m_u8MarkCount = m_u8MarkCount;
+//
+//	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+//
+//	switch (mode)
+//	{
+//	case ENG_AMOS::en_onthefly_2cam:
+//	{
+//
+//	}
+//	break;
+//
+//	case ENG_AMOS::en_onthefly_3cam:
+//	{
+//
+//	}
+//	break;
+//
+//	case ENG_AMOS::en_static_2cam:
+//	{
+//
+//	}
+//	break;
+//
+//	case ENG_AMOS::en_static_3cam:
+//	{
+//		STG_XMXY lookat;
+//		const int centercam = 3;
+//		bool res = true;
+//
+//		motions.GetGerberPosUseCamPos(centercam, lookat);
+//
+//		STG_XMXY current = lookat;
+//
+//		while (res == true)
+//			if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, path, current))
+//				path.push_back(current);
+//
+//
+//		//motions
+//
+//	}
+//	break;
+//	}
+//}
 
 
 
@@ -516,9 +519,9 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 		case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
 		case 0x05:
-		{
-			grabMarkPath.clear();
-			GeneratePath(alignMode, aligntype, grabMarkPath);
+		{		
+			motions.SetFiducialPool();
+			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 		}
 		break;	//3캠 이동위치 경로설정
@@ -528,7 +531,6 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 			uvEng_Camera_ResetGrabbedImage();
 			uvEng_ACamCali_ResetAllCaliData();
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
-
 		}
 		break;
 

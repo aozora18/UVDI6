@@ -457,11 +457,11 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		y = my.size();
 	}
  
-	void AlignMotion::SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype)
+	/*void AlignMotion::SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype)
 	{
 		markParams.alignMotion = motion;
 		markParams.alignType = aligntype;
-	}
+	}*/
 
 	bool AlignMotion::CheckAlignScanFinished(int scanCount)
 	{
@@ -470,6 +470,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void AlignMotion::UpdateParamValues()
 	{
+		status.BufferClear();
+
 		LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
 		LPG_MACP thick = uvEng_ThickCali_GetRecipe(job->cali_thick);
 		LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
@@ -479,6 +481,55 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		const int _1to3_Y_OFFSET = 2;
 		const int _1to2_Y_OFFSET = 3;
 
+
+		auto globalFiducial = uvEng_Luria_GetGlobalFiducial();
+		auto localFiducial = uvEng_Luria_GetLocalFiducial();
+
+
+		STG_XMXY temp;
+
+		const UINT32 GLOBAL_FLAG = 0b00000000000000000000000000000001;
+		const UINT32 LOCAL_FLAG = 0b00000000000000000000000000000010;
+		
+		int acamCount = 2;
+
+		if (job != nullptr)
+		{
+			for (int i = 0; i < globalFiducial->GetCount(); i++)
+				if (globalFiducial->GetMark(i, temp))
+				{
+					temp.reserve = GLOBAL_FLAG;
+					status.markList[ENG_AMTF::en_global].push_back(temp);
+					status.markList[ENG_AMTF::en_mixed].push_back(temp);
+
+					if (temp.tgt_id == 1)
+					{
+						markParams.currGerbermark2x = temp.mark_x; //현재 읽은 거버에서의 mark2
+						markParams.currGerbermark2y = temp.mark_y;
+					}
+
+					status.markPoolForCam[(i / acamCount) + 1].push_back(temp);
+				}
+
+			for (int i = 0; i < localFiducial->GetCount(); i++)
+				if (localFiducial->GetMark(i, temp))
+				{
+					temp.reserve = LOCAL_FLAG;
+					status.markList[ENG_AMTF::en_local].push_back(temp);
+					status.markList[ENG_AMTF::en_mixed].push_back(temp);
+				}
+
+
+			int tempX = 0, tempY = 0;
+			GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
+			status.gerberColCnt = tempX;
+			status.gerberRowCnt = tempY;
+			status.localMarkCnt = status.markList[ENG_AMTF::en_local].size();
+			status.globalMarkCnt = status.markList[ENG_AMTF::en_global].size();
+
+			assert(tempX * tempY == status.markList[ENG_AMTF::en_local].size());
+		}
+		
 		if (pstCfg != nullptr)
 		{
 			markParams.distCam2cam[_1to3] = pstCfg->set_align.distCam2Cam[_1to3];
@@ -505,19 +556,19 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		}
 	}
 
+	vector<STG_XMXY> AlignMotion::GetFiducialPool(int camNum)
+	{
+		return status.markPoolForCam[camNum];
+	}
+
 	void AlignMotion::SetFiducialPool(bool useDefault, ENG_AMOS alignMotion, ENG_ATGL alignType)
 	{
-		auto globalFiducial = uvEng_Luria_GetGlobalFiducial();
-		auto localFiducial = uvEng_Luria_GetLocalFiducial();
+		
 		auto acamCount = 2;   //uvEng_GetConfig()->set_cams.acam_count
 
-		status.BufferClear();
+		
 		//UpdateParamValues();
 
-		STG_XMXY temp;
-
-		const UINT32 GLOBAL_FLAG = 0b00000000000000000000000000000001;
-		const UINT32 LOCAL_FLAG = 0b00000000000000000000000000000010;
 
 		if (useDefault)
 		{
@@ -526,40 +577,10 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		}
 
 		auto GenOntheFly2camFid = [&]()
-		{
-			for (int i = 0; i < globalFiducial->GetCount(); i++)
-				if (globalFiducial->GetMark(i, temp))
-				{
-					temp.reserve = GLOBAL_FLAG;
-					status.markList[ENG_AMTF::en_global].push_back(temp);
-					status.markList[ENG_AMTF::en_mixed].push_back(temp);
-
-					if (temp.tgt_id == 1)
-					{
-						markParams.currGerbermark2x = temp.mark_x; //현재 읽은 거버에서의 mark2
-						markParams.currGerbermark2y = temp.mark_y;
-					}
-
-					status.markPoolForCamGlobal[(i / acamCount) + 1].push_back(temp);
-				}
-
-			for (int i = 0; i < localFiducial->GetCount(); i++)
-				if (localFiducial->GetMark(i, temp))
-				{
-					temp.reserve = LOCAL_FLAG;
-					status.markList[ENG_AMTF::en_local].push_back(temp);
-					status.markList[ENG_AMTF::en_mixed].push_back(temp);
-				}
-
+	{
 			int tempX = 0, tempY = 0;
 			GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
-			status.gerberColCnt = tempX;
-			status.gerberRowCnt = tempY;
-			status.localMarkCnt = status.markList[ENG_AMTF::en_local].size();
-			status.globalMarkCnt = status.markList[ENG_AMTF::en_global].size();
-
-			assert(tempX * tempY == status.markList[ENG_AMTF::en_local].size());
-
+			
 			bool basicUp = true; // 위에서 아래로 올라갈경우이다. 
 			bool toUp = basicUp;
 			for (int i = 0; i < tempX; i++)
@@ -571,7 +592,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 				std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
 
-				auto tgt = &status.markPoolForCamLocal[i >= (tempX / acamCount) ? 2 : 1];
+				auto tgt = &status.markPoolForCam[i >= (tempX / acamCount) ? 2 : 1];
 
 				if (i == tempX / acamCount)
 					toUp = basicUp;
@@ -587,10 +608,21 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			status.acamCount = acamCount;
 		};
 
-		auto GenStatic3camFid = [&]()
-			{
+		auto GenStatic3camFid = [&]() //<-얘는 작업직전 실시간으로 해야함.
+		{
+			STG_XMXY lookat;
+			const int centercam = 3;
+			bool res = true;
 
-			};
+			GetGerberPosUseCamPos(centercam, lookat);
+
+			STG_XMXY current = lookat;
+			auto& pool =  status.markPoolForCam[centercam];
+
+			while (res == true)
+				if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
+					pool.push_back(current);
+		};
 
 		switch (alignMotion)
 		{

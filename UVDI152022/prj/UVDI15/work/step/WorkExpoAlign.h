@@ -24,7 +24,7 @@ public:
 	virtual VOID		DoWork();
 	int scanCount = 0;
 	
-	ENG_AMOS alignMode = ENG_AMOS::en_onthefly_2cam;
+	ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam;
 	ENG_ATGL aligntype = ENG_ATGL::en_global_4_local_0_point;
 
 	vector<STG_XMXY>	grabMarkPath;
@@ -48,9 +48,8 @@ public:
 
 
 
-	void SetAlignMode(ENG_AMOS mode, ENG_ATGL aligntype);
+	void SetAlignMode();
 
-	void GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path);
 	
 	static const int endPointPair = 3;
 	std::map<ENG_AMOS, array<std::function<void()>, endPointPair>> alignCallback =

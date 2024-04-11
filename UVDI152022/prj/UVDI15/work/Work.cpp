@@ -362,7 +362,7 @@ BOOL CWork::IsGerberMarkValidCheck()
 		auto cam1_1st =  status.markMapConst[FIRST_SCAN][FIRST_MARK].tgt_id;
 		auto cam1_2nd = status.markMapConst[FIRST_SCAN][SECOND_MARK].tgt_id;
 
-		auto cam2_1st = status.markPoolForCamLocal[CAM2].begin()->tgt_id;
+		auto cam2_1st = status.markPoolForCam[CAM2].begin()->tgt_id;
 
 		/* 4th & 11th Mark 간의 값 얻어와 X 축 넓이 얻기 */
 		if (!uvEng_Luria_GetLocalMark(cam1_1st, &stPosX[0]))	return FALSE;
@@ -866,7 +866,9 @@ void CWork::LocalTrigRegist()
 
 	double stageYMark2 = (pstThickCali->mark2_stage_y[0] - yGab) * 10000.0f; //마크2를 바라보는 스테이지 y 좌표를 의미함. 
 
-	int markOrder = 0;
+	int markOrder = 2; //글로벌2점이후(글로벌은 무조건 4점이다. 예외없음, 즉 사이드캠의 경우 2) 
+
+
 	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 	auto scans = status.gerberColCnt / WANG_BOCK;
 	UINT8 u8ScanMarks = uvEng_Recipe_GetScanLocalMarkCount();		/* 1 Scan 기준 - 저장된 Fiducial 개수 */
@@ -883,7 +885,7 @@ void CWork::LocalTrigRegist()
 		for (int i = 0; i < u8ScanMarks; i++, markOrder++)
 		{
 			
-			UINT32 camLocalMark[] = { status.markPoolForCamLocal[1][markOrder].tgt_id , status.markPoolForCamLocal[2][markOrder].tgt_id}; //트리거 등록할 마크번호
+			UINT32 camLocalMark[] = { status.markPoolForCam[1][markOrder].tgt_id , status.markPoolForCam[2][markOrder].tgt_id}; //트리거 등록할 마크번호
 
 			double markGab[] = { uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x00, camLocalMark[0]) * 10000.0f, 
 								 uvEng_Luria_GetGlobalBaseMarkLocalDiffY(0x01, camLocalMark[1]) * 10000.0f};

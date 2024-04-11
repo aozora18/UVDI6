@@ -1032,13 +1032,16 @@ BOOL CMvencThread::ReqWriteEncoderOut(UINT32 enc_out)
 		stPktData.enc_out_val	= enc_out;
 		for (; i < MAX_TRIG_CHANNEL; i++)
 		{
-#if 0
-			stPktData.trig_set[i].area_trig_ontime	= 2500;
-			stPktData.trig_set[i].area_strob_ontime	= 2500;
-#else	/* 현재 DI 장비 특성 때문에 (Trigger는 무조건 1 & 3 CH 에서만 발생 시켜야 됨) */
-			if (i == 0x00 || i == 0x02)	stPktData.trig_set[i].area_trig_ontime	= 2500;
-			else						stPktData.trig_set[i].area_trig_ontime	= 0;
-			stPktData.trig_set[0].area_strob_ontime	= 2500;
+
+
+#if(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+			stPktData.trig_set[i].area_trig_ontime = 2500;
+			stPktData.trig_set[i].area_strob_ontime = 2500;
+#else
+			if (i == 0x00 || i == 0x02)	stPktData.trig_set[i].area_trig_ontime = 2500;
+			else						stPktData.trig_set[i].area_trig_ontime = 0;
+			stPktData.trig_set[i].area_strob_ontime = 2500;
+
 #endif
 
 			// 강제 트리거 발생 : 단위 확인 필요

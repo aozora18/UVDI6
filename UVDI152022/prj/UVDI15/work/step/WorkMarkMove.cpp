@@ -67,8 +67,8 @@ VOID CWorkMarkMove::DoWork()
 	const int Initstep = 0, processWork = 1, checkWorkstep = 2;
 	try
 	{
-		markMoveCallback[alignMode][processWork]();
-		markMoveCallback[alignMode][checkWorkstep]();
+		markMoveCallback[alignMotion][processWork]();
+		markMoveCallback[alignMotion][checkWorkstep]();
 		CheckWorkTimeout();
 	}
 	catch (const std::exception&){}

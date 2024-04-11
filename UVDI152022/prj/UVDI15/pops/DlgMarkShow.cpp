@@ -199,7 +199,7 @@ int CDlgMarkShow::GetMarkACamNoFromIndex(int index, BOOL bIsLocal)
 	
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
-	auto pool = bIsLocal ? status.markPoolForCamLocal : status.markPoolForCamGlobal;
+	auto pool = status.markPoolForCam; // bIsLocal ? status.markPoolForCamLocal : status.markPoolForCamGlobal;
 	
 	for (int i = 1; i <= status.acamCount; i++)
 	{
@@ -227,7 +227,7 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 
-	auto pool = bIsLocal ? status.markPoolForCamLocal[camIndex] : status.markPoolForCamGlobal[camIndex];
+	auto pool = status.markPoolForCam[camIndex];  //bIsLocal ? status.markPoolForCamLocal[camIndex] : status.markPoolForCamGlobal[camIndex];
 
 	if (pool.size() == 0)
 		return nImgID;

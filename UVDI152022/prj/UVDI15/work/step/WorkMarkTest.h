@@ -23,17 +23,9 @@ public:
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();
 
-	void GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path);
+	//void GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path);
 
-	void SetAlignMode(ENG_AMOS mode, ENG_ATGL aligntype)
-	{ 
-		alignMode = mode; 
-		this->aligntype = aligntype;
-		const int INIT_STEP = 0;
-		alignCallback[mode][INIT_STEP]();
-
-		GlobalVariables::GetInstance()->GetAlignMotion().SetAlignMode(mode, aligntype);
-	}
+	void SetAlignMode();
 	
 	static const int endPointPair = 3;
 
@@ -98,7 +90,7 @@ protected:
 	UINT32				m_u32ExpoCount;		/* 현재 노광 반복 횟수 */
 	STG_CELA			m_stExpoLog;
 	int scanCount = 0;
-	ENG_AMOS alignMode = ENG_AMOS::en_onthefly_2cam;
+	ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam;
 	ENG_ATGL aligntype = ENG_ATGL::en_global_4_local_0_point;
 	/* 로컬 함수 */
 protected:

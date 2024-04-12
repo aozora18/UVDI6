@@ -310,9 +310,8 @@ enum SearchFlag
 		bool MovetoGerberPos(int camNum, STG_XMXY tgtPos);
 
 		bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point);
-
-
 		
+		bool GetCamPosUseGerberPos(STG_XMXY gerberPos, int baseCamNum, double& camAxis, double& stageX, double& stageY);
 
 		void GetFiducialDimension(ENG_AMTF types, int& x, int& y);
 		bool CheckAlignScanFinished(int scanCount);

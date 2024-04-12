@@ -515,13 +515,17 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 		{
 		case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
-		case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+		case 0x02: 
+		{
+			motions.SetFiducialPool();
+			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+			m_enWorkState = IsLoadedGerberCheck();
+		}break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 		case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 		case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
 		case 0x05:
 		{		
-			motions.SetFiducialPool();
-			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+
 			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 		}
 		break;	//3캠 이동위치 경로설정

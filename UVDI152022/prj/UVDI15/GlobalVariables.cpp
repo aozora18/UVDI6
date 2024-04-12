@@ -408,7 +408,30 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		//스테이지를 움직일수가 없다면 카메라축을 움직인다. 
 		return arrived;
 	}
+	
+	
+	bool AlignMotion::GetCamPosUseGerberPos(STG_XMXY gerberPos,int baseCamNum, double& camAxis, double& stageX, double& stageY)
+	{
+		bool res = false;
+		camAxis = 0;
+		stageX = 0;
+		stageY = 0;
+		///
 
+		double mark2Xgab = (markParams.caliGerbermark2x - markParams.currGerbermark2x);
+		double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
+
+		double stageXgab = (axises["stage"]["x"].currPos - markParams.mark2StageX);
+		double stageYgab = (axises["stage"]["y"].currPos - markParams.mark2cam1Y);
+
+		double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos };
+
+		///
+
+		return res;
+	}
+
+	
 	bool AlignMotion::GetGerberPosUseCamPos(int camNum, STG_XMXY& point)
 	{
 		const int _1to3 = 0;
@@ -614,6 +637,21 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			const int centercam = 3;
 			bool res = true;
 
+
+			int tempX = 0, tempY = 0;
+			GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
+
+			bool basicUp = true; // 위에서 아래로 올라갈경우이다. 
+			bool toUp = basicUp;
+			for (int i = 0; i < tempX; i++)
+			{
+				vector<STG_XMXY> temp;
+				std::copy(status.markList[ENG_AMTF::en_local].begin() + (i * tempY),
+					status.markList[ENG_AMTF::en_local].begin() + (i * tempY) + tempY,
+					std::back_inserter(temp));
+
+				std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
+			}
 			GetGerberPosUseCamPos(centercam, lookat);
 
 			STG_XMXY current = lookat;

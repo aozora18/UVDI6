@@ -768,21 +768,22 @@ API_EXPORT BOOL uvMIL_SetModelDefine(UINT8 cam_id, UINT8 speed, UINT8 level, UIN
  retn : TRUE or FALSE
 */
 API_EXPORT BOOL uvMIL_SetModelDefineEx(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
-									   PUINT32 model, DOUBLE *param1, DOUBLE *param2, DOUBLE *param3,
-									   DOUBLE *param4, DOUBLE *param5, UINT8 mark_no,
-									   DOUBLE scale_min, DOUBLE scale_max,
-									   DOUBLE score_min, DOUBLE score_tgt)
+	PUINT32 model, DOUBLE* param1, DOUBLE* param2, DOUBLE* param3,
+	DOUBLE* param4, DOUBLE* param5, UINT8 mark_no,
+	DOUBLE scale_min, DOUBLE scale_max,
+	DOUBLE score_min, DOUBLE score_tgt, bool sameMark)
 {
 	// if (!g_pMilMain)	return FALSE;
 	//return theApp.clMilMain.SetModelDefine(cam_id, speed, level, smooth, model, param1,
 	//								  param2, param3, param4, param5, count,
 	//								  scale_min, scale_max, score_min, score_tgt);
-	theApp.clMilMain.SetModelDefine(cam_id, speed, level, count, smooth, model, param1,	
+	theApp.clMilMain.SetModelDefine(cam_id, speed, level, count, smooth, model, param1,
 		param2, param3, param4, param5, mark_no,
-		scale_min, scale_max, score_min, score_tgt);
+		scale_min, scale_max, score_min, score_tgt, sameMark);
 
 	return TRUE;
 }
+
 
 /*
  desc : Mark 정보 설정 - 이미지 데이터
@@ -2222,7 +2223,7 @@ API_EXPORT VOID uvMIL_DrawImageBitmap(int dispType, int Num, LPG_ACGR grab, DOUB
 		MimResize(theApp.clMilMain.m_mImg_CALI_STEP[0], theApp.clMilMain.m_mImgDisp_CALI_STEP[0], dRateP.x, dRateP.y, M_DEFAULT);
 
 		MbufClear(theApp.clMilMain.m_mImgDisp_CALI_STEP[1], 0L);
-		MimResize(theApp.clMilMain.m_mImg_CALI_STEP[1], theApp.clMilMain.m_mImgDisp_CALI_STEP[1], dRateP.x, dRateP.y, M_DEFAULT);
+		MimResize(theApp.clMilMain.m_mImg_CALI_STEP[0], theApp.clMilMain.m_mImgDisp_CALI_STEP[1], dRateP.x, dRateP.y, M_DEFAULT);
 	}
 	else if (dispType == DISP_TYPE_CALB_ACCR) {	// CALB EXPO
 		MbufClear(theApp.clMilMain.m_mImgDisp_ACCR, 0L);

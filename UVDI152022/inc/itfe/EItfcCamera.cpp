@@ -346,14 +346,14 @@ API_EXPORT BOOL uvEng_Camera_SetModelDefine(UINT8 cam_id, UINT8 speed, UINT8 lev
 								   scale_min, scale_max, score_min, score_tgt);
 }
 API_EXPORT BOOL uvEng_Camera_SetModelDefineEx(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count,
-											  DOUBLE smooth, PUINT32 model, DOUBLE *param1,
-											  DOUBLE *param2, DOUBLE *param3, DOUBLE *param4,
-											  DOUBLE *param5, UINT8 mark_no, DOUBLE scale_min,
-											  DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt)
+	DOUBLE smooth, PUINT32 model, DOUBLE* param1,
+	DOUBLE* param2, DOUBLE* param3, DOUBLE* param4,
+	DOUBLE* param5, UINT8 mark_no, DOUBLE scale_min,
+	DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt, bool sameMark)
 {
 	return uvBasler_SetModelDefineEx(cam_id, speed, level, count, smooth, model,
-									 param1, param2, param3, param4, param5, mark_no,
-									 scale_min, scale_max, score_min, score_tgt);
+		param1, param2, param3, param4, param5, mark_no,
+		scale_min, scale_max, score_min, score_tgt, sameMark);
 }
 API_EXPORT BOOL uvEng_Camera_SetModelDefineLoad(UINT8 cam_id, UINT8 speed, UINT8 level, DOUBLE smooth,
 												DOUBLE scale_min, DOUBLE scale_max,

@@ -127,7 +127,7 @@ public:
 									   DOUBLE *param1, DOUBLE *param2, DOUBLE *param3,
 									   DOUBLE *param4, DOUBLE *param5, UINT8 mark_no,
 									   DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
-									   DOUBLE score_min=0.0f, DOUBLE score_tgt=0.0f);
+										DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f, bool sameMark = false);
 
 	BOOL				SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, LPG_CMPV model,
 									   UINT8 mark_no, DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,

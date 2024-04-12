@@ -514,7 +514,7 @@ API_IMPORT BOOL uvBasler_SetModelDefineEx(UINT8 cam_id, UINT8 speed, UINT8 level
 										  PUINT32 model, DOUBLE *param1, DOUBLE *param2, DOUBLE *param3,
 										  DOUBLE *param4, DOUBLE *param5, UINT8 mark_no,
 										  DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
-										  DOUBLE score_min=0.0f, DOUBLE score_tgt=0.0f);
+											DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f, bool sameMark = false);
 /*
  desc : Mark 정보 설정 - 이미지 데이터
  parm : cam_id		- [in]  Align Camera Index (1 or 2)

@@ -143,15 +143,18 @@ public:
 									   LPG_CMPV model, UINT8 mark_no,
 									   DOUBLE scale_min, DOUBLE scale_max,
 									   DOUBLE score_min, DOUBLE score_tgt);
+
 	BOOL				SetModelDefine(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
 									   PUINT32 model, DOUBLE *param1, DOUBLE *param2, DOUBLE *param3,
 									   DOUBLE *param4, DOUBLE *param5, UINT8 mark_no,
 									   DOUBLE scale_min, DOUBLE scale_max,
-									   DOUBLE score_min, DOUBLE score_tgt);
+									   DOUBLE score_min, DOUBLE score_tgt, bool sameMark = false);
+
 	BOOL				SetModelDefineLoad(UINT8 cam_id, UINT8 speed, UINT8 level, DOUBLE smooth,
 										   DOUBLE scale_min, DOUBLE scale_max,
 										   DOUBLE score_min, DOUBLE score_tgt,
 										   PTCHAR name, CStringArray &file);
+
 	BOOL				SetModelDefine_tot(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
 										LPG_CMPV model, UINT8 fi_No, TCHAR* file,
 										DOUBLE scale_min, DOUBLE scale_max,

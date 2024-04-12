@@ -66,7 +66,7 @@ API_IMPORT VOID uvMIL_ResetGrabAll();
 API_IMPORT BOOL uvMIL_SetModelDefine(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
 									 LPG_CMPV model, UINT8 mark_no,
 									 DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
-									 DOUBLE score_min=0.0f, DOUBLE score_tgt=0.0f);
+									 DOUBLE score_min=0, DOUBLE score_tgt=0, bool sameMark = false);
 /*
  desc : 로컬 시스템 (저장소)에 저장되어 있는 패턴 매칭 원본 이미지 적재
  parm : cam_id		- [in]  Camera Index (0x01 ~ MAX_INSTALL_CAMERA_COUNT)
@@ -88,10 +88,10 @@ API_IMPORT BOOL uvMIL_SetModelDefine(UINT8 cam_id, UINT8 speed, UINT8 level, UIN
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvMIL_SetModelDefineEx(UINT8 cam_id, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth,
-									   PUINT32 model, DOUBLE *param1, DOUBLE *param2, DOUBLE *param3,
-									   DOUBLE *param4, DOUBLE *param5, UINT8 mark_no,
-									   DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
-									   DOUBLE score_min=0.0f, DOUBLE score_tgt=0.0f);
+	PUINT32 model, DOUBLE* param1, DOUBLE* param2, DOUBLE* param3,
+	DOUBLE* param4, DOUBLE* param5, UINT8 mark_no,
+	DOUBLE scale_min = 0.0f, DOUBLE scale_max = 0.0f,
+	DOUBLE score_min = 0.0f, DOUBLE score_tgt = 0.0f, bool sameMark = false);
 /*
  desc : Mark 정보 설정 - 이미지 데이터
  parm : cam_id		- [in]  Align Camera Index (1 or 2)

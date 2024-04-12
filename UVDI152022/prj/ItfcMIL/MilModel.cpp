@@ -472,7 +472,7 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 	DOUBLE* param1, DOUBLE* param2, DOUBLE* param3,	// lk91 param 배열 넘겨주는 부분 체크
 	DOUBLE* param4, DOUBLE* param5, UINT8 mark_no,
 	DOUBLE scale_min, DOUBLE scale_max,
-	DOUBLE score_min, DOUBLE score_tgt)
+	DOUBLE score_min, DOUBLE score_tgt, bool sameMark)
 {
 
 	/* 기존 설정되어 있다면 일단 해제 */
@@ -515,8 +515,8 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 		if (param5)	m_pstMarkModel[mark_no+i].param[4] = param5[i];
 	}
 	
-	return m_u8ModelRegist > 1 ? SetModelDefine(speed, level, smooth, count, scale_min, scale_max, score_min) :
-								 SetModelDefine_tot(speed, level, count, smooth, mark_no, NULL,scale_min, scale_max, score_min, score_tgt);
+	return m_u8ModelRegist > 1 && sameMark == false ? SetModelDefine(speed, level, count, mark_no, smooth, scale_min, scale_max, score_min, score_tgt) :
+		SetModelDefine_tot(speed, level, count, smooth, mark_no, NULL, scale_min, scale_max, score_min, score_tgt);
 }
 
 /*

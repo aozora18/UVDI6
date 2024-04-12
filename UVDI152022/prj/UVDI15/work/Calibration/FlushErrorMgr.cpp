@@ -123,7 +123,7 @@ BOOL CFlushErrorMgr::SetRegistModel()
 		&u32Model, &dbMColor, &dbMSize,
 		NULL, NULL, NULL, TMP_MARK,	/* 등록하려는 모델의 개수는 반드시 1개 */
 		pstCfg->acam_spec.in_ring_scale_min,
-		pstCfg->acam_spec.in_ring_scale_max))
+		pstCfg->acam_spec.in_ring_scale_max, 0, 0, true))
 	{
 		return FALSE;
 	}

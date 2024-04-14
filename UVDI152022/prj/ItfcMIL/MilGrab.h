@@ -64,8 +64,10 @@ public:
 #if 0
 	VOID				SetGrabResultAngle(LPG_GMFR data,  UINT32 grab_width, UINT32 grab_height);
 #endif
-	LPG_ACGR			GetGrabbedMark()		{	return m_pstGrabResult;				}
-	LPG_GMSR			GetGrabbedMarkAll()		{	return m_pstResultAll;				}
+	LPG_ACGR			GetGrabbedMark()		{	
+		return m_pstGrabResult;				}
+	LPG_GMSR			GetGrabbedMarkAll()		{	
+		return m_pstResultAll;				}
 	UINT8				GetGrabbedMarkCount()	{	return m_u8ResultAll;				}
 	VOID				PutGrabbedMark(LPG_ACGR grab, LPG_GMSR gmsr,
 									   UINT32 grab_width, UINT32 grab_height);

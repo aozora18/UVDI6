@@ -15,6 +15,8 @@ public:
 	
 	CWorkMarkTest(LPG_CELA expo);
 	virtual ~CWorkMarkTest();
+	
+	vector<CaliPoint> alignOffsetPool;
 
 	/* 가상함수 재정의 */
 protected:

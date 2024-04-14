@@ -554,6 +554,7 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 					{
 						if (grabMarkPath.size() == 0)
 							return true;
+
 						auto first = grabMarkPath.begin();
 						auto arrival = motions.MovetoGerberPos(CENTER_CAM, *first);
 

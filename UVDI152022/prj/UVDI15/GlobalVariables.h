@@ -126,11 +126,13 @@ enum SearchFlag
 			this->offsetX = offsetX;
 			this->offsetY = offsetY;
 		}
+
 		CaliPoint() {}
 		double x;
 		double y;
 		double offsetX;
 		double offsetY;
+		STG_XMXY srcFid;
 	};
 
 
@@ -268,7 +270,7 @@ enum SearchFlag
 		mutex* motionMutex;
 		bool onUpdate = true;
 		LPG_CIEA pstCfg = nullptr;
-
+		vector<CaliPoint> alignOffsetPool;
 		
 
 		Status status;
@@ -282,7 +284,7 @@ enum SearchFlag
 			etc = 0b00000010,
 		};
 
-		CaliPoint EstimateOffset(int camIdx, double stageX, double stageY, double camX);
+		CaliPoint EstimateOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
 		void Destroy();
 
 	protected:
@@ -348,6 +350,7 @@ enum SearchFlag
 
 		vector<STG_XMXY> GetFiducialPool(int camNum);
 		void UpdateParamValues();
+		void SetAlignOffsetPool(vector<CaliPoint> offsetPool);
 		void SetFiducialPool(bool useDefault = true, ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam, ENG_ATGL alignType = ENG_ATGL::en_global_4_local_0_point);
 		void DoInitial(LPG_CIEA pstCfg);
 	};

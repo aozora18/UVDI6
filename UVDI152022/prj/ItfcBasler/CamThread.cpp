@@ -198,7 +198,7 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 
 				case ENG_AMOS::en_static_3cam:
 				{
-					globalGrab = alignMotionPtr->status.globalMarkCnt - 1 > pstGrab->img_id ? true : false;
+					globalGrab = alignMotionPtr->status.globalMarkCnt > pstGrab->img_id ? true : false;
 					bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, globalGrab == true ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
 				}
 				break;
@@ -223,8 +223,13 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 
 				if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
 				{
+					if (globalGrab == false)
+						int debug = 0;
+
 					m_lstGrab.AddTail(pstGrab);
 					pstGrab->fiducialMarkIndex = alignMotionPtr == NULL ? -1818 : alignMotionPtr->GetFiducialIndex(cam_id, globalGrab, &m_lstGrab);
+					if (pstGrab->fiducialMarkIndex == -1818)
+						int debug = 0;
 				}
 				else
 				{

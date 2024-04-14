@@ -1660,6 +1660,114 @@ ENG_JWNS CWorkStep::IsPrinted()
 	return ENG_JWNS::en_wait;
 }
 
+ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
+{
+	CAtlList <STG_XMXY> lstMarks;
+	//LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
+	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
+
+	STG_XMXY temp;
+
+	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto status = motions.status;
+	bool success = true;
+	const int CENTERCAM = 3;
+
+	if (status.globalMarkCnt != 4)
+		return ENG_JWNS::en_next;
+
+	auto grabFindFunc = [&](int startIdx, int markTgt, CAtlList <LPG_ACGR>* grabPtr) -> LPG_ACGR
+	{
+		if (grabPtr == NULL)
+			return nullptr;
+
+		for (int i = startIdx; i < grabPtr->GetCount(); i++)
+		{
+			auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
+			if (grab != nullptr && grab->fiducialMarkIndex == markTgt)
+				return grab;
+		}
+		return nullptr;
+	};
+
+	auto GetOffset = [&](int orgMarkIdx, CaliPoint& temp)->bool
+						{
+							auto offsetPool = motions.status.alignOffsetPool;
+							auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.org_id == orgMarkIdx; });
+							if (find == offsetPool.end())
+							{
+									return false;
+							} 
+							temp = (*find);
+							return true;
+						};
+
+	auto GetGrab = [&](int camIdx, int orgMarkIdx , ENG_AMTF markType)->LPG_ACGR
+					{
+						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
+
+						orgMarkIdx *= markType == ENG_AMTF::en_global ? -1 : 1;
+						LPG_ACGR find = nullptr;
+						for (int i = 0; i < grabs->GetCount(); i++)
+						{
+							auto grab = grabs->GetAt(grabs->FindIndex(i));
+							if (grab == nullptr) continue;
+				
+							if (grab->cam_id == camIdx && grab->fiducialMarkIndex == orgMarkIdx)
+							{
+								find = grab;
+								break;
+							}
+						}
+						return find;
+					};
+
+	for (int i = 0; success && i < status.globalMarkCnt; i++)
+	{
+		
+
+		if (uvEng_Luria_GetGlobalMark(i, &temp) == false)
+			return ENG_JWNS::en_error;
+		
+		auto grab = GetGrab(CENTERCAM, temp.org_id, ENG_AMTF::en_global);
+
+		if(grab == nullptr)
+			return ENG_JWNS::en_error;
+
+		if (grab->marked == false)
+			return ENG_JWNS::en_error;
+
+		temp.mark_x -= grab->move_mm_x;
+		temp.mark_y -= grab->move_mm_y;
+
+		if (pstSetAlign->use_mark_offset)
+		{
+			CaliPoint offset;
+			if (GetOffset(temp.org_id, offset) == false )
+				return ENG_JWNS::en_error;
+			
+			temp.mark_x -= offset.offsetX;
+			temp.mark_y -= offset.offsetY;
+			
+		}
+		lstMarks.AddTail(temp);
+	}
+	
+
+	int debug = 0;
+	return ENG_JWNS::en_next;
+	//for (int i = 0; i < status.localMarkCnt; i++)
+	//{
+	//	//stMarkPos1 = status.markList[ENG_AMTF::en_local][i]; //로컬 마크 인덱스별로 참조.
+	//	uvEng_Luria_GetLocalMark(i, &stMarkPos1);
+	//	lstMarks.AddTail(stMarkPos1);
+	//	swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", stMarkPos1.tgt_id, stMarkPos1.mark_x, stMarkPos1.mark_y);
+	//	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+	//}
+
+}
+
+
 /*
  desc : Luria Service에 측정된 Align Mark 오차 값 등록
  parm : None

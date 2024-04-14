@@ -241,6 +241,7 @@ enum SearchFlag
 		void BufferClear()
 		{
 			//markPoolForCamLocal.clear(); //카메라별 풀링.
+			alignOffsetPool.clear();
 			markPoolForCam.clear();
 			markList.clear(); //column별 풀링
 			markMapConst.clear(); //원본
@@ -258,6 +259,7 @@ enum SearchFlag
 		int lastScanCount = 0;
 
 		//map<int, vector<STG_XMXY>> markPoolForCamGlobal; //카메라별 풀링.
+		vector<CaliPoint> alignOffsetPool;
 		map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
 		map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것
 		//map<int, vector<STG_XMXY>> markMapProcess; //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
@@ -270,7 +272,7 @@ enum SearchFlag
 		mutex* motionMutex;
 		bool onUpdate = true;
 		LPG_CIEA pstCfg = nullptr;
-		vector<CaliPoint> alignOffsetPool;
+		
 		
 
 		Status status;
@@ -341,7 +343,10 @@ enum SearchFlag
 			int currentCnt = imgMap[camIndex].size();
 			int poolSize = pool.size();
 
-			if (currentCnt == 0 || poolSize <= currentCnt - 1 || poolSize == 0)
+			if (currentCnt == 0)
+				int debug = 0;
+
+			if (poolSize <= currentCnt - 1 || poolSize == 0)
 				return -1818;
 			
 

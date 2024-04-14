@@ -245,6 +245,9 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			break;
 
 			case 0x0b:
+			{
+				m_enWorkState =  SetAlignMarkRegistforStatic();
+			}
 			case 0x0c:
 			case 0x0d:
 			case 0x0e:

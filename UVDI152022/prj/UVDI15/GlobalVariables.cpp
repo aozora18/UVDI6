@@ -495,7 +495,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void AlignMotion::UpdateParamValues()
 	{
-		status.BufferClear();
+		
 
 		LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
 
@@ -537,7 +537,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void AlignMotion::SetAlignOffsetPool(vector<CaliPoint> offsetPool)
 	{
-		alignOffsetPool = offsetPool;
+		status.alignOffsetPool = offsetPool;
 	}
 
 	void AlignMotion::SetFiducialPool(bool useDefault, ENG_AMOS alignMotion, ENG_ATGL alignType)
@@ -549,6 +549,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			alignMotion = markParams.alignMotion;
 			alignType = markParams.alignType;
 		}
+
+		status.BufferClear();
 
 		auto GenOntheFly2camFid = [&]()
 	{

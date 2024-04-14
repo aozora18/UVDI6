@@ -100,6 +100,7 @@ protected:
 	ENG_JWNS			IsPrinted();
 
 	ENG_JWNS			SetAlignMarkRegist();
+	ENG_JWNS			SetAlignMarkRegistforStatic();
 	ENG_JWNS			IsAlignMarkRegist();
 
 	ENG_JWNS			SetPhZAxisMovingAll();

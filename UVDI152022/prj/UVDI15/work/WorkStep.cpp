@@ -1678,8 +1678,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		if (GetOffset(temp.tgt_id, offset) == false)
 
 			return ENG_JWNS::en_error;
-		temp.mark_x -= (grab->move_mm_x + offset.offsetX);
-		temp.mark_y -= (grab->move_mm_y - offset.offsetY);
+		temp.mark_x -= (grab->move_mm_x); //- offset.offsetX);
+		temp.mark_y -= (grab->move_mm_y); //- offset.offsetY);
 
 		if (pstSetAlign->use_mark_offset)
 		{

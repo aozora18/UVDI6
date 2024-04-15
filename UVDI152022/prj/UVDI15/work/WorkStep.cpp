@@ -1746,25 +1746,45 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			if (GetOffset(temp.org_id, offset) == false )
 				return ENG_JWNS::en_error;
 			
-			temp.mark_x -= offset.offsetX;
-			temp.mark_y -= offset.offsetY;
+			temp.mark_x += offset.offsetX;
+			temp.mark_y += offset.offsetY;
 			
 		}
 		lstMarks.AddTail(temp);
 	}
 	
 
-	int debug = 0;
-	return ENG_JWNS::en_next;
-	//for (int i = 0; i < status.localMarkCnt; i++)
-	//{
-	//	//stMarkPos1 = status.markList[ENG_AMTF::en_local][i]; //로컬 마크 인덱스별로 참조.
-	//	uvEng_Luria_GetLocalMark(i, &stMarkPos1);
-	//	lstMarks.AddTail(stMarkPos1);
-	//	swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", stMarkPos1.tgt_id, stMarkPos1.mark_x, stMarkPos1.mark_y);
-	//	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-	//}
+	if (uvEng_Luria_ReqSetGlobalTransformationRecipe(0x00, 0x00, 0x00) == false)
+		return ENG_JWNS::en_error;
+	
+		uvCmn_Luria_ResetRegistrationStatus();
 
+	if (uvEng_Luria_ReqSetUseSharedLocalZones(0x00) == false)
+		return ENG_JWNS::en_error;
+
+	auto fidCnt = lstMarks.GetCount();
+	
+	//LPG_I32XY pstMarks = NULL;
+	//pstMarks = new STG_I32XY[fidCnt];
+
+	auto pstMarks = std::make_unique< STG_I32XY[]>(fidCnt);
+
+	for (int i = 0; i < fidCnt; i++)
+	{
+		pstMarks[i].x  = (INT32)ROUNDED(lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x * 1000000.0f, 0);
+		pstMarks[i].y = (INT32)ROUNDED(lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y * 1000000.0f, 0);
+	}
+
+	if (uvEng_Luria_ReqSetRegistPointsAndRun(fidCnt, pstMarks.get()) == false)
+		return ENG_JWNS::en_error;
+
+	uvEng_Luria_ReqGetGetTransformationParams(0);
+
+	
+	SetSendCmdTime();
+
+	return ENG_JWNS::en_next;
+	
 }
 
 
@@ -2014,7 +2034,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		//		lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x += pstSetAlign->mark_offset_x[i];
 		//		lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y += pstSetAlign->mark_offset_y[i];
 
-		//		swprintf_s(tzMsg, 256, L"Offset + Global Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y / 1000000.0f));
+		//		swprintf_s(tzMsg, 256, L"Offset + Global Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(
+// [stMarkPos1.org_id].y / 1000000.0f));
 		//		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 		//	}
 		//}

@@ -76,7 +76,7 @@ void CWorkMarkTest::DoInitStatic2cam()
 
 void CWorkMarkTest::DoInitStatic3cam()
 {
-	m_u8StepTotal = 0x0f;
+	m_u8StepTotal = 0x10;
 }
 
 void CWorkMarkTest::DoInitOnthefly3cam()
@@ -248,15 +248,18 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			{
 				m_enWorkState =  SetAlignMarkRegistforStatic();
 			}
+			break;
+
 			case 0x0c:
-			case 0x0d:
-			case 0x0e:
-			case 0x0f:
 			{
-				m_enWorkState = ENG_JWNS::en_next;
+				m_enWorkState = IsAlignMarkRegist();
 			}
 			break;
 
+			case 0x0d:m_enWorkState = SetWorkWaitTime(1000);					break;
+			case 0x0e:m_enWorkState = IsWorkWaitTime();							break;
+			case 0x0f: m_enWorkState = SetMovingUnloader();						break;
+			case 0x10: m_enWorkState = IsMovedUnloader();						break;
 		}
 	}
 	catch (const std::exception&)

@@ -3,6 +3,10 @@
 
 #include "../WorkStep.h"
 #include <map>
+#include <vector>
+#include "../../GlobalVariables.h"
+
+using namespace std;
 class CWorkExpoAlign : public CWorkStep
 {
 /* 생성자 & 파괴자 */
@@ -19,7 +23,7 @@ protected:
 		toScanMoving = 1,    //스캔을 위해 이동하는 스텝
 	};
 public:
-
+	vector<CaliPoint> alignOffsetPool;
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();
 	int scanCount = 0;

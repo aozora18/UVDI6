@@ -517,6 +517,7 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
 		case 0x02: 
 		{
+			alignOffsetPool.clear();
 			motions.SetFiducialPool();
 			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 			m_enWorkState = IsLoadedGerberCheck();
@@ -544,8 +545,6 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 
 			bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
-
-					const int STABLE_TIME = 1000;
 					if (motions.NowOnMoving() == true)
 					{
 						this_thread::sleep_for(chrono::milliseconds(100));
@@ -560,13 +559,18 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 
 						if (arrival == true)
 						{
+							const int STABLE_TIME = 1000;
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 
+							//여기서 현재 위치기반 보정정보 갖고오기.
+							auto alignOffset = motions.EstimateOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
+								motions.GetAxises()["stage"]["y"].currPos);
+
+							alignOffset.srcFid = *first;
+							alignOffsetPool.push_back(alignOffset);
+
 							if (SingleGrab(CENTER_CAM))
-							{
-								//여기서 칼리브 데이터 추가해야함
 								grabMarkPath.erase(first);
-							}
 						}
 					}
 					return false;
@@ -579,9 +583,18 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 
 		case 0x09:m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM); break;
 		
-		case 0x0a:m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none); break;
-		
-		case 0x0b:m_enWorkState = SetAlignMarkRegist(); break;
+		case 0x0a:
+		{
+			motions.SetAlignOffsetPool(alignOffsetPool);
+			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none); 
+		}
+		break;
+
+		case 0x0b: 
+		{
+			m_enWorkState = SetAlignMarkRegistforStatic();
+		}
+		break;
 		
 		case 0x0c:m_enWorkState = IsAlignMarkRegist(); break;
 		

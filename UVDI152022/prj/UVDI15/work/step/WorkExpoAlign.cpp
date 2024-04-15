@@ -596,17 +596,34 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		}
 		break;
 		
-		case 0x0c:m_enWorkState = IsAlignMarkRegist(); break;
+		case 0x0c:m_enWorkState = IsAlignMarkRegist(); 
+			break;
 		
 		
-		case 0x0d: m_enWorkState = SetPrePrinting();							break;
-		case 0x0e:m_enWorkState = IsPrePrinted();
-		case 0x0f:m_enWorkState = SetPrinting(); break;
-		case 0x10:m_enWorkState = IsPrinted();								break;
-		case 0x11:m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
-		case 0x12:m_enWorkState = IsWorkWaitTime();							break;	/* 대기 완료 여부 확인 */
-		case 0x13: m_enWorkState = SetMovingUnloader();						break;	/* Stage Unloader 위치로 이동 */
-		case 0x14: m_enWorkState = IsMovedUnloader();							break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
+		case 0x0d: 
+			m_enWorkState = SetPrePrinting();							
+			break;
+
+		case 0x0e:
+			m_enWorkState = IsPrePrinted();
+		case 0x0f:
+			m_enWorkState = SetPrinting(); 
+			break;
+		case 0x10:
+			m_enWorkState = IsPrinted();								
+			break;
+		case 0x11:
+			m_enWorkState = SetWorkWaitTime(1000);						
+			break;	/* 일정 시간 대기 */
+		case 0x12:
+			m_enWorkState = IsWorkWaitTime();							
+			break;	/* 대기 완료 여부 확인 */
+		case 0x13: 
+			m_enWorkState = SetMovingUnloader();						
+			break;	/* Stage Unloader 위치로 이동 */
+		case 0x14: 
+			m_enWorkState = IsMovedUnloader();							
+			break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
 
 
 		}

@@ -1451,14 +1451,6 @@ ENG_JWNS CWorkStep::SetPrePrinting()
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Run.Pre.Printing");
 
-#if 0 /* 그 이전 단계에서 했으므로, 굳이 할 필요 없음 */
-	/* 무조건 트리거 동작 기능을 중지 시킴 */
-	SetTrigDisabled();
-#endif
-#if 0
-	/* 현재 모터가 이동 중이면 대기 (노광 시작 위치(Stage X)로 이동할 수 있으므로) */
-	if (!uvData_MC2_IsDriveStopped(en_mmdi_stage_x))	return en_bwos_wait;
-#endif
 	/* Printing 상태 값 초기화 */
 	uvEng_ShMem_GetLuria()->exposure.ResetExposeState();
 	/* Luria Service에게 PrePrinting 호출 */
@@ -1467,18 +1459,15 @@ ENG_JWNS CWorkStep::SetPrePrinting()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetPrintOpt.PrePrint)");
 		return ENG_JWNS::en_error;
 	}
-#if 0	/* PrePrint의 경우, 자동으로 응답되지 않고, 반드시 State 요청해야 함 */
-	if (!uvEng_GetConfig()->luria_svc.use_announcement)
-#endif
+
+	SetSendCmdTime();	/* 가장 최근에 송신한 시간 저장 */
+	/* Printing Status 정보 요청 */
+	if (!uvEng_Luria_ReqGetExposureState())
 	{
-		SetSendCmdTime();	/* 가장 최근에 송신한 시간 저장 */
-		/* Printing Status 정보 요청 */
-		if (!uvEng_Luria_ReqGetExposureState())
-		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState.PrePrint)");
-			return ENG_JWNS::en_error;
-		}
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState.PrePrint)");
+		return ENG_JWNS::en_error;
 	}
+
 	return ENG_JWNS::en_next;
 }
 
@@ -1577,64 +1566,14 @@ ENG_JWNS CWorkStep::IsPrinted()
 	if (0x0f == (u8State & 0x0f))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"There was a problem during the expose operation");
-#if 0	/* 바로 에러로 발생시키지 말고, 무한 대기 (결국 Timeout 될 때까지 대기) */
-		return ENG_JWNS::en_error;
-#endif
 	}
-#if 0
-	/* 만약 현재 노광 진행 중이면 ... */
-	if (uvCmn_Luria_IsExposeStateRunning(ENG_LCEP::en_print))
-	{
-		/* 현재 Time Out 시간을 최근 시간으로 갱신 */
-		m_u64DelayTime	= GetTickCount64();
-	}
-#endif
+
 	/* 노광 완료 상태이면 */
 	else if (uvCmn_Luria_IsExposeStateSuccess(ENG_LCEP::en_print))
 	{
 		return ENG_JWNS::en_next;
 	}
-#if 0
-	/* 현재 변경된 노광 횟수가 있는지 여부에 따라 장시간 동안 노광 작업이 없었는지 유무 판단 */
-	if (uvCmn_Luria_GetCurrentExposeScan() > m_u8PrintStripNum)
-	{
-		m_u8PrintStripNum	= uvCmn_Luria_GetCurrentExposeScan();
-		m_u64TickPrintStrip	= GetTickCount64();
-	}
-	else
-	{
-		/* 너무 느리게 노광하는 관계로, 모션이 천천히 움직여서, 마치 노광 타임 아웃이 발생한 것 처럼 보일 수도 T.T */
-		/* 현재 노광 중임을 알 수 있는... 뭔가 필요한데, 모션이 계속 변경 중인지 여부 확인 */
-#ifdef _DEBUG
-		if (GetTickCount64() > m_u64TickPrintStrip + 2000 /* 2 초 */)
-#else
-		if (GetTickCount64() > m_u64TickPrintStrip + 1000 /* 1 초 */)
-#endif
-		{
-			/* 현재 노광 중인 Y 축의 Motion 위치 값과 가장 최근에 이동한 위치 값 비교 (0.1 um 절삭) */
-			i32StageY = (INT32)ROUNDED(uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y) * 1000.0f, 0);	/* mm -> um */
-			if (uvEng_GetConfig()->IsRunDemo())
-			{
-				m_u64TickPrintStrip	= GetTickCount64();
-				m_i32PrintingStageY	= i32StageY;
-			}
-			else
-			{
-				if (i32StageY != m_i32PrintingStageY)
-				{
-					m_u64TickPrintStrip	= GetTickCount64();
-					m_i32PrintingStageY	= i32StageY;
-				}
-				else
-				{
-					/* 현재 Y 축 위치가 장시간 변경되지 않았음 */
-					LOG_ERROR(ENG_EDIC::en_uvdi15, L"The process of exposure has stopped");
-					return ENG_JWNS::en_error;
-				}
-			}
-		}
-	}
-#endif
+
 	/* Printing Status 정보 요청 (함수 내부에 1초에 2번 밖에 요청하지 못함) */
 	if (!uvEng_GetConfig()->luria_svc.use_announcement)
 	{
@@ -1690,10 +1629,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		return nullptr;
 	};
 
-	auto GetOffset = [&](int orgMarkIdx, CaliPoint& temp)->bool
+	auto GetOffset = [&](int tgtMarkIdx, CaliPoint& temp)->bool
 						{
 							auto offsetPool = motions.status.alignOffsetPool;
-							auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.org_id == orgMarkIdx; });
+							auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
 							if (find == offsetPool.end())
 							{
 									return false;
@@ -1702,18 +1641,18 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 							return true;
 						};
 
-	auto GetGrab = [&](int camIdx, int orgMarkIdx , ENG_AMTF markType)->LPG_ACGR
+	auto GetGrab = [&](int camIdx, int tgtMarkIdx , ENG_AMTF markType)->LPG_ACGR
 					{
 						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
 
-						orgMarkIdx *= markType == ENG_AMTF::en_global ? -1 : 1;
+						tgtMarkIdx *= markType == ENG_AMTF::en_global ? -1 : 1;
 						LPG_ACGR find = nullptr;
 						for (int i = 0; i < grabs->GetCount(); i++)
 						{
 							auto grab = grabs->GetAt(grabs->FindIndex(i));
 							if (grab == nullptr) continue;
 				
-							if (grab->cam_id == camIdx && grab->fiducialMarkIndex == orgMarkIdx)
+							if (grab->cam_id == camIdx && grab->fiducialMarkIndex == tgtMarkIdx)
 							{
 								find = grab;
 								break;
@@ -1724,12 +1663,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	for (int i = 0; success && i < status.globalMarkCnt; i++)
 	{
-		
-
 		if (uvEng_Luria_GetGlobalMark(i, &temp) == false)
 			return ENG_JWNS::en_error;
 		
-		auto grab = GetGrab(CENTERCAM, temp.org_id, ENG_AMTF::en_global);
+		auto grab = GetGrab(CENTERCAM, temp.tgt_id, ENG_AMTF::en_global);
 
 		if(grab == nullptr)
 			return ENG_JWNS::en_error;
@@ -1737,18 +1674,17 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		if (grab->marked == false)
 			return ENG_JWNS::en_error;
 
-		temp.mark_x -= grab->move_mm_x;
-		temp.mark_y -= grab->move_mm_y;
+		CaliPoint offset;
+		if (GetOffset(temp.tgt_id, offset) == false)
+
+			return ENG_JWNS::en_error;
+		temp.mark_x -= (grab->move_mm_x + offset.offsetX);
+		temp.mark_y -= (grab->move_mm_y - offset.offsetY);
 
 		if (pstSetAlign->use_mark_offset)
 		{
-			CaliPoint offset;
-			if (GetOffset(temp.org_id, offset) == false )
-				return ENG_JWNS::en_error;
-			
-			temp.mark_x += offset.offsetX;
-			temp.mark_y += offset.offsetY;
-			
+			temp.mark_x += pstSetAlign->mark_offset_x[temp.tgt_id];
+			temp.mark_y += pstSetAlign->mark_offset_y[temp.tgt_id];
 		}
 		lstMarks.AddTail(temp);
 	}

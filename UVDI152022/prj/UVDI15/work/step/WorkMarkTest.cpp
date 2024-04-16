@@ -158,12 +158,21 @@ void CWorkMarkTest::DoAlignStatic3cam()
 	{
 		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 		{
-			case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
+			case 0x01: 
+			{
+				m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+
+				if (m_enWorkState == ENG_JWNS::en_next)
+				{
+					alignOffsetPool.clear();
+					motions.SetFiducialPool();
+					grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+				}
+			}
+			break;	    /* 노광 가능한 상태인지 여부 확인 */
 			case 0x02: 
 			{
-				alignOffsetPool.clear();
-				motions.SetFiducialPool();
-				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+				
 				m_enWorkState = IsLoadedGerberCheck();
 			}
 			break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
@@ -256,9 +265,15 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			}
 			break;
 
+
 			case 0x0d:m_enWorkState = SetWorkWaitTime(1000);					break;
 			case 0x0e:m_enWorkState = IsWorkWaitTime();							break;
-			case 0x0f: m_enWorkState = SetMovingUnloader();						break;
+			case 0x0f: 
+			{
+//				SetPrePrinting();
+	//			IsPrePrinted();
+				m_enWorkState = SetMovingUnloader();
+			}break;
 			case 0x10: m_enWorkState = IsMovedUnloader();						break;
 		}
 	}
@@ -274,10 +289,16 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 {
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
-	case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
+	case 0x01: 
+	{
+		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+		if (m_enWorkState == ENG_JWNS::en_next)
+			GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
+	}
+	break;	    /* 노광 가능한 상태인지 여부 확인 */
 	case 0x02: 
 	{
-		GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
+		
 		m_enWorkState = IsLoadedGerberCheck();
 	}
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
@@ -346,7 +367,12 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
 	case 0x1d: m_enWorkState = SetWorkWaitTime(2000);						break;
 	case 0x1e: m_enWorkState = IsWorkWaitTime();							break;
-	case 0x20: m_enWorkState = SetMovingUnloader();							break;
+	case 0x20: 	
+	{
+
+		m_enWorkState = SetMovingUnloader();
+	}
+	break;
 	case 0x21: m_enWorkState = IsMovedUnloader();							break;
 	/*case 0x22: m_enWorkState = SetHomingACamSide();							break;
 	case 0x23: m_enWorkState = IsHomedACamSide();							break;

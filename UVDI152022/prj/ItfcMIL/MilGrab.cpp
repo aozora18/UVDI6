@@ -329,13 +329,11 @@ VOID CMilGrab::SetGrabbedMark(UINT8 img_id,
 			if (m_pstConfig->set_align.use_2d_cali_data)
 			{
 				m_pstGrabResult->move_px_x += (dbVertX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
-				//m_pstGrabResult->move_mm_x += dbVertX;
+				m_pstGrabResult->move_mm_x += dbVertX;
 				m_pstGrabResult->move_px_x -= (dbCaliX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
-				
-				//m_pstGrabResult->move_mm_x -= dbCaliX;
+				m_pstGrabResult->move_mm_x -= dbCaliX;
 				m_pstGrabResult->move_px_y -= (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
-				//m_pstGrabResult->move_mm_y -= dbCaliY;
-				// 
+				m_pstGrabResult->move_mm_y -= dbCaliY;
 				//m_pstGrabResult->move_px_y += (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1));
 				//m_pstGrabResult->move_mm_y += dbCaliY;
 				for (i=0; i<o_count && o_data; i++)

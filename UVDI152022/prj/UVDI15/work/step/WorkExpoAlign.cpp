@@ -514,12 +514,24 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 	{
 		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 		{
-		case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
+		case 0x01: 
+		{
+			
+			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+
+			if (m_enWorkState == ENG_JWNS::en_next)
+			{
+				alignOffsetPool.clear();
+				motions.SetFiducialPool();
+				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+			}
+
+		}
+		break;	    /* 노광 가능한 상태인지 여부 확인 */
+
 		case 0x02: 
 		{
-			alignOffsetPool.clear();
-			motions.SetFiducialPool();
-			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+			
 			m_enWorkState = IsLoadedGerberCheck();
 		}break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 		case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */

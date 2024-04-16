@@ -1676,10 +1676,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		CaliPoint offset;
 		if (GetOffset(temp.tgt_id, offset) == false)
-
 			return ENG_JWNS::en_error;
-		temp.mark_x -= (grab->move_mm_x); //- offset.offsetX);
-		temp.mark_y -= (grab->move_mm_y); //- offset.offsetY);
+
+		temp.mark_x -= (grab->move_mm_x - offset.offsetX);
+		temp.mark_y -= (grab->move_mm_y - offset.offsetY);
 
 		if (pstSetAlign->use_mark_offset)
 		{
@@ -1707,8 +1707,14 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	for (int i = 0; i < fidCnt; i++)
 	{
-		pstMarks[i].x  = (INT32)ROUNDED(lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x * 1000000.0f, 0);
-		pstMarks[i].y = (INT32)ROUNDED(lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y * 1000000.0f, 0);
+		for (int j = 0; j < fidCnt; j++)
+		{
+			auto at = lstMarks.GetAt(lstMarks.FindIndex(j));
+			if (at.org_id != i) continue;
+
+			pstMarks[i].x = (INT32)ROUNDED(at.mark_x * 1000000.0f, 0);
+			pstMarks[i].y = (INT32)ROUNDED(at.mark_y * 1000000.0f, 0);
+		}
 	}
 
 	if (uvEng_Luria_ReqSetRegistPointsAndRun(fidCnt, pstMarks.get()) == false)

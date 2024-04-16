@@ -350,7 +350,12 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 	case 0x1d: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */
 	case 0x1e: m_enWorkState = IsPrePrinted();								break;	/* Luria Control - PrePrinted 확인 */
-	case 0x1f:m_enWorkState = SetPrinting();	break;	/* Luria Control - Printing */
+	
+	case 0x1f:
+	{
+		m_enWorkState = SetPrinting();
+	}
+	break;	/* Luria Control - Printing */
 	case 0x20: m_enWorkState = IsPrinted();								break;	/* Luria Control - Printed 확인 */
 
 	case 0x21: m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
@@ -618,8 +623,11 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 
 		case 0x0e:
 			m_enWorkState = IsPrePrinted();
+			break;
+
 		case 0x0f:
-			m_enWorkState = SetPrinting(); 
+			m_enWorkState = SetPrinting();
+			//m_enWorkState = SetPrinting(); 
 			break;
 		case 0x10:
 			m_enWorkState = IsPrinted();								

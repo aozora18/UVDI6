@@ -462,8 +462,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;
 		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset;
 
-		point.mark_x = tempGerberX;
-		point.mark_y = tempGerberY;
+		point.mark_x = std::round(tempGerberX * std::pow(10, 3)) / std::pow(10, 3);;
+		point.mark_y = std::round(tempGerberY * std::pow(10, 3)) / std::pow(10, 3); ;
 		return true;
 
 	}
@@ -520,14 +520,23 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		markParams.caliGerbermark2y = pstCfg->set_align.mark2_org_gerb_xy[1];
 		
 		markParams.distCam2cam[_1to2_Y_OFFSET] = thick->mark2_stage_y[1] - thick->mark2_stage_y[0];
-		markParams.mark2cam1Y = thick->mark2_stage_y[0];
-		markParams.mark2cam2Y = thick->mark2_stage_y[0];
-		markParams.mark2Cam1X = thick->mark2_acam_x[0];
-		markParams.mark2Cam2X = thick->mark2_acam_x[1];
+		markParams.mark2cam1Y = std::round(thick->mark2_stage_y[0]  * std::pow(10, 3)) / std::pow(10, 3);
+		markParams.mark2cam2Y = std::round(thick->mark2_stage_y[1] * std::pow(10, 3)) / std::pow(10, 3);
+		markParams.mark2Cam1X = std::round(thick->mark2_acam_x[0] * std::pow(10, 3)) / std::pow(10, 3); 
+		markParams.mark2Cam2X = std::round(thick->mark2_acam_x[1] * std::pow(10, 3)) / std::pow(10, 3);
 
 		markParams.alignType = (ENG_ATGL)alignRecipe->align_type;
 		markParams.alignMotion = (ENG_AMOS)alignRecipe->align_motion;
-		
+	
+		STG_XMXY temp;
+		auto globalFiducial = uvEng_Luria_GetGlobalFiducial();
+		for (int i = 0; i < globalFiducial->GetCount(); i++)
+		if (globalFiducial->GetMark(i, temp) && temp.tgt_id == 1)
+		{
+			markParams.currGerbermark2x = std::round(temp.mark_x * std::pow(10, 3)) / std::pow(10, 3);
+			markParams.currGerbermark2y = std::round(temp.mark_y * std::pow(10, 3)) / std::pow(10, 3);
+		}
+
 	}
 
 	vector<STG_XMXY> AlignMotion::GetFiducialPool(int camNum)
@@ -630,13 +639,6 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 						temp.SetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 						status.markList[ENG_AMTF::en_global].push_back(temp);
 						status.markList[ENG_AMTF::en_mixed].push_back(temp);
-
-						if (temp.tgt_id == 1)
-						{
-							markParams.currGerbermark2x = temp.mark_x; //현재 읽은 거버에서의 mark2
-							markParams.currGerbermark2y = temp.mark_y;
-						}
-
 						status.markPoolForCam[(i / acamCount) + 1].push_back(temp);
 					}
 

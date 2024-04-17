@@ -62,7 +62,7 @@ VOID CFlushErrorMgr::Initialize()
 
 	for (int nIndex = 0; nIndex < u8CamCount; nIndex++)
 	{
-		m_pstGrabData[nIndex].grab_data = (PUINT8)::Alloc(u32Size + 1);
+		m_pstGrabData[nIndex].grab_data = new UINT8[u32Size + 1]; // = (PUINT8)::Alloc(u32Size + 1);
 		m_pstGrabData[nIndex].grab_data[u32Size] = 0x00;
 	}
 
@@ -97,6 +97,11 @@ VOID CFlushErrorMgr::Terminate()
 	//		::Free(m_pstGrabData[nIndex].grab_data);
 	//	}*/
 	//}
+
+	for (int i = 0; i < u8CamCount; i++)
+	{
+		delete[] m_pstGrabData[i].grab_data;
+	}
 
 	delete[] m_pstGrabData;
 }

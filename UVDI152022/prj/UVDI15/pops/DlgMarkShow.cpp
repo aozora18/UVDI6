@@ -243,7 +243,7 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 		auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
 
 		int min = bIsLocal ? status.globalMarkCnt : 0;
-		for (int i = min; i < grabMark->GetCount(); i++)
+		for (int i = 0; i < grabMark->GetCount(); i++)
 		{
 			auto item = grabMark->GetAt(grabMark->FindIndex(i));
 			if (item->fiducialMarkIndex == fiducialIndex)
@@ -265,13 +265,44 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 */
 BOOL CDlgMarkShow::DrawMark(int index)
 {
-	int u8ACamNo	= GetMarkACamNoFromIndex(index, m_bIsLocal);
-	int u8ImgNo	= GetMarkImgIDFromIndex(index,u8ACamNo ,m_bIsLocal);
+	
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	if (pstRecipe == nullptr)
+		return FALSE;
+
+	LPG_REAF expoRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
+
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	auto alignMotion = motions.markParams.alignMotion;
+	auto aligntype = motions.markParams.alignType;
+	int u8ACamNo = 0;
+	int u8ImgNo = 0;
+	switch (alignMotion)
+	{
+		case ENG_AMOS::en_static_3cam:
+		{
+			u8ACamNo = 3;
+			u8ImgNo = GetMarkImgIDFromIndex(index, u8ACamNo, m_bIsLocal);
+		}
+		break;
+		
+		default:
+		{
+			u8ACamNo = GetMarkACamNoFromIndex(index, m_bIsLocal);
+			u8ImgNo = GetMarkImgIDFromIndex(index, u8ACamNo, m_bIsLocal);
+		}
+		break;
+
+	}
+
+	
 	if (u8ImgNo == -1)return FALSE;
+	
 	TCHAR tzMark[128] = { NULL };
 	/*BOOL bRedraw		= FALSE;*/
 	LPG_ACGR pstMark = NULL;
-	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
+	
 	COLORREF clrText[2] = { RGB(255, 0, 0), RGB(34, 177, 76) };
 	CMyStatic* pText = NULL;
 
@@ -293,9 +324,9 @@ BOOL CDlgMarkShow::DrawMark(int index)
 
 	/* Check if it is higher than the mark valid score of the registered recipe */
 	UINT8 u8Mark = pstMark->IsMarkValid() ? 0x01 : 0x00;
-	if (u8Mark && pstRecipe)
+	if (u8Mark && expoRecipe)
 	{
-		u8Mark = pstRecipe->mark_score_accept <= pstMark->score_rate ? 0x01 : 0x00;
+		u8Mark = expoRecipe->mark_score_accept <= pstMark->score_rate ? 0x01 : 0x00;
 	}
 
 	/* Output the grabbed results to the text control */

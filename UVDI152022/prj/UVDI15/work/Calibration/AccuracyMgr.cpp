@@ -850,8 +850,8 @@ bool DoubleMarkAccurcytest::RunDoublemarkTestExam(int camNum, double* pdErrX = n
 	pstResult = new STG_ACGR[2];
 	ASSERT(pstResult);
 	memset(pstResult, 0x00, (sizeof(STG_ACGR) - sizeof(PUINT8)) * 2);
-	pstResult[0].grab_data = (PUINT8)::Alloc(u32GrabSize + 1);
-	pstResult[1].grab_data = (PUINT8)::Alloc(u32GrabSize + 1);
+	pstResult[0].grab_data = new UINT8[u32GrabSize + 1];// (PUINT8)::Alloc(u32GrabSize + 1);
+	pstResult[1].grab_data = new UINT8[u32GrabSize + 1]; // (PUINT8)::Alloc(u32GrabSize + 1);
 	pstResult[0].grab_data[u32GrabSize] = 0x00;
 	pstResult[1].grab_data[u32GrabSize] = 0x00;
 	pstResult[0].cam_id = camNum;
@@ -895,7 +895,8 @@ bool DoubleMarkAccurcytest::RunDoublemarkTestExam(int camNum, double* pdErrX = n
 
 	uvEng_Camera_DrawImageBitmap((UINT8)DISP_TYPE_CALB_ACCR, 0, camNum, 0, 1);
 	
-
+	delete[] pstResult[0].grab_data;
+	delete[] pstResult[1].grab_data;
 	delete[] pstResult;
 	//return pstResult;
 

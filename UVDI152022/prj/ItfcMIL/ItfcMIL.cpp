@@ -673,7 +673,7 @@ API_EXPORT BOOL uvMIL_Init(LPG_CIEA config, LPG_VDSM shmem, PTCHAR work_dir)
 	/* 카메라 최대 해상도 크기만큼 임시 버퍼 할당 (이미지 회전 임시 버퍼) */
 	UINT32 u32Size	= config->set_cams.GetCamSizeBytes();
 	/* Live 출력할 때, 회전 후 저장을 위한 임시 버퍼 할당 */
-	g_pGrabBuff		= (PUINT8)::Alloc(u32Size+1);
+	g_pGrabBuff = new UINT8[u32Size + 1];//  (PUINT8)::Alloc(u32Size + 1);
 	g_pGrabBuff[u32Size]	= 0x00;
 
 	return TRUE;
@@ -697,7 +697,9 @@ API_EXPORT VOID uvMIL_Close()
 	g_u32GrabWidth	= 0;
 	g_u32GrabHeight	= 0;
 	/* 임시 회전 후 저장용 버퍼 메모리 해제 */
-	if (g_pGrabBuff)	::Free(g_pGrabBuff);
+	if (g_pGrabBuff)	
+		delete[] g_pGrabBuff;
+
 	g_pGrabBuff	= NULL;
 	/* 반드시 해줘야 됨 */
 	g_pstConfig	= NULL;

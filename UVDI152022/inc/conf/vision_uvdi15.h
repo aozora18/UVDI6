@@ -103,6 +103,7 @@ typedef struct __st_align_camera_grab_result__
 	DOUBLE				move_mm_y;
 	DWORD				grabTime;
 	int					fiducialMarkIndex;
+	UINT32				reserve;
 	PUINT8				grab_data;				/* Grabbed Image Buffer */
 
 	//LPG_GMSR			submaskFindInfo;
@@ -184,6 +185,7 @@ typedef struct __st_align_camera_grab_result__
 		move_mm_x = 0.0;
 		move_mm_y = 0.0;
 		grabTime = 0;
+		reserve = 0;
 		fiducialMarkIndex = -1818;
 		grab_data = nullptr;
 	}

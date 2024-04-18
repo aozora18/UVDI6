@@ -299,7 +299,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 		for (const auto& item : skipList)
 		{
-			auto it = std::find_if(temp.begin(), temp.end(), [&](const STG_XMXY& c) { return c.org_id == item.org_id && c.org_id == item.org_id && c.org_id == item.org_id; });
+			auto it = std::find_if(temp.begin(), temp.end(), [&](const STG_XMXY& c) { return c.org_id == item.org_id && c.reserve == item.reserve; });
 			if (it != temp.end())
 				temp.erase(it);
 		}
@@ -599,20 +599,6 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			const int centercam = 3;
 			bool res = true;
 
-			int tempX = 0, tempY = 0;
-			GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
-
-			bool basicUp = true; // 위에서 아래로 올라갈경우이다. 
-			bool toUp = basicUp;
-			for (int i = 0; i < tempX; i++)
-			{
-				vector<STG_XMXY> temp;
-				std::copy(status.markList[ENG_AMTF::en_local].begin() + (i * tempY),
-					status.markList[ENG_AMTF::en_local].begin() + (i * tempY) + tempY,
-					std::back_inserter(temp));
-
-				std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
-			}
 			GetGerberPosUseCamPos(centercam, lookat);
 
 			STG_XMXY current = lookat;
@@ -620,7 +606,12 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 			while (res == true)
 				if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
+				{
 					pool.push_back(current);
+asdcasdc
+					//throw exception();
+					//여기서 보정테이블값 넣어주면된다.
+				}
 		};
 
 

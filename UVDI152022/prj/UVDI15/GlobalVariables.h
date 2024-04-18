@@ -322,36 +322,64 @@ enum SearchFlag
 		//void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);
 
 		
-		int GetFiducialIndex(int camIndex, bool isGlobal, CAtlList <LPG_ACGR>* grabList)
+		bool GetFiducialInfo(int camIndex, CAtlList <LPG_ACGR>* grabPool,int index, STG_XMXY& xmxy)
 		{
-			auto grabData = grabList;
-			const int GLOBAL_FIDUCIAL_OFFSET = -1;
-
-			if ((grabData == NULL || grabData->GetCount() == 0))
-				return -1818;
-
-			std::map<int, vector<LPG_ACGR>> imgMap;
-
-			for (int i = isGlobal ? 0 : status.globalMarkCnt; i < grabData->GetCount(); i++)
-			{
-				auto val = grabData->GetAt(grabData->FindIndex(i));
-				imgMap[val->cam_id].push_back(val);
-			}
-
-			auto pool = status.markPoolForCam[camIndex]; //isGlobal ? status.markPoolForCamGlobal[camIndex] : status.markPoolForCamLocal[camIndex];
-
-			int currentCnt = imgMap[camIndex].size();
+			auto pool = status.markPoolForCam[camIndex];
 			int poolSize = pool.size();
-
-			if (currentCnt == 0)
-				int debug = 0;
-
-			if (poolSize <= currentCnt - 1 || poolSize == 0)
-				return -1818;
 			
+			if (poolSize == 0 || index > poolSize)
+				return false;
 
-			return pool[currentCnt - 1].tgt_id *= isGlobal ? -1 : 1;
+			map<int, vector< LPG_ACGR>> buff;
+
+			for (int i = 0 ; i < grabPool->GetCount(); i++)
+			{
+				auto at = grabPool->GetAt(grabPool->FindIndex(i));
+				buff[at->cam_id].push_back(at);
+			}
+			
+			if (index != -1 && buff[camIndex].size() < index) return false;
+
+			if (index == -1)
+				index = buff[camIndex].size() == 0 ? 0 : buff[camIndex].size();
+			
+			xmxy = pool[index];
+			return true;
+
+			// return pool[index]; .tgt_id;// *= isGlobal ? -1 : 1;
+
 		}
+
+		//int GetFiducialIndex(int camIndex,   CAtlList <LPG_ACGR>* grabList)
+		//{
+		//	//auto grabData = grabList;
+		//	//const int GLOBAL_FIDUCIAL_OFFSET = -1;
+
+		//	if ((grabList == NULL || grabList->GetCount() == 0))
+		//		return -1818;
+
+		//	/*std::map<int, vector<LPG_ACGR>> imgMap;
+
+		//	for (int i = isGlobal ? 0 : status.globalMarkCnt; i < grabData->GetCount(); i++)
+		//	{
+		//		auto val = grabData->GetAt(grabData->FindIndex(i));
+		//		imgMap[val->cam_id].push_back(val);
+		//	}*/
+
+		//	auto pool = status.markPoolForCam[camIndex]; //isGlobal ? status.markPoolForCamGlobal[camIndex] : status.markPoolForCamLocal[camIndex];
+
+		//	int currentCnt = grabList->GetCount(); //imgMap[camIndex].size();
+		//	int poolSize = pool.size();
+
+		//	/*if (currentCnt == 0)
+		//		int debug = 0;*/
+
+		//	if (poolSize == 0)
+		//		return -1818;
+		//	
+
+		//	return pool[currentCnt].tgt_id;// *= isGlobal ? -1 : 1;
+		//}
 
 		vector<STG_XMXY> GetFiducialPool(int camNum);
 		void UpdateParamValues();

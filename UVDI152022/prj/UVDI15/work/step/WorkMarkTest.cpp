@@ -172,8 +172,8 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			break;	    /* 노광 가능한 상태인지 여부 확인 */
 			case 0x02: 
 			{
-				
-				m_enWorkState = IsLoadedGerberCheck();
+				m_enWorkState = ENG_JWNS::en_next; 
+//				m_enWorkState = IsLoadedGerberCheck(); //<- 불필요
 			}
 			break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 			case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */

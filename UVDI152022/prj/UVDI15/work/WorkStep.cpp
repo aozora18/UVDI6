@@ -1645,14 +1645,16 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 					{
 						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
 
-						tgtMarkIdx *= markType == ENG_AMTF::en_global ? -1 : 1;
+						//tgtMarkIdx *= markType == ENG_AMTF::en_global ? -1 : 1;
 						LPG_ACGR find = nullptr;
 						for (int i = 0; i < grabs->GetCount(); i++)
 						{
 							auto grab = grabs->GetAt(grabs->FindIndex(i));
 							if (grab == nullptr) continue;
 				
-							if (grab->cam_id == camIdx && grab->fiducialMarkIndex == tgtMarkIdx)
+							if (grab->cam_id == camIdx && 
+								grab->fiducialMarkIndex == tgtMarkIdx &&
+								markType == ENG_AMTF::en_global ? (grab->reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) != 0 : (grab->reserve & STG_XMXY_RESERVE_FLAG::LOCAL) != 0)
 							{
 								find = grab;
 								break;

@@ -19,7 +19,7 @@ public:
 /* 가상 함수 */
 protected:
 
-
+	AlignMotion* alignMotionPtr;
 
 /* 로컬 변수 */
 protected:
@@ -80,4 +80,7 @@ public:
 
 	/* 정방향 / 역방향 측정 설정 */
 	VOID				SetMoveStateDirect(BOOL direct)	{	m_bStageMoveDirect	= direct;	};
+	VOID				SetAlignMotionptr(AlignMotion* ptr) { alignMotionPtr = ptr; };
 };
+
+

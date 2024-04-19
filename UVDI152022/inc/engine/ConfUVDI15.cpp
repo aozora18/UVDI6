@@ -376,7 +376,7 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	/* Subject Name 설정 */
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"SETUP_ALIGN");
 
-	m_pstCfg->set_align.align_method			= GetConfigUint8(L"ALIGN_METHOD");
+	//m_pstCfg->set_align.align_method			= GetConfigUint8(L"ALIGN_METHOD");
 	m_pstCfg->set_align.use_2d_cali_data		= GetConfigUint8(L"USE_2D_CALI_DATA");
 	m_pstCfg->set_align.use_invalid_mark_cali	= GetConfigUint8(L"USE_INVALID_MARK_CALI");
 	m_pstCfg->set_align.use_mark_offset			= GetConfigUint8(L"USE_MARK_OFFSET");
@@ -441,7 +441,7 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 	/* Subject Name 설정 */
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"SETUP_ALIGN");
 
-	SetConfigUint32(L"ALIGN_METHOD",			m_pstCfg->set_align.align_method);
+	//SetConfigUint32(L"ALIGN_METHOD",			m_pstCfg->set_align.align_method);
 	SetConfigUint32(L"USE_2D_CALI_DATA",		m_pstCfg->set_align.use_2d_cali_data);
 	SetConfigDouble(L"DOF_FILM_THICK",			m_pstCfg->set_align.dof_film_thick,	4);
 

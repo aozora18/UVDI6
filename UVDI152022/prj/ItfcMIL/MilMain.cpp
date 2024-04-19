@@ -1866,7 +1866,7 @@ VOID CMilMain::SetMultiMarkArea(UINT32 width, UINT32 height)
 /*                                 lk91 VISION 추가 함수                                     */
 /* ----------------------------------------------------------------------------------------- */
 /* desc: MIL Main 합수 변수 초기화 */
-VOID CMilMain::InitMilMain(LPG_CIEA config, LPG_VDSM shmem)
+VOID CMilMain::InitMilMain(LPG_CIEA config,  LPG_VDSM shmem)
 {
 	m_pstConfig = config;
 	m_pstShMemVisi = shmem;
@@ -1966,6 +1966,19 @@ BOOL CMilMain::SetModelDefinePAT(UINT8 cam_id, PTCHAR name, PTCHAR pat, CPoint m
 {
 	if (!m_pMilModel)	return FALSE;
 	return m_pMilModel[cam_id - 1]->SetModelDefinePAT(name, pat, m_MarkSizeP, m_MarkCenterP, mark_no);
+}
+
+VOID CMilMain::SetAlignMotionPtr(AlignMotion& ptr)
+{
+	alignMotionPtr = &ptr;	
+
+	for (int i = 0; i < m_pstConfig->set_cams.acam_count; i++)
+	{
+		for (int j = 0; j < m_pstConfig->mark_find.max_mark_grab; j++)
+		{
+			m_pMilGrab[i][j]->SetAlignMotionptr(alignMotionPtr);
+		}
+	}
 }
 
 /* desc: Set Search ROI */

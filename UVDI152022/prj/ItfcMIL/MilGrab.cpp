@@ -32,6 +32,7 @@ CMilGrab::CMilGrab(LPG_CIEA config, LPG_VDSM shmem,
 	: CMilImage(config, shmem, cam_id, run_mode)
 #endif
 {
+	
 	m_dbGerbMarkX		= FLT_MAX;
 	m_dbGerbMarkY		= FLT_MAX;
 
@@ -223,42 +224,45 @@ VOID CMilGrab::SetGrabbedMark(UINT8 img_id,
 		/* Calibration Table (Position) 적용 여부 */
 		if (ENG_AOEM::en_calib_expose == m_enAlignMode)
 		{
-			if (ENG_AOMI::en_each != ENG_AOMI(m_pstConfig->set_align.align_method))
-			{
-				if (img_id < 0x02)
-				{
-					pstCaliData	= m_pstShMemVisi->cali_global[m_u8ACamID-1][u8MarkSeq];
-				}
-				else
-				{
-					u8MarkSeq	-= 0x02;	/* Local Mark Index */
-					pstCaliData	= m_pstShMemVisi->cali_local[m_u8ACamID-1][u8MarkSeq];
-				}
-			}
-			else
-			{
-				if (img_id < 0x04)
-				{
-					pstCaliData	= m_pstShMemVisi->cali_global[m_u8ACamID-1][u8MarkSeq];
-				}
-				else
-				{
-					u8MarkSeq	-= 0x04;	/* Local Mark Index */
-					pstCaliData	= m_pstShMemVisi->cali_local[m_u8ACamID-1][u8MarkSeq];
-				}
-			}
+
+			////진짜 거지같이 짜놨네.
+			//if (ENG_AOMI::en_each != ENG_AOMI(m_pstConfig->set_align.align_method))
+			//{
+			//	if (img_id < 0x02)
+			//	{
+			//		pstCaliData	= m_pstShMemVisi->cali_global[m_u8ACamID-1][u8MarkSeq];
+			//	}
+			//	else
+			//	{
+			//		u8MarkSeq	-= 0x02;	/* Local Mark Index */
+			//		pstCaliData	= m_pstShMemVisi->cali_local[m_u8ACamID-1][u8MarkSeq];
+			//	}
+			//}
+			//else
+			//{
+			//	if (img_id < 0x04)
+			//	{
+			//		pstCaliData	= m_pstShMemVisi->cali_global[m_u8ACamID-1][u8MarkSeq];
+			//	}
+			//	else
+			//	{
+			//		u8MarkSeq	-= 0x04;	/* Local Mark Index */
+			//		pstCaliData	= m_pstShMemVisi->cali_local[m_u8ACamID-1][u8MarkSeq];
+			//	}
+			//}
+
 			try
 			{
 				/* 보정 오차 값이 저장되어 있는 공유 메모리에서 값 가져오기 */
 				dbCaliX = pstCaliData->acam_cali_x / 10000.0f;
 				dbCaliY = pstCaliData->stage_cali_y / 10000.0f;
 				dbVertX = pstCaliData->gerb_mark_x_diff / 10000.0f;
+				int debug = 0;
 			}
-			catch(...)
+			catch (...)
 			{
 
 			}
-			
 		}
 	}
 

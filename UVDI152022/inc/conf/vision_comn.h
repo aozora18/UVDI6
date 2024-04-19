@@ -28,14 +28,14 @@
 /* --------------------------------------------------------------------------------------------- */
 
 /* Align Operation Method */
-typedef enum class __en_align_operation_method_id__ : UINT8
-{
-	en_fixed		= 0x00,			/* Align Camera 2개로 Mark 2 or 4개 측정 (이동하면서 측정) */
-	en_moving		= 0x01,			/* Align Camera 2개로 Mark 2 측정 후 중간에 멈추고, 카메라 좌/우 조정 후 다시 나머지 2개 측정 (이동 후 멈추고 측정, 다시 이동 후 측정) */
-									/* 거버 내 마크의 4 점이 직사각형 (카메라 FOV에 들어오지 못하는 경우)이 아닌 경우 */
-	en_each			= 0x02,			/* Align Camera 1개로 임의 마크 측정 (멈추면서 측정) */
-
-}	ENG_AOMI;
+//typedef enum class __en_align_operation_method_id__ : UINT8
+//{
+//	en_fixed		= 0x00,			/* Align Camera 2개로 Mark 2 or 4개 측정 (이동하면서 측정) */
+//	en_moving		= 0x01,			/* Align Camera 2개로 Mark 2 측정 후 중간에 멈추고, 카메라 좌/우 조정 후 다시 나머지 2개 측정 (이동 후 멈추고 측정, 다시 이동 후 측정) */
+//									/* 거버 내 마크의 4 점이 직사각형 (카메라 FOV에 들어오지 못하는 경우)이 아닌 경우 */
+//	en_each			= 0x02,			/* Align Camera 1개로 임의 마크 측정 (멈추면서 측정) */
+//
+//}	ENG_AOMI;
 
 
 /* --------------------------------------------------------------------------------------------- */

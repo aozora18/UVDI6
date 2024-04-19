@@ -3,6 +3,7 @@
 #include "stdafx.h"
 class CMilModel;
 class CMilGrab;
+class AlignMotion;
 
 class CMilMain : public CWnd
 {
@@ -104,6 +105,8 @@ public:
 	CRect				rectSearhROI_Calb_Accr; // ROI 
 	CRect				rectSearhROI_MPMM_AutoCenter; // ROI 
 
+	AlignMotion* alignMotionPtr = nullptr;
+
 /* 로컬 함수 */
 protected:
 
@@ -164,6 +167,7 @@ public:
 
 	BOOL				SetModelDefineMMF(UINT8 cam_id, PTCHAR name, PTCHAR mmf, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
 	BOOL				SetModelDefinePAT(UINT8 cam_id, PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
+	VOID				SetAlignMotionPtr(AlignMotion& ptr);
 	LPG_CMPV			GetModelDefine(UINT8 cam_id);
 	/* 가장 최근에 Align and Calibration Grabbed Image의 패턴 매칭 검색 결과 구조체 포인터 반환 */
 	LPG_ACGR			GetLastGrabbedMark();

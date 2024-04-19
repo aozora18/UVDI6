@@ -96,7 +96,7 @@ typedef struct __st_config_setup_camera_info__
 /* Setup Align 에 대한 전처리 정보 */
 typedef struct __st_config_setup_align_info__
 {
-	UINT8				align_method;							/* 0 : Align Camera 2개로 Mark 2 or 4개 측정 (이동하면서 측정) */
+	//UINT8				align_method;							/* 0 : Align Camera 2개로 Mark 2 or 4개 측정 (이동하면서 측정) */ 
 																/* 1 : Align Camera 2개로 Mark 2 측정 후 중간에 멈추고, 카메라 좌/우 조정 후 다시 나머지 2개 측정 (이동 후 멈추고 측정, 다시 이동 후 측정) */
 																/*     거버 내 마크의 4 점이 직사각형 (카메라 FOV에 들어오지 못하는 경우)이 아닌 경우 */
 																/* 2 : Align Camera 1개로 임의 마크 측정 (멈추면서 측정) */

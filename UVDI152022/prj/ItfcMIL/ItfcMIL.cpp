@@ -35,7 +35,7 @@ LPBITMAPINFO				g_pBmpInfo			= NULL;
 
 //CMilMain					*g_pMilMain			= NULL;
 
-AlignMotion* alignMotionPtr = nullptr;
+
 
 /* ----------------------------------------------------------------------------------------- */
 /*                                 lk91 VISION 추가 함수                                     */
@@ -1999,7 +1999,8 @@ API_EXPORT VOID uvMIL_InitMarkROI(LPG_CRD fi_MarkROI)
 
 API_EXPORT VOID uvMIL_SetAlignMotionPtr(AlignMotion& ptr)
 {
-	alignMotionPtr = &ptr;
+	
+	theApp.clMilMain.SetAlignMotionPtr(ptr);
 }
 
 /* desc : 최종 검색된 Live 이미지 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력) */

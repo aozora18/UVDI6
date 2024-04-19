@@ -16,7 +16,7 @@
 static char THIS_FILE[]	= __FILE__;
 #endif
 
-extern CACamCali* g_pACamCali;
+//extern CACamCali* g_pACamCali;
 
 /*
  desc : »ý¼ºÀÚ

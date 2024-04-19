@@ -5,7 +5,10 @@
 #include "pch.h"
 #include "MainApp.h"
 #include "MilGrab.h"
+#include "../UVDI15/GlobalVariables.h"
 
+
+class AlignMotion;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -222,10 +225,13 @@ VOID CMilGrab::SetGrabbedMark(UINT8 img_id,
 		/* Align Method 동작이 Each 모두인지 여부 */
 		u8MarkSeq	= img_id;
 		/* Calibration Table (Position) 적용 여부 */
-		if (ENG_AOEM::en_calib_expose == m_enAlignMode)
+		if (ENG_AOEM::en_calib_expose == m_enAlignMode && alignMotionPtr != nullptr)
 		{
+			auto status = alignMotionPtr->status;
+			bool isGlobal = status.markPoolForCam[m_u8ACamID][u8MarkSeq].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
+			pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][u8MarkSeq] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][u8MarkSeq];
 
-			////진짜 거지같이 짜놨네.
+			////진짜 개 구대기 거지같이 짜놨네.
 			//if (ENG_AOMI::en_each != ENG_AOMI(m_pstConfig->set_align.align_method))
 			//{
 			//	if (img_id < 0x02)

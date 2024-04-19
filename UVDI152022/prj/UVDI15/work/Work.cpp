@@ -1060,8 +1060,8 @@ BOOL CWork::SetAlignACamCaliX()
 	// by sysandj : 변수없음(수정)
 	 LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
 	//if (ENG_AOMI::en_fixed == ENG_AOMI(0/*pstRecipe->align_method*/))
-	if (pstSetAlign->align_method != UINT8(ENG_AOMI::en_each))
-	{
+	/*if (pstSetAlign->align_method != UINT8(ENG_AOMI::en_each))
+	{*/
 		/* Mark 1 (Left/Bottom)번 기준으로 했으므로, Mark1 번과 Mark 2번의 X 좌표 오차 값을 Mark 2의 X 값에 반영 */
 		i32ACamVertX = (INT32)ROUNDED(uvEng_Luria_GetGlobalMarkDiffVertX(2) * 10000.0, 0);
 		/* 추후 Grabbed Image에 Mark 위치 별로 별도 오차 값을 적용 해야 함 */
@@ -1070,7 +1070,7 @@ BOOL CWork::SetAlignACamCaliX()
 		i32ACamVertX = (INT32)ROUNDED(uvEng_Luria_GetGlobalMarkDiffVertX(3) * 10000.0, 0);
 		/* 추후 Grabbed Image에 Mark 위치 별로 별도 오차 값을 적용 해야 함 */
 		uvEng_ACamCali_SetAlignACamVertGX(2, 1, -i32ACamVertX);
-	}
+	//}
 	const int WANGBOK = 2;
 	/* 현재 Local Mark가지 존재한다면 */
 	if (!IsMarkTypeOnlyGlobal())
@@ -1188,6 +1188,7 @@ VOID CWork::GetACamCentDistXY(INT32 &dist_x, INT32 &dist_y)
 	dist_x	= (INT32)ROUNDED(pstCaliThick->GetACamDistX() * 10000.0f, 0);
 	dist_y	= (INT32)ROUNDED(pstCaliThick->GetACamDistY() * 10000.0f, 0);
 }
+
 VOID CWork::GetACamCentDistXY(DOUBLE &dist_x, DOUBLE &dist_y)
 {
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
@@ -1288,8 +1289,8 @@ VOID CWork::GetGlobalMarkIndex(UINT8 mark_no, UINT8 &cam_id, UINT8 &img_id)
 	{
 		// by sysandj : 변수없음(수정)
 		//if (0/*pstRecipe->align_method*/ != UINT8(ENG_AOMI::en_each))
-		if (pstSetAlign->align_method != UINT8(ENG_AOMI::en_each))
-		{
+		/*if (pstSetAlign->align_method != UINT8(ENG_AOMI::en_each))
+		{*/
 			if (0x04 == uvEng_Luria_GetMarkCount(ENG_AMTF::en_global))
 			{
 				cam_id	= (mark_no < 2) ? 0x01 : 0x02;
@@ -1301,12 +1302,12 @@ VOID CWork::GetGlobalMarkIndex(UINT8 mark_no, UINT8 &cam_id, UINT8 &img_id)
 				cam_id	= mark_no+1;
 				img_id	= 0x00;
 			}
-		}
-		else
-		{
-			cam_id	= 0x01;		/* Fixed to camera number = 0x01 */
-			img_id	= mark_no;
-		}
+		//}
+		//else
+		//{
+		//	cam_id	= 0x01;		/* Fixed to camera number = 0x01 */
+		//	img_id	= mark_no;
+		//}
 	}
 }
 

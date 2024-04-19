@@ -33,7 +33,7 @@
 #include "./param/InterLockManager.h"
 #include "./param/RecvPhil.h"
 #include "./db/DBMgr.h"
-
+#include "stuffs.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -42,7 +42,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 #define	USE_ENGINE_LIB	1	/* 엔진 라이브러리 실행 여부 */
-
+Stuffs Stuffs::stuffUtils; // 초기화
 /*
  desc : 생성자
  parm : 자신의 윈도 ID, 부모 윈도 객체
@@ -145,7 +145,7 @@ BOOL CDlgMain::OnInitDlg()
 {
 	
 	UINT32 u32Size	= 0, i = 0;
-	GlobalVariables::GetInstance()->GetStuffs().RemoveOldFiles();
+	Stuffs::GetStuffs().RemoveOldFiles();
 #if (USE_ENGINE_LIB)
 	/* 라이브러리 초기화 */
 	if (!InitLib())		return FALSE;

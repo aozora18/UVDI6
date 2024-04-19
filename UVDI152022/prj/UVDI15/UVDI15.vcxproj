@@ -241,6 +241,7 @@
     <ClInclude Include="pops\DlgWait.h" />
     <ClInclude Include="ResizeUI.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="stuffs.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="DlgMain.h" />

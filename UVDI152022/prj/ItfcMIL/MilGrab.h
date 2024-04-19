@@ -2,6 +2,8 @@
 
 #include "MilImage.h"
 
+class AlignMotion;
+
 class CMilGrab : public CMilImage
 {
 /* 생성자 & 파괴자 */
@@ -19,7 +21,7 @@ public:
 /* 가상 함수 */
 protected:
 
-	AlignMotion* alignMotionPtr;
+	AlignMotion* alignMotionPtr = nullptr;;
 
 /* 로컬 변수 */
 protected:

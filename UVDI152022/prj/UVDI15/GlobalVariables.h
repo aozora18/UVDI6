@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <chrono>
 
-
 #include <map>
 #include <string>
 #include <chrono>
@@ -26,9 +25,6 @@
 #include <fstream>
 #include <regex>
 
-//아이고.... 뭐가 계속 추가되네...
-#include <filesystem>
-
 #include "../../inc/conf/conf_uvdi15.h"
 #include "../../inc/conf/conf_comn.h"
 #include "../../inc/conf/luria.h"
@@ -44,9 +40,8 @@
 
 
 using namespace std;
-namespace fs = std::filesystem;
-
 class CaliCalc;
+
 enum MovingDir
 {
 	X,
@@ -322,7 +317,7 @@ enum SearchFlag
 		//void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);
 
 		
-		bool GetFiducialInfo(int camIndex, CAtlList <LPG_ACGR>* grabPool,int index, STG_XMXY& xmxy)
+		bool GetFiducialInfo(int camIndex, CAtlList <LPG_ACGR>* grabPool, int index, STG_XMXY& xmxy)
 		{
 			auto pool = status.markPoolForCam[camIndex];
 			int poolSize = pool.size();
@@ -388,54 +383,7 @@ enum SearchFlag
 		void DoInitial(LPG_CIEA pstCfg);
 	};
 
-	class Stuffs
-	{
-	private:
-		void RemoveOldfiles(const fs::path& path , int hours) 
-		{
-			auto now = std::chrono::system_clock::now();
-			std::chrono::hours ageLimit = std::chrono::hours(hours);
-
-			try 
-			{
-				if (!fs::exists(path) || !fs::is_directory(path))
-					return;
-				
-				for (auto& entry : fs::recursive_directory_iterator(path)) 
-				{
-					if (!fs::is_regular_file(entry))
-						continue;
-					
-					auto ftime = fs::last_write_time(entry);
-					auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-						ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
-
-					if (now - sctp < ageLimit)
-						continue;
-
-					fs::remove(entry);
-				}
-			}
-			catch (...) {}
-		}
-	public: 
-
-		string GetCurrentExePath()
-		{
-			TCHAR execPath[_MAX_PATH];
-			GetModuleFileName(NULL, execPath, _MAX_PATH);
-			CString path = execPath;
-			auto spiltIndex = path.ReverseFind(L'\\');
-			return string(CT2CA(path.Left(spiltIndex)));
-		}
-
-		void RemoveOldFiles()
-		{
-			RemoveOldfiles(GetCurrentExePath() + "\\save_img",1*24); //하루지난건 싹 삭제.
-		}
-		
-	};
-
+	
 
 	//인라인클래스 
 	class GlobalVariables 
@@ -462,15 +410,10 @@ enum SearchFlag
 			return it != map.end();
 		}
 
-		Stuffs stuffUtils;
+		
 
 	public:
-		Stuffs& GetStuffs()
-		{
-			return stuffUtils;
-		}
-
-
+		
 		AlignMotion& GetAlignMotion() 
 		{
 			return *alignMotion;

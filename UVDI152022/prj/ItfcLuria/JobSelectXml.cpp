@@ -26,6 +26,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
 struct LocalData
 {
 	int index;

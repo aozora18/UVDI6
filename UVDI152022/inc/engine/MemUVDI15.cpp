@@ -612,8 +612,8 @@ BOOL CMemVisi::LinkMemMap()
 	m_pstMemMap->cali_global	= (STG_ACCE ***)::Alloc(sizeof(LPG_ACCE) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
-		u8Temp	= MAX_GLOBAL_MARKS / u32ACamCnt;
-		u8Temp	+= (MAX_GLOBAL_MARKS % u32ACamCnt) > 0 ? 0x01 : 0x00;
+		u8Temp = MAX_GLOBAL_MARKS + 1;/// u32ACamCnt;
+		//u8Temp	//+= (MAX_GLOBAL_MARKS % u32ACamCnt) > 0 ? 0x01 : 0x00;
 		m_pstMemMap->cali_global[i]	= (STG_ACCE **)::Alloc(sizeof(LPG_ACCE) * u8Temp);
 		for (j=0; j<u8Temp; j++)
 		{
@@ -624,8 +624,8 @@ BOOL CMemVisi::LinkMemMap()
 	m_pstMemMap->cali_local	= (STG_ACCE ***)::Alloc(sizeof(LPG_ACCE) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
-		u8Temp	= MAX_LOCAL_MARKS / u32ACamCnt;
-		u8Temp	+= (MAX_LOCAL_MARKS % u32ACamCnt) > 0 ? 0x01 : 0x00;
+		u8Temp = MAX_LOCAL_MARKS + 1;/// u32ACamCnt;
+		//u8Temp	+= (MAX_LOCAL_MARKS % u32ACamCnt) > 0 ? 0x01 : 0x00;// 거지같이도 짜놨네. 
 		m_pstMemMap->cali_local[i]	= (STG_ACCE **)::Alloc(sizeof(LPG_ACCE) * u8Temp);
 		for (j=0; j<u8Temp; j++)
 		{

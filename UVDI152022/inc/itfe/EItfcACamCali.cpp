@@ -106,6 +106,12 @@ API_EXPORT VOID uvEng_ACamCali_AddMarkPos(UINT8 cam_id, ENG_AMTF mark, UINT8 axi
 	if (g_pACamCali)	g_pACamCali->AddMarkPos(cam_id, mark, axis, idx, pos);
 }
 
+API_EXPORT VOID uvEng_ACamCali_AddMarkPosForce(UINT8 cam_id, ENG_AMTF mark, double offsetX, double offsetY)
+{
+	if (g_pACamCali)	g_pACamCali->AddMarkPosForce(cam_id, mark, offsetX, offsetY);
+}
+
+
 /*
  desc : 원하는 위치에 근사한 Align Camera의 Calibration 오차 값 반환
  parm : cam_id	- [in]  Align Camera Index (1 or 2)

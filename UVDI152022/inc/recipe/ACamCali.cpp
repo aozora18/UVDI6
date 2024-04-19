@@ -76,13 +76,16 @@ VOID CACamCali::RemoveAlignCaliData()
 VOID CACamCali::ResetAllCaliData()
 {
 	UINT32 u32Size, u32Temp;
-	UINT32 u32ACamCount = 2;// GetConfig()->set_cams.acam_count;
+	UINT32 u32ACamCount = GetConfig()->set_cams.acam_count;
 
 	/* 등록된 Mark Position의 개수가 없다 */
 	m_u8MarkCount	= 0x00;
 	/* Global Mark 정보 초기화 */
-	u32Temp	= MAX_GLOBAL_MARKS / u32ACamCount;
-	u32Temp	+= (MAX_GLOBAL_MARKS % u32ACamCount) > 0 ? 0x01 : 0x00;
+	
+	/*u32Temp	= MAX_GLOBAL_MARKS / u32ACamCount;
+	u32Temp	+= (MAX_GLOBAL_MARKS % u32ACamCount) > 0 ? 0x01 : 0x00;*/ //진짜 개 병신같이 짜놨네.
+	u32Temp = MAX_GLOBAL_MARKS + 1;
+
 	u32Size	= sizeof(STG_ACCE) * u32Temp * u32ACamCount;
 #if 0	/* 아래와 같이 할 경우, 메모리 포인터 자체가 사라짐 */
 	memset(m_pstShMem->cali_global, 0x00, u32Size);
@@ -90,8 +93,10 @@ VOID CACamCali::ResetAllCaliData()
 	memset(m_pstShMem->cali_global[0][0], 0x00, u32Size);
 #endif
 	/* Local Mark 정보 초기화 */
-	u32Temp	= MAX_LOCAL_MARKS / u32ACamCount;
-	u32Temp	+= (MAX_LOCAL_MARKS % u32ACamCount) > 0 ? 0x01 : 0x00;
+	u32Temp = MAX_LOCAL_MARKS + 1;// / u32ACamCount;
+	//u32Temp	+= (MAX_LOCAL_MARKS % u32ACamCount) > 0 ? 0x01 : 0x00; /
+
+
 	u32Size	= sizeof(STG_ACCE) * u32Temp * u32ACamCount;
 #if 0	/* 아래와 같이 할 경우, 메모리 포인터 자체가 사라짐 */
 	memset(m_pstShMem->cali_local, 0x00, u32Size);
@@ -578,6 +583,19 @@ VOID CACamCali::AddMarkPos(UINT8 cam_id, ENG_AMTF mark, UINT8 axis, UINT8 idx, D
 	/* 현재까지 등록된 Mark Position의 개수 설정 */
 	if (0x00 == axis)	
 		m_u8MarkCount++;
+}
+
+VOID CACamCali::AddMarkPosForce(UINT8 cam_id, ENG_AMTF mark, double offsetX, double offsetY)
+{
+	LPG_ACCE pstCali = NULL;
+	if (cam_id < 1 || cam_id > GetConfig()->set_cams.acam_count)	return;
+
+	pstCali = ENG_AMTF::en_global == mark ? m_pstShMem->cali_global[cam_id - 1][m_u8MarkCount] : m_pstShMem->cali_local[cam_id - 1][m_u8MarkCount];
+
+	pstCali->acam_cali_x = (INT32)ROUNDED(offsetX * 10000.0f, 0);
+	pstCali->stage_cali_y = (INT32)ROUNDED(offsetY * 10000.0f, 0);
+	
+	m_u8MarkCount++;
 }
 
 

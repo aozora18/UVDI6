@@ -110,6 +110,7 @@ public:
 	VOID				SetAlignACamVertGX(UINT8 cam_id, UINT8 mark_no, INT32 offset);
 	VOID				SetAlignACamVertLX(UINT8 cam_id, UINT8 mark_no, INT32 offset);
 	VOID				AddMarkPos(UINT8 cam_id, ENG_AMTF mark, UINT8 axis, UINT8 idx, DOUBLE pos);
+	VOID				AddMarkPosForce(UINT8 cam_id, ENG_AMTF mark, double offsetX, double offsetY);
 	UINT8				SetTrigPosCaliApply();
 
 	PTCHAR				GetLastErrMsg()	{	return m_tzErrMsg;	}

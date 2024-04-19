@@ -921,6 +921,7 @@ API_EXPORT VOID uvBasler_Camera_SetAlignMotionPtr(AlignMotion& ptr)
 
 	g_pCamThread->SetAlignMotionPtr(ptr);
 	
+	uvMIL_SetAlignMotionPtr(ptr);
 	
 }
 

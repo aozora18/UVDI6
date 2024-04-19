@@ -6,8 +6,10 @@
 #include "pch.h"
 #include "MainApp.h"
 #include "../../inc/comn/Picture.h"
+
 //#include "MilMain.h"
 
+class AlignMotion;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -33,7 +35,7 @@ LPBITMAPINFO				g_pBmpInfo			= NULL;
 
 //CMilMain					*g_pMilMain			= NULL;
 
-
+AlignMotion* alignMotionPtr = nullptr;
 
 /* ----------------------------------------------------------------------------------------- */
 /*                                 lk91 VISION 추가 함수                                     */
@@ -1993,6 +1995,11 @@ API_EXPORT VOID uvMIL_InitMarkROI(LPG_CRD fi_MarkROI)
 		tmpROI.bottom = fi_MarkROI->roi_Bottom[i];
 		theApp.clMilMain.MilSetMarkROI(i, tmpROI);
 	}
+}
+
+API_EXPORT VOID uvMIL_SetAlignMotionPtr(AlignMotion& ptr)
+{
+	alignMotionPtr = &ptr;
 }
 
 /* desc : 최종 검색된 Live 이미지 윈도 영역에 출력 수행 (Bitmap을 이용하여 출력) */

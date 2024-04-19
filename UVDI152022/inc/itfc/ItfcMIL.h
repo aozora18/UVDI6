@@ -19,6 +19,8 @@ CUSTOM_CODE_HDDI6== DELIVERY_PRODUCT_ID)
 
 #endif
 
+class AlignMotion;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -67,6 +69,9 @@ API_IMPORT BOOL uvMIL_SetModelDefine(UINT8 cam_id, UINT8 speed, UINT8 level, UIN
 									 LPG_CMPV model, UINT8 mark_no,
 									 DOUBLE scale_min=0.0f, DOUBLE scale_max=0.0f,
 									 DOUBLE score_min=0, DOUBLE score_tgt=0, bool sameMark = false);
+
+API_IMPORT VOID uvMIL_SetAlignMotionPtr(AlignMotion& ptr);
+
 /*
  desc : 로컬 시스템 (저장소)에 저장되어 있는 패턴 매칭 원본 이미지 적재
  parm : cam_id		- [in]  Camera Index (0x01 ~ MAX_INSTALL_CAMERA_COUNT)

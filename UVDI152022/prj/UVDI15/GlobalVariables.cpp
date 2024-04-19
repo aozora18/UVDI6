@@ -608,7 +608,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
 				{
 					pool.push_back(current);
-asdcasdc
+
 					//throw exception();
 					//여기서 보정테이블값 넣어주면된다.
 				}

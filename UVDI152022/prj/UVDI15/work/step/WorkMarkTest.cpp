@@ -178,17 +178,27 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 			case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 			case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */	
-			case 0x05: 
+			case 0x05:
 			{
+				uvEng_ACamCali_ResetAllCaliData();
 
 				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
+
+				if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
+					for (int i = 0; i < grabMarkPath.size(); i++)
+					{
+						auto alignOffset = motions.EstimateOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y);
+						uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+					}
+
+				//여기서 등록하자. 
+
 			}
 			break;	//3캠 이동위치 경로설정
 
 			case 0x06:
 			{
 				uvEng_Camera_ResetGrabbedImage();
-				uvEng_ACamCali_ResetAllCaliData();
 				m_enWorkState =  CameraSetCamMode(ENG_VCCM::en_grab_mode);
 
 			}

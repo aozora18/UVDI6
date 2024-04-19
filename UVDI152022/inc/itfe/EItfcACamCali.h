@@ -65,6 +65,10 @@ API_IMPORT VOID uvEng_ACamCali_SetAlignACamVertLX(UINT8 cam_id, UINT8 mark_no, I
 */
 API_IMPORT VOID uvEng_ACamCali_AddMarkPos(UINT8 cam_id, ENG_AMTF mark, UINT8 axis,
 										  UINT8 idx, DOUBLE pos);
+
+
+API_IMPORT VOID uvEng_ACamCali_AddMarkPosForce(UINT8 cam_id, ENG_AMTF mark, double offsetX, double offsetY);
+
 /*
  desc : 원하는 위치에 근사한 Align Camera의 Calibration 오차 값 반환
  parm : cam_id	- [in]  Align Camera Index (1 or 2)

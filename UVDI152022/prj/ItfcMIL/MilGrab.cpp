@@ -196,15 +196,15 @@ BOOL CMilGrab::PutGrabImage(PUINT8 image)
 		grab_height	- [in]  검색(Grabbed)된 이미지의 크기 (단위: pixel)
  retn : None
 */
-VOID CMilGrab::SetGrabbedMark(UINT8 img_id,
+VOID CMilGrab::SetGrabbedMark(int img_id,
 							  LPG_GMFR r_data, LPG_GMFR o_data, UINT8 o_count,
 							  UINT32 grab_width, UINT32 grab_height)
 {
-	UINT8 i, u8MarkSeq	= 0x00, u8Index = 0, u8Valid = 0x01;
+	int i, u8MarkSeq	= 0x00, u8Index = 0, u8Valid = 0x01; //쓸데없이 U8이딴거 쓰면 다 찢어죽여야된다. 메모리가 기본 16기가인 세상이다. 
 	DOUBLE dbCaliX = 0.0f, dbCaliY = 0, dbVertX = 0.0f;	/* 반드시 0 값으로 초기화 */
 	LPG_CVMF pstMarkFind= &m_pstConfig->mark_find;
 	LPG_ACCE pstCaliData= NULL;
-
+	int idx=-1;
 	/* 검색된 마크 처리 개수 무조건 초기화 */
 	m_u8ResultAll	= 0x00;
 
@@ -228,8 +228,29 @@ VOID CMilGrab::SetGrabbedMark(UINT8 img_id,
 		if (ENG_AOEM::en_calib_expose == m_enAlignMode && alignMotionPtr != nullptr)
 		{
 			auto status = alignMotionPtr->status;
-			bool isGlobal = status.markPoolForCam[m_u8ACamID][u8MarkSeq].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
-			pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][u8MarkSeq] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][u8MarkSeq];
+			
+			vector<STG_XMXY>& pool = status.markPoolForCam[m_u8ACamID];
+			bool isGlobal = true;
+
+			
+			auto IndexOf = [&](vector<STG_XMXY>& pool, int idx,bool& isGlobal)->int //역산해야한다. 그럼 이 마크시퀀스는 각 로컬이나 글로벌에서 몇번째인가?
+			{
+				int sum = 0;
+				
+				isGlobal = pool[idx].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
+				if (idx == 0) return 0;
+
+				auto searchFlag = isGlobal ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
+
+				for (int i = idx-1; i >= 0 ; i--)
+				{
+					sum += (pool[i].GetFlag(searchFlag) == true) ? 1 : 0;
+				}
+				return sum;
+			};
+
+			idx = IndexOf(pool, u8MarkSeq,isGlobal);
+			pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx];
 
 			////진짜 개 구대기 거지같이 짜놨네.
 			//if (ENG_AOMI::en_each != ENG_AOMI(m_pstConfig->set_align.align_method))
@@ -260,10 +281,12 @@ VOID CMilGrab::SetGrabbedMark(UINT8 img_id,
 			try
 			{
 				/* 보정 오차 값이 저장되어 있는 공유 메모리에서 값 가져오기 */
-				dbCaliX = pstCaliData->acam_cali_x / 10000.0f;
-				dbCaliY = pstCaliData->stage_cali_y / 10000.0f;
-				dbVertX = pstCaliData->gerb_mark_x_diff / 10000.0f;
-				int debug = 0;
+				if (idx != -1)
+				{
+					dbCaliX = pstCaliData->acam_cali_x / 10000.0f;
+					dbCaliY = pstCaliData->stage_cali_y / 10000.0f;
+					dbVertX = pstCaliData->gerb_mark_x_diff / 10000.0f;
+				}
 			}
 			catch (...)
 			{

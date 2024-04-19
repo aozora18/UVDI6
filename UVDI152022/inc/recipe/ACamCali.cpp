@@ -80,6 +80,7 @@ VOID CACamCali::ResetAllCaliData()
 
 	/* 등록된 Mark Position의 개수가 없다 */
 	m_u8MarkCount	= 0x00;
+	
 	/* Global Mark 정보 초기화 */
 	
 	/*u32Temp	= MAX_GLOBAL_MARKS / u32ACamCount;
@@ -590,11 +591,27 @@ VOID CACamCali::AddMarkPosForce(UINT8 cam_id, ENG_AMTF mark, double offsetX, dou
 	LPG_ACCE pstCali = NULL;
 	if (cam_id < 1 || cam_id > GetConfig()->set_cams.acam_count)	return;
 
-	pstCali = ENG_AMTF::en_global == mark ? m_pstShMem->cali_global[cam_id - 1][m_u8MarkCount] : m_pstShMem->cali_local[cam_id - 1][m_u8MarkCount];
+	auto GetEmpty = [&](LPG_ACCE* arrayPool,int length)->int
+		{
+			for (int i = 0; i < length; i++)
+			{
+				if (arrayPool[i]->i32_reserved == 0) return i;
+			}
+			return -1;
+		};
+
+
+	//GetEmpty()
+	bool isGlobal = ENG_AMTF::en_global == mark;
+	STG_ACCE** temp = isGlobal ? m_pstShMem->cali_global[cam_id - 1] : m_pstShMem->cali_local[cam_id - 1];
+
+	auto idx = GetEmpty(temp, isGlobal ? MAX_GLOBAL_MARKS : MAX_LOCAL_MARKS);
+
+	pstCali = ENG_AMTF::en_global == mark ? m_pstShMem->cali_global[cam_id - 1][idx] : m_pstShMem->cali_local[cam_id - 1][idx];
 
 	pstCali->acam_cali_x = (INT32)ROUNDED(offsetX * 10000.0f, 0);
 	pstCali->stage_cali_y = (INT32)ROUNDED(offsetY * 10000.0f, 0);
-	
+	pstCali->i32_reserved = 1;
 	m_u8MarkCount++;
 }
 

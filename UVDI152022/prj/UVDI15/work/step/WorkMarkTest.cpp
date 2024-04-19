@@ -181,7 +181,16 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			case 0x05:
 			{
 				uvEng_ACamCali_ResetAllCaliData();
+				uvEng_Camera_ResetGrabbedImage();
+				m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
 
+				
+
+			}
+			break;	//3캠 이동위치 경로설정
+
+			case 0x06:
+			{
 				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 
 				if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
@@ -192,14 +201,6 @@ void CWorkMarkTest::DoAlignStatic3cam()
 					}
 
 				//여기서 등록하자. 
-
-			}
-			break;	//3캠 이동위치 경로설정
-
-			case 0x06:
-			{
-				uvEng_Camera_ResetGrabbedImage();
-				m_enWorkState =  CameraSetCamMode(ENG_VCCM::en_grab_mode);
 
 			}
 			break;

@@ -60,7 +60,7 @@ public:
 //	DOUBLE				GetFindScore()			{	return m_dbScoreRate;				}
 	DOUBLE				GetFindAngle()			{	return m_dbRadiusAngle;				}
 
-	VOID				SetGrabbedMark(UINT8 img_id,
+	VOID				SetGrabbedMark(int img_id,
 									   LPG_GMFR r_data, LPG_GMFR o_data, UINT8 o_count,
 									   UINT32 grab_width, UINT32 grab_height);
 #if 0

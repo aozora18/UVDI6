@@ -182,42 +182,43 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 		// Grabbed Image가 존재하는 경우만 처리
 		pstGrab	= m_pCamMain[cam_id-1]->GetGrabbedImage();
 		
-		
+		ENG_VCCM camMode = m_pCamMain[cam_id - 1]->GetCamMode();
 		// 현재 Grabbed Image가 존재한다면 ...
 		if (pstGrab && pstGrab->grab_data)
 		{
 			//여기서 또 바꿔줘야하네 ...
 			ENG_AMOS alignMotion = alignMotionPtr->markParams.alignMotion;
 			//CAtlList<LPG_ACGR>
-			if (alignMotionPtr->GetFiducialInfo(cam_id, GetGrabImage(), -1, temp))
+			
+			if (camMode == ENG_VCCM::en_grab_mode)
 			{
+				if(alignMotionPtr->GetFiducialInfo(cam_id, GetGrabImage(), -1, temp))
 				globalGrab = temp.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
+			}
 
-				bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, globalGrab == true ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
+			bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, globalGrab == true ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
+			pstGrab = uvMIL_GetLastGrabbedMark();
 
-				pstGrab = uvMIL_GetLastGrabbedMark();
+			if (!pstGrab)	LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
+			else
+			{
+				pstGrab->grabTime = timeGetTime();
+				pstGrab->fiducialMarkIndex = -1818;
+				pstGrab->reserve = 0;
+				pstGrab->marked = UINT8(bFinded);
 
-				if (!pstGrab)	LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
+				if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
+				{
+					pstGrab->reserve = globalGrab ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
+					pstGrab->fiducialMarkIndex = temp.tgt_id;
+					m_lstGrab.AddTail(pstGrab);
+				}
 				else
 				{
-					pstGrab->grabTime = timeGetTime();
-					pstGrab->fiducialMarkIndex = -1818;
-					pstGrab->reserve = 0;
-					pstGrab->marked = UINT8(bFinded);
-
-
-					if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
-					{
-						pstGrab->reserve = globalGrab ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
-						pstGrab->fiducialMarkIndex = temp.tgt_id;
-						m_lstGrab.AddTail(pstGrab);
-					}
-					else
-					{
-						LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
-					}
+					LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 				}
 			}
+			
 
 			//switch (alignMotion)
 			//{	

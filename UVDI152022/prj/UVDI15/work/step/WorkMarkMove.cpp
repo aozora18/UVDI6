@@ -95,13 +95,15 @@ void CWorkMarkMove::DoMovingOnthefly2cam()
 	case 0x06 : m_enWorkState = SetAlignMovingInit();		break;
 	case 0x07 : m_enWorkState = IsAlignMovedInit();			break;
 	case 0x08 : m_enWorkState = SetMovingAlignMark();		break;
-	case 0x09 : m_enWorkState = IsMovedAlignMark();			break;
+	case 0x09 : 
+	{
+		uvEng_Camera_SetCamMode(ENG_VCCM::en_none);/* Grab Mode 설정 */ 
+		m_enWorkState = IsMovedAlignMark();
+	}
+	break;
 	}
 	
-	/* 다음 작업 진행 여부 판단 */
-	CWork::SetWorkNext();
-	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
-	CheckWorkTimeout();
+	
 }
 
 void CWorkMarkMove::DoMovingOnthefly3cam()
@@ -124,7 +126,7 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	{
 	case 0x01:
 	{
-
+		uvEng_Camera_ResetGrabbedImage();
 		m_enWorkState = IsSetTrigPosResetAll();
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);/* Grab Mode 설정 */
 	}
@@ -147,15 +149,13 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	break;
 
 	case 0x07:
+		uvEng_Camera_SetCamMode(ENG_VCCM::en_none);/* Grab Mode 설정 */
 		m_enWorkState = ENG_JWNS::en_next;
 		//RESERVE
 	break;
 	}
 
-	/* 다음 작업 진행 여부 판단 */
-	CWork::SetWorkNext();
-	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
-	CheckWorkTimeout();
+
 }
 
 
@@ -164,22 +164,34 @@ void CWorkMarkMove::DoMovingStatic3cam()
 /// </summary>
 void CWorkMarkMove::SetWorkNextOnthefly2cam()
 {
-
+	/* 다음 작업 진행 여부 판단 */
+	CWork::SetWorkNext();
+	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
+	CheckWorkTimeout();
 }
 
 void CWorkMarkMove::SetWorkNextOnthefly3cam()
 {
-
+	/* 다음 작업 진행 여부 판단 */
+	CWork::SetWorkNext();
+	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
+	CheckWorkTimeout();
 }
 
 void CWorkMarkMove::SetWorkNextStatic3cam()
 {
-
+	/* 다음 작업 진행 여부 판단 */
+	CWork::SetWorkNext();
+	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
+	CheckWorkTimeout();
 }
 
 void CWorkMarkMove::SetWorkNextStatic2cam()
 {
-
+	/* 다음 작업 진행 여부 판단 */
+	CWork::SetWorkNext();
+	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
+	CheckWorkTimeout();
 }
 
 

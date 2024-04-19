@@ -232,21 +232,13 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 	if (pool.size() == 0)
 		return nImgID;
 
-	//fiducialIndex *= bIsLocal ? 1 : -1;
-
 	auto find = ::find_if(pool.begin(), pool.end(),[&](const STG_XMXY val)
 	{
 			return val.tgt_id == fiducialIndex;
 	});
 
-	vector<int> fidVec;
 	auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
-	for (int i = 0; i < grabMark->GetCount(); i++)
-	{
-		auto item = grabMark->GetAt(grabMark->FindIndex(i));
-		fidVec.push_back(item->fiducialMarkIndex);
-	}
-	std::sort(fidVec.begin(), fidVec.end());
+	
 	if (find != pool.end())
 	{	
 		int min = bIsLocal ? status.globalMarkCnt : 0;

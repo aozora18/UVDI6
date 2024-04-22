@@ -24,7 +24,9 @@
 #include "../GlobalVariables.h"
 #include "../pops/DlgParam.h"
 
-
+#include <tuple>
+#include <vector>
+#include <map>
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -1199,10 +1201,15 @@ VOID CDlgManual::MakeMarkOffsetField()
 			
 			if (MessageBoxEx(nullptr, temp, _T("notice"), MB_YESNO | MB_ICONSTOP, LANG_ENGLISH) == IDYES)
 			{
-				cfg->set_align.mark_offset_x[0] = values[0]; cfg->set_align.mark_offset_y[0] = values[1];
+				cfg->set_align.markOffsetPtr->Push(0, std::make_tuple(values[0], values[1]));
+				cfg->set_align.markOffsetPtr->Push(1, std::make_tuple(values[1], values[3]));
+				cfg->set_align.markOffsetPtr->Push(2, std::make_tuple(values[2], values[5]));
+				cfg->set_align.markOffsetPtr->Push(3, std::make_tuple(values[3], values[7]));
+
+				/*cfg->set_align.mark_offset_x[0] = values[0]; cfg->set_align.mark_offset_y[0] = values[1];
 				cfg->set_align.mark_offset_x[1] = values[2]; cfg->set_align.mark_offset_y[1] = values[3];
 				cfg->set_align.mark_offset_x[2] = values[4]; cfg->set_align.mark_offset_y[2] = values[5];
-				cfg->set_align.mark_offset_x[3] = values[6]; cfg->set_align.mark_offset_y[3] = values[7];
+				cfg->set_align.mark_offset_x[3] = values[6]; cfg->set_align.mark_offset_y[3] = values[7];*/
 				uvEng_SaveConfig();
 			}
 		}

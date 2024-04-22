@@ -322,7 +322,7 @@ enum SearchFlag
 			auto pool = status.markPoolForCam[camIndex];
 			int poolSize = pool.size();
 			
-			if (poolSize == 0 || index > poolSize)
+			if (poolSize == 0 || index >= poolSize)
 				return false;
 
 			map<int, vector< LPG_ACGR>> buff;
@@ -333,7 +333,8 @@ enum SearchFlag
 				buff[at->cam_id].push_back(at);
 			}
 			
-			if (index != -1 && buff[camIndex].size() < index) return false;
+			if (index != -1 && buff[camIndex].size() < index) 
+				return false;
 
 			if (index == -1)
 				index = buff[camIndex].size() == 0 ? 0 : buff[camIndex].size();

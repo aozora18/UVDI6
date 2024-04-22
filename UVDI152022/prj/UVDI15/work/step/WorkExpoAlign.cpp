@@ -609,9 +609,18 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		}
 		break;
 
-		case 0x08:m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);break;
+		case 0x08:
+		{
+			m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
+		}
+		break;
 
-		case 0x09:m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM); break;
+
+		case 0x09:
+		{
+			m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
+		}
+		break;
 		
 		case 0x0a:
 		{

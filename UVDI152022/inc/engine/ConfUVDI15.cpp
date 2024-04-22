@@ -6,6 +6,10 @@
 #include "pch.h"
 #include "ConfUvdi15.h"
 
+#include <tuple>
+#include<vector>
+#include <map>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -27,6 +31,8 @@ CConfUvdi15::CConfUvdi15(LPG_CIEA config)
 
 {
 	m_pstCfg	= config;
+
+	
 }
 CConfUvdi15::~CConfUvdi15()
 {
@@ -372,6 +378,7 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 {
 	UINT8 i;
 	TCHAR tzKey[64]	= {NULL};
+	TCHAR tzKey2[64] = { NULL };
 
 	/* Subject Name ¼³Á¤ */
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"SETUP_ALIGN");
@@ -385,7 +392,7 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	m_pstCfg->set_align.mark2_org_gerb_xy[1]	= GetConfigDouble(L"MARK2_ORG_GERB_Y");
 	m_pstCfg->set_align.mark2_stage_x			= GetConfigDouble(L"MARK2_STAGE_X");
 
-	m_pstCfg->set_align.use_Localmark_offset = GetConfigDouble(L"USE_LOCAL_MARK_OFFSET");
+	//m_pstCfg->set_align.use_Localmark_offset = GetConfigDouble(L"USE_LOCAL_MARK_OFFSET");
 
 	const int _1to3 = 0;
 	const int _2to3 = 1;
@@ -407,9 +414,8 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	for (i = 0; i < 4; i++)
 	{
 		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d", i);
-		m_pstCfg->set_align.mark_offset_x[i] = GetConfigDouble(tzKey);
-		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d", i);
-		m_pstCfg->set_align.mark_offset_y[i] = GetConfigDouble(tzKey);
+		swprintf_s(tzKey2, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d", i);
+		m_pstCfg->set_align.markOffsetPtr->Push(true ,std::make_tuple((double)GetConfigDouble(tzKey), (double)GetConfigDouble(tzKey2)));
 	}
 
 	for (i = 1; i <= 2; i++)
@@ -417,9 +423,8 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 		for (int j = 0; j < 8; j++)
 		{
 			swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d_%d", i,j);
-			m_pstCfg->set_align.localMark_offset_x[((i-1) * 8) + j] =  GetConfigDouble(tzKey);
-			swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d_%d", i,j);
-			m_pstCfg->set_align.localMark_offset_y[((i - 1) * 8) + j] = GetConfigDouble(tzKey);
+			swprintf_s(tzKey2, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d_%d", i,j);
+			m_pstCfg->set_align.markOffsetPtr->Push(false,std::make_tuple((double)GetConfigDouble(tzKey), (double)GetConfigDouble(tzKey2)));
 		}
 		
 	}
@@ -461,12 +466,18 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 		SetConfigDouble(tzKey,	m_pstCfg->set_align.table_unloader_xy[i-1][1],	4);
 	}
 
+	std::tuple<double, double> val;
 	for (i = 0; i < 4; i++)
 	{
+
+		if (m_pstCfg->set_align.markOffsetPtr->Get(true, i, val) == false)
+			continue;
+
 		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d", i);
-		SetConfigDouble(tzKey, m_pstCfg->set_align.mark_offset_x[i], 4);
+		SetConfigDouble(tzKey, std::get<0>(val), 4);
 		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d", i);
-		SetConfigDouble(tzKey, m_pstCfg->set_align.mark_offset_y[i], 4);
+		SetConfigDouble(tzKey, std::get<1>(val), 4);
+		
 	}
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");

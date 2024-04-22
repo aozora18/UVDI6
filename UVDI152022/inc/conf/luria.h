@@ -2832,7 +2832,7 @@ typedef struct __st_xml_mark_x_y__
 
 	bool GetFlag(STG_XMXY_RESERVE_FLAG flag)
 	{
-		return reserve & flag;
+		return (reserve & flag) != 0;
 	}
 
 }	STG_XMXY,	*LPG_XMXY;

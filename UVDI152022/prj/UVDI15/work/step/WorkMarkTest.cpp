@@ -247,15 +247,19 @@ void CWorkMarkTest::DoAlignStatic3cam()
 
 			case 0x08:
 			{
+				//m_enWorkState = ENG_JWNS::en_next;
 				m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
 			}
 			break;
 
+
 			case 0x09:
 			{
-				m_enWorkState = IsSetMarkValidAll(0x01,&CENTER_CAM);
+				//m_enWorkState = ENG_JWNS::en_next;
+				m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
 			}
 			break;
+
 
 			case 0x0a:
 			{

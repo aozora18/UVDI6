@@ -6,7 +6,9 @@
 #pragma once
 
 #include "conf_comn.h"
-
+#include <vector>
+#include <tuple>
+#include <map>
 /* --------------------------------------------------------------------------------------------- */
 /*                                           상수 값                                             */
 /* --------------------------------------------------------------------------------------------- */
@@ -93,6 +95,27 @@ typedef struct __st_config_setup_camera_info__
 
 }	STG_CSCI,	*LPG_CSCI;
 
+
+
+struct MarkoffsetInfo
+{
+
+private:
+	map<bool, vector <std::tuple<double,double>>> offsetValues;
+public:
+	void Push(bool isGlobal, std::tuple<double, double> val) 
+	{
+		offsetValues[isGlobal].push_back(val);
+	}
+
+	bool Get(bool isGlobal, int tgtIdx , std::tuple<double, double>& val)
+	{
+		if (offsetValues[isGlobal].size() <= tgtIdx) return false;
+		val = offsetValues[isGlobal][tgtIdx];
+		return true;
+	}
+};
+
 /* Setup Align 에 대한 전처리 정보 */
 typedef struct __st_config_setup_align_info__
 {
@@ -108,15 +131,14 @@ typedef struct __st_config_setup_align_info__
 	DOUBLE				table_unloader_xy[MAX_TABLE][2];		/* 노광 소재를 올려 놓기 위한 스테이지의 작업 위치 (단위: mm) (소수점 4자리까지 유효) */
 	DOUBLE				mark2_org_gerb_xy[2];					/* 거버에 저정된 Mark 2번의 X / Y 좌표 (단위: mm) */
 	DOUBLE				mark2_stage_x;							/* 거버에 저장된 Mark 2번 기준 X 축 모션 좌표 (단위: mm) */
-	DOUBLE				mark_offset_x[4];						/* 각 Global Mark의 offset 설정값(단위: mm) */
-	DOUBLE				mark_offset_y[4];
+	//DOUBLE				mark_offset_x[4];						/* 각 Global Mark의 offset 설정값(단위: mm) */
+	//DOUBLE				mark_offset_y[4];
 	DOUBLE				mark_horz_diff;							/* 수평(0) / 수평(1) 의 오차값의 제한값(단위: mm)*/
 	DOUBLE				mark_vert_diff;							/* 수직(2) / 수직(2) 의 오차값의 제한값(단위: mm)*/
-
-	UINT8				use_Localmark_offset;					/* 각 Local Mark Offset에 추가 기능 적용 여부 (1:사용, 0:미사용) */
-
-	DOUBLE				localMark_offset_x[16];
-	DOUBLE				localMark_offset_y[16];
+	MarkoffsetInfo*		markOffsetPtr;
+	//UINT8				use_Localmark_offset;					/* 각 Local Mark Offset에 추가 기능 적용 여부 (1:사용, 0:미사용) */
+	//DOUBLE				localMark_offset_x[16];
+	//DOUBLE				localMark_offset_y[16];
 
 	DOUBLE				distCam2Cam[3];
 
@@ -125,6 +147,10 @@ typedef struct __st_config_setup_align_info__
 	//DOUBLE				mark_offset_y[4];
 
 	/* 거버에 저장된 Mark 2번 기준 X 축 모션 좌표 (단위: mm) */
+	void SetMarkoffsetPtr(MarkoffsetInfo& ptr)
+	{
+		markOffsetPtr = &ptr;
+	}
 
 }	STG_CSAI,	*LPG_CSAI;
 

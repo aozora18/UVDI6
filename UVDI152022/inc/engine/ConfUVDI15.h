@@ -25,7 +25,7 @@ protected:
 
 /* 로컬 함수 */
 protected:
-
+	
 
 /* 공용 함수 */
 public:

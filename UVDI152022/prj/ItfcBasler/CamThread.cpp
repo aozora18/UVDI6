@@ -192,8 +192,9 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 			
 			if (camMode == ENG_VCCM::en_grab_mode)
 			{
-				if(alignMotionPtr->GetFiducialInfo(cam_id, GetGrabImage(), -1, temp))
-				globalGrab = temp.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
+				if (alignMotionPtr->GetFiducialInfo(cam_id, GetGrabImage(), -1, temp))
+					globalGrab = temp.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
+				
 			}
 
 			bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, globalGrab == true ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark

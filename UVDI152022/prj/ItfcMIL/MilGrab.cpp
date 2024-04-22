@@ -236,7 +236,8 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 			auto IndexOf = [&](vector<STG_XMXY>& pool, int idx,bool& isGlobal)->int //역산해야한다. 그럼 이 마크시퀀스는 각 로컬이나 글로벌에서 몇번째인가?
 			{
 				int sum = 0;
-				
+				if (pool.size() == 0) return -1;
+
 				isGlobal = pool[idx].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 				if (idx == 0) return 0;
 
@@ -250,7 +251,9 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 			};
 
 			idx = IndexOf(pool, u8MarkSeq,isGlobal);
-			pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx];
+			
+			if(idx != -1)
+				pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx];
 
 			////진짜 개 구대기 거지같이 짜놨네.
 			//if (ENG_AOMI::en_each != ENG_AOMI(m_pstConfig->set_align.align_method))

@@ -83,7 +83,7 @@ void CWorkMarkMove::DoMovingOnthefly2cam()
 	{
 	case 0x01 : 
 	{
-		
+		uvEng_Camera_ResetGrabbedImage();
 		m_enWorkState = IsSetTrigPosResetAll();
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);/* Grab Mode ¼³Á¤ */
 	}
@@ -134,7 +134,7 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	case 0x02: m_enWorkState = IsMotorDriveStopAll();		break;
 	case 0x03: m_enWorkState = SetTrigEnable(FALSE);		break;
 	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);		break;
-	case 0x05: m_enWorkState = IsLoadedGerberCheck();		break;
+	case 0x05: m_enWorkState = ENG_JWNS::en_next; break; //IsLoadedGerberCheck();		break;
 	case 0x06:
 	{
 		STG_XMXY markPos; const int CENTERCAM = 3;

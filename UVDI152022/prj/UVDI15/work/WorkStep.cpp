@@ -1606,7 +1606,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	CAtlList <STG_XMXY> lstMarks;
 	//LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
-
+	std::tuple<double, double> val;
 	STG_XMXY temp;
 
 	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
@@ -1647,16 +1647,18 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 					{
 						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
 
-						//tgtMarkIdx *= markType == ENG_AMTF::en_global ? -1 : 1;
 						LPG_ACGR find = nullptr;
 						for (int i = 0; i < grabs->GetCount(); i++)
 						{
 							auto grab = grabs->GetAt(grabs->FindIndex(i));
 							if (grab == nullptr) continue;
 				
+							
+							auto typeCorrect = markType == ENG_AMTF::en_global ? (grab->reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) : (grab->reserve & STG_XMXY_RESERVE_FLAG::LOCAL);
+
 							if (grab->cam_id == camIdx && 
 								grab->fiducialMarkIndex == tgtMarkIdx &&
-								markType == ENG_AMTF::en_global ? (grab->reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) != 0 : (grab->reserve & STG_XMXY_RESERVE_FLAG::LOCAL) != 0)
+								typeCorrect != 0)
 							{
 								find = grab;
 								break;
@@ -1665,12 +1667,23 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 						return find;
 					};
 
-	for (int i = 0; success && i < status.globalMarkCnt; i++)
+	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
 	{
-		if (uvEng_Luria_GetGlobalMark(i, &temp) == false)
-			return ENG_JWNS::en_error;
+		bool isGlobal = i < status.globalMarkCnt ? true : false;
+
+
+		if (isGlobal)
+		{
+			if (uvEng_Luria_GetGlobalMark(i, &temp) == false)
+				return ENG_JWNS::en_error;
+		}
+		else
+		{
+			if (uvEng_Luria_GetLocalMark(i - status.globalMarkCnt, &temp) == false)
+				return ENG_JWNS::en_error;
+		}
 		
-		auto grab = GetGrab(CENTERCAM, temp.tgt_id, ENG_AMTF::en_global);
+		auto grab = GetGrab(CENTERCAM, temp.tgt_id, isGlobal ? ENG_AMTF::en_global : ENG_AMTF::en_local);
 
 		if(grab == nullptr)
 			return ENG_JWNS::en_error;
@@ -1684,15 +1697,20 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		temp.mark_x -= grab->move_mm_x;
 		temp.mark_y -= grab->move_mm_y;
+		temp.reserve = grab->reserve;
 
 		if (pstSetAlign->use_mark_offset)
 		{
-			temp.mark_x += pstSetAlign->mark_offset_x[temp.tgt_id];
-			temp.mark_y += pstSetAlign->mark_offset_y[temp.tgt_id];
+			std::tuple<double, double> val;
+			if (pstSetAlign->markOffsetPtr->Get(isGlobal, temp.tgt_id, val))
+			{
+				temp.mark_x += std::get<0>(val);
+				temp.mark_y += std::get<1>(val);
+			}
 		}
 		lstMarks.AddTail(temp);
 	}
-	
+
 
 	if (uvEng_Luria_ReqSetGlobalTransformationRecipe(0x00, 0x00, 0x00) == false)
 		return ENG_JWNS::en_error;
@@ -1711,13 +1729,15 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	for (int i = 0; i < fidCnt; i++)
 	{
-		for (int j = 0; j < fidCnt; j++)
+		bool isGlobal = i < status.globalMarkCnt ? true : false;
+		for (int j = isGlobal ? 0 : status.globalMarkCnt; j < fidCnt; j++)
 		{
 			auto at = lstMarks.GetAt(lstMarks.FindIndex(j));
-			if (at.org_id != i) continue;
-
-			pstMarks[i].x = (INT32)ROUNDED(at.mark_x * 1000000.0f, 0);
-			pstMarks[i].y = (INT32)ROUNDED(at.mark_y * 1000000.0f, 0);
+			if (at.org_id == (isGlobal ? i : i - status.globalMarkCnt) && at.GetFlag(isGlobal ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL))
+			{
+				pstMarks[i].x = (INT32)ROUNDED(at.mark_x * 1000000.0f, 0);
+				pstMarks[i].y = (INT32)ROUNDED(at.mark_y * 1000000.0f, 0);
+			}
 		}
 	}
 
@@ -1755,7 +1775,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	LPG_ACGR pstGrab = NULL;
 	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
-
+	std::tuple<double, double> val;
 	CUniToChar csCnv;
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	//LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
@@ -1874,16 +1894,18 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		// -------------------------    여기는 글로벌  (마크옵셋적용시) --------------------------
 		if (pstSetAlign->use_mark_offset)
 		{
-			for (i = 0; i < u8MarkG; i++)
-			{
-				swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, pstSetAlign->mark_offset_x[i], pstSetAlign->mark_offset_y[i]);
-				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-			}
 
 			for (i = 0; i < u8MarkG; i++)
 			{
-					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x += pstSetAlign->mark_offset_x[i];
-					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y += pstSetAlign->mark_offset_y[i];
+				if (pstSetAlign->use_mark_offset && pstSetAlign->markOffsetPtr->Get(true, i, val))
+				{
+					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x += std::get<0>(val);
+					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y += std::get<1>(val);
+
+					swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, std::get<0>(val), std::get<1>(val));
+					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+				}
 
 				swprintf_s(tzMsg, 256, L"Offset + Global Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y / 1000000.0f));
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
@@ -1952,11 +1974,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					localMarkInfo.mark_x -= pstGrab->move_mm_x;
 					localMarkInfo.mark_y -= pstGrab->move_mm_y;
 					
-
-					if (pstSetAlign->use_Localmark_offset)
+					
+					if (pstSetAlign->use_mark_offset && pstSetAlign->markOffsetPtr->Get(false, j - u8MarkG, val))
 					{
-						localMarkInfo.mark_x += pstSetAlign->localMark_offset_x[j - u8MarkG];
-						localMarkInfo.mark_y += pstSetAlign->localMark_offset_y[j - u8MarkG];
+						localMarkInfo.mark_x += std::get<0>(val);
+						localMarkInfo.mark_y += std::get<1>(val);
 					}
 
 					swprintf_s(tzMsg, 256, L"Local Mark%d Move_mm: X = %.4f Y = %.4f", j - u8MarkG, pstGrab->move_mm_x, pstGrab->move_mm_y);

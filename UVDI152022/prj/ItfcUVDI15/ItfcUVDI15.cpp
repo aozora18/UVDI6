@@ -25,7 +25,7 @@ UINT64					g_u64JobWorkTime		= 0;		/* 현재 동작 중인 작업 시간 갱신 
 CAtlList <UINT64>		g_lstJobWorkTime;					/* 가장 최근에 발생된 작업 시간 저장 */
 DOUBLE					g_dbWorkStepRate		= 0.0f;		/* 전체 작업 단계 진행률 */
 PTCHAR					g_ptzWorkStepName		= NULL;
-
+MarkoffsetInfo			markoffset;
 CMySection				g_syncJobWorkTime;
 
 /* --------------------------------------------------------------------------------------------- */
@@ -146,6 +146,10 @@ BOOL OpenSharedMemory(ENG_ERVM e_mode)
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15|| \
 DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		/* 환경 파일 객체 생성 */
+		
+		auto cfgPtr = GetConfig();
+		cfgPtr->set_align.SetMarkoffsetPtr(markoffset);
+
 		CConfComn* pConfComn = new CConfComn(GetConfig());
 		CConfUvdi15* pConfUvDI15 = new CConfUvdi15(GetConfig());
 		/* 메모리 유효성 확인 */

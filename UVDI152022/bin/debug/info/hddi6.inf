@@ -656,7 +656,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 0
 CHECK_HOT_AIR= 0
-RECIPE_NAME= Local_6um_Acc_Coord_Dot
+RECIPE_NAME= Local_6um_Acc_Coord_Ring_2X2
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -790,7 +790,7 @@ CAM7_SAFETY_POS= 0.0000
 
 CAM_1_GAIN_LEVEL    = 50
 CAM_2_GAIN_LEVEL    = 50
-CAM_3_GAIN_LEVEL    = 90
+CAM_3_GAIN_LEVEL    = 50
 
 ;film - CAM1 180, CAM2 120
 
@@ -897,8 +897,6 @@ USE_INVALID_MARK_CALI       = 0
 
 DOF_FILM_THICK              = 0.0000
 
-ALIGN_METHOD                = 0
-
 ;TABLE_UNLOADER_X_1          = 243.0000
 TABLE_UNLOADER_X_1          = 263.0000
 TABLE_UNLOADER_Y_1          = 1350.0000
@@ -981,6 +979,7 @@ MARK_OFFSET_Y_2_7	= 0
 
 MARK_HORZ_DIFF= 10.1050
 MARK_VERT_DIFF= 10.1030
+
 
 
 

@@ -1100,7 +1100,7 @@ PUINT8 CMachineConfig::GetPktZdriveIpAddr(ENG_LPGS flag, PUINT8 addr)
 	if (ENG_LPGS::en_set == flag)
 	{
 		/* Set the send packet */
-		memcpy(pPktNext, addr, 4);
+		memcpy(u8Body, addr, 4);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCMC::en_z_drive_ip_addr,
 							  pPktNext, u32Pkts, u8Body, 4);
 	}

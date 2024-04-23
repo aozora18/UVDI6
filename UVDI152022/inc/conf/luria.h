@@ -519,6 +519,9 @@ typedef enum class __en_luria_command_photohead_focus__ : UINT8
 	en_af_gain							= 0x0d,		/* This will set the autofocus gain (damping factor) in the photo heads. The default gain value is 10. */
 	en_scan_ethercat					= 0x0e,		/* This will start a scan for ethercat devices when using linear z-axis from Sieb&Meyer */
 
+	en_af_panelmode	= 0x11,
+	en_af_disablefocus = 0x12,
+
 }	ENG_LCPF;
 
 /* Photohead Motor Status */
@@ -2121,6 +2124,7 @@ typedef struct __st_luria_data_exposure_work__
 	STG_EWAP			af_pwm;									/* Autofocus Sensor (for laser)의 PWM 값 */
 	STG_EWLS			light_source_status;					/* Photohead 내에 설치된 Light Source의 상태 값 */
 
+	bool autofocusEnable; //오토포커스 작동여부
 	/*
 	 desc : 현재까지 노광한 Scan line 개수 (전체 노광 개수가 아님)
 	 parm : None

@@ -3,6 +3,51 @@
 
 #include "BaseFamily.h"
 
+class CPhotoheadFocus : public CBaseFamily
+{
+	CPhotoheadFocus(LPG_LDSM shmem);
+
+public:
+
+	virtual VOID		SetRecvPacket(UINT8 uid, PUINT8 data, UINT32 size);
+
+
+	/* 로컬 변수 */
+protected:
+
+	LPG_LDPF			m_pstShMem;
+
+
+	/* 로컬 함수 */
+protected:
+
+	VOID				SetRecv1Bytes(UINT8 uid, PUINT8 data);
+	VOID				SetRecv2Bytes(UINT8 uid, PUINT8 data);
+	VOID				SetRecv4Bytes(UINT8 uid, PUINT8 data);
+	VOID				SetRecv5Bytes(UINT8 uid, PUINT8 data);
+	VOID				SetRecv9Bytes(UINT8 uid, PUINT8 data);
+	VOID				SetRecvEtcBytes(UINT8 uid, PUINT8 data, UINT32 size);
+
+public:
+	unique_ptr<UINT8[]> SendPktInitializeFocus();
+	unique_ptr<UINT8[]> SendReadPktAbs_work_range_status();
+	unique_ptr<UINT8[]> SendPktFocusposition(ENG_LPGS flag, UINT8 headNum, INT32 zPosMicrometer);
+	unique_ptr<UINT8[]> SendPktActivateAutofocus(ENG_LPGS flag, UINT8 headNum, bool enable);
+	unique_ptr<UINT8[]> SendPktFocustrim(ENG_LPGS flag, UINT8 headNum, INT32 trimNanometer);
+	unique_ptr<UINT8[]> SendPktActiveAreaQualifier(ENG_LPGS flag, bool enable, UINT32 startInactiveInMicrometer, UINT32 EndInactiveInMicrometer);
+	unique_ptr<UINT8[]> SendPktAbs_work_range(ENG_LPGS flag, UINT8 headNum, INT32 minFocusAFOperationMicrometer, INT32 maxFocusAFOperationMicrometer);
+	unique_ptr<UINT8[]> SendPktAf_edge_trigger(ENG_LPGS flag, UINT16 belowAbobeDistActivateAFinMicrometer, bool enable);
+	unique_ptr<UINT8[]> SendPktPosition_multi(vector<tuple<UINT8, INT32>> positions);
+	unique_ptr<UINT8[]> SendPktPosition_hi_res(ENG_LPGS flag);
+	unique_ptr<UINT8[]> SendPktOutside_dof_status(ENG_LPGS flag);
+	unique_ptr<UINT8[]> SendPktAf_gain(ENG_LPGS flag, UINT16 gain);
+	unique_ptr<UINT8[]> SendPktScan_ethercat();
+	unique_ptr<UINT8[]> SendPktPanelMode(ENG_LPGS flag, UINT8 headNum, UINT8 mode);
+	unique_ptr<UINT8[]> SendPktDisableAF();
+
+};
+
+
 class CMachineConfig : public CBaseFamily
 {
 /* 생성자 & 파괴자 */

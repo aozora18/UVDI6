@@ -821,6 +821,10 @@ BOOL CLuriaCThread::Connected()
 													   m_pstConfLuria->z_drive_sd2s_ph[i]);
 			AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
 		}
+	
+
+		pPkt = m_pPktMC->GetPktDepthOfFocus(ENG_LPGS::en_set, m_pstConfLuria->DOFofPh);
+		AddPktSend(pPkt, m_pPktMC->GetPktSize()); ::Free(pPkt);
 	}
 
 	/* ----------------------------------------------------------------------------------------- */

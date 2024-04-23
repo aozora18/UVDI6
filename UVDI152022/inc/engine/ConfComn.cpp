@@ -363,6 +363,8 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 	m_pstCfg->luria_svc.af_work_range_all[1]		= GetConfigDouble(L"AF_RANGE_MAX_ALL");
 
 	GetConfigIPv4(L"Z_DRIVE_IPv4", m_pstCfg->luria_svc.z_drive_ip);
+	m_pstCfg->luria_svc.DOFofPh = GetConfigUint8(L"PH_DOF");
+
 
 	for (i=0; i<m_pstCfg->luria_svc.table_count; i++)
 	{

@@ -405,7 +405,8 @@ Z_DRIVE_SD2S_PH_4           = 3
 Z_DRIVE_SD2S_PH_5           = 4
 Z_DRIVE_SD2S_PH_6           = 5
 OVER_PRESSURE_MODE          = 0
-
+;DOF 설정. (마이크로)
+PH_DOF = 50
 ; 조도 센서 측정 크기
 SENSOR_DIAMETER             = 9.500
 CORRECTION_FACTOR           = 1.000

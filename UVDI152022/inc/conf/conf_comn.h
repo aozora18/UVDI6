@@ -515,6 +515,7 @@ typedef struct __st_config_luria_service_info__
 																	/* 1 offset size (pulse dist) = (end - start) / pulse_count = 10.8621 um */
 	UINT8				ph_ipv4[MAX_PH][4];							/* 장비에 설치되어 있는 포토헤드의 IPv4 */
 	UINT8				z_drive_ip[4];								/* z_drive_type == 3인 경우만 유효. MC2가 1 대인 경우, motion_control_ip와 동일, 2대인 경우 다른 IP이어야 함 */
+	UINT8				DOFofPh; //포토헤드의 DOF
 	UINT8				z_drive_sd2s_ph[MAX_PH];					/* Photohead Z Axis Drive가 Linear Motor Type일 경우, MC2에 연결된 SD2S Drive 번호 */
 
 	UINT8				use_af;										/*Auto Foucs 사용 여부*/

@@ -306,7 +306,7 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 	m_pstCfg->luria_svc.ph_rotate					= GetConfigUint8(L"PH_ROTATE");
 	m_pstCfg->luria_svc.use_announcement			= GetConfigUint8(L"USE_ANNOUNCEMENT");
 	m_pstCfg->luria_svc.use_hw_inited				= GetConfigUint8(L"USE_HW_INITED");
-	m_pstCfg->luria_svc.use_af						= GetConfigUint8(L"USE_AF");
+	
 	m_pstCfg->luria_svc.motion_control_type			= GetConfigUint8(L"MOTION_CONTROL_TYPE");
 	m_pstCfg->luria_svc.hys_type_1_scroll_mode		= GetConfigUint8(L"HYS_TYPE_1_SCROLL_MODE");
 	m_pstCfg->luria_svc.hys_type_1_negative_offset	= GetConfigUint8(L"HYS_TYPE_1_NEGATIVE_OFFSET");
@@ -337,7 +337,7 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 	m_pstCfg->luria_svc.scroll_rate					= GetConfigUint16(L"SCROLL_RATE");
 	m_pstCfg->luria_svc.mirror_count_xy[0]			= GetConfigUint16(L"DMD_MIRROR_COUNT_X");
 	m_pstCfg->luria_svc.mirror_count_xy[1]			= GetConfigUint16(L"DMD_MIRROR_COUNT_Y");
-	m_pstCfg->luria_svc.af_gain						= GetConfigUint16(L"AF_GAIN");
+	
 	m_pstCfg->luria_svc.luria_ver_major				= GetConfigUint16(L"OPTIC_VER_MAJOR");
 	m_pstCfg->luria_svc.luria_ver_minor				= GetConfigUint16(L"OPTIC_VER_MINOR");
 	m_pstCfg->luria_svc.luria_ver_build				= GetConfigUint16(L"OPTIC_VER_BUILD");
@@ -359,12 +359,10 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 		m_pstCfg->luria_svc.ph_z_select_velo[i] = GetConfigDouble(tzKey);
 	}
 
-	m_pstCfg->luria_svc.af_work_range_all[0]		= GetConfigDouble(L"AF_RANGE_MIN_ALL");
-	m_pstCfg->luria_svc.af_work_range_all[1]		= GetConfigDouble(L"AF_RANGE_MAX_ALL");
+	
 
 	GetConfigIPv4(L"Z_DRIVE_IPv4", m_pstCfg->luria_svc.z_drive_ip);
-	m_pstCfg->luria_svc.DOFofPh = GetConfigUint8(L"PH_DOF");
-
+	
 
 	for (i=0; i<m_pstCfg->luria_svc.table_count; i++)
 	{
@@ -425,10 +423,29 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 		m_pstCfg->luria_svc.illum_filter_rate[i]	= GetConfigDouble(tzKey);
 	}
 	m_pstCfg->luria_svc.illum_garbage_pwr	= GetConfigDouble(L"ILLUM_GARBAGE_PWR");
-#if 0	/* Not used (Only Here !!!) */
-	/* Print Simulation 동작 결과 저장될 경로 생성 */
-	if (!CreateSimulationOutDir())	return FALSE;
-#endif
+
+
+	//AF관련
+	m_pstCfg->luria_svc.useAF = GetConfigUint8(L"USE_AF");
+	m_pstCfg->luria_svc.useAAQ = GetConfigUint8(L"USE_AAQ");
+	m_pstCfg->luria_svc.afGain = GetConfigUint16(L"AF_GAIN");
+	m_pstCfg->luria_svc.DOFofPh = GetConfigUint8(L"PH_DOF");
+	
+	m_pstCfg->luria_svc.afWorkRangeWithinMicrometer[0] = GetConfigDouble(L"AF_RANGE_MIN_ALL");
+	m_pstCfg->luria_svc.afWorkRangeWithinMicrometer[1] = GetConfigDouble(L"AF_RANGE_MAX_ALL");
+
+	m_pstCfg->luria_svc.useEdgeTrigger = GetConfigUint8(L"USE_EDGE_TRIGGER");
+
+	m_pstCfg->luria_svc.afPanelMode = GetConfigUint8(L"PANELMODE");
+	m_pstCfg->luria_svc.afAAQInactivateWithinMicrometer[0] = GetConfigDouble(L"AF_AAQ_RANGE_MIN");
+	m_pstCfg->luria_svc.afAAQInactivateWithinMicrometer[1] = GetConfigDouble(L"AF_AAQ_RANGE_MAX");
+	
+	for (i = 0; i < m_pstCfg->luria_svc.ph_count; i++)
+	{
+		swprintf_s(tzKey, 64, L"AF_TRIM_PH%d", i + 1);
+		m_pstCfg->luria_svc.afTrimMicrometer[i] = GetConfigDouble(tzKey);		
+	}
+
 	return TRUE;
 }
 
@@ -473,7 +490,7 @@ BOOL CConfComn::SaveConfigLuriaSvc()
 	SetConfigUint32(L"SCROLL_RATE",					m_pstCfg->luria_svc.scroll_rate);
 	SetConfigUint32(L"DMD_MIRROR_COUNT_X",			m_pstCfg->luria_svc.mirror_count_xy[0]);
 	SetConfigUint32(L"DMD_MIRROR_COUNT_Y",			m_pstCfg->luria_svc.mirror_count_xy[1]);
-	SetConfigUint32(L"AF_GAIN",						m_pstCfg->luria_svc.af_gain);
+	
 
 	SetConfigUint32(L"PRODUCT_ID",					m_pstCfg->luria_svc.product_id);
 
@@ -481,7 +498,7 @@ BOOL CConfComn::SaveConfigLuriaSvc()
 	SetConfigUint32(L"OPTIC_VER_MINOR",				m_pstCfg->luria_svc.luria_ver_minor);
 	SetConfigUint32(L"OPTIC_VER_BUILD",				m_pstCfg->luria_svc.luria_ver_build);
 
-	SetConfigUint32(L"USE_AF",						m_pstCfg->luria_svc.use_af);
+	
 
 	SetConfigDouble(L"MAX_Y_MOTION_SPEED",			m_pstCfg->luria_svc.max_y_motion_speed,			3);
 	SetConfigDouble(L"X_MOTION_SPEED",				m_pstCfg->luria_svc.x_motion_speed,				3);
@@ -569,8 +586,27 @@ BOOL CConfComn::SaveConfigLuriaSvc()
 		SetConfigDouble(tzKey,	m_pstCfg->luria_svc.illum_filter_rate[i],	5);
 	}
 	SetConfigDouble(L"ILLUM_GARBAGE_PWR",	m_pstCfg->luria_svc.illum_garbage_pwr,	4);
-	SetConfigDouble(L"AF_RANGE_MIN_ALL",	m_pstCfg->luria_svc.af_work_range_all[0],	3);
-	SetConfigDouble(L"AF_RANGE_MAX_ALL",	m_pstCfg->luria_svc.af_work_range_all[1],	3);
+
+
+	////
+	SetConfigInt32(L"USE_AF", (INT32)m_pstCfg->luria_svc.useAF);
+	SetConfigInt32(L"USE_AAQ", (INT32)m_pstCfg->luria_svc.useAAQ);
+	SetConfigInt32(L"USE_EDGE_TRIGGER", (INT32)m_pstCfg->luria_svc.useEdgeTrigger);
+
+	SetConfigInt32(L"PANELMODE", (INT32)m_pstCfg->luria_svc.afPanelMode);
+	SetConfigInt32(L"AF_GAIN", (INT32)m_pstCfg->luria_svc.afGain);
+
+	SetConfigDouble(L"AF_RANGE_MIN_ALL",	m_pstCfg->luria_svc.afWorkRangeWithinMicrometer[0],	3);
+	SetConfigDouble(L"AF_RANGE_MAX_ALL",	m_pstCfg->luria_svc.afWorkRangeWithinMicrometer[1],	3);
+
+	SetConfigDouble(L"AF_AAQ_RANGE_MIN", m_pstCfg->luria_svc.afAAQInactivateWithinMicrometer[0], 3);
+	SetConfigDouble(L"AF_AAQ_RANGE_MAX", m_pstCfg->luria_svc.afAAQInactivateWithinMicrometer[1], 3);
+
+	for (i = 0; i < m_pstCfg->luria_svc.ph_count; i++)
+	{
+		swprintf_s(tzKey, 64, L"AF_TRIM_PH%d", i+1);
+		SetConfigDouble(tzKey, m_pstCfg->luria_svc.afTrimMicrometer[i], 3);
+	}
 
 	return TRUE;
 }

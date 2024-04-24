@@ -1294,10 +1294,10 @@ VOID CDlgConfSetting::SaveEtc(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::LoadLuria(LPG_CIEA conf)
 {
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AF,			conf->luria_svc.use_af);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_GAIN,			conf->luria_svc.af_gain);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MIN,		conf->luria_svc.af_work_range_all[0]);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MAX,		conf->luria_svc.af_work_range_all[1]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AF,			conf->luria_svc.useAF);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_GAIN,			conf->luria_svc.afGain);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MIN,		conf->luria_svc.afWorkRangeWithinMicrometer[0]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MAX,		conf->luria_svc.afWorkRangeWithinMicrometer[1]);
 }
 
 /*
@@ -1310,13 +1310,13 @@ VOID CDlgConfSetting::SaveLuria(LPG_CIEA conf)
 	CString strValue;
 
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AF);
-	conf->luria_svc.use_af = _ttoi(strValue);
+	conf->luria_svc.useAF = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_GAIN);
-	conf->luria_svc.af_gain = _ttoi(strValue);
+	conf->luria_svc.afGain = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MIN);
-	conf->luria_svc.af_work_range_all[0] = _ttof(strValue);
+	conf->luria_svc.afWorkRangeWithinMicrometer[0] = _ttof(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::AF_RANGE_MAX);
-	conf->luria_svc.af_work_range_all[1] = _ttof(strValue);
+	conf->luria_svc.afWorkRangeWithinMicrometer[1] = _ttof(strValue);
 }
 
 /*

@@ -828,9 +828,6 @@ typedef struct __st_config_keyence_lds_set_parameter__
 typedef struct __st_config_info_engine_all__
 {
 	STG_CIPC			set_uvdi15;		/* UVDI15 공통 정보 */
-#if 0
-	STG_CVCF			cali_find;
-#endif
 	STG_CLED			line_find;
 	STG_CFDN			file_dat;
 	STG_CGIP			grab_proc;

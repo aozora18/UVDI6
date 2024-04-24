@@ -518,12 +518,11 @@ typedef struct __st_config_luria_service_info__
 	UINT8				DOFofPh; //포토헤드의 DOF
 	UINT8				z_drive_sd2s_ph[MAX_PH];					/* Photohead Z Axis Drive가 Linear Motor Type일 경우, MC2에 연결된 SD2S Drive 번호 */
 
-	UINT8				use_af;										/*Auto Foucs 사용 여부*/
-
 	UINT16				scroll_rate;								/* 포토헤드가 처리할 수 있는 최대 이동 비율 값 (Default: 19000) */
 	UINT16				hys_type_1_negative_offset;					/* HysteresisType1 정보 설정 (단위: Trigger Pulse) */
 	UINT16				mirror_count_xy[2];							/* DMD Mirror Counts (가로 / 세로) */
-	UINT16				af_gain;									/* AutoFocus Gain (1 ~ 4095) 값이 클수록 좋다? */
+	
+	
 	
 	UINT16				luria_ver_major;							/* 광학계 서비스 SW version : 반드시 정수 (1,2,3,4,....) */
 	UINT16				luria_ver_minor;							/* 광학계 서비스 SW version : 반드시 정수 (4,5,7,11,) */
@@ -569,7 +568,22 @@ typedef struct __st_config_luria_service_info__
 																	/*         Scroll mode 2	: 21.724137931	um	  */
 																	/*         Scroll mode 3	: 32.5862068966	um	  */
 																	/*         Scroll mode 4	: 43.4482758621	um	  */
-	DOUBLE				af_work_range_all[2];						/* AutoFocus Work Range (0.000 mm ~ 24.500 mm) */
+	
+	
+	
+	//오토포커스 관련은 여기부터
+	
+	UINT8				useAF;										/*Auto Foucs 사용 여부*/
+	UINT8				useAAQ;// Active Area Qualifier
+	UINT8				useEdgeTrigger;
+	
+	UINT16				afGain; //									/* AutoFocus Gain (1 ~ 4095) 값이 클수록 좋다? */
+	UINT8				afPanelMode; // 0레지스트, 1 잉크,
+	DOUBLE				afAAQInactivateWithinMicrometer[2];
+	DOUBLE				afWorkRangeWithinMicrometer[2];						/* AutoFocus Work Range (0.000 mm ~ 24.500 mm) */
+	DOUBLE				afTrimMicrometer[MAX_PH];
+	DOUBLE				af_abs_workrange[MAX_PH][2];
+
 
 	/*
 	 desc : If it is a lower version after comparing the versions, return an error

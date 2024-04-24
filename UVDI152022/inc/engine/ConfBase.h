@@ -4,6 +4,7 @@
 #define	MAX_SUBJ_STRING	64
 #define	MAX_KEY_STRING	64
 
+
 class CConfBase
 {
 public:
@@ -45,6 +46,7 @@ protected:
 
 	VOID				GetConfigStr(PTCHAR key, PTCHAR data, UINT32 size, PTCHAR def=L"");
 	VOID				SetConfigStr(PTCHAR key, PTCHAR str);
+	
 	VOID				SetConfigInt32(PTCHAR key, INT32 val);
 	VOID				SetConfigInt64(PTCHAR key, INT64 val);
 	VOID				SetConfigDouble(PTCHAR key, DOUBLE val, UINT8 pts=0);

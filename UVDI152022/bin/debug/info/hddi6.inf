@@ -420,10 +420,22 @@ ILLUM_GARBAGE_PWR           = 0.0010
 ILLUM_MEAS_TYPE             = 1
 
 ; AutoFocus
-USE_AF			 = 0
-AF_GAIN                     	 = 10
+USE_AF			= 1
+USE_AAQ 		= 1
+USE_EDGE_TRIGER 		= 1
+
+AF_GAIN                     	 = 50
 AF_RANGE_MIN_ALL            = 0.500
 AF_RANGE_MAX_ALL            = 24.000
+
+PANELMODE = 1
+
+AF_AAQ_RANGE_MIN = 18
+AF_AAQ_RANGE_MAX = 18
+
+AF_TRIM_PH1 = 18
+AF_TRIM_PH2 = 18
+
 PH_Z_SELECT_VELO_0	= 20.0000
 PH_Z_SELECT_VELO_1	= 21.0000
 PH_Z_SELECT_VELO_2	= 22.0000

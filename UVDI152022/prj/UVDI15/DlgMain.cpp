@@ -268,6 +268,16 @@ BOOL CDlgMain::OnInitDlg()
 
 	GetDlgItem(IDC_MAIN_BTN_PHILHMI)->ShowWindow(SW_HIDE);
 
+
+	//추가. 
+
+
+
+	
+
+	
+
+
 	return TRUE;
 }
 
@@ -499,14 +509,20 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 	ENG_BWOK enWork	= ENG_BWOK(wparam);
 	UINT64 u64Tick	= GetTickCount64();
 
-	/* 주기적으로 갱신 (500 msec 마다 호출) */
-	if (wparam == MSG_MAIN_THREAD_PERIOD && u64Tick > m_u64TickPeriod + 200)
-	{
-		m_u64TickPeriod	= u64Tick;
-		UpdatePeriod(u64Tick, bBusy);
 
-		/*장비 동작 중*/
-		m_bMainBusy = bBusy;
+
+	/* 주기적으로 갱신 (500 msec 마다 호출) */
+	if (wparam == MSG_MAIN_THREAD_PERIOD)
+	{
+		//이 메세지 스레드는 100ms 단위로 호출된다. 100ms마다 호출할 생각이면 굳이 조건걸필요없다. 
+		UpdateLDSMeasure();/*LSD 센서 측정 위치가 맞는지 확인*/
+
+		if (u64Tick > m_u64TickPeriod + 200)
+		{
+			UpdatePeriod(u64Tick, bBusy);
+			m_bMainBusy = bBusy;/*장비 동작 중*/
+			m_u64TickPeriod = u64Tick;
+		}
 	}
 
 	/* 현재 자식 화면이 Expose인 경우, 각종 이벤트 처리 */
@@ -1091,8 +1107,7 @@ VOID CDlgMain::UpdatePeriod(UINT64 tick, BOOL busy)
 	UpdateErrorMessage(tick);
 
 	UpdateCommState();
-	/*LSD 센서 측정 위치가 맞는지 확인*/
-	UpdateLDSMeasure();
+	
 	/*WorkStage가 SafePos 위치 했는지 확인*/
 	UpdateSafePosCheck();
 	/*PhilHMI에서 요청한 Move 동작 완료 확인*/
@@ -1581,30 +1596,39 @@ VOID CDlgMain::UpdateCommState()
 */
 VOID CDlgMain::UpdateLDSMeasure()
 {
-	double dCurY, dValue;
-	TCHAR tzMsg[256] = { NULL };
+	double dCurY=0, dValue=0;
+	
 	dCurY = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);
 
-	if (uvEng_GetConfig()->measure_flat.bThieckOnOff)
+	if (uvEng_GetConfig()->measure_flat.bThieckOnOff == false)
+		return;
+	
+	if (dCurY < uvEng_GetConfig()->measure_flat.dStartYPos ||
+		dCurY > uvEng_GetConfig()->measure_flat.dEndYPos)
 	{
-		if (dCurY > uvEng_GetConfig()->measure_flat.dStartYPos && dCurY < uvEng_GetConfig()->measure_flat.dEndYPos)
-		{
-			dValue = uvEng_KeyenceLDS_Measure(0);
-			//Sleep(200);
-			uvEng_GetConfig()->measure_flat.dMeasureYPos = dCurY;
-			uvEng_GetConfig()->measure_flat.dAlignMeasure = dValue;
-
-			swprintf_s(tzMsg, 256, L"Stage_y=%.4ff LDS=%.4f \n", dCurY, dValue);
-			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-
-			/*Log 기록*/
-			m_strLog.Format(tzMsg);
-			txtWrite(m_strLog);
-
+		if (uvEng_GetConfig()->measure_flat.GetThickMeasure() != 0)
 			uvEng_GetConfig()->measure_flat.bThieckOnOff = FALSE;
-		}
+		
+		return;
 	}
+	
+	TCHAR tzMsg[256] = { NULL };
 
+	dValue = uvEng_KeyenceLDS_Measure(0);
+	
+	if (dValue == 9999.999) 
+		return;
+
+	uvEng_GetConfig()->measure_flat.SetThickMeasureResult(((dValue * 10000) / 10000));
+
+	swprintf_s(tzMsg, 256, L"Stage_y=%.4ff LDS=%.4f \n", dCurY, dValue);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+	/*Log 기록*/
+	m_strLog.Format(tzMsg);
+	txtWrite(m_strLog);
+
+	
 }
 
 /*

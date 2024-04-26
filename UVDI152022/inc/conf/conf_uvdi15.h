@@ -764,6 +764,10 @@ typedef struct __st_config_hotair_temp_control__
 /* Measure Flatness Parameter */
 typedef struct __st_config_measure_auto_flatness__
 {
+private:
+	std::mutex mtx;
+public:
+
 	UINT8 u8UseMotorT;							/* 0:해당 축 모터 사용안함. 1:해당 축 모터 사용함 */
 	UINT8 u8UseMotorZ;							/* 0:해당 축 모터 사용안함. 1:해당 축 모터 사용함 */
 
@@ -788,12 +792,44 @@ typedef struct __st_config_measure_auto_flatness__
 	BOOL bThieckOnOff;							/*LDS 측정 동작 실행 On/Off*/
 	DOUBLE dRangStartYPos;						/*LDS 측정 Y축 가능한 시작 위치*/
 	DOUBLE dRangEndYPos;						/*LDS 측정 Y축 가능한 끝 위치*/
-	DOUBLE dMeasureYPos;						/*LDS 측정 Y축 좌표*/
-	DOUBLE dAlignMeasure;						/*LDS 측정 값*/
-
+	
 	UINT8	u8UseThickCheck;					/*LED 측정 동작 사용 유무 확인*/
 	DOUBLE	dOffsetZPOS;						/*LDS 실제 측정값에 대한 보정값*/
 	DOUBLE	dLimitZPOS;							/*LDS 실제 측정값과 설정값에 대한 최대 오차값*/
+
+	vector<DOUBLE>* dAlignMeasure;						/*LDS 측정 값*/
+	
+
+	void SetThickMeasureResult(DOUBLE d)
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		dAlignMeasure->push_back(d);
+	}
+
+	DOUBLE GetThickMeasure()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		return dAlignMeasure->empty() ? 0 : dAlignMeasure->back();
+	}
+
+	DOUBLE GetThickMeasureMean()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		int measureCnt = dAlignMeasure->size();
+		if (measureCnt == 0) return 0;
+
+		std::sort(dAlignMeasure->begin(), dAlignMeasure->end());
+		return dAlignMeasure->at(measureCnt >> 1); // 중간값 반환
+	}
+
+	void MeasurePoolClear()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		dAlignMeasure->clear();
+		
+	}
+
+
 
 }	STG_CMAF, * LPG_CMAF;
 

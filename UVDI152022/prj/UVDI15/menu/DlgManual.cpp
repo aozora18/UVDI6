@@ -786,13 +786,14 @@ void CDlgManual::UpdateGridInformation()
 
 
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-	DOUBLE RealThick = uvEng_GetConfig()->measure_flat.dAlignMeasure + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+	auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure();
+	DOUBLE RealThick = lastThick + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 	DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
 	/*LDS Thick*/
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > LimitZ Pos : %.3f", RealThick, LimitZPos);
 	/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
-	if(uvEng_GetConfig()->measure_flat.dAlignMeasure == 0)
+	if(lastThick == 0)
 	{ 
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);

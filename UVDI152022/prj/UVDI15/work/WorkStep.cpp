@@ -971,6 +971,7 @@ ENG_JWNS CWorkStep::IsAlignMovedInit()
 	{
 		/*LDS 센서 온*/
 		uvEng_GetConfig()->measure_flat.bThieckOnOff = TRUE;
+		uvEng_GetConfig()->measure_flat.MeasurePoolClear();
 	}
 
 	return ENG_JWNS::en_next;
@@ -1023,16 +1024,21 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 	if (uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y))
 	{
+		auto& measureFlat = uvEng_GetConfig()->measure_flat;
 		/*LDS 기능으로 소재 뚜께 측정하여 허용범위에서 벗어나면 에러 처리하여 작업 중지*/
-		if (uvEng_GetConfig()->measure_flat.u8UseThickCheck)
-		{
+		
+		
+
+		if (measureFlat.u8UseThickCheck)
+		{	
+			auto mean = measureFlat.GetThickMeasureMean();
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-			DOUBLE RealThick = uvEng_GetConfig()->measure_flat.dAlignMeasure + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+			DOUBLE RealThick =  + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
 			TCHAR tzMsg[256] = { NULL };
 			swprintf_s(tzMsg, 256, L"CheckThick LDS Measure = %.4f Offset Z Pos = %.4f LimitPos = %.4f",
-				uvEng_GetConfig()->measure_flat.dAlignMeasure
+				mean
 				, uvEng_GetConfig()->measure_flat.dOffsetZPOS
 				, uvEng_GetConfig()->measure_flat.dLimitZPOS);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);

@@ -61,7 +61,11 @@ VOID ClosedSharedMemory()
 	if (g_pMemMvenc)		delete g_pMemMvenc;
 	if (g_pMemPhilhmi)		delete g_pMemPhilhmi;
 	if (g_pMemStrobeLamp)	delete g_pMemStrobeLamp;
-	if (g_pMemConf)			delete g_pMemConf;	/* !!! 중요 !!!. 제일 마지막에 호출해야 됨 !!! */
+	if (g_pMemConf)
+	{
+		delete g_pMemConf->GetMemMap()->measure_flat.dAlignMeasure;
+		delete g_pMemConf;	/* !!! 중요 !!!. 제일 마지막에 호출해야 됨 !!! */
+	}
 
 	/* 반드시 NULL */
 	g_pLedPower		= NULL;
@@ -148,10 +152,11 @@ DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		/* 환경 파일 객체 생성 */
 		
 		auto cfgPtr = GetConfig();
+		cfgPtr->measure_flat.dAlignMeasure = new vector<double>();
 		cfgPtr->set_align.SetMarkoffsetPtr(markoffset);
 
-		CConfComn* pConfComn = new CConfComn(GetConfig());
-		CConfUvdi15* pConfUvDI15 = new CConfUvdi15(GetConfig());
+		CConfComn* pConfComn = new CConfComn(cfgPtr);
+		CConfUvdi15* pConfUvDI15 = new CConfUvdi15(cfgPtr);
 		/* 메모리 유효성 확인 */
 		ASSERT(pConfComn && pConfUvDI15);
 		/* 환경 파일 내용 적재 */

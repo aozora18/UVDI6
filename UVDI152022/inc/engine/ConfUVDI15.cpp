@@ -1230,7 +1230,7 @@ BOOL CConfUvdi15::LoadConfigFlatParam()
 	m_pstCfg->measure_flat.dLimitZPOS = GetConfigDouble(L"LIMIT_Z");
 
 	m_pstCfg->measure_flat.bThieckOnOff = FALSE;
-
+	
 	return TRUE;
 }
 BOOL CConfUvdi15::SaveConfigFlatParam()

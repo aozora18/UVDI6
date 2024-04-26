@@ -225,6 +225,7 @@ long CKeyenceLDS::LDSMeasure(double* pdValue, int nModuleIdx, DWORD dwTimeout)
 	char pszRecv[255];
 	CString strValue;
 	double dValue = 0;
+	double error = 9999.999;
 
 	int nResult = ReadData(pszRecv, dwTimeout);
 
@@ -243,7 +244,7 @@ long CKeyenceLDS::LDSMeasure(double* pdValue, int nModuleIdx, DWORD dwTimeout)
 	{
 		// Error
 		// AddLog
-		*pdValue = 9999.999;
+		*pdValue = error;
 		return eCOMM_ERROR_INVALIDDATA;
 	}
 

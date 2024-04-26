@@ -172,9 +172,11 @@ extern "C"
 	*/
 	API_EXPORT DOUBLE uvKeyenceLDS_Measure(UINT8 u8ModuleIdx)
 	{
-		if (!g_pKeyenceLDS)	return -9999.999;
+		double error = 9999.999;
 
-		double dValue = 9999.999;
+		if (!g_pKeyenceLDS)	return error;
+
+		double dValue = error;
 
 		g_pKeyenceLDS->LDSMeasure(&dValue, (int)u8ModuleIdx);
 		return dValue;

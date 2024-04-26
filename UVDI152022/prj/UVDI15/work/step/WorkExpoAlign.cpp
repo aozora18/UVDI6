@@ -285,15 +285,25 @@ void CWorkExpoAlign::DoInitOnthefly2cam()
 
 void CWorkExpoAlign::DoAlignOnthefly2cam()
 {
+	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
-	case 0x01: m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);			break;	    /* 노광 가능한 상태인지 여부 확인 */
+	case 0x01: 
+	{
+		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+
+		if (m_enWorkState == ENG_JWNS::en_next)
+		{
+			alignOffsetPool.clear();
+			motions.SetFiducialPool();
+		}
+	}
+	break;
 	case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
 	case 0x05: 
 	{
-		GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
 		m_enWorkState = SetAlignMovingInit();
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
@@ -310,6 +320,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	{
 		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
 		CameraSetCamMode(ENG_VCCM::en_none);
+		
 		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
 	}
 
@@ -342,8 +353,18 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);break;	/* Cam None 모드로 변경 */
 
 	case 0x17: m_enWorkState = SetTrigEnable(FALSE);						break;
-	case 0x18:m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);break;
-	case 0x19:m_enWorkState = IsSetMarkValidAll(0x01);break;
+	case 0x18:
+	{
+		SetUIRefresh(true);
+		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);
+	}
+	break;
+	case 0x19:
+	{
+		
+		m_enWorkState = IsSetMarkValidAll(0x01);
+	}
+	break;
 
 	case 0x1a:m_enWorkState = SetAlignMarkRegist();break;
 	case 0x1b:m_enWorkState = IsAlignMarkRegist();break;
@@ -611,6 +632,7 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 
 		case 0x08:
 		{
+			SetUIRefresh(true);
 			m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
 		}
 		break;

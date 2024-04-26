@@ -247,7 +247,7 @@ void CWorkMarkTest::DoAlignStatic3cam()
 
 			case 0x08:
 			{
-				//m_enWorkState = ENG_JWNS::en_next;
+				SetUIRefresh(true);
 				m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
 			}
 			break;
@@ -335,6 +335,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
 	case 0x0e:
 	{
+		
 		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
 		CameraSetCamMode(ENG_VCCM::en_none);
 		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	
@@ -369,8 +370,18 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 		break;	/* Cam None 모드로 변경 */
 
 	case 0x17: m_enWorkState = SetTrigEnable(FALSE);						break;
-	case 0x18: m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);	break;
-	case 0x19: m_enWorkState = IsSetMarkValidAll(0x01);						break;
+	case 0x18: 
+	{
+		SetUIRefresh(true);
+		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);
+	}
+	break;
+	case 0x19: 
+	{
+		
+		m_enWorkState = IsSetMarkValidAll(0x01);
+	}
+	break;
 	case 0x1a: 
 	{
 		m_enWorkState = SetAlignMarkRegist();

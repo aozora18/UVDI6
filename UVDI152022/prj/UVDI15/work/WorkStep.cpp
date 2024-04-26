@@ -3871,6 +3871,21 @@ ENG_JWNS CWorkStep::SetTrigOutOneACam(UINT8 cam_id)
 	return ENG_JWNS::en_next;
 }
 
+bool CWorkStep::SetAutoFocusFeatures()
+{
+	if (uvEng_GetConfig()->luria_svc.useAF == false) return true;
+
+	bool res = true;
+
+	//오토포커스 설정
+
+
+
+	return res;
+	//여기서 설정.
+}
+
+
 /*
  desc : 레시피 관련 연결된 정보들이 유효한지 확인
  parm : None

@@ -457,33 +457,14 @@ BOOL CMainThread::IsBusyWorkJob()
 */
 BOOL CMainThread::IsSetAlignedMark()
 {
-	UINT8 u8StepIt	= m_pWorkJob->GetStepIt();
-	BOOL bSetAligned= FALSE;
-	ENG_BWOK enJobID= m_pWorkJob->GetWorkJobID();
-
-	/* Align Mark 인식 작업 모드인지 확인 */
-	if (enJobID != ENG_BWOK::en_mark_test && enJobID != ENG_BWOK::en_expo_align)	return FALSE;
-	if (m_pWorkJob->GetWorkState() == ENG_JWNS::en_wait)	return FALSE;
-	switch (enJobID)
+	if (m_pWorkJob->GetUIRefresh())
 	{
-	case ENG_BWOK::en_mark_test	:
-//		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x0e);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x14);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x1a);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x1d);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x1f);
-		break;
-	case ENG_BWOK::en_expo_align:
-//		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x10);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x16);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x1c);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x1e);
-		if (!bSetAligned)	bSetAligned = (u8StepIt == 0x23);
+		m_pWorkJob->SetUIRefresh(false);
+		return TRUE;
 	}
-
-	return bSetAligned;
+	else
+	return FALSE;
 }
-
 /*
  desc : 로그 및 기타 파일 제거
  parm : None

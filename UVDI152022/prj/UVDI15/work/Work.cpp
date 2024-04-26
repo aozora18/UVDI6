@@ -840,6 +840,11 @@ INT32 CWork::GetLocalMarkMotionPosY(UINT8 index)
 
 void CWork::LocalTrigRegist()
 {
+	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
+
+	if (status.localMarkCnt == 0) 
+		return;
+
 	const int CAM1 = 0, CAM2 = 1 ,SidecamCnt = 2, WANG_BOCK = 2,Y = 1,MARK2_INDEX = 1;
 	double camDistXY[2] = { 0, };
 	STG_XMXY xmlMark2;
@@ -869,7 +874,7 @@ void CWork::LocalTrigRegist()
 	int markOrder = 2; //글로벌2점이후(글로벌은 무조건 4점이다. 예외없음, 즉 사이드캠의 경우 2) 
 
 
-	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
+	
 	auto scans = status.gerberColCnt / WANG_BOCK;
 	UINT8 u8ScanMarks = uvEng_Recipe_GetScanLocalMarkCount();		/* 1 Scan 기준 - 저장된 Fiducial 개수 */
 	auto centerCol = status.GetCenterColumn();

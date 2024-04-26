@@ -176,6 +176,8 @@ protected:
 	ENG_JWNS			SetTrigOutOneACam(UINT8 cam_id);
 	ENG_JWNS			GetJobLists(UINT32 time);
 
+	bool				SetAutoFocusFeatures();
+
 	ENG_JWNS			CheckValidRecipe();
 	ENG_JWNS			IsSetTrigPosResetAll();
 

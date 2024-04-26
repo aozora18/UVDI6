@@ -44,6 +44,7 @@ protected:
 	DOUBLE				m_dbPosACam[2];			/* Max 4 개. Global Mark Mark1=0, Mark2=2, Mark3=1, Mark4=3 */
 	DOUBLE				m_dbAlignStageY;		/* Align Mark 검색을 위해 모션의  시작 과 끝 이동 위치 값 (단위: mm) */
 
+	bool uiRefresh = false;
 	ENG_JWNS			m_enWorkState;			/* 작업 상태 */
 	ENG_BWOK			m_enWorkJobID;			/* 작업 종류 */
 #if 0
@@ -119,6 +120,13 @@ public:
 	PTCHAR				GetStepName()		{	return m_tzStepName;	}
 	ENG_BWOK			GetWorkJobID()		{	return m_enWorkJobID;	}
 	ENG_JWNS			GetWorkState()		{	return m_enWorkState;	}
+
+	void				SetUIRefresh(bool set) 
+	{ 
+		uiRefresh = set; 
+	}
+
+	bool				GetUIRefresh() { return uiRefresh; }
 
 	BOOL				IsWorkCompleted()	{	return m_enWorkState == ENG_JWNS::en_comp;	}
 	BOOL				IsWorkStopped();

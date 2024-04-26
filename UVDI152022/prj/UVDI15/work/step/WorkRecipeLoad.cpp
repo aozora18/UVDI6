@@ -72,7 +72,12 @@ VOID CWorkRecipeLoad::DoWork()
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-	case 0x01 : m_enWorkState = CheckValidRecipe();				break;
+	case 0x01 : 
+	{
+		m_enWorkState = CheckValidRecipe();
+		m_enWorkState = m_enWorkState == ENG_JWNS::en_next && SetAutoFocusFeatures() ? m_enWorkState : ENG_JWNS::en_error;
+	}
+	break;
 
 	case 0x02 : m_enWorkState = SetAllPhMotorHoming();			break;
 	/* 모든 Photohead가 초기화되는데 필요한 최소 대기 시간 */

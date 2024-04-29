@@ -648,7 +648,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				status.gerberRowCnt = tempY;
 				status.localMarkCnt = status.markList[ENG_AMTF::en_local].size();
 				status.globalMarkCnt = status.markList[ENG_AMTF::en_global].size();
-
+				status.SetDataReady(true);
 				assert(tempX * tempY == status.markList[ENG_AMTF::en_local].size());
 			}
 

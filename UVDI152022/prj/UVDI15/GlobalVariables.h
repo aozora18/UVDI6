@@ -206,6 +206,13 @@ enum SearchFlag
 
 	struct Status
 	{
+	private:
+		bool dataReady;
+
+	public:
+		bool IsDataReady() { return dataReady; }
+		void SetDataReady(bool set) { dataReady = set; }
+
 		enum SpiltMode
 		{
 			byDynamic, //포지션에 따라 동적으로
@@ -219,6 +226,7 @@ enum SearchFlag
 
 		void Init()
 		{
+			dataReady = false;
 			SpiltMode spiltMode = SpiltMode::byCamCount;
 
 			gerberRowCnt = 0;
@@ -235,6 +243,7 @@ enum SearchFlag
 
 		void BufferClear()
 		{
+			SetDataReady(false);
 			//markPoolForCamLocal.clear(); //카메라별 풀링.
 			alignOffsetPool.clear();
 			markPoolForCam.clear();
@@ -268,7 +277,7 @@ enum SearchFlag
 		bool onUpdate = true;
 		LPG_CIEA pstCfg = nullptr;
 		
-		
+		bool IsDataReady() { return status.IsDataReady(); }
 
 		Status status;
 		Params markParams;

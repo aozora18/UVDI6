@@ -196,26 +196,42 @@ int CDlgMarkShow::GetMarkACamNoFromIndex(int index, BOOL bIsLocal)
 {
 	// 현재 global 4개 기준으로만 되어 있음
 	//int nACamNo = m_nMarkIndex / 2 + 1;
-	
+	const int CENTER_CAM = 3;
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 	auto pool = status.markPoolForCam; // bIsLocal ? status.markPoolForCamLocal : status.markPoolForCamGlobal;
-	
-	for (int i = 1; i <= status.acamCount; i++)
-	{
-		auto find = std::find_if(pool[i].begin(),pool[i].end(),
-								[&](const STG_XMXY val)
-								{
-									return val.tgt_id == index; 
-								});
 
-		if (find != pool[i].end())
+	auto SearchCamIdx = [&]()->int
 		{
-			// 해당하는 요소를 찾았을 때 처리
-			return i;
+			for (int i = 1; i <= pool.size(); i++)
+			{
+				auto find = std::find_if(pool[i].begin(), pool[i].end(),
+					[&](const STG_XMXY val)
+					{
+						auto legionCheck = val.reserve & (bIsLocal ? STG_XMXY_RESERVE_FLAG::LOCAL : STG_XMXY_RESERVE_FLAG::GLOBAL);
+						return val.tgt_id == index && legionCheck != 0;
+					});
+
+				if (find != pool[i].end())
+				{
+					// 해당하는 요소를 찾았을 때 처리
+					return i;
+				}
+			}
+			return 1;
+		};
+
+	switch (motions.markParams.alignMotion)
+	{
+		case ENG_AMOS::en_static_3cam:
+			return CENTER_CAM;
+
+		default:
+		{
+			return SearchCamIdx();
 		}
+		break;
 	}
-	return 1;
 }
 
 int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bIsLocal)

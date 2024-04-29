@@ -2860,6 +2860,7 @@ typedef struct __st_mark_x_y_ex__
 	__st_mark_x_y_ex__()
 	{
 		ZeroMemory(this, sizeof(*this));
+		stInfo.dScore = -1;
 	}
 
 	STG_MARK_INFO	stInfo;

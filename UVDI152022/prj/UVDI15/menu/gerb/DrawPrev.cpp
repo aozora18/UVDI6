@@ -336,9 +336,6 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 	for (auto& mark : m_vGlobalMark)
 	{
-
-
-
 		mark.rtArea.left	= (LONG)(rDraw.CenterPoint().x + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) - nGlobalMarkSize);
 		mark.rtArea.top		= (LONG)(rDraw.CenterPoint().y + (( (m_dGerberSizeY / 2) - mark.stMark.mark_y) * dScaleY) - nGlobalMarkSize);
 		mark.rtArea.right	= (LONG)(rDraw.CenterPoint().x + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) + nGlobalMarkSize);
@@ -350,46 +347,12 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 		}
 		else
 		{
-			if (mark.stInfo.dScore>0)
-			{
-				if (pstExpoRecipe->mark_score_accept <= mark.stInfo.dScore)
-				{
-					::SetDCBrushColor(m_hMemDC, SEA_GREEN); // 초록 브러시로 설정
-				}
-				else
-				{
-					::SetDCBrushColor(m_hMemDC, TOMATO); // 빨간 브러시로 설정
-				}
-
-			}
+			if (mark.stInfo.dScore == -1)
+				::SetDCBrushColor(m_hMemDC, LIGHT_GRAY);
 			else
-			{
-				::SetDCBrushColor(m_hMemDC, LIGHT_GRAY); // 회색 브러시로 설정
-			}
-			//if (pstExpoRecipe)
-			//{
-			//	/* 마크 검색 성공 여부. 0x00 - Not run, 0x01 - Success, 0x02 - Failed */
-			//	//if (0x01 == mark.stInfo.nResult)
-			//	if (pstExpoRecipe->mark_score_accept <= mark.stInfo.dScore)
-			//	{
-			//		::SetDCBrushColor(m_hMemDC, SEA_GREEN); // 초록 브러시로 설정
-			//	}
-			//	//else if (0x02 == mark.stInfo.nResult)
-			//	//{
-			//	//	::SetDCBrushColor(m_hMemDC, TOMATO); // 빨간 브러시로 설정
-			//	//}
-			//	else
-			//	{
-			//		::SetDCBrushColor(m_hMemDC, LIGHT_GRAY); // 회색 브러시로 설정
-			//	}
-			//}
-			//else
-			//{
-
-			//}
-
+				::SetDCBrushColor(m_hMemDC, mark.stInfo.nResult == 1 ? SEA_GREEN : TOMATO);
 		}
-		
+
 		::Rectangle(m_hMemDC, mark.rtArea.left, mark.rtArea.top, mark.rtArea.right, mark.rtArea.bottom);
 		nIndex++;
 	}
@@ -409,18 +372,10 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 		}
 		else
 		{
-			if (0 < mark.stInfo.nResult)
-			{
-				::SetDCBrushColor(m_hMemDC, SEA_GREEN); // 빨간색 브러시로 설정
-			}
-			else if (0 > mark.stInfo.nResult)
-			{
-				::SetDCBrushColor(m_hMemDC, TOMATO); // 빨간색 브러시로 설정
-			}
+			if (mark.stInfo.dScore == -1)
+				::SetDCBrushColor(m_hMemDC, LIGHT_GRAY);
 			else
-			{
-				::SetDCBrushColor(m_hMemDC, LIGHT_GRAY); // 빨간색 브러시로 설정
-			}
+				::SetDCBrushColor(m_hMemDC, mark.stInfo.nResult == 1 ? SEA_GREEN : TOMATO);
 		}
 		
 		::Rectangle(m_hMemDC, mark.rtArea.left, mark.rtArea.top, mark.rtArea.right, mark.rtArea.bottom);

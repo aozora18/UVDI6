@@ -226,7 +226,7 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	m_u64TickCount++;
 	m_bBlink = !m_bBlink;
 
-//	DrawMarkData();
+	DrawMarkData();
 }
 
 /*
@@ -1618,64 +1618,58 @@ BOOL CDlgManual::MarkZero()
 */
 VOID CDlgManual::DrawMarkData()
 {
-	if (0 != m_u64TickCount % 100)
+	if (0 != m_u64TickCount % 20)
 	{
 		return;
 	}
 
-	// TEST CODE
-// 	STG_MARK stMark;
-// 	stMark.stInfo.dOffsetX = 0;
-// 	stMark.stInfo.dOffsetY = 0;
-// 	stMark.stInfo.dScore = 100;
-// 	stMark.stInfo.nResult = 2;
-// 	m_pDrawPrev->SetGlobalMarkResult(2, stMark.stInfo);
-// 	m_pDrawPrev->SetGlobalMarkResult(3, stMark.stInfo);
 
+	bool dataReady = GlobalVariables::GetInstance()->GetAlignMotion().IsDataReady();
 	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
-	if (m_pdlgMarkShow && pstJob)
+	if (m_pdlgMarkShow == nullptr || pstJob == nullptr || dataReady == false)
+		return;
+
+	std::vector < STG_XMXY > vMark;
+	m_pDrawPrev->GetGlobalMark(vMark);
+	for (const auto& mark : vMark)
 	{
-		std::vector < STG_XMXY > vMark;
-		m_pDrawPrev->GetGlobalMark(vMark);
-		for (const auto& mark : vMark)
+		LPG_ACGR pstMark = m_pdlgMarkShow->GetMarkInfo(mark.tgt_id, FALSE);
+
+		if (pstMark)
 		{
-			LPG_ACGR pstMark = m_pdlgMarkShow->GetMarkInfo(mark.tgt_id, FALSE);
+			STG_MARK stMark;
+			stMark.stMark = mark;
+			stMark.stInfo.dOffsetX = pstMark->cent_dist_x;
+			stMark.stInfo.dOffsetY = pstMark->cent_dist_y;
+			stMark.stInfo.dScore = pstMark->score_rate;
+			stMark.stInfo.nResult = pstMark->marked;
 
-			if (pstMark)
-			{
-				STG_MARK stMark;
-				stMark.stMark = mark;
-				stMark.stInfo.dOffsetX = pstMark->cent_dist_x;
-				stMark.stInfo.dOffsetY = pstMark->cent_dist_y;
-				stMark.stInfo.dScore = pstMark->score_rate;
-				stMark.stInfo.nResult = pstMark->marked;
-
-				m_pDrawPrev->SetGlobalMarkResult(stMark.stMark.tgt_id, stMark.stInfo);
-			}
-}
-
-		vMark.clear();
-		m_pDrawPrev->GetLocalMark(vMark);
-		for (const auto& mark : vMark)
-		{
-			LPG_ACGR pstMark = m_pdlgMarkShow->GetMarkInfo(mark.tgt_id, TRUE);
-
-			if (pstMark)
-			{
-				STG_MARK stMark;
-				stMark.stMark = mark;
-				stMark.stInfo.dOffsetX = pstMark->cent_dist_x;
-				stMark.stInfo.dOffsetY = pstMark->cent_dist_y;
-				stMark.stInfo.dScore = pstMark->score_rate;
-				stMark.stInfo.nResult = pstMark->marked;
-
-				m_pDrawPrev->SetLocalMarkResult(stMark.stMark.tgt_id, stMark.stInfo);
-			}
+			m_pDrawPrev->SetGlobalMarkResult(stMark.stMark.tgt_id, stMark.stInfo);
 		}
-
-		m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
-		m_pDrawPrev->Draw();
 	}
+
+	vMark.clear();
+	m_pDrawPrev->GetLocalMark(vMark);
+	for (const auto& mark : vMark)
+	{
+		LPG_ACGR pstMark = m_pdlgMarkShow->GetMarkInfo(mark.tgt_id, TRUE);
+
+		if (pstMark)
+		{
+			STG_MARK stMark;
+			stMark.stMark = mark;
+			stMark.stInfo.dOffsetX = pstMark->cent_dist_x;
+			stMark.stInfo.dOffsetY = pstMark->cent_dist_y;
+			stMark.stInfo.dScore = pstMark->score_rate;
+			stMark.stInfo.nResult = pstMark->marked;
+
+			m_pDrawPrev->SetLocalMarkResult(stMark.stMark.tgt_id, stMark.stInfo);
+		}
+	}
+
+	m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+	m_pDrawPrev->Draw();
+	
 }
 
 

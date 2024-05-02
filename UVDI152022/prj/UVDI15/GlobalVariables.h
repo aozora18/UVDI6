@@ -164,6 +164,7 @@ enum SearchFlag
 		double mark2Cam1X = 0;
 		double mark2Cam2X = 0;
 		double distCam2cam[4] = { 0, };
+		int centerCamIdx = 2;
 		ENG_AMOS alignMotion;
 		ENG_ATGL alignType;
 		vector<tuple<ENG_MMDI, double, double>> axisLimit;
@@ -281,7 +282,11 @@ enum SearchFlag
 
 		Status status;
 		Params markParams;
-		
+
+		void SetCentercamIdx(int idx)
+		{
+			markParams.centerCamIdx = idx;
+		}
 
 		enum Parts
 		{

@@ -120,9 +120,11 @@ VOID CDrawMark::DrawInit(UINT8 page, UINT8 index)
 */
 VOID CDrawMark::DrawMark(UINT8 page_no)
 {
+	auto& alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	ENG_AMOS motion = alignMotion.markParams.alignMotion;
 	UINT8 i, j, k		= 0x00;
-	UINT8 u8ACams		= uvEng_GetConfig()->set_cams.acam_count;
-	u8ACams = 2;
+	UINT8 u8ACams = motion == ENG_AMOS::en_onthefly_2cam || motion == ENG_AMOS::en_static_2cam ? 2 : alignMotion.markParams.centerCamIdx;
 	UINT8 u8ImgNo		= (page_no - 1) * u8ACams, u8ImgId, u8Index, u8Mark=0x00;
 	TCHAR tzMark[128]	= {NULL};
 	/*BOOL bRedraw		= FALSE;*/
@@ -131,11 +133,8 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 	COLORREF clrText[2]	= { RGB(255, 0, 0), RGB(34, 177, 76) };
 	CMyStatic *pText	= NULL;
 	
-	auto& alignMotion =  GlobalVariables::GetInstance()->GetAlignMotion();
 	
-
-	ENG_AMOS motion = alignMotion.markParams.alignMotion;
-	u8ACams = motion == ENG_AMOS::en_onthefly_2cam || motion == ENG_AMOS::en_static_2cam ? 2 : 3;
+	
 
 	
 
@@ -147,7 +146,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 				if (!pstMark)
 					continue;
 
-				uvEng_Camera_DrawMarkMBufID(m_hDraw[i], m_rDraw[i], 3, i, pstMark->img_id);
+				uvEng_Camera_DrawMarkMBufID(m_hDraw[i], m_rDraw[i], u8ACams, i, pstMark->img_id);
 				
 				swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
 					u8ACams, u8ImgId + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,

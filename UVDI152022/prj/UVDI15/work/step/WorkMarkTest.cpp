@@ -150,9 +150,11 @@ void CWorkMarkTest::DoAlignStatic2cam()
 //½ºÅ×Æ½ 3Ä·
 void CWorkMarkTest::DoAlignStatic3cam()
 {
-	int CENTER_CAM = 3;
+	
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	int CENTER_CAM = motions.markParams.centerCamIdx;
 
 	try
 	{

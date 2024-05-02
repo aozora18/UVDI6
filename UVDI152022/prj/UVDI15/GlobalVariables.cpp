@@ -551,7 +551,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void AlignMotion::SetFiducialPool(bool useDefault, ENG_AMOS alignMotion, ENG_ATGL alignType)
 	{
-		auto acamCount = 2; 
+		const int sideCamCnt = 2; 
+		const int centerCamIdx = markParams.centerCamIdx;
 
 		if (useDefault)
 		{
@@ -577,9 +578,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 				std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
 
-				auto tgt = &status.markPoolForCam[i >= (tempX / acamCount) ? 2 : 1];
+				auto tgt = &status.markPoolForCam[i >= (tempX / sideCamCnt) ? 2 : 1];
 
-				if (i == tempX / acamCount)
+				if (i == tempX / sideCamCnt)
 					toUp = basicUp;
 
 				if (toUp)
@@ -589,14 +590,14 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 				tgt->insert(tgt->end(), temp.begin(), temp.end());
 			}
-			status.lastScanCount = tempX / acamCount;
-			status.acamCount = acamCount;
+			status.lastScanCount = tempX / sideCamCnt;
+			status.acamCount = sideCamCnt;
 		};
 
 		auto GenStatic3camFid = [&]() //<-얘는 작업직전 실시간으로 해야함.
 		{
 			STG_XMXY lookat;
-			const int centercam = 3;
+			const int centercam = centerCamIdx;
 			bool res = true;
 
 			GetGerberPosUseCamPos(centercam, lookat);
@@ -630,7 +631,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 						temp.SetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 						status.markList[ENG_AMTF::en_global].push_back(temp);
 						status.markList[ENG_AMTF::en_mixed].push_back(temp);
-						status.markPoolForCam[(i / acamCount) + 1].push_back(temp);
+						status.markPoolForCam[(i / sideCamCnt) + 1].push_back(temp);
 					}
 
 				for (int i = 0; i < localFiducial->GetCount(); i++)

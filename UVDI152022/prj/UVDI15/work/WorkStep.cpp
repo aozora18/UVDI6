@@ -1618,7 +1618,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 	bool success = true;
-	const int CENTERCAM = 3;
+	const int CENTERCAM = motions.markParams.centerCamIdx;
 
 	if (status.globalMarkCnt != 4)
 		return ENG_JWNS::en_next;

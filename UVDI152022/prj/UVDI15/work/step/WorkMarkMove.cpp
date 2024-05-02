@@ -137,7 +137,7 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	case 0x05: m_enWorkState = ENG_JWNS::en_next; break; //IsLoadedGerberCheck();		break;
 	case 0x06:
 	{
-		STG_XMXY markPos; const int CENTERCAM = 3;
+		STG_XMXY markPos; const int CENTERCAM = motions.markParams.centerCamIdx;
 		if (uvEng_Luria_GetGlobalMark(m_u8MarkNo - 1, &markPos))
 		{
 			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos);

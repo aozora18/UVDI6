@@ -7,6 +7,7 @@
 #include "../../MainApp.h"
 #include "DrawMark.h"
 #include "../../../../inc/comn/MyStatic.h"
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -130,40 +131,97 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 	COLORREF clrText[2]	= { RGB(255, 0, 0), RGB(34, 177, 76) };
 	CMyStatic *pText	= NULL;
 	
-	/* k = 1 or 2 ? Align Camera 1, 2 */
-	for (k=1, j=0; k<=u8ACams; k++,j++)
-	{
-		/* Align Camera 마다 이미지 2개씩 (상/하) 출력 */
-		for (i=0; i<2; i++,u8Mark=0x01/*,bRedraw=FALSE*/)
+	auto& alignMotion =  GlobalVariables::GetInstance()->GetAlignMotion();
+	
+
+	ENG_AMOS motion = alignMotion.markParams.alignMotion;
+	u8ACams = motion == ENG_AMOS::en_onthefly_2cam || motion == ENG_AMOS::en_static_2cam ? 2 : 3;
+
+	
+
+	auto DrawforCentercam = [&]()
 		{
-			/* 출력된 컨트롤 Index 값 */
-			u8Index	= (k - 1) * u8ACams + i;
-			/* Align Camera 별로 Grab 및 Mark 인식될 결과 정보 얻기 */
-			/* Align Camera 1의 경우, Image Number = 0 or 1 (Global Mark),  4 ~  7 or 12 ~ 15 (Local Mark) */
-			/* Align Camera 2의 경우, Image Number = 2 or 3 (Global Mark),  8 ~ 11 or 16 ~ 19 (Local Mark) */
-			u8ImgId	= i + u8ImgNo;
-			pstMark	= uvEng_Camera_GetGrabbedMark(k, u8ImgId);
-			if (!pstMark)	
-				continue;
-			
-			/* Output the grabbed images on screen */
-			uvEng_Camera_DrawMarkMBufID(m_hDraw[u8Index], m_rDraw[u8Index], k, (j* u8ACams)+i, pstMark->img_id);
-			/* Update the grabbed results to the text buffer */
-			swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
-					   k, u8ImgId+1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-					   pstMark->move_mm_x*1000.0f, pstMark->move_mm_y*1000.0f);
-			/* Check if it is higher than the mark valid score of the registered recipe */
-			u8Mark	= pstMark->IsMarkValid() ? 0x01 : 0x00;
-			if (u8Mark && pstRecipe)
+			for (int i = 0; i < 4; i++)
 			{
-				u8Mark	= pstRecipe->mark_score_accept <= pstMark->score_rate ? 0x01 : 0x00;
+				pstMark = uvEng_Camera_GetGrabbedMark(u8ACams, ((m_u8PageNo - 1) * 4) + (i));
+				if (!pstMark)
+					continue;
+
+				uvEng_Camera_DrawMarkMBufID(m_hDraw[i], m_rDraw[i], 3, i, pstMark->img_id);
+				
+				swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
+					u8ACams, u8ImgId + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
+					pstMark->move_mm_x * 1000.0f, pstMark->move_mm_y * 1000.0f);
+				
+				u8Mark = pstMark->IsMarkValid() ? 0x01 : 0x00;
+				if (u8Mark && pstRecipe)
+				{
+					u8Mark = pstRecipe->mark_score_accept <= pstMark->score_rate ? 0x01 : 0x00;
+				}
+				/* Output the grabbed results to the text control */
+				pText = (CMyStatic*)CWnd::FromHandle(m_hText[i]);
+				if (pText == nullptr) continue;
+				pText->SetWindowText(tzMark);
+				pText->SetTextColor(clrText[u8Mark]);
+				pText->Invalidate(FALSE);
+
 			}
-			/* Output the grabbed results to the text control */
-			pText	= (CMyStatic *)CWnd::FromHandle(m_hText[u8Index]);
-			if (pText == nullptr) continue;
-			pText->SetWindowText(tzMark);
-			pText->SetTextColor(clrText[u8Mark]);
-			pText->Invalidate(FALSE);
-		}
+		};
+
+
+	auto Drawfor2SideCam = [&]()
+		{
+			/* k = 1 or 2 ? Align Camera 1, 2 */
+			for (k = 1, j = 0; k <= u8ACams; k++, j++)
+			{
+				/* Align Camera 마다 이미지 2개씩 (상/하) 출력 */
+				for (i = 0; i < 2; i++, u8Mark = 0x01/*,bRedraw=FALSE*/)
+				{
+					/* 출력된 컨트롤 Index 값 */
+					u8Index = (k - 1) * u8ACams + i;
+					/* Align Camera 별로 Grab 및 Mark 인식될 결과 정보 얻기 */
+					/* Align Camera 1의 경우, Image Number = 0 or 1 (Global Mark),  4 ~  7 or 12 ~ 15 (Local Mark) */
+					/* Align Camera 2의 경우, Image Number = 2 or 3 (Global Mark),  8 ~ 11 or 16 ~ 19 (Local Mark) */
+					u8ImgId = i + u8ImgNo;
+					pstMark = uvEng_Camera_GetGrabbedMark(k, u8ImgId);
+					if (!pstMark)
+						continue;
+
+					/* Output the grabbed images on screen */
+					uvEng_Camera_DrawMarkMBufID(m_hDraw[u8Index], m_rDraw[u8Index], k, (j * u8ACams) + i, pstMark->img_id);
+					/* Update the grabbed results to the text buffer */
+					swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
+						k, u8ImgId + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
+						pstMark->move_mm_x * 1000.0f, pstMark->move_mm_y * 1000.0f);
+					/* Check if it is higher than the mark valid score of the registered recipe */
+					u8Mark = pstMark->IsMarkValid() ? 0x01 : 0x00;
+					if (u8Mark && pstRecipe)
+					{
+						u8Mark = pstRecipe->mark_score_accept <= pstMark->score_rate ? 0x01 : 0x00;
+					}
+					/* Output the grabbed results to the text control */
+					pText = (CMyStatic*)CWnd::FromHandle(m_hText[u8Index]);
+					if (pText == nullptr) continue;
+					pText->SetWindowText(tzMark);
+					pText->SetTextColor(clrText[u8Mark]);
+					pText->Invalidate(FALSE);
+				}
+			}
+		};
+
+	switch (motion)
+	{
+	case ENG_AMOS::en_onthefly_2cam:
+	case ENG_AMOS::en_static_2cam:
+	{
+		Drawfor2SideCam();
+	}
+	break;
+
+	default:
+	{
+		DrawforCentercam();
+	}
+	break;
 	}
 }

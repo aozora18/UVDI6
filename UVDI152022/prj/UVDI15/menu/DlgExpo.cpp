@@ -186,25 +186,35 @@ VOID CDlgExpo::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	/* Control Enable or Disable */
 	UpdateControl(tick, is_busy);
 
-	if (!is_busy)
-	{
-		/* Luria가 초기화 되었는지 여부 확인 */
-		if (uvEng_Luria_IsServiceInited())
-		{
-			/* 임의 주기마다 온도 값 요청 */
-			if (m_u64ReqTime+2000 < GetTickCount64())
-			{
-				/* 가장 최근에 요청한 시간 갱신 */
-				m_u64ReqTime	= GetTickCount64();
-				/* 모든 광학계 내의 LED와 Board의 온도 값 요청 */
-#if 0
-				uvEng_Luria_ReqGetPhLedTempFreqAll(0);
-#else
-				uvEng_Luria_ReqGetPhLedTempAll();
-#endif
-			}
-		}
-	}
+	//코딩 예시 아래처럼 바꾸세요.
+//	if (!is_busy)  기존코드
+//	{
+//		/* Luria가 초기화 되었는지 여부 확인 */
+//		if (uvEng_Luria_IsServiceInited())
+//		{
+//			/* 임의 주기마다 온도 값 요청 */
+//			if (m_u64ReqTime+2000 < GetTickCount64())
+//			{
+//				/* 가장 최근에 요청한 시간 갱신 */
+//				m_u64ReqTime	= GetTickCount64();
+//				/* 모든 광학계 내의 LED와 Board의 온도 값 요청 */
+//#if 0
+//				uvEng_Luria_ReqGetPhLedTempFreqAll(0);
+//#else
+//				uvEng_Luria_ReqGetPhLedTempAll();
+//#endif
+//			}
+//		}
+//	}
+	
+	//if 검사를 부정검사 (조건이 false일땐 return) 로 변경할것. 
+	//코딩량이 줄고, 블럭이 줄어드니 가독성이 좋아지고 논리가 명확해짐.
+	if (is_busy) return;
+	if (uvEng_Luria_IsServiceInited() == false) return;
+	if (m_u64ReqTime + 2000 > GetTickCount64()) return;
+	
+	m_u64ReqTime	= GetTickCount64();
+	uvEng_Luria_ReqGetPhLedTempAll();
 }
 
 /*

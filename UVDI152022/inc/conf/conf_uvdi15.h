@@ -766,8 +766,20 @@ typedef struct __st_config_measure_auto_flatness__
 {
 private:
 	std::mutex mtx;
+	
+
+	void Allocate() 
+	{
+		dAlignMeasure = dAlignMeasure ? dAlignMeasure : new vector<double>();
+	}
 public:
 
+	void Deallocate(bool Init)
+	{
+		if (dAlignMeasure && Init == false)
+			delete dAlignMeasure;
+		dAlignMeasure = nullptr;
+	}
 	UINT8 u8UseMotorT;							/* 0:해당 축 모터 사용안함. 1:해당 축 모터 사용함 */
 	UINT8 u8UseMotorZ;							/* 0:해당 축 모터 사용안함. 1:해당 축 모터 사용함 */
 
@@ -799,22 +811,25 @@ public:
 
 	vector<DOUBLE>* dAlignMeasure;						/*LDS 측정 값*/
 	
-
+	
 	void SetThickMeasureResult(DOUBLE d)
 	{
 		std::lock_guard<std::mutex> lock(mtx);
+		Allocate();
 		dAlignMeasure->push_back(d);
 	}
 
 	DOUBLE GetThickMeasure()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
+		Allocate();
 		return dAlignMeasure->empty() ? 0 : dAlignMeasure->back();
 	}
 
 	DOUBLE GetThickMeasureMean()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
+		Allocate();
 		int measureCnt = dAlignMeasure->size();
 		if (measureCnt == 0) return 0;
 
@@ -825,11 +840,9 @@ public:
 	void MeasurePoolClear()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
+		Allocate();
 		dAlignMeasure->clear();
-		
 	}
-
-
 
 }	STG_CMAF, * LPG_CMAF;
 

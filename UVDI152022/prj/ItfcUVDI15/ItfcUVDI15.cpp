@@ -63,7 +63,7 @@ VOID ClosedSharedMemory()
 	if (g_pMemStrobeLamp)	delete g_pMemStrobeLamp;
 	if (g_pMemConf)
 	{
-		delete g_pMemConf->GetMemMap()->measure_flat.dAlignMeasure;
+		g_pMemConf->GetMemMap()->measure_flat.Deallocate();
 		delete g_pMemConf;	/* !!! 중요 !!!. 제일 마지막에 호출해야 됨 !!! */
 	}
 
@@ -120,6 +120,8 @@ BOOL OpenSharedMemory(ENG_ERVM e_mode)
 	/* !!! 환경 정보 저장 공유 메모리 영역 설정 !!! */
 	if (!g_pMemConf->CreateMap())	return FALSE;
 
+	auto cfgPtr = GetConfig();
+	cfgPtr->measure_flat.Deallocate(true);
 	/* Engine인 경우만 수행 됨 */
 	if (bIsEngine)
 	{
@@ -151,8 +153,7 @@ BOOL OpenSharedMemory(ENG_ERVM e_mode)
 DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		/* 환경 파일 객체 생성 */
 		
-		auto cfgPtr = GetConfig();
-		cfgPtr->measure_flat.dAlignMeasure = new vector<double>();
+		
 		cfgPtr->set_align.SetMarkoffsetPtr(markoffset);
 
 		CConfComn* pConfComn = new CConfComn(cfgPtr);

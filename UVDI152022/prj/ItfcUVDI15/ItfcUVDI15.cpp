@@ -63,7 +63,7 @@ VOID ClosedSharedMemory()
 	if (g_pMemStrobeLamp)	delete g_pMemStrobeLamp;
 	if (g_pMemConf)
 	{
-		g_pMemConf->GetMemMap()->measure_flat.Deallocate();
+		g_pMemConf->GetMemMap()->measure_flat.Deallocate(false);
 		delete g_pMemConf;	/* !!! 중요 !!!. 제일 마지막에 호출해야 됨 !!! */
 	}
 

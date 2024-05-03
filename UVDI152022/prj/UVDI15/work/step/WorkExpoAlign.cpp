@@ -329,14 +329,14 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x11:
 	{
 		m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);
-		m_enWorkState = ENG_JWNS::en_next;
+		
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Local) 시작 위치 도착 여부 */
 
 	case 0x12:
 	{
 		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
-		m_enWorkState = ENG_JWNS::en_next;
+		
 	}
 	break;	/* Cam None 모드로 변경 */
 

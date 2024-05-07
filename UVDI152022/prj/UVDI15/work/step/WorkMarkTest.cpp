@@ -74,7 +74,7 @@ void CWorkMarkTest::DoInitStatic2cam()
 	int debug = 0;
 }
 
-void CWorkMarkTest::DoInitStatic3cam()
+void CWorkMarkTest::DoInitStaticCam()
 {
 	m_u8StepTotal = 0x10;
 }
@@ -148,7 +148,7 @@ void CWorkMarkTest::DoAlignStatic2cam()
 }
 
 //스테틱 3캠
-void CWorkMarkTest::DoAlignStatic3cam()
+void CWorkMarkTest::DoAlignStaticCam()
 {
 	
 
@@ -194,11 +194,14 @@ void CWorkMarkTest::DoAlignStatic3cam()
 			case 0x06:
 			{
 				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
-
+				string temp = "x" + std::to_string(CENTER_CAM);
 				if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
 					for (int i = 0; i < grabMarkPath.size(); i++)
 					{
-						auto alignOffset = motions.EstimateOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y);
+						auto alignOffset = motions.EstimateOffset(CENTER_CAM, 
+																	grabMarkPath[i].mark_x, 
+																	grabMarkPath[i].mark_y,
+																	CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 						uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
 					}
 
@@ -224,7 +227,8 @@ void CWorkMarkTest::DoAlignStatic3cam()
 
 						auto first = grabMarkPath.begin();
 						auto arrival = motions.MovetoGerberPos(CENTER_CAM, *first);
-						
+						string temp = "x" + std::to_string(CENTER_CAM);
+
 						if (arrival == true)
 						{
 							const int STABLE_TIME = 1000;
@@ -232,7 +236,8 @@ void CWorkMarkTest::DoAlignStatic3cam()
 							
 							//여기서 현재 위치기반 보정정보 갖고오기.
 							auto alignOffset = motions.EstimateOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
-												             		              motions.GetAxises()["stage"]["y"].currPos);
+												             		              motions.GetAxises()["stage"]["y"].currPos,
+																				  CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 
 							alignOffset.srcFid = *first;
 							alignOffsetPool.push_back(alignOffset);
@@ -423,7 +428,7 @@ VOID CWorkMarkTest::SetWorkNextStatic2cam()
 }
 
 
-VOID CWorkMarkTest::SetWorkNextStatic3cam()
+VOID CWorkMarkTest::SetWorkNextStaticCam()
 {
 	UINT8 u8WorkTotal = m_u8StepTotal;
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;

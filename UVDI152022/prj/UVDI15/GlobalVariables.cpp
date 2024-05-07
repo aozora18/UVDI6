@@ -233,11 +233,9 @@ CaliPoint CaliCalc::EstimateOffset(int camIdx, double stageX = 0, double stageY 
 		};
 
 	CaliPoint stageOffset = estimate(stageCaliData, stageX, stageY);
+	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? estimate(caliDataMap[camIdx], camX, -1) : CaliPoint();
 
-	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? estimate(camCaliData, camX, -1) : CaliPoint();
-
-	return CaliPoint(0, 0, stageOffset.offsetX + (camIdx != STAGE_CALI_INDEX ? camOffset.x : 0), 
-						   stageOffset.offsetY + (camIdx != STAGE_CALI_INDEX ? camOffset.y : 0));
+	return stageOffset + camOffset;
 }
 
  

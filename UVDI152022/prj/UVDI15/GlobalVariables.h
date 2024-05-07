@@ -122,7 +122,38 @@ enum SearchFlag
 			this->offsetY = offsetY;
 		}
 
-		CaliPoint() {}
+
+		CaliPoint() 
+		{
+			this->x = 0;
+			this->y = 0;
+			this->offsetX = 0;
+			this->offsetY = 0;
+		}
+
+
+		
+		CaliPoint operator+(const CaliPoint& other) const
+		{
+			CaliPoint result;
+			result.x = this->x + other.x;
+			result.y = this->y + other.y;
+			result.offsetX = this->offsetX + other.offsetX;
+			result.offsetY = this->offsetY + other.offsetY;
+			return result;
+		}
+
+		
+		CaliPoint operator-(const CaliPoint& other) const
+		{
+			CaliPoint result;
+			result.x = this->x - other.x;
+			result.y = this->y - other.y;
+			result.offsetX = this->offsetX - other.offsetX;
+			result.offsetY = this->offsetY - other.offsetY;
+			return result;
+		}
+
 		double x;
 		double y;
 		double offsetX;

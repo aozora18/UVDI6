@@ -53,9 +53,9 @@ public:
 									}},
 		{ENG_AMOS::en_static_3cam,
 									{
-										[&]() {DoInitStatic3cam(); },
-										[&]() {DoAlignStatic3cam(); },
-										[&]() {SetWorkNextStatic3cam(); }
+										[&]() {DoInitStaticCam(); },
+										[&]() {DoAlignStaticCam(); },
+										[&]() {SetWorkNextStaticCam(); }
 									}},
 	};
 
@@ -73,9 +73,9 @@ protected:
 	void DoAlignStatic2cam();
 	VOID SetWorkNextStatic2cam();
 
-	void DoInitStatic3cam();
-	void DoAlignStatic3cam();
-	VOID SetWorkNextStatic3cam();
+	void DoInitStaticCam();
+	void DoAlignStaticCam();
+	VOID SetWorkNextStaticCam();
 
 	enum class AlignMotionMode : UINT8
 	{

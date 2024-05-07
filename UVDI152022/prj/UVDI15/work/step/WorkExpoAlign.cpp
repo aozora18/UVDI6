@@ -9,6 +9,7 @@
 #include "../../mesg/DlgMesg.h"
 #include "../../GlobalVariables.h"
 
+#include <string>
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -523,7 +524,7 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 
 }
 	 
-void CWorkExpoAlign::DoInitStatic3cam()
+void CWorkExpoAlign::DoInitStaticCam()
 {
 
 	m_u8StepTotal = 0x14;
@@ -531,11 +532,13 @@ void CWorkExpoAlign::DoInitStatic3cam()
 	
 }
 
-void CWorkExpoAlign::DoAlignStatic3cam()
+void CWorkExpoAlign::DoAlignStaticCam()
 {
-	int CENTER_CAM = 3;
+	
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	int CENTER_CAM = motions.markParams.centerCamIdx;
 
 	try
 	{
@@ -578,12 +581,12 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 		case 0x06:
 		{
 			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
-
+			string temp = "x" + std::to_string(CENTER_CAM);
 			if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
 				for (int i = 0; i < grabMarkPath.size(); i++)
 				{
-					auto alignOffset = motions.EstimateOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y);
-					uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+					auto stageAlignOffset = motions.EstimateOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y, CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+					uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, stageAlignOffset.offsetX, stageAlignOffset.offsetY);
 				}
 
 			//여기서 등록하자. 	
@@ -612,11 +615,17 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 						{
 							const int STABLE_TIME = 1000;
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-
+							
+							string temp = "x" + std::to_string(CENTER_CAM);
+							
 							//여기서 현재 위치기반 보정정보 갖고오기.
-							auto alignOffset = motions.EstimateOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
-								motions.GetAxises()["stage"]["y"].currPos);
-
+							auto alignOffset = motions.EstimateOffset(CENTER_CAM, 
+																	motions.GetAxises()["stage"]["x"].currPos,
+																	motions.GetAxises()["stage"]["y"].currPos,
+																	CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+							
+							string tempo;
+							
 							alignOffset.srcFid = *first;
 							alignOffsetPool.push_back(alignOffset);
 
@@ -698,7 +707,7 @@ void CWorkExpoAlign::DoAlignStatic3cam()
 	}
 }
 
-void CWorkExpoAlign::SetWorkNextStatic3cam()
+void CWorkExpoAlign::SetWorkNextStaticCam()
 {
 	UINT8 u8WorkTotal = m_u8StepTotal;
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;

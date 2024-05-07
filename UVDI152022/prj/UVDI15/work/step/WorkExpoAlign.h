@@ -46,9 +46,9 @@ public:
 	void DoAlignStatic2cam();
 	void SetWorkNextStatic2cam();
 
-	void DoInitStatic3cam();
-	void DoAlignStatic3cam();
-	void SetWorkNextStatic3cam();
+	void DoInitStaticCam();
+	void DoAlignStaticCam();
+	void SetWorkNextStaticCam();
 
 
 
@@ -78,9 +78,9 @@ public:
 									}},
 		{ENG_AMOS::en_static_3cam,
 									{
-										[&]() {DoInitStatic3cam(); },
-										[&]() {DoAlignStatic3cam(); },
-										[&]() {SetWorkNextStatic3cam(); }
+										[&]() {DoInitStaticCam(); },
+										[&]() {DoAlignStaticCam(); },
+										[&]() {SetWorkNextStaticCam(); }
 									}},
 	};
 

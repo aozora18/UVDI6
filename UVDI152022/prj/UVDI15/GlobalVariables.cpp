@@ -436,10 +436,13 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 	
 	bool AlignMotion::GetGerberPosUseCamPos(int camNum, STG_XMXY& point)
 	{
-		const int _1to3 = 0;
-		const int _3to2 = 1;
-		const int _1to3_Y_OFFSET = 2;
-		const int _1to2_Y_OFFSET = 3;
+		const int _1to3_X_GAB = 0;
+		const int _3to2_X_GAB = 1;
+		const int _1to3_Y_GAB = 2;
+		const int _1to2_Y_GAB = 3;
+
+		const int CAM1 = 0;
+		const int CAM2 = 1;
 
 		double mark2Xgab = (markParams.caliGerbermark2x - markParams.currGerbermark2x);
 		double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
@@ -449,14 +452,12 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 		double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos };
 
-		double camXOffset = camNum == 1 ? camPos[0] - markParams.mark2Cam1X :
-			camNum == 2 ? (markParams.distCam2cam[_1to3] - camPos[0]) + (markParams.distCam2cam[_3to2] + camPos[0]) :
-			camNum == 3 ? markParams.distCam2cam[0] - markParams.mark2Cam1X : 0;
+		double camXOffset = camNum == 1 ? camPos[CAM1] - markParams.mark2Cam1X :
+							camNum == 2 ? ((markParams.distCam2cam[_1to3_X_GAB] + markParams.distCam2cam[_3to2_X_GAB]) - markParams.mark2Cam1X) +  camPos[CAM2] :
+							camNum == 3 ? markParams.distCam2cam[_1to3_X_GAB] - markParams.mark2Cam1X : 0;
 
-
-
-		double camYOffset = camNum == 3 ? markParams.distCam2cam[_1to3_Y_OFFSET] :
-			camNum == 2 ? markParams.distCam2cam[_1to2_Y_OFFSET] : 0;
+		double camYOffset = camNum == 3 ? markParams.distCam2cam[_1to3_Y_GAB] :
+							camNum == 2 ? markParams.distCam2cam[_1to2_Y_GAB] : 0;
 
 		//역산시작
 		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;

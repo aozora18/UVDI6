@@ -203,15 +203,18 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 			if (!pstGrab)	LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 			else
 			{
-				pstGrab->grabTime = timeGetTime();
-				pstGrab->fiducialMarkIndex = -1818;
-				pstGrab->reserve = 0;
-				pstGrab->marked = UINT8(bFinded);
+				if (camMode == ENG_VCCM::en_grab_mode)
+				{
+					pstGrab->grabTime = timeGetTime();
+					pstGrab->fiducialMarkIndex = -1818;
+					pstGrab->reserve = 0;
+					pstGrab->marked = UINT8(bFinded);
+					pstGrab->reserve = globalGrab ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
+					pstGrab->fiducialMarkIndex = temp.tgt_id;
+				}
 
 				if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
 				{
-					pstGrab->reserve = globalGrab ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
-					pstGrab->fiducialMarkIndex = temp.tgt_id;
 					m_lstGrab.AddTail(pstGrab);
 				}
 				else

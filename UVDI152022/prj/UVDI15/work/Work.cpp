@@ -1614,7 +1614,9 @@ DOUBLE CWork::GetACamMark2MotionX(UINT16 mark_no)
 		dbMark2ACamX	= pstThick->mark2_acam_x[1];	/*pstAlign->mark2_acam_x[1];*/
 	}
 
-	return	(dbMark2ACamX - pstAlign->mark2_org_gerb_xy[0]) + stMarkPos.mark_x;
+	auto markX = stMarkPos.mark_x;
+	auto offsetX = (dbMark2ACamX - pstAlign->mark2_org_gerb_xy[0]);
+	return	offsetX + markX;
 }
 
 /*

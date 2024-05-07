@@ -190,6 +190,10 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 			ENG_AMOS alignMotion = alignMotionPtr->markParams.alignMotion;
 			//CAtlList<LPG_ACGR>
 			
+			pstGrab->reserve = 0;
+			pstGrab->fiducialMarkIndex = -1818;
+			pstGrab->grabTime = timeGetTime();
+
 			if (camMode == ENG_VCCM::en_grab_mode)
 			{
 				if (alignMotionPtr->GetFiducialInfo(cam_id, GetGrabImage(), -1, temp))
@@ -204,10 +208,7 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 			else
 			{
 				if (camMode == ENG_VCCM::en_grab_mode)
-				{
-					pstGrab->grabTime = timeGetTime();
-					pstGrab->fiducialMarkIndex = -1818;
-					pstGrab->reserve = 0;
+				{		
 					pstGrab->marked = UINT8(bFinded);
 					pstGrab->reserve = globalGrab ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
 					pstGrab->fiducialMarkIndex = temp.tgt_id;

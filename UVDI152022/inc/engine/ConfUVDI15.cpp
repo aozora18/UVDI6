@@ -5,10 +5,17 @@
 
 #include "pch.h"
 #include "ConfUvdi15.h"
-
+#include <string>
 #include <tuple>
-#include<vector>
+#include <vector>
 #include <map>
+#include <locale>
+#include <iostream>
+#include <sstream>
+
+#include <atlstr.h>
+
+using namespace std;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -369,6 +376,22 @@ BOOL CConfUvdi15::SaveConfigSetupCamera()
 	return TRUE;
 }
 
+void ParseAndFillVector(const TCHAR* str, std::vector<double>& vec)
+{
+	vec.clear();
+	std::wstring temp = std::wstring(str);
+	std::string utf8Str(temp.begin(), temp.end());
+
+	std::stringstream ss(utf8Str);
+	std::string token;
+
+	while (std::getline(ss, token, ','))
+	{
+		double val = std::stod(token);
+		vec.push_back(val);
+	}
+}
+
 /*
  desc : Load or Save the config file (SETUP_ALIGN)
  parm : None
@@ -379,6 +402,8 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	UINT8 i;
 	TCHAR tzKey[64]	= {NULL};
 	TCHAR tzKey2[64] = { NULL };
+
+	TCHAR longStrVal[2048] = { NULL };
 
 	/* Subject Name 설정 */
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"SETUP_ALIGN");
@@ -411,25 +436,27 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 		m_pstCfg->set_align.table_unloader_xy[i-1][1]	= GetConfigDouble(tzKey);
 	}
 
-	for (i = 0; i < 4; i++)
+	
+	vector<double> buff;
+	GetConfigStr(L"G_MARK_OFFSET", longStrVal, 2048);
+	ParseAndFillVector(longStrVal, buff);
+
+	for(int i=0 ; i < buff.size();)
 	{
-		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d", i);
-		swprintf_s(tzKey2, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d", i);
-		m_pstCfg->set_align.markOffsetPtr->Push(true ,std::make_tuple((double)GetConfigDouble(tzKey), (double)GetConfigDouble(tzKey2)));
+		double offsetX = buff[i++];
+		double offsetY = buff[i++];
+		m_pstCfg->set_align.markOffsetPtr->Push(true ,std::make_tuple(offsetX, offsetY));
 	}
 
-	for (i = 1; i <= 2; i++)
+	GetConfigStr(L"L_MARK_OFFSET", longStrVal, 2048);
+	ParseAndFillVector(longStrVal, buff);
+
+	for (int i = 0; i < buff.size();)
 	{
-		for (int j = 0; j < 8; j++)
-		{
-			swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d_%d", i,j);
-			swprintf_s(tzKey2, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d_%d", i,j);
-			m_pstCfg->set_align.markOffsetPtr->Push(false,std::make_tuple((double)GetConfigDouble(tzKey), (double)GetConfigDouble(tzKey2)));
-		}
-		
+		double offsetX = buff[i++];
+		double offsetY = buff[i++];
+		m_pstCfg->set_align.markOffsetPtr->Push(false, std::make_tuple(offsetX, offsetY));
 	}
-
-
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");
 	m_pstCfg->set_align.mark_horz_diff = GetConfigDouble(tzKey);
@@ -466,19 +493,60 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 		SetConfigDouble(tzKey,	m_pstCfg->set_align.table_unloader_xy[i-1][1],	4);
 	}
 
-	std::tuple<double, double> val;
-	for (i = 0; i < 4; i++)
+	
+	vector<tuple<double, double>> globalOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(true);
+	vector<tuple<double, double>> localOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(false);
+	
+
+	
+	std::string tempStr = string("");
+	
+	//swprintf_s(tzIPv4, IPv4_LENGTH, L"%d.%d.%d.%d", ipv4[0], ipv4[1], ipv4[2], ipv4[3]);
+	int precision = 3;
+
+	for (i = 0; i < globalOffsets.size(); i++)
 	{
-
-		if (m_pstCfg->set_align.markOffsetPtr->Get(true, i, val) == false)
-			continue;
-
-		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_X_%d", i);
-		SetConfigDouble(tzKey, std::get<0>(val), 4);
-		swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_OFFSET_Y_%d", i);
-		SetConfigDouble(tzKey, std::get<1>(val), 4);
-		
+		tempStr.append(std::to_string(round(std::get<0>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+		tempStr.append(",");
+		tempStr.append(std::to_string(round(std::get<1>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+		if (i + 1 != globalOffsets.size())
+			tempStr.append(",");
 	}
+
+	swprintf_s(tzKey, MAX_KEY_STRING, L"G_MARK_OFFSET");
+	int len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
+	TCHAR* szUniCode = new TCHAR[len];
+	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
+	SetConfigStr(tzKey, szUniCode);
+	delete[] szUniCode;
+
+	tempStr = string("");
+	for (i = 0; i < localOffsets.size(); i++)
+	{
+		tempStr.append(std::to_string(round(std::get<0>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+		tempStr.append(",");
+		tempStr.append(std::to_string(round(std::get<1>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+		if(i+1 != localOffsets.size())
+			tempStr.append(",");
+	}
+	swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET");
+	len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
+	szUniCode = new TCHAR[len];
+	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
+	SetConfigStr(tzKey, szUniCode);
+	delete[] szUniCode;
+
+
+
+	//for (i = 0; i < localOffsets.size(); i++)
+	//{
+	//	swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET_X_%d", i);
+	//	SetConfigDouble(tzKey, , 4);
+	//	swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET_Y_%d", i);
+	//	SetConfigDouble(tzKey, std::get<1>(localOffsets[i]), 4);
+	//}
+
+
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");
 	SetConfigDouble(tzKey, m_pstCfg->set_align.mark_horz_diff, 4);

@@ -1141,94 +1141,131 @@ VOID CDlgManual::MakeMarkOffsetField()
 	VCT_DLG_PARAM stVctParam;
 	CString strName;
 	CDPoint dpStartPos;
-
-	const int GLOBAL_MARK_COUNT = 4;
+	vector<LPG_XMXY> globalTemp;
+	vector<LPG_XMXY> localTemp;
 	const int MARK_PAIR = 2;
+	LPG_CIEA cfg = uvEng_GetConfig();
 
-	auto grabFindFunc = [&](int camIdx, int imgID, CAtlList <LPG_ACGR>* grabPtr) -> unique_ptr<STG_XMXY>
+	auto grabFindFunc = [&](int camIdx, int markIdx,bool isGlobal, CAtlList <LPG_ACGR>* grabPtr , LPG_XMXY storedVal ) -> LPG_XMXY
 	{
 		if (grabPtr == NULL || grabPtr->GetCount() == 0)
 			return nullptr;
 
 		for (int i = 0; i < grabPtr->GetCount(); i++)
 		{
+			auto reserveFlag = isGlobal ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
 			auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
-			if (grab != nullptr && grab->cam_id == camIdx && grab->img_id == imgID)
+			if (grab != nullptr && grab->cam_id == camIdx && grab->fiducialMarkIndex == markIdx && (grab->reserve & reserveFlag) == reserveFlag)
 			{
-				auto temp = make_unique<STG_XMXY>();
-				temp->mark_x = grab->move_mm_x;
-				temp->mark_y = grab->move_mm_y;
-				return temp;
+				storedVal->mark_x = grab->move_mm_x;
+				storedVal->mark_y = grab->move_mm_y;
+				return storedVal;
 			}
 		}
 		return nullptr;
 	};
 
-	auto uiWorks = [&](std::initializer_list<std::unique_ptr<STG_XMXY>> values)
+	auto uiWorks = [&](std::vector<LPG_XMXY> values,bool isGlobal)
 	{
-		for (int i = 0; i < GLOBAL_MARK_COUNT; i++)
+		stVctParam.clear();
+		int valueCount = values.size();
+		CString temp;
+		vector<double> valuesCpy;
+		
+		int localCnt = 0;
+		int globalCnt = 0;
+
+		for (int i = 0; i < valueCount; i++)
 		{
-			auto singleValue = (values.begin()[i].get());
+			auto singleValue = (values[i]);
 			for (int j = 0; j < MARK_PAIR; j++)
 			{
-				
-				CString temp;
 				temp.Format(_T("Mark%d offset %s"), i + 1, (j == 0 ? "x" : "y"));
 				stParam.Init();
 				stParam.strName = temp;
-				stParam.strValue = CStringA(singleValue == nullptr ? "" : (j == 0 ? std::to_string(singleValue->mark_x).c_str() : std::to_string(singleValue->mark_y).c_str()));
+				stParam.strValue = CStringA(singleValue == nullptr ? "" :  std::to_string( j==0 ? singleValue->mark_x : singleValue->mark_y).c_str());
 				stParam.strUnit = _T("um");
 				stParam.enFormat = ENM_DITM::en_double;
 				stParam.u8DecPts = 4;
 				stVctParam.push_back(stParam);
 			}
+			delete singleValue;
 		}
 
 		if (IDOK == dlg.MyDoModal(stVctParam))
 		{
-			vector<double> values = 
-			{
-				 _ttof(stVctParam[0].strValue),_ttof(stVctParam[1].strValue),
-				 _ttof(stVctParam[2].strValue),_ttof(stVctParam[3].strValue),
-				 _ttof(stVctParam[4].strValue),_ttof(stVctParam[5].strValue),
-				 _ttof(stVctParam[6].strValue),_ttof(stVctParam[7].strValue)
-			};
+			for(int i=0;i<stVctParam.size();i++)
+				valuesCpy.push_back(_ttof(stVctParam[i].strValue));
 
-			LPG_CIEA cfg = uvEng_GetConfig();
-			
-			CString temp;
-			temp.Format(_T("Mark1 offset x : %f , Mark1 offset y : %f\n Mark2 offset x : %f, Mark2 offset y : %f\n Mark3 offset x : %f, Mark3 offset y : %f\n Mark4 offset x : %f, Mark4 offset y : %f\n"), 
-				values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]);
-			
+			temp.Format(_T("%s Mark offset Save?"), isGlobal ? _T("Global") : _T("Local"));
 			if (MessageBoxEx(nullptr, temp, _T("notice"), MB_YESNO | MB_ICONSTOP, LANG_ENGLISH) == IDYES)
 			{
-				cfg->set_align.markOffsetPtr->Push(0, std::make_tuple(values[0], values[1]));
-				cfg->set_align.markOffsetPtr->Push(1, std::make_tuple(values[1], values[3]));
-				cfg->set_align.markOffsetPtr->Push(2, std::make_tuple(values[2], values[5]));
-				cfg->set_align.markOffsetPtr->Push(3, std::make_tuple(values[3], values[7]));
-
-				/*cfg->set_align.mark_offset_x[0] = values[0]; cfg->set_align.mark_offset_y[0] = values[1];
-				cfg->set_align.mark_offset_x[1] = values[2]; cfg->set_align.mark_offset_y[1] = values[3];
-				cfg->set_align.mark_offset_x[2] = values[4]; cfg->set_align.mark_offset_y[2] = values[5];
-				cfg->set_align.mark_offset_x[3] = values[6]; cfg->set_align.mark_offset_y[3] = values[7];*/
-				uvEng_SaveConfig();
+				for (int i = 0; i < valueCount; i++)
+					cfg->set_align.markOffsetPtr->Push(isGlobal, std::make_tuple(valuesCpy[(i * MARK_PAIR)], valuesCpy[(i * MARK_PAIR)+1]));
 			}
 		}
 	};
 
-	
-	CAtlList <LPG_ACGR>* grabMark = uvEng_Camera_GetGrabbedMarkAll();
+	try
+	{
 
-	auto markCount = grabMark->GetCount();
-	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	auto globalMarkCnt = motions.status.globalMarkCnt;
-	
-	auto temp = { grabFindFunc(1, 0, grabMark),
-								grabFindFunc(1, 1, grabMark),
-								grabFindFunc(2, 0, grabMark),
-								grabFindFunc(2, 1, grabMark) };
+		CAtlList <LPG_ACGR>* grabMark = uvEng_Camera_GetGrabbedMarkAll();
 
-	uiWorks(temp);
+		auto markCount = grabMark->GetCount();
+		AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+
+		int localCnt = motions.status.localMarkCnt;
+		int globalCnt = motions.status.globalMarkCnt;
+
+		switch (motions.markParams.alignMotion)
+		{
+		case ENG_AMOS::en_onthefly_2cam:
+		{
+			globalTemp = vector<LPG_XMXY>{ grabFindFunc(1, 0,true, grabMark,new STG_XMXY()),
+								grabFindFunc(1, 1,true,grabMark, new STG_XMXY()),
+								grabFindFunc(2, 0,true,grabMark, new STG_XMXY()),
+								grabFindFunc(2, 1,true,grabMark, new STG_XMXY()) };
+		}
+		break;
+
+		case ENG_AMOS::en_static_3cam:
+		{
+			int centerCam = motions.markParams.centerCamIdx;
+
+			globalTemp = vector<LPG_XMXY>{ grabFindFunc(centerCam, 0,true,grabMark, new STG_XMXY()),
+						   grabFindFunc(centerCam, 1,true,grabMark,new STG_XMXY()),
+					       grabFindFunc(centerCam, 2,true,grabMark,new STG_XMXY()),
+					       grabFindFunc(centerCam, 3,true,grabMark,new STG_XMXY()) };
+
+
+			for (int i = 0; i < motions.status.localMarkCnt; i++)
+				localTemp.push_back(grabFindFunc(centerCam,i,false, grabMark, new STG_XMXY()));
+
+		}
+		break;
+
+		default:
+		{
+			throw exception("not implement.");
+		}
+		break;
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
+	
+	cfg->set_align.markOffsetPtr->Clear();
+
+	if (globalTemp.empty() == false)
+		uiWorks(globalTemp,true);
+
+	if(localTemp.empty() == false)
+		uiWorks(localTemp,false);
+
+	if(globalTemp.empty() == false || localTemp.empty() == false)
+		uvEng_SaveConfig();
 }
 
 

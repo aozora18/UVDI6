@@ -114,6 +114,18 @@ public:
 		val = offsetValues[isGlobal][tgtIdx];
 		return true;
 	}
+
+	void Clear()
+	{
+		offsetValues.clear();
+	}
+
+	vector<std::tuple<double, double>> GetGroup(bool isGlobal)
+	{
+		return offsetValues[isGlobal];
+	}
+
+	
 };
 
 /* Setup Align 에 대한 전처리 정보 */

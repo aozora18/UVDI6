@@ -116,19 +116,19 @@ enum SearchFlag
 			double offsetX,
 			double offsetY)
 		{
-			this->x = x;
-			this->y = y;
-			this->offsetX = offsetX;
-			this->offsetY = offsetY;
+			x = x;
+			y = y;
+			offsetX = offsetX;
+			offsetY = offsetY;
 		}
 
 
 		CaliPoint() 
 		{
-			this->x = 0;
-			this->y = 0;
-			this->offsetX = 0;
-			this->offsetY = 0;
+			x = 0;
+			y = 0;
+			offsetX = 0;
+			offsetY = 0;
 		}
 
 

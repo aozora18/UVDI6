@@ -562,7 +562,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		case 0x02: 
 		{
 			
-			m_enWorkState = IsLoadedGerberCheck();
+			m_enWorkState = ENG_JWNS::en_next;  //IsLoadedGerberCheck(); 불필요.
 		}break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 		case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 		case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */

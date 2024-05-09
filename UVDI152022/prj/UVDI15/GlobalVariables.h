@@ -116,19 +116,19 @@ enum SearchFlag
 			double offsetX,
 			double offsetY)
 		{
-			x = x;
-			y = y;
-			offsetX = offsetX;
-			offsetY = offsetY;
+			this->x = x;
+			this->y = y;
+			this->offsetX = offsetX;
+			this->offsetY = offsetY;
 		}
 
 
 		CaliPoint() 
 		{
-			x = 0;
-			y = 0;
-			offsetX = 0;
-			offsetY = 0;
+			this->x = 0;
+			this->y = 0;
+			this->offsetX = 0;
+			this->offsetY = 0;
 		}
 
 
@@ -384,6 +384,7 @@ enum SearchFlag
 			if (index == -1)
 				index = buff[camIndex].size() == 0 ? 0 : buff[camIndex].size();
 			
+			if (index >= pool.size()) return false;
 			xmxy = pool[index];
 			return true;
 

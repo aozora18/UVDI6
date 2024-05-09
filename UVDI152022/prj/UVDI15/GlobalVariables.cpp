@@ -169,9 +169,10 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 				catch (...)
 				{
 					caliInfoLoadComplete = false;
+					return;
 				}
-				caliInfoLoadComplete = true;
 			}
+			caliInfoLoadComplete = true;
 		};
 
 	if (caliInfoLoadComplete == false)

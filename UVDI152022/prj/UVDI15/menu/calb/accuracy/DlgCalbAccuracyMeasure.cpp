@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 
+#include "../../../GlobalVariables.h"
 
 /*
  desc : 생성자
@@ -376,6 +377,9 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	vTitle[eOPTION_ROW_CAL_FILE_PATH] = { _T("Calibration file"), _T("None") };
 	vTitle[eOPTION_DOUBLE_MARK] = { _T("Double Mark"), _T("NO") };
 	
+	vTitle[eOPTION_ON_THE_FLY] = { _T("on the fly"), _T("NO") };
+	vTitle[eOPTION_TRIGGER_AXIS] = { _T("Trigger Axis"), _T("Y") };
+	
 	 //serchmode = ;
 	CAccuracyMgr::GetInstance()->SetSearchMode(CAccuracyMgr::SearchMode::single);
 
@@ -442,16 +446,33 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 					pGrid->SetCellType(nRow, nCol, RUNTIME_CLASS(CGridCellCombo));
 					CStringArray options;
 
-					if (eOPTION_ROW_X_DRV == nRow)
+					switch (nRow)
 					{
-						options.Add(_T("STAGE X"));
-						options.Add(_T("CAMERA X"));
+						case eOPTION_ROW_X_DRV:
+						{
+							options.Add(_T("STAGE X"));
+							options.Add(_T("CAMERA X"));
+						}
+						break;
+						
+						case eOPTION_TRIGGER_AXIS:
+						{
+							options.Add(_T("X"));
+							options.Add(_T("Y"));
+						}
+						break;
+							
+						default:
+						{
+							options.Add(_T("NO"));
+							options.Add(_T("YES"));
+						}
+						break;
 					}
-					else
-					{
-						options.Add(_T("NO"));
-						options.Add(_T("YES"));
-					}
+
+					
+
+					
 					CGridCellCombo* pComboCell = (CGridCellCombo*)pGrid->GetCell(nRow, nCol);
 					pComboCell->SetOptions(options);
 					pComboCell->SetStyle(CBS_DROPDOWN);
@@ -1103,6 +1124,18 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 		pGrid->GetItemText(eOPTION_ROW_X_DRV, eOPTION_COL_VALUE),
 		pGrid->GetItemText(eOPTION_ROW_USE_CAL, eOPTION_COL_VALUE));
 
+	
+	if (pGrid->GetItemText(eOPTION_ON_THE_FLY, eOPTION_COL_VALUE) == "YES")
+	{
+		auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
+		CAccuracyMgr::GetInstance()->SetCamID(centerCamIdx);
+		CAccuracyMgr::GetInstance()->SetTriggerAxisOffset(100);
+
+	}
+	
+ 
+	
+	 
 	if (IDNO == AfxMessageBox(strText, MB_YESNO))
 	{
 		return;

@@ -138,6 +138,7 @@ protected:
 	UINT8				m_u8ACamID = 1;
 
 	int					m_nStartIndex;
+	int					triggerAxisOffset = 100; //일단 기본값 10cm 줘보자.
 
 	VCT_ACCR_TABLE		m_stVctTable;
 
@@ -177,6 +178,9 @@ public:
 
 	VOID SetStartIndex(int nStartNum) { m_nStartIndex = nStartNum; }
 	int GetStartIndex() { return m_bUseCamDrv; }
+
+
+	void SetTriggerAxisOffset(int offsetmm){ }
 
 	////////////////////////////////////////////////////////////////////
 

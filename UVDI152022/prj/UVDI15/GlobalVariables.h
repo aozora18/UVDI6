@@ -162,6 +162,71 @@ enum SearchFlag
 	};
 
 
+	class TriggerBase
+	{
+	public:
+		enum
+		{
+			increase = 0,
+			decrease,
+			end,
+		};
+	};
+
+	class TriggerData : TriggerBase
+	{
+	public:
+		int channel;
+		int delay[end] = { 0,0 };
+
+		vector<INT32> pos;
+		
+		void Regist(int direction)
+		{
+			//여기서 소팅하고 부호 바꾸고, 등록하고 클리어.
+
+			std::sort(pos.begin(), pos.end(), std::greater<INT32>());
+			
+			for (int i = 0; i < pos.size(); i++)
+			{
+				pos[i] *= direction == decrease ? -1 : 1;
+			}
+			uvEng_Mvenc_ReqWriteAreaTrigPosCh(channel, 0, pos.size(), pos.data(), direction == decrease ? ENG_TEED::en_negative : ENG_TEED::en_positive, TRUE);
+			pos.clear();
+		}
+
+	};
+
+	class TriggerManager : TriggerBase
+	{
+		map<int, TriggerData> triggers;
+
+		void ResetTrig()
+		{
+			uvEng_Mvenc_ReqTriggerStrobe(FALSE);
+			uvEng_Mvenc_ReqEncoderOutReset();
+			uvEng_Mvenc_ResetTrigPosAll();
+		}
+
+		void Regist(int direction)
+		{
+			ResetTrig();
+
+			for each (auto var in triggers)
+				var.second.Regist(direction);
+		}
+
+		void AddTrigPos(int channel, INT32 pos)
+		{
+			triggers[channel].pos.push_back(pos);
+		}
+
+		void SetDelay(int channel, int incDelay, int decDelay)
+		{
+			triggers[channel].delay[increase] = incDelay;
+			triggers[channel].delay[decrease] = decDelay;
+		}
+	};
 
 	class CaliCalc
 	{

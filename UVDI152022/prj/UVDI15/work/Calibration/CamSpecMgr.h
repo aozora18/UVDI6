@@ -12,21 +12,9 @@ enum EnCamSpecRunMode
 
 class CCamSpecMgr
 {
-/* 생성자 & 파괴자 */
+
+	/* 열거형 */
 public:
-
-	CCamSpecMgr();
-	virtual ~CCamSpecMgr();
-
-	/* Singleton pattern */
-	static CCamSpecMgr* GetInstance()
-	{
-		static CCamSpecMgr _inst;
-		return &_inst;
-	}
-
-/* 열거형 */
-protected:
 
 	enum EnMeasureStep
 	{
@@ -45,9 +33,23 @@ protected:
 	enum EnCamSpec
 	{
 		eMODEL_FIND_COUNT = 2,
- 		eCOUNT_OF_CAMERA = 2,
+		eCOUNT_OF_CAMERA = 2,
 	};
 
+
+
+/* 생성자 & 파괴자 */
+public:
+
+	CCamSpecMgr();
+	virtual ~CCamSpecMgr();
+
+	/* Singleton pattern */
+	static CCamSpecMgr* GetInstance()
+	{
+		static CCamSpecMgr _inst;
+		return &_inst;
+	}
 
 /* 로컬 변수 */
 protected:
@@ -66,7 +68,6 @@ protected:
 protected:
 
 	VOID Wait(int nTime);
-
 
 	BOOL ACamMovingSide(int nTimeOut = 60000, double dDiffDistance = 0.001);
 	BOOL ACamMovingZAxisQuartz();
@@ -100,6 +101,7 @@ public:
 
 	VOID SetCamID(UINT8 u8Count) { m_u8ACamID = u8Count; }
 	UINT8 GetCurCamID() { return m_u8ACamID; }
+	
 
 	VOID MeasureStart(HWND hHwnd = NULL);
 	VOID SetStopProcess() { m_bStop = TRUE; }

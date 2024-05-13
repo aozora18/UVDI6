@@ -377,7 +377,7 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	vTitle[eOPTION_ROW_CAL_FILE_PATH] = { _T("Calibration file"), _T("None") };
 	vTitle[eOPTION_DOUBLE_MARK] = { _T("Double Mark"), _T("NO") };
 	
-	vTitle[eOPTION_ON_THE_FLY] = { _T("on the fly"), _T("NO") };
+	vTitle[eOPTION_EXPO_AREA_MEASURE] = { _T("Expo area measure"), _T("NO") };
 	vTitle[eOPTION_TRIGGER_AXIS] = { _T("Trigger Axis"), _T("Y") };
 	
 	 //serchmode = ;
@@ -470,9 +470,6 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 						break;
 					}
 
-					
-
-					
 					CGridCellCombo* pComboCell = (CGridCellCombo*)pGrid->GetCell(nRow, nCol);
 					pComboCell->SetOptions(options);
 					pComboCell->SetStyle(CBS_DROPDOWN);
@@ -1004,7 +1001,7 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stParam.strUnit = _T("mm");
 	stParam.enFormat = ENM_DITM::en_double;
 	stParam.u8DecPts = 4;
-	stVctParam.push_back(stParam);
+	stVctParam.push_back(stParam); //0
 
 	stParam.Init();
 	stParam.strName = _T("Start Y Position");
@@ -1012,7 +1009,7 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stParam.strUnit = _T("mm");
 	stParam.enFormat = ENM_DITM::en_double;
 	stParam.u8DecPts = 4;
-	stVctParam.push_back(stParam);
+	stVctParam.push_back(stParam); //1
 
 	stParam.Init();
 	stParam.strName = _T("Max Grid X Point");
@@ -1020,7 +1017,7 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stParam.strUnit = _T("Cnt");
 	stParam.enFormat = ENM_DITM::en_int32;
 	stParam.dMin = 0;
-	stVctParam.push_back(stParam);
+	stVctParam.push_back(stParam);//2
 
 	stParam.Init();
 	stParam.strName = _T("Max Grid Y Point");;
@@ -1028,15 +1025,15 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stParam.strUnit = _T("Cnt");
 	stParam.enFormat = ENM_DITM::en_int32;
 	stParam.dMin = 0;
-	stVctParam.push_back(stParam);
+	stVctParam.push_back(stParam);//3
 
 	stParam.Init();
 	stParam.strName = _T("Angle");
-	stParam.strValue = _T("");
+	stParam.strValue = _T("0");
 	stParam.strUnit = _T("°");
 	stParam.enFormat = ENM_DITM::en_double;
 	stParam.u8DecPts = 10;
-	stVctParam.push_back(stParam);
+	stVctParam.push_back(stParam);//4
 
 	stParam.Init();
 	stParam.strName = _T("Pitch");
@@ -1045,7 +1042,29 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stParam.enFormat = ENM_DITM::en_double;
 	stParam.dMin = 0.0001;
 	stParam.u8DecPts = 4;
-	stVctParam.push_back(stParam);
+	stVctParam.push_back(stParam);//5
+
+	stParam.Init();
+	stParam.strName = _T("Direction");
+	stParam.strValue = _T("1");
+	stParam.strUnit = _T("(1 = x, 2 = y)");
+	stParam.enFormat = ENM_DITM::en_double;
+	stParam.dMin = 1;
+	stParam.dMax = 2;
+	stParam.u8DecPts = 0;
+	stVctParam.push_back(stParam);//6
+
+	stParam.Init();
+	stParam.strName = _T("Turn back");
+	stParam.strValue = _T("2");
+	stParam.strUnit = _T("(1 = true, 2 = false)");
+	stParam.enFormat = ENM_DITM::en_double;
+	stParam.dMin = 1;
+	stParam.dMax = 2;
+	stParam.u8DecPts = 0;
+	stVctParam.push_back(stParam);//7
+
+
 
 	if (IDOK == dlg.MyDoModal(stVctParam))
 	{
@@ -1068,7 +1087,9 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 			CAccuracyMgr::GetInstance()->MakeMeasureField(strFileName, dpStartPos, 0, 0,
 				_ttof(stVctParam[4].strValue),
 				_ttof(stVctParam[5].strValue),
-				CPoint(_ttoi(stVctParam[2].strValue), _ttoi(stVctParam[3].strValue)));
+				CPoint(_ttoi(stVctParam[2].strValue), _ttoi(stVctParam[3].strValue)) , 
+				stVctParam[6].strValue == "1" ? true : false,
+				stVctParam[7].strValue == "1" ? true : false);
 		}
 	}
 }
@@ -1120,52 +1141,65 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 	bSet = (0 == pGrid->GetItemText(eOPTION_ROW_USE_CAL, eOPTION_COL_VALUE).Compare(_T("NO"))) ? FALSE : TRUE;
 	CAccuracyMgr::GetInstance()->SetUseCalData(bSet);
 
-	strText.Format(_T("동작할 X축 : %s\n보정 파일 적용 여부 : %s\n계속 진행하시겠습니까?"),
-		pGrid->GetItemText(eOPTION_ROW_X_DRV, eOPTION_COL_VALUE),
-		pGrid->GetItemText(eOPTION_ROW_USE_CAL, eOPTION_COL_VALUE));
+	bool expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
 
-	
-	if (pGrid->GetItemText(eOPTION_ON_THE_FLY, eOPTION_COL_VALUE) == "YES")
+
+	if (expoAreaMeasure)
 	{
-		auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
-		CAccuracyMgr::GetInstance()->SetCamID(centerCamIdx);
-		CAccuracyMgr::GetInstance()->SetTriggerAxisOffset(100);
-
+		CAccuracyMgr::GetInstance()->SetUseCamDrv(FALSE);
+		strText = _T("노광영역 보정테이블 작성.\n계속 진행하시겠습니까?");
 	}
-	
- 
-	
-	 
+	else
+		strText.Format(_T("동작할 X축 : %s\n보정 파일 적용 여부 : %s\n계속 진행하시겠습니까?"),
+			pGrid->GetItemText(eOPTION_ROW_X_DRV, eOPTION_COL_VALUE),
+			pGrid->GetItemText(eOPTION_ROW_USE_CAL, eOPTION_COL_VALUE));
+
+	CAccuracyMgr::GetInstance()->SetMeasureMode(CAccuracyMgr::MeasureRegion::align);
+
 	if (IDNO == AfxMessageBox(strText, MB_YESNO))
 	{
 		return;
 	}
 
-	if (TRUE == uvEng_ACamCali_GetFilePath().IsEmpty() && TRUE == CAccuracyMgr::GetInstance()->GetUseCalData())
+	if (pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES")
 	{
-		CAccuracyMgr::GetInstance()->SetUseCalData(FALSE);
-
-		if (IDYES == AfxMessageBox(_T("선택된 보정 파일이 없습니다.\n중단 하시겠습니까?"), MB_YESNO))
-		{
-			return;
-		}
+		auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
+		CAccuracyMgr::GetInstance()->SetCamID(centerCamIdx);
+		CAccuracyMgr::GetInstance()->SetMeasureMode(CAccuracyMgr::MeasureRegion::expo);	
 	}
 
-	if (0 != m_u32IndexNum)
+	if (expoAreaMeasure)
 	{
-		if (IDYES == AfxMessageBox(_T("선택한 포인트에서부터 시작하시겠습니까?"), MB_YESNO))
-		{
-			CAccuracyMgr::GetInstance()->SetStartIndex((int)m_u32IndexNum);
-		}
-		else
-		{
-			CAccuracyMgr::GetInstance()->SetStartIndex(0);
-		}
 
-		ResetDataViewPoint(m_u32IndexNum);
-		m_u32IndexNum = 0;
 	}
+	else
+	{
+		if (TRUE == uvEng_ACamCali_GetFilePath().IsEmpty() && TRUE == CAccuracyMgr::GetInstance()->GetUseCalData())
+		{
+			CAccuracyMgr::GetInstance()->SetUseCalData(FALSE);
 
+			if (IDYES == AfxMessageBox(_T("선택된 보정 파일이 없습니다.\n중단 하시겠습니까?"), MB_YESNO))
+			{
+				return;
+			}
+		}
+
+		if (0 != m_u32IndexNum)
+		{
+			if (IDYES == AfxMessageBox(_T("선택한 포인트에서부터 시작하시겠습니까?"), MB_YESNO))
+			{
+				CAccuracyMgr::GetInstance()->SetStartIndex((int)m_u32IndexNum);
+			}
+			else
+			{
+				CAccuracyMgr::GetInstance()->SetStartIndex(0);
+			}
+
+			ResetDataViewPoint(m_u32IndexNum);
+			m_u32IndexNum = 0;
+		}
+	}
+	
 	HoldControl(TRUE);
 
 	CAccuracyMgr::GetInstance()->MeasureStart(this->GetSafeHwnd());

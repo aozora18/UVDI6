@@ -106,6 +106,13 @@ public:
 		e2DCAL_REPORT_MAX
 	};
 
+	enum MeasureRegion
+	{
+		align,
+		expo,
+	};
+
+
 protected:
 
 	enum EnMeasureStep
@@ -124,6 +131,10 @@ protected:
 	};
 
 
+	MeasureRegion measureRegion = MeasureRegion::align;
+
+
+
 	/* 로컬 변수 */
 protected:
 
@@ -138,8 +149,7 @@ protected:
 	UINT8				m_u8ACamID = 1;
 
 	int					m_nStartIndex;
-	int					triggerAxisOffset = 100; //일단 기본값 10cm 줘보자.
-
+	
 	VCT_ACCR_TABLE		m_stVctTable;
 
 
@@ -161,7 +171,7 @@ public:
 	ST_FIELD ClacField(VCT_ACCR_TABLE stVctField);
 
 	BOOL LoadMeasureField(CString strPath);
-	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint);
+	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint, bool toXDirection,bool turnBack);
 
 	BOOL SaveCaliFile(CString strFileName);
 
@@ -176,11 +186,12 @@ public:
 		m_u8ACamID = u8Count;
 	}
 
+	VOID SetMeasureMode(MeasureRegion region) { measureRegion = region; }
 	VOID SetStartIndex(int nStartNum) { m_nStartIndex = nStartNum; }
 	int GetStartIndex() { return m_bUseCamDrv; }
 
 
-	void SetTriggerAxisOffset(int offsetmm){ }
+	
 
 	////////////////////////////////////////////////////////////////////
 

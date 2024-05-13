@@ -185,35 +185,39 @@ CDPoint rotatePointAroundAnotherPoint(CDPoint P, CDPoint anchorPos, double theta
 }
 
 
-BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint)
+BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint,bool toXDirection,bool turnBack)
 {
 	CFileException ex;
 	CStdioFile sFile;
 	CString strWrite;
 	CString strLine;
 	CDPoint dpPos;
-	int nMaxIndex = cpMaxPoint.x * cpMaxPoint.y;
+	int nMaxIndex = cpMaxPoint.x   * cpMaxPoint.y ; 
 
 	vector<CDPoint> buffer;
 
 
 	double dRadian = degreesToRadians(dAngle);
 
-	bool useTurnback = false;   //<--------------이 부분이 true일땐 x좌표가 다시 감소방향으로 turnback 하게 됨 즉, 0에서 시작해서 50까지 갔다면 다시 45,40,35~ 0 으로 돌아옴, false일땐 50까지 갔다면 다시 0으로 돌아와 50까지 감. 
+	bool useTurnback = !turnBack;   //<--------------이 부분이 true일땐 x좌표가 다시 감소방향으로 turnback 하게 됨 즉, 0에서 시작해서 50까지 갔다면 다시 45,40,35~ 0 으로 돌아옴, false일땐 50까지 갔다면 다시 0으로 돌아와 50까지 감. 
 	bool turnBackFlag = false;
 
 	buffer.push_back(dpStartPos);
 
 	for (int i = 1; i < nMaxIndex; i++)
 	{
-		CDPoint tempPoint = CDPoint((double)(dpStartPos.x + ((i % cpMaxPoint.x) * dPitch)),
-			(double)(dpStartPos.y + ((i / cpMaxPoint.x) * dPitch)));
+		
+		CDPoint tempPoint = toXDirection == true ?
+				CDPoint((double)(dpStartPos.x + ((i % cpMaxPoint.x) * dPitch)),
+					(double)(dpStartPos.y + ((i / cpMaxPoint.x) * dPitch))) :
+				CDPoint((double)(dpStartPos.x + ((i / cpMaxPoint.y) * dPitch)),
+					(double)(dpStartPos.y + ((i % cpMaxPoint.y) * dPitch)));
 
 		CDPoint tempRotated = rotatePointAroundAnotherPoint(tempPoint, dpStartPos, dRadian);
 
 		buffer.push_back(tempRotated);
 
-		if (buffer.size() == cpMaxPoint.x)
+		if (buffer.size() == (toXDirection == true ? cpMaxPoint.x : cpMaxPoint.y))
 		{
 			if (turnBackFlag)
 				std::reverse(buffer.begin(), buffer.end());
@@ -314,60 +318,108 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("[2DCal]\tSTART"));
 
-	for (int nWorkStep = m_nStartIndex; nWorkStep < (int)m_stVctTable.size(); nWorkStep++)
-	{
-		if (TRUE == m_bStop)
-		{
-			return FALSE;
-		}
 
-		if (FALSE == MotionCalcMoving(m_stVctTable[nWorkStep].dMotorX, m_stVctTable[nWorkStep].dMotorY))
+	std::vector<std::function<void()>> caliTask =
+	{ 
+		[&]()
 		{
-			LOG_MESG(ENG_EDIC::en_2d_cali, _T("Move Fail"));
-
-			if (NULL != hHwnd)
+			for (int nWorkStep = m_nStartIndex; nWorkStep < (int)m_stVctTable.size(); nWorkStep++)
 			{
-				// Grab View 갱신
-				::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_MOTION_FIAL, NULL, SMTO_NORMAL, 100, NULL);
+				if (TRUE == m_bStop)
+				{
+					return FALSE;
+				}
+
+				if (FALSE == MotionCalcMoving(m_stVctTable[nWorkStep].dMotorX, m_stVctTable[nWorkStep].dMotorY))
+				{
+					LOG_MESG(ENG_EDIC::en_2d_cali, _T("Move Fail"));
+
+					if (NULL != hHwnd)
+					{
+						// Grab View 갱신
+						::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_MOTION_FIAL, NULL, SMTO_NORMAL, 100, NULL);
+					}
+
+					m_bRunnigThread = FALSE;
+					return FALSE;
+				}
+
+				Wait(3000);
+
+				if (FALSE == GrabData(stGrab, FALSE, 5))
+				{
+					LOG_MESG(ENG_EDIC::en_2d_cali, _T("Grab Fail"));
+
+					if (NULL != hHwnd)
+					{
+						// Grab View 갱신
+						::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_GRAB_FIAL, NULL, SMTO_NORMAL, 100, NULL);
+					}
+
+					m_bRunnigThread = FALSE;
+					return FALSE;
+				}
+
+				SetPointErrValue(nWorkStep, stGrab.move_mm_x, stGrab.move_mm_y);
+
+				if (NULL != hHwnd)
+				{
+					// Grab View 갱신
+					::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_GRAB, (WPARAM)nWorkStep, NULL, SMTO_NORMAL, 100, NULL);
+				}
+
+				swprintf_s(tzMesg, 128, L"%.4f,%.4f,\t%.4f,%.4f",
+					m_stVctTable[nWorkStep].dMotorX,
+					m_stVctTable[nWorkStep].dMotorY,
+					stGrab.move_mm_x,
+					stGrab.move_mm_y);
+
+				LOG_MESG(ENG_EDIC::en_2d_cali, tzMesg);
+				Wait(500);
+			}
+		},
+		[&]()
+		{
+			if (m_stVctTable.size() < 1) return;
+
+			bool moveToX = m_stVctTable[0].dMotorX == m_stVctTable[1].dMotorX;
+			double initialVal = moveToX ? m_stVctTable[0].dMotorX : m_stVctTable[0].dMotorY;
+			auto it = std::find_if(m_stVctTable.begin(), m_stVctTable.end(), [&](const ST_ACCR_PARAM& v) {return moveToX ? initialVal != v.dMotorX : initialVal != v.dMotorY; });
+			int axisCount = std::distance(m_stVctTable.begin(), it);
+			int maxCycle = m_stVctTable.size() / axisCount;
+
+			//일단 스타트 포인트로 가긴해야하니까. 
+			LPG_CIEA pstCfg = uvEng_GetConfig();
+
+			for (int i = 0; i < maxCycle; i++)
+			{
+				auto initialAxisLoc = moveToX ? m_stVctTable[i * axisCount].dMotorX : m_stVctTable[i * axisCount].dMotorY; //시작좌표.
+				pstCfg
+
+
 			}
 
-			m_bRunnigThread = FALSE;
-			return FALSE;
+			int debug = 0;
+			/*
+			캘리영역 첫줄을 가져와서 비교한다.
+			첫줄과 막줄의 데이터의 XY를 비교한다. 
+			X,Y중 같은 값을 가진게 이동축이다. 즉 SP(100,10) EP(500,10) 이라면 Y 축 기준으로 움직이는것이다. 
+
+			그리고 같은 데이터로 SP와 EP에서 증가된다면 스테이지 기준축은 - 리미트 에서 시작하고 반대라면 +
+			 리미트에서 시작한다. 
+
+			 SP - EP는 리미트 - 리미트간 이동으로 설정한다. 
+
+			 매 기준 ROW, COL 처리시 트리거 등록해주면된다. 
+
+			 시작한다. 
+			*/
+
+
 		}
+	};
 
-		Wait(3000);
-
-		if (FALSE == GrabData(stGrab, FALSE, 5))
-		{
-			LOG_MESG(ENG_EDIC::en_2d_cali, _T("Grab Fail"));
-
-			if (NULL != hHwnd)
-			{
-				// Grab View 갱신
-				::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_GRAB_FIAL, NULL, SMTO_NORMAL, 100, NULL);
-			}
-
-			m_bRunnigThread = FALSE;
-			return FALSE;
-		}
-
-		SetPointErrValue(nWorkStep, stGrab.move_mm_x, stGrab.move_mm_y);
-
-		if (NULL != hHwnd)
-		{
-			// Grab View 갱신
-			::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_GRAB, (WPARAM)nWorkStep, NULL, SMTO_NORMAL, 100, NULL);
-		}
-
-		swprintf_s(tzMesg, 128, L"%.4f,%.4f,\t%.4f,%.4f",
-			m_stVctTable[nWorkStep].dMotorX,
-			m_stVctTable[nWorkStep].dMotorY,
-			stGrab.move_mm_x,
-			stGrab.move_mm_y);
-
-		LOG_MESG(ENG_EDIC::en_2d_cali, tzMesg);
-		Wait(500);
-	}
+	caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
 
 	// 동작 완료
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("Successful 2D Cal"));

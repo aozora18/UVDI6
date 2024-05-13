@@ -288,8 +288,10 @@ enum SearchFlag
 			std::function<double()> posCallback,
 			std::function<BOOL()> stateCallback)
 		{
-			this->min = min;
-			this->max = max;
+
+			
+			this->min = (INT32)ROUNDED(min * 10000.0f, 0);
+			this->max = (INT32)ROUNDED(max * 10000.0f, 0);
 			this->name = name;
 			this->parts = parts;
 			this->direction = dir;

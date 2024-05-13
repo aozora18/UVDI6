@@ -389,12 +389,21 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			int maxCycle = m_stVctTable.size() / axisCount;
 
 			//일단 스타트 포인트로 가긴해야하니까. 
-			LPG_CIEA pstCfg = uvEng_GetConfig();
+			
+			auto MovetoPos = [&](double destX, double destY)->bool
+			{
+
+			};
+
 
 			for (int i = 0; i < maxCycle; i++)
 			{
 				auto initialAxisLoc = moveToX ? m_stVctTable[i * axisCount].dMotorX : m_stVctTable[i * axisCount].dMotorY; //시작좌표.
-				pstCfg
+				auto minDist = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.min_dist[UINT8(moveToX ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y)] * 10000.0f, 0);
+				auto maxDist = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_dist[UINT8(moveToX ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y)] * 10000.0f, 0);
+
+
+
 
 
 			}

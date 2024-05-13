@@ -78,6 +78,7 @@ CDlgMain::CDlgMain(CWnd* parent /*=NULL*/)
 	g_u8Romote = en_menu_phil_mode_none;
 	m_stExpoLog.Init();
 	m_stPhilStatus.Init();
+	
 }
 
 /*
@@ -276,7 +277,7 @@ BOOL CDlgMain::OnInitDlg()
 	
 
 	
-
+	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
 
 	return TRUE;
 }

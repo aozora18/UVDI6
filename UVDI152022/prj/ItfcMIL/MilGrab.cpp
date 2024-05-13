@@ -402,7 +402,7 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 				//m_pstGrabResult->valid_scale= r_data->scale_rate >= (pstMarkFind->scale_rate) ? 0x01 : 0x00;
 				//m_pstGrabResult->valid_score= r_data->score_rate >= (pstMarkFind->score_rate) ? 0x01 : 0x00;
 				m_pstGrabResult->valid_scale = r_data->scale_rate >= (m_dbRecipeScale) ? 0x01 : 0x00;
-				m_pstGrabResult->valid_score = r_data->score_rate >= (m_dbRecipeScale) ? 0x01 : 0x00;
+				m_pstGrabResult->valid_score = r_data->score_rate >= (m_dbRecipeScore) ? 0x01 : 0x00;
 			}
 			m_bMatched	= m_pstGrabResult->IsMarkValid();
 		}

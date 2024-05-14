@@ -7,6 +7,7 @@
 #include "AccuracyMgr.h"
 #include "../../MainApp.h"
 
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -380,35 +381,92 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 		},
 		[&]()
 		{
-			if (m_stVctTable.size() < 1) return;
+			if (m_stVctTable.size() < 1) 
+				return;
 
-			bool moveToX = m_stVctTable[0].dMotorX == m_stVctTable[1].dMotorX;
-			double initialVal = moveToX ? m_stVctTable[0].dMotorX : m_stVctTable[0].dMotorY;
-			auto it = std::find_if(m_stVctTable.begin(), m_stVctTable.end(), [&](const ST_ACCR_PARAM& v) {return moveToX ? initialVal != v.dMotorX : initialVal != v.dMotorY; });
+			bool moveToX = m_stVctTable[0].dMotorX != m_stVctTable[1].dMotorX;
+			auto pointTerm = moveToX ? m_stVctTable[1].dMotorX - m_stVctTable[0].dMotorX : m_stVctTable[1].dMotorY - m_stVctTable[0].dMotorY;
+			double initialVal = moveToX ? m_stVctTable[0].dMotorY : m_stVctTable[0].dMotorX;
+			auto it = std::find_if(m_stVctTable.begin(), m_stVctTable.end(), [&](const ST_ACCR_PARAM& v) {return moveToX ? initialVal != v.dMotorY : initialVal != v.dMotorX; });
+			
 			int axisCount = std::distance(m_stVctTable.begin(), it);
 			int maxCycle = m_stVctTable.size() / axisCount;
 
 			//일단 스타트 포인트로 가긴해야하니까. 
 			
-			auto MovetoPos = [&](double destX, double destY)->bool
+			auto trigger = GlobalVariables::GetInstance()->GetTrigger();
+			auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+			LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
+			auto axises = motion.GetAxises();
+			auto minDist = axises["stage"][moveToX ? "x" : "y"].min;
+			auto maxDist = axises["stage"][moveToX ? "x" : "y"].max;
+			
+			auto CloserPoint = [&](double min, double max,double curr)->double 
 			{
-
+				return std::abs(min - curr) < std::abs(max - curr) ? max  : min;
 			};
 
 
+			auto MoveTillArrive = [&](double x, double y ,double spd)->bool
+			{
+				motion.Refresh();
+
+				if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y)) return true;
+
+				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
+				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+				ENG_MMDI vecAxis = ENG_MMDI::en_stage_x;
+				if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
+					return false;
+
+				return GlobalVariables::GetInstance()->Waiter([&]()->bool
+					{
+						bool res = ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis);
+						return res;
+
+					}, 30000);
+					
+			};
+			
+			auto direction = (pointTerm > 0 ? TriggerBase::increase : TriggerBase::decrease);
+			double initialX = axises["stage"][moveToX ? "x" : "y"].currPos; //moveToX ? (DOUBLE)(direction == TriggerBase::increase ? maxDist : minDist) : (DOUBLE)m_stVctTable[0].dMotorX;
+			double initialY = moveToX ? (DOUBLE)m_stVctTable[0].dMotorY : (DOUBLE)(direction == TriggerBase::increase ? minDist : maxDist);
+			INT32 gab = abs(pointTerm * 10000);
+			
+			if(MoveTillArrive(initialX, initialY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == true)
 			for (int i = 0; i < maxCycle; i++)
 			{
-				auto initialAxisLoc = moveToX ? m_stVctTable[i * axisCount].dMotorX : m_stVctTable[i * axisCount].dMotorY; //시작좌표.
-				auto minDist = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.min_dist[UINT8(moveToX ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y)] * 10000.0f, 0);
-				auto maxDist = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_dist[UINT8(moveToX ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y)] * 10000.0f, 0);
+				
+				auto firstAxisPos = moveToX ? m_stVctTable[i * axisCount].dMotorX : m_stVctTable[i * axisCount].dMotorY;
+				auto secondAxisPos = moveToX ? m_stVctTable[(i * axisCount) + 1].dMotorX : m_stVctTable[(i * axisCount) + 1].dMotorY;
+				auto apositAxisPos = moveToX ? m_stVctTable[i * axisCount].dMotorY : m_stVctTable[i * axisCount].dMotorX;
+				
+				INT32 basicGab = abs(initialY - firstAxisPos) * 10000;
+
+				trigger.Reset();
+				
+				for (int j = 0; j < axisCount; j++)
+					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * (gab)) + basicGab); //시작좌표.)// (10000 * 10) * j);// (INT32)(j * (gab)) + basicGab); //시작좌표.)
+					//trigger.AddTrigPos(m_u8ACamID, (INT32)((10000 * 10) * j));// (INT32)(j * (gab)) + basicGab); //시작좌표.)
+
+					
+
+				trigger.Regist(direction, m_u8ACamID);
+
+				direction = direction == TriggerBase::increase ? TriggerBase::decrease : TriggerBase::increase;
+				initialX = moveToX ? (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist : (DOUBLE)m_stVctTable[i * axisCount].dMotorX;
+				initialY = moveToX ? (DOUBLE)m_stVctTable[i * axisCount].dMotorY : (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist;
+				MoveTillArrive(initialX, initialY, pstMC2Svc->mark_velo);
+
+				//자... 해당축의 완전한 반대로 이동.
+				
 
 
-
-
+				//초기위치이동.
 
 			}
 
-			int debug = 0;
+			
 			/*
 			캘리영역 첫줄을 가져와서 비교한다.
 			첫줄과 막줄의 데이터의 XY를 비교한다. 

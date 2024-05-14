@@ -16,7 +16,7 @@
 #if 0	/* 아래 값은 conf_comn.h 파일에 정의되어 있음  */
 #define MAX_TRIG_CHANNEL						4		/* Trigger 장치에 설치 가능한 최대 Channel 개수 */
 #endif
-#define MAX_REGIST_TRIG_POS_COUNT				16			/* 채널마다 등록 가능한 최대 트리거 개수 */
+#define MAX_REGIST_TRIG_POS_COUNT				101			/* 채널마다 등록 가능한 최대 트리거 개수 */
 #define MAX_TRIG_MEM_COUNT						89
 #define MAX_TRIG_POS							99999999
 

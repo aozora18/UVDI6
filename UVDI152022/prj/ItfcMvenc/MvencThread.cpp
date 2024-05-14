@@ -183,6 +183,7 @@ void CMvencThread::CloseHandle()
 UINT8 CMvencThread::GetTrigChNo(UINT8 cam_id)
 {
 #if 1
+	return cam_id;
 	UINT8 u8Type	= m_pstConfComn->strobe_lamp_type;
 	if (0x01 == cam_id)
 	{
@@ -795,55 +796,64 @@ BOOL CMvencThread::ReqWriteAreaTrigPos(BOOL direct,
 BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count, PINT32 pos,
 										ENG_TEED enable, BOOL clear)
 {
-	UINT8 i =0 ,j		= 0, u8ChNo;
-	BOOL bSucc			= TRUE;
-	UINT uiStatus		= 0;
-	STG_TPQR stPktData	= {NULL};
+	UINT8 i1 = 0, i2 = 0, u3MaxTrig = MAX_REGIST_TRIG_POS_COUNT;
+	UINT8 u8ChNo[2] = { NULL };
+
+	UINT8 u8Cam1No[2] = { 1, 2 };
+	UINT8 u8Cam2No[2] = { 0, 3 };
+	BOOL bSucc = TRUE;
+	UINT uiStatus = 0;
+	UINT uiStatus1 = 0;
+	UINT uiStatus2 = 0;
+	STG_TPQR stPktData = { NULL };
 
 	/* 각 Align Camera에 대한 채널 번호 얻기 */
-	u8ChNo	= GetTrigChNo(cam_id);
+	//u8ChNo[0]	= GetTrigChNo(0x01);
+//	u8ChNo[1]	= GetTrigChNo(0x02);
 
-	if (u8ChNo < 1 || u8ChNo > 4 || !(start >= 0 && start < MAX_REGIST_TRIG_POS_COUNT) || !pos ||
-		(start + count) > MAX_REGIST_TRIG_POS_COUNT)
+	if (!(start >= 0 && start < MAX_REGIST_TRIG_POS_COUNT) || !pos || (start + count) > MAX_REGIST_TRIG_POS_COUNT)
 	{
-		TCHAR tzMesg[LOG_MESG_SIZE]	= {NULL};
-		swprintf_s(tzMesg, LOG_MESG_SIZE,
-				   L"Trigger Invalid Parameter (ch_no:%d start:%d count:%d)",
-				   u8ChNo, start, count);
-		LOG_ERROR(ENG_EDIC::en_mvenc, tzMesg);
-		return FALSE;
+			TCHAR tzMesg[LOG_MESG_SIZE]	= {NULL};
+			swprintf_s(tzMesg, LOG_MESG_SIZE,
+					   L"Trigger Invalid Parameter (ch_no:%d start:%d count:%d)",
+					   u8ChNo, start, count);
+			LOG_ERROR(ENG_EDIC::en_mvenc, tzMesg);
+			return FALSE;
 	}
-	u8ChNo--;
+	//u8ChNo[0]--;
+	//u8ChNo[1]--;
 
 	/* 동기 진입 */
 	if (m_syncSend.Enter())
 	{
-		m_pstShMemTrig->command			= (UINT32)ENG_TBPC::en_write;									/* Write */
-		/* Clear to encoder */
-		if (clear)
-		{
-			uiStatus = MvsEncClearEncoderPositionAll(m_handle);
-			if (uiStatus != 0x00)
-			{
-				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
-				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearEncoderPositionAll API Error (status:%d)", uiStatus);
-				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
-				bSucc = FALSE;
-			}
-		}
+		m_pstShMemTrig->command = (UINT32)ENG_TBPC::en_write;/* Write */
+		m_pstShMemTrig->trig_strob_ctrl = (UINT32)enable;			 /* Trigger Enable or Disable */
 
-		m_pstShMemTrig->trig_strob_ctrl	= (UINT32)enable;												/* Trigger Enable or Disable */
-		// by sysandj: Position 방향 설정
-		m_stTrigCtrl[u8ChNo].PositionDirection = (UINT16)enable;	//0:DISABLE, 1:Positive, 2:Negative, 3:Bi-Direction
-		UINT uiStatus = MvsEncSetTriggerControls(m_handle, u8ChNo, &m_stTrigCtrl[u8ChNo]);//구조체 설정
-		// by sysandj: Position 방향 설정
+
+		SetPositionTrigMode(enable);
+
+		/*Cam Seting End*/
+
+		/* 기존 Area Trigger 값 모두 저장 */
+		memcpy(stPktData.trig_set, m_pstShMemTrig->trig_set, sizeof(STG_TPTS) * MAX_TRIG_CHANNEL /* Max 4 channel */);
+
+		for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
+		{
+			memset(stPktData.trig_set[i].area_trig_pos, MAX_TRIG_POS, MAX_REGIST_TRIG_POS_COUNT);	
+		}
 
 		/* 트리거 이벤트 설정 */
 		SetTrigEvent(TRUE, stPktData.trig_set);
-		/* 새로운 값을 덮어 씀 */
-		memcpy(&stPktData.trig_set[u8ChNo].area_trig_pos+start, pos, sizeof(UINT32) * count);
-		/* 가장 최근의 트리거 송신 위치 값 저장 */
-		memcpy(&m_u32SendTrigPos[u8ChNo]+start, pos, sizeof(UINT32) * count);
+		/* 트리거 위치 설정 */
+		//SetTrigPos(stPktData.trig_set, start1, count1, pos1, start2, count2, pos2);
+
+		
+		/*Cam1 포지션 설정*/
+		memcpy(&stPktData.trig_set[cam_id-1].area_trig_pos + start, pos, sizeof(UINT32) * count);
+		/*Cam2 포지션 설정*/
+		memcpy(&stPktData.trig_set[3].area_trig_pos + start, pos, sizeof(UINT32) * count);
+		/*공용 조명 설정*/
+
 
 		// Trigger Offset 보상
 		UINT32				area_trig_pos_offset[MAX_TRIG_CHANNEL] = { 0 };
@@ -862,18 +872,69 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 			}
 		}
 		// Trigger Offset 보상
-		
-		for (int i = start; i < start+count; i++)
+
+		for (int posID = 0; posID < MAX_REGIST_TRIG_POS_COUNT; posID++)
 		{
-			uiStatus = MvsEncSetIndexTriggerPosition(m_handle, u8ChNo, i, pos[i] + area_trig_pos_offset[u8ChNo]);
-			if (uiStatus != 0x00)
+
+			uiStatus1 = MvsEncSetIndexTriggerPosition(m_handle, cam_id-1, posID, stPktData.trig_set[cam_id - 1].area_trig_pos[posID] + area_trig_pos_offset[cam_id - 1]);
+			uiStatus2 = MvsEncSetIndexTriggerPosition(m_handle, 3, posID, stPktData.trig_set[3].area_trig_pos[posID] + area_trig_pos_offset[3]);
+
+			if (uiStatus1 != 0x00 && uiStatus2 != 0x00)
 			{
 				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
-				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncSetIndexTriggerPosition API Error (status:%d)", uiStatus);
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncSetIndexTriggerPosition API Error (status:%d)", uiStatus1);
 				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
 				bSucc = FALSE;
 			}
 		}
+		for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
+		{
+			/*트리거 사이클 Max값*/
+			uiStatus = MvsEncSetTriggerGenerator(m_handle, i, MAX_TRIG_POS, MAX_TRIG_POS);
+			if (uiStatus != 0x00)
+			{
+				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncSetTriggerGenerator API Error (status:%d)", uiStatus);
+				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
+				bSucc = FALSE;
+			}
+		}
+		/*노광 방향에 따라 각 트리거 발생 모드 동작 실행*/
+		if (ENG_TEED::en_positive == enable)
+		{
+			MvsEncSetPositiveRun(m_handle, 15);
+			//MvsEncSetPositiveRun(m_handle, (16 >> cam_id) + 1);
+		}
+		else if (ENG_TEED::en_negative == enable)
+		{
+			MvsEncSetNegativeRun(m_handle, 15);
+		}
+
+
+		/*Clear*/
+		if (clear)
+		{
+			/*Position*/
+			uiStatus = MvsEncClearEncoderPositionAll(m_handle);
+			if (uiStatus != 0x00)
+			{
+				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearEncoderPositionAll API Error (status:%d)", uiStatus);
+				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
+				bSucc = FALSE;
+			}
+			/*Trigger MvsEncClearTriggerCount*/
+			uiStatus = MvsEncClearTriggerAll(m_handle);
+			if (uiStatus != 0x00)
+			{
+				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearTriggerAll API Error (status:%d)", uiStatus);
+				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
+				bSucc = FALSE;
+			}
+		}
+
+
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
 		m_syncSend.Leave();
@@ -881,6 +942,7 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 
 	/* 현재 상태 값 읽기 요청 */
 	return bSucc ? ReqReadSetup() : FALSE;
+
 }
 
 /*
@@ -1443,7 +1505,7 @@ BOOL CMvencThread::SetPositionTrigMode(ENG_TEED enable)
 
 			MvsEncSetTriggerDelay(m_handle, 0, 10);
 			MvsEncSetTriggerDelay(m_handle, 1, 10);
-			MvsEncSetTriggerDelay(m_handle, 2, 0);
+			MvsEncSetTriggerDelay(m_handle, 2, 10);
 			MvsEncSetTriggerDelay(m_handle, 3, 0);
 
 			MvsEncSetTriggerPulseWidth(m_handle, i, 200);

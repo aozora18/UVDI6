@@ -331,7 +331,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return false;
 	}
 
-	bool AlignMotion::isArrive(string drive, string axis, double dest, float threshold = 0.001)
+	bool AlignMotion::isArrive(string drive, string axis, double dest, float threshold)
 	{
 		auto res = abs(axises[drive][axis].currPos - dest) < threshold;
 		return res;

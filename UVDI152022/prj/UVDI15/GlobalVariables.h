@@ -185,12 +185,13 @@ enum SearchFlag
 		{
 			//여기서 소팅하고 부호 바꾸고, 등록하고 클리어.
 
-			std::sort(pos.begin(), pos.end(), std::greater<INT32>());
-			
 			for (int i = 0; i < pos.size(); i++)
 			{
 				pos[i] *= direction == decrease ? -1 : 1;
 			}
+
+			std::sort(pos.begin(), pos.end());
+
 			uvEng_Mvenc_ReqWriteAreaTrigPosCh(channel, 0, pos.size(), pos.data(), direction == decrease ? ENG_TEED::en_negative : ENG_TEED::en_positive, TRUE);
 			pos.clear();
 		}
@@ -199,23 +200,7 @@ enum SearchFlag
 
 	class TriggerManager : TriggerBase
 	{
-		map<int, TriggerData> triggers;
-
-		void ResetTrig()
-		{
-			uvEng_Mvenc_ReqTriggerStrobe(FALSE);
-			uvEng_Mvenc_ReqEncoderOutReset();
-			uvEng_Mvenc_ResetTrigPosAll();
-		}
-
-		void Regist(int direction)
-		{
-			ResetTrig();
-
-			for each (auto var in triggers)
-				var.second.Regist(direction);
-		}
-
+	public:
 		void AddTrigPos(int channel, INT32 pos)
 		{
 			triggers[channel].pos.push_back(pos);
@@ -226,6 +211,41 @@ enum SearchFlag
 			triggers[channel].delay[increase] = incDelay;
 			triggers[channel].delay[decrease] = decDelay;
 		}
+
+		void Reset()
+		{
+			triggers.clear();
+		}
+
+		void ResetTrig()
+		{
+			uvEng_Mvenc_ReqTriggerStrobe(FALSE);
+			uvEng_Mvenc_ReqEncoderOutReset();
+			uvEng_Mvenc_ResetTrigPosAll();
+		}
+
+		void Regist(int direction,int channel = -1)
+		{
+			ResetTrig();
+
+			if (channel == -1)
+			{
+				for each (auto var in triggers)
+					var.second.Regist(direction);
+			}
+			else
+			{
+				triggers[channel].channel = channel;
+				triggers[channel].Regist(direction);
+			}
+			
+
+			//uvEng_Mvenc_ReqTriggerStrobe(TRUE);
+		}
+
+		private:
+			map<int, TriggerData> triggers;
+		
 	};
 
 	class CaliCalc
@@ -290,8 +310,8 @@ enum SearchFlag
 		{
 
 			
-			this->min = (INT32)ROUNDED(min * 10000.0f, 0);
-			this->max = (INT32)ROUNDED(max * 10000.0f, 0);
+			this->min = min;//(INT32)ROUNDED(min * 10000.0f, 0);
+			this->max = max;//(INT32)ROUNDED(max * 10000.0f, 0);
 			this->name = name;
 			this->parts = parts;
 			this->direction = dir;
@@ -414,7 +434,7 @@ enum SearchFlag
 
 		bool GetNearFid(STG_XMXY currentPos, SearchFlag flag, vector<STG_XMXY> skipList, STG_XMXY& findFid);
 
-		bool isArrive(string drive, string axis, double dest, float threshold);
+		bool isArrive(string drive, string axis, double dest, float threshold = 0.001);
 
 		bool NowOnMoving();
 
@@ -516,6 +536,8 @@ enum SearchFlag
 		map<string, thread> waiter;
 		mutex motionMutex;
 		unique_ptr<AlignMotion> alignMotion;
+		unique_ptr<TriggerManager> triggerManager;
+
 		//AlignMotion* alignMotion = nullptr;
 		template <typename MapType>
 		bool IsKeyExist(const MapType& map, string key)
@@ -533,10 +555,18 @@ enum SearchFlag
 			return *alignMotion;
 		}
 
+		TriggerManager& GetTrigger()
+		{
+			return *triggerManager;
+		}
+
+
 		void Destroy()
 		{
 			GetAlignMotion().Destroy();
-
+			alignMotion.reset();
+			triggerManager.reset();
+			
 			for (auto it = waiter.begin(); it != waiter.end();) {
 				if (it->second.joinable())
 				{
@@ -615,6 +645,8 @@ enum SearchFlag
 			//alignMotion = new AlignMotion();
 			alignMotion = make_unique<AlignMotion>();
 			alignMotion.get()->motionMutex = &motionMutex;
+
+			triggerManager = make_unique<TriggerManager>();
 		}
 
 		/*GlobalVariables()

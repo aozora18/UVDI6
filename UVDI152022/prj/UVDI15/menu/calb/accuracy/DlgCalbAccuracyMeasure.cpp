@@ -378,7 +378,6 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	vTitle[eOPTION_DOUBLE_MARK] = { _T("Double Mark"), _T("NO") };
 	
 	vTitle[eOPTION_EXPO_AREA_MEASURE] = { _T("Expo area measure"), _T("NO") };
-	vTitle[eOPTION_TRIGGER_AXIS] = { _T("Trigger Axis"), _T("Y") };
 	
 	 //serchmode = ;
 	CAccuracyMgr::GetInstance()->SetSearchMode(CAccuracyMgr::SearchMode::single);
@@ -452,13 +451,6 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 						{
 							options.Add(_T("STAGE X"));
 							options.Add(_T("CAMERA X"));
-						}
-						break;
-						
-						case eOPTION_TRIGGER_AXIS:
-						{
-							options.Add(_T("X"));
-							options.Add(_T("Y"));
 						}
 						break;
 							

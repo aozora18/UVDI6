@@ -741,11 +741,11 @@ BOOL CMvencThread::ReqWriteAreaTrigPos(BOOL direct,
 		/*노광 방향에 따라 각 트리거 발생 모드 동작 실행*/
 		if (ENG_TEED::en_positive == enable)
 		{
-			MvsEncSetPositiveRun(m_handle, 15);
+			MvsEncSetPositiveRun(m_handle, 11);
 		}
 		else if (ENG_TEED::en_negative == enable)
 		{
-			MvsEncSetNegativeRun(m_handle, 15);
+			MvsEncSetNegativeRun(m_handle, 11);
 		}
 
 
@@ -796,15 +796,9 @@ BOOL CMvencThread::ReqWriteAreaTrigPos(BOOL direct,
 BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count, PINT32 pos,
 										ENG_TEED enable, BOOL clear)
 {
-	UINT8 i1 = 0, i2 = 0, u3MaxTrig = MAX_REGIST_TRIG_POS_COUNT;
-	UINT8 u8ChNo[2] = { NULL };
-
-	UINT8 u8Cam1No[2] = { 1, 2 };
-	UINT8 u8Cam2No[2] = { 0, 3 };
+	
 	BOOL bSucc = TRUE;
-	UINT uiStatus = 0;
-	UINT uiStatus1 = 0;
-	UINT uiStatus2 = 0;
+	UINT uiStatus1=0, uiStatus2 = 0, uiStatus3 = 0, uiStatus4 = 0;
 	STG_TPQR stPktData = { NULL };
 
 	/* 각 Align Camera에 대한 채널 번호 얻기 */
@@ -816,7 +810,7 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 			TCHAR tzMesg[LOG_MESG_SIZE]	= {NULL};
 			swprintf_s(tzMesg, LOG_MESG_SIZE,
 					   L"Trigger Invalid Parameter (ch_no:%d start:%d count:%d)",
-					   u8ChNo, start, count);
+				cam_id, start, count);
 			LOG_ERROR(ENG_EDIC::en_mvenc, tzMesg);
 			return FALSE;
 	}
@@ -838,10 +832,9 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 		memcpy(stPktData.trig_set, m_pstShMemTrig->trig_set, sizeof(STG_TPTS) * MAX_TRIG_CHANNEL /* Max 4 channel */);
 
 		for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
-		{
-			memset(stPktData.trig_set[i].area_trig_pos, MAX_TRIG_POS, MAX_REGIST_TRIG_POS_COUNT);	
-		}
-
+			for (int j = 0; j < MAX_REGIST_TRIG_POS_COUNT; j++)
+				stPktData.trig_set[i].area_trig_pos[j] = MAX_TRIG_POS;
+		
 		/* 트리거 이벤트 설정 */
 		SetTrigEvent(TRUE, stPktData.trig_set);
 		/* 트리거 위치 설정 */
@@ -849,9 +842,12 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 
 		
 		/*Cam1 포지션 설정*/
-		memcpy(&stPktData.trig_set[cam_id-1].area_trig_pos + start, pos, sizeof(UINT32) * count);
-		/*Cam2 포지션 설정*/
-		memcpy(&stPktData.trig_set[3].area_trig_pos + start, pos, sizeof(UINT32) * count);
+		for (int i = start; i < start + count; i++)
+		{
+			stPktData.trig_set[cam_id - 1].area_trig_pos[i] = pos[i];
+			stPktData.trig_set[3].area_trig_pos[i] = pos[i];
+		}
+		
 		/*공용 조명 설정*/
 
 
@@ -876,8 +872,9 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 		for (int posID = 0; posID < MAX_REGIST_TRIG_POS_COUNT; posID++)
 		{
 
-			uiStatus1 = MvsEncSetIndexTriggerPosition(m_handle, cam_id-1, posID, stPktData.trig_set[cam_id - 1].area_trig_pos[posID] + area_trig_pos_offset[cam_id - 1]);
-			uiStatus2 = MvsEncSetIndexTriggerPosition(m_handle, 3, posID, stPktData.trig_set[3].area_trig_pos[posID] + area_trig_pos_offset[3]);
+			
+			uiStatus3 = MvsEncSetIndexTriggerPosition(m_handle, cam_id-1, posID, stPktData.trig_set[cam_id - 1].area_trig_pos[posID] + area_trig_pos_offset[cam_id - 1]);
+			uiStatus4 = MvsEncSetIndexTriggerPosition(m_handle, 3, posID, stPktData.trig_set[3].area_trig_pos[posID] + area_trig_pos_offset[3]);
 
 			if (uiStatus1 != 0x00 && uiStatus2 != 0x00)
 			{
@@ -890,45 +887,45 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 		for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
 		{
 			/*트리거 사이클 Max값*/
-			uiStatus = MvsEncSetTriggerGenerator(m_handle, i, MAX_TRIG_POS, MAX_TRIG_POS);
-			if (uiStatus != 0x00)
+			uiStatus1 = MvsEncSetTriggerGenerator(m_handle, i, MAX_TRIG_POS, MAX_TRIG_POS);
+			if (uiStatus1 != 0x00)
 			{
 				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
-				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncSetTriggerGenerator API Error (status:%d)", uiStatus);
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncSetTriggerGenerator API Error (status:%d)", uiStatus1);
 				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
 				bSucc = FALSE;
 			}
 		}
+
 		/*노광 방향에 따라 각 트리거 발생 모드 동작 실행*/
 		if (ENG_TEED::en_positive == enable)
 		{
-			MvsEncSetPositiveRun(m_handle, 15);
-			//MvsEncSetPositiveRun(m_handle, (16 >> cam_id) + 1);
+			MvsEncSetPositiveRun(m_handle, 0b1000 | (1 << (cam_id - 1)));
 		}
 		else if (ENG_TEED::en_negative == enable)
 		{
-			MvsEncSetNegativeRun(m_handle, 15);
+			MvsEncSetNegativeRun(m_handle, 0b1000 | (1 << (cam_id - 1)));
 		}
-
 
 		/*Clear*/
 		if (clear)
 		{
+			Sleep(100);
 			/*Position*/
-			uiStatus = MvsEncClearEncoderPositionAll(m_handle);
-			if (uiStatus != 0x00)
+			uiStatus1 = MvsEncClearEncoderPositionAll(m_handle);
+			if (uiStatus1 != 0x00)
 			{
 				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
-				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearEncoderPositionAll API Error (status:%d)", uiStatus);
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearEncoderPositionAll API Error (status:%d)", uiStatus1);
 				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
 				bSucc = FALSE;
 			}
 			/*Trigger MvsEncClearTriggerCount*/
-			uiStatus = MvsEncClearTriggerAll(m_handle);
-			if (uiStatus != 0x00)
+			uiStatus1 = MvsEncClearTriggerAll(m_handle);
+			if (uiStatus1 != 0x00)
 			{
 				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
-				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearTriggerAll API Error (status:%d)", uiStatus);
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncClearTriggerAll API Error (status:%d)", uiStatus1);
 				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
 				bSucc = FALSE;
 			}

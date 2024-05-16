@@ -185,12 +185,15 @@ enum SearchFlag
 		{
 			//여기서 소팅하고 부호 바꾸고, 등록하고 클리어.
 
+			
+			std::sort(pos.begin(), pos.end(), less<INT32>()); //오름차순
+			if(direction == decrease)
+				std::sort(pos.begin(), pos.end(),greater<INT32>()); //내림차순으로 변경.
+
 			for (int i = 0; i < pos.size(); i++)
 			{
 				pos[i] *= direction == decrease ? -1 : 1;
 			}
-
-			std::sort(pos.begin(), pos.end());
 
 			uvEng_Mvenc_ReqWriteAreaTrigPosCh(channel, 0, pos.size(), pos.data(), direction == decrease ? ENG_TEED::en_negative : ENG_TEED::en_positive, TRUE);
 			pos.clear();
@@ -214,20 +217,15 @@ enum SearchFlag
 
 		void Reset()
 		{
-			triggers.clear();
-		}
-
-		void ResetTrig()
-		{
 			uvEng_Mvenc_ReqTriggerStrobe(FALSE);
 			uvEng_Mvenc_ReqEncoderOutReset();
 			uvEng_Mvenc_ResetTrigPosAll();
+
+			triggers.clear();
 		}
 
 		void Regist(int direction,int channel = -1)
 		{
-			ResetTrig();
-
 			if (channel == -1)
 			{
 				for each (auto var in triggers)

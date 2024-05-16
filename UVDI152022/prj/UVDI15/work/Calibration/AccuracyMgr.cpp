@@ -320,7 +320,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("[2DCal]\tSTART"));
 
 
-	std::vector<std::function<void()>> caliTask =
+	std::vector<std::function<bool()>> caliTask =
 	{ 
 		[&]()
 		{
@@ -379,18 +379,21 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 				Wait(500);
 			}
 		},
-		[&]()
+		[&]()->bool
 		{
 			if (m_stVctTable.size() < 1) 
-				return;
-
-			bool moveToX = m_stVctTable[0].dMotorX != m_stVctTable[1].dMotorX;
-			auto pointTerm = moveToX ? m_stVctTable[1].dMotorX - m_stVctTable[0].dMotorX : m_stVctTable[1].dMotorY - m_stVctTable[0].dMotorY;
-			double initialVal = moveToX ? m_stVctTable[0].dMotorY : m_stVctTable[0].dMotorX;
-			auto it = std::find_if(m_stVctTable.begin(), m_stVctTable.end(), [&](const ST_ACCR_PARAM& v) {return moveToX ? initialVal != v.dMotorY : initialVal != v.dMotorX; });
+				return false;
 			
-			int axisCount = std::distance(m_stVctTable.begin(), it);
-			int maxCycle = m_stVctTable.size() / axisCount;
+			if (fabs(m_stVctTable[0].dMotorY - m_stVctTable[1].dMotorY) < 4.99f) 
+				return false;
+			
+			auto it = std::find_if(m_stVctTable.begin(), m_stVctTable.end(), [&](const ST_ACCR_PARAM& v) {return m_stVctTable[0].dMotorX != v.dMotorX; });
+			
+			int trigCount = std::distance(m_stVctTable.begin(), it);
+			int maxCycle = m_stVctTable.size() / trigCount;
+
+			auto res = uvEng_MC2_SendDevLuriaMode(ENG_MMDI::en_stage_y, ENG_MTAE::en_area);
+			res = uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);
 
 			//일단 스타트 포인트로 가긴해야하니까. 
 			
@@ -398,24 +401,27 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
 			LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
 			auto axises = motion.GetAxises();
-			auto minDist = axises["stage"][moveToX ? "x" : "y"].min;
-			auto maxDist = axises["stage"][moveToX ? "x" : "y"].max;
 			
-			auto CloserPoint = [&](double min, double max,double curr)->double 
-			{
-				return std::abs(min - curr) < std::abs(max - curr) ? max  : min;
-			};
 
+			auto anchor = [&](double val)->double
+				{
+					val = min(val, axises["stage"]["y"].max);
+					val = max(val, axises["stage"]["y"].min);
+					return val;
+				};
 
 			auto MoveTillArrive = [&](double x, double y ,double spd)->bool
 			{
 				motion.Refresh();
 
-				if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y)) return true;
+				if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y)) 
+					return true;
 
 				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
 				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+
 				ENG_MMDI vecAxis = ENG_MMDI::en_stage_x;
+				
 				if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
 					return false;
 
@@ -424,46 +430,73 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 						bool res = ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis);
 						return res;
 
-					}, 30000);
+					}, 300000);
 					
 			};
 			
-			auto direction = (pointTerm > 0 ? TriggerBase::increase : TriggerBase::decrease);
-			double initialX = axises["stage"][moveToX ? "x" : "y"].currPos; //moveToX ? (DOUBLE)(direction == TriggerBase::increase ? maxDist : minDist) : (DOUBLE)m_stVctTable[0].dMotorX;
-			double initialY = moveToX ? (DOUBLE)m_stVctTable[0].dMotorY : (DOUBLE)(direction == TriggerBase::increase ? minDist : maxDist);
-			INT32 gab = abs(pointTerm * 10000);
+			bool initMove = false;
 			
-			if(MoveTillArrive(initialX, initialY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == true)
+			double posX = 0;
+			double posY = 0;
+
 			for (int i = 0; i < maxCycle; i++)
 			{
-				
-				auto firstAxisPos = moveToX ? m_stVctTable[i * axisCount].dMotorX : m_stVctTable[i * axisCount].dMotorY;
-				auto secondAxisPos = moveToX ? m_stVctTable[(i * axisCount) + 1].dMotorX : m_stVctTable[(i * axisCount) + 1].dMotorY;
-				auto apositAxisPos = moveToX ? m_stVctTable[i * axisCount].dMotorY : m_stVctTable[i * axisCount].dMotorX;
-				
-				INT32 basicGab = abs(initialY - firstAxisPos) * 10000;
+				auto pointTerm = m_stVctTable[i * trigCount+1].dMotorY - m_stVctTable[i * trigCount].dMotorY; //크기와 방향
+				auto firstAxisPos = m_stVctTable[i * trigCount].dMotorY;
+				auto secondAxisPos = m_stVctTable[(i * trigCount) + 1].dMotorY;
+				auto lastAxisPos = m_stVctTable[(i * trigCount) + (trigCount-1)].dMotorY;
 
+				auto apositAxisPos = m_stVctTable[i * trigCount].dMotorX;
+				INT32 gab = abs(pointTerm * 10000);
+				INT32 basicGab = 0; 
+
+				auto direction = (pointTerm > 0 ? TriggerBase::increase : TriggerBase::decrease);
+
+
+
+				if (initMove == false)
+				{
+					posX = (DOUBLE)m_stVctTable[0].dMotorX;
+					posY = firstAxisPos + (pointTerm > 0 ? -100 : +100);
+					posY = anchor(posY);
+					basicGab = abs(posY - firstAxisPos) * 10000;
+					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false) 
+						return false;
+					initMove = true;
+				}
+				else
+				{
+					posX = (DOUBLE)m_stVctTable[i * trigCount].dMotorX;
+					posY = firstAxisPos + (pointTerm > 0 ? -100 : +100);
+					posY = anchor(posY);
+					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false)
+						return false;
+				}
+				
+				posY = lastAxisPos + (pointTerm > 0 ? +100 : -100);  // moveToX ? (DOUBLE)m_stVctTable[i * axisCount].dMotorY : (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist;
+				posY = anchor(posY);
+				
+				uvEng_Camera_ResetGrabbedImage();
+				uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
+				Sleep(100);
 				trigger.Reset();
-				
-				for (int j = 0; j < axisCount; j++)
-					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * (gab)) + basicGab); //시작좌표.)// (10000 * 10) * j);// (INT32)(j * (gab)) + basicGab); //시작좌표.)
-					//trigger.AddTrigPos(m_u8ACamID, (INT32)((10000 * 10) * j));// (INT32)(j * (gab)) + basicGab); //시작좌표.)
 
-					
+				for (int j = 0; j < trigCount; j++)
+					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * gab) + basicGab);// ); //시작좌표.)
 
 				trigger.Regist(direction, m_u8ACamID);
 
-				direction = direction == TriggerBase::increase ? TriggerBase::decrease : TriggerBase::increase;
-				initialX = moveToX ? (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist : (DOUBLE)m_stVctTable[i * axisCount].dMotorX;
-				initialY = moveToX ? (DOUBLE)m_stVctTable[i * axisCount].dMotorY : (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist;
-				MoveTillArrive(initialX, initialY, pstMC2Svc->mark_velo);
+				Sleep(100);
+				uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);
+
+				if (MoveTillArrive(posX, posY, 10) == false)
+					return false;
+
 
 				//자... 해당축의 완전한 반대로 이동.
 				
-
-
 				//초기위치이동.
-
+				
 			}
 
 			
@@ -486,7 +519,11 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 		}
 	};
 
-	caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
+	bool res = caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
+	if (res == false)
+	{
+		int debug = 0;
+	}
 
 	// 동작 완료
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("Successful 2D Cal"));

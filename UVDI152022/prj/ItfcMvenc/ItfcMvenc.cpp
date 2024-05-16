@@ -293,7 +293,7 @@ API_EXPORT BOOL uvMvenc_ReqTriggerStrobe(BOOL enable)
 }
 
 /*
- 사용하지 않음
+ 사용하지 않음\\
  desc : IP 변경하기
  parm : ip_addr	- [in]  패킷 정보가 저장된 구조체 포인터
  retn : TRUE or FALSE

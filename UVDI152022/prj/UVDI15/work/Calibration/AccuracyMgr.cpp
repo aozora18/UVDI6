@@ -194,7 +194,7 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 	CString strLine;
 	CDPoint dpPos;
 	int nMaxIndex = cpMaxPoint.x   * cpMaxPoint.y ; 
-
+	
 	vector<CDPoint> buffer;
 
 
@@ -226,7 +226,7 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 			for each (CDPoint var in buffer)
 			{
 				strLine.Format(_T("%.4f,%.4f,\n"), var.x, var.y);
-				strWrite += strLine;
+				strWrite.Append(strLine);
 			}
 
 			turnBackFlag = useTurnback ? !turnBackFlag : turnBackFlag;
@@ -263,9 +263,10 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 	double dACamPosX = 0.0f, dStagePosY = 0.0f;
 
 	SortField(stVctField);
-
+	LPG_CIEA pstCfg = uvEng_GetConfig();
+	
 	/* 환경 파일 */
-	strWrite.Format(_T("0.0000\n0.0000\n0.0000\n%d\n%d\n"), stFieldData.u32Row, stFieldData.u32Col);
+	strWrite.Format(_T("%f\n%f\n0.0000\n%d\n%d\n"), pstCfg->luria_svc.table_expo_start_xy[0][0], pstCfg->luria_svc.table_expo_start_xy[0][1], stFieldData.u32Row, stFieldData.u32Col);
 
 	for (int i = 0; i < (int)stVctField.size(); i++)
 	{

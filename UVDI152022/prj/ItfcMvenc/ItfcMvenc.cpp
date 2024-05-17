@@ -451,6 +451,18 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOne_(UINT8 channelBit)
 	return bSucc;
 }
 
+API_EXPORT BOOL uvMvenc_ReqTrigDelay(UINT8 channel,int delay)
+{
+	if (!IsConnected())	return FALSE;
+	BOOL bSucc = g_pMvencThread->ReqTrigDelay(channel,delay);
+	return bSucc;
+}
+
+
+
+
+
+
 
 
 /*

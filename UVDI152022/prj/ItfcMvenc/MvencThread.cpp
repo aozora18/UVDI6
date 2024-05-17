@@ -852,7 +852,7 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 
 
 		// Trigger Offset 보상
-		UINT32				area_trig_pos_offset[MAX_TRIG_CHANNEL] = { 0 };
+		INT32				area_trig_pos_offset[MAX_TRIG_CHANNEL] = { 0 };
 		if (ENG_TEED::en_positive == enable)
 		{
 			for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
@@ -871,8 +871,6 @@ BOOL CMvencThread::ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count,
 
 		for (int posID = 0; posID < MAX_REGIST_TRIG_POS_COUNT; posID++)
 		{
-
-			
 			uiStatus3 = MvsEncSetIndexTriggerPosition(m_handle, cam_id-1, posID, stPktData.trig_set[cam_id - 1].area_trig_pos[posID] + area_trig_pos_offset[cam_id - 1]);
 			uiStatus4 = MvsEncSetIndexTriggerPosition(m_handle, 3, posID, stPktData.trig_set[3].area_trig_pos[posID] + area_trig_pos_offset[3]);
 
@@ -1208,6 +1206,17 @@ BOOL CMvencThread::ReqWriteTrigOutOne_(UINT32 channelBit,int trigTime)
 	return bSucc ? ReqReadSetup() : FALSE;
 }
 
+BOOL CMvencThread::ReqTrigDelay(UINT8 channel, int delay)
+{
+
+	/* 동기 진입 */
+	if (m_syncSend.Enter())
+	{
+		MvsEncSetTriggerDelay(m_handle, channel, delay);
+		m_syncSend.Leave();
+	}
+	return TRUE;
+}
 
 
 /*
@@ -1503,7 +1512,7 @@ BOOL CMvencThread::SetPositionTrigMode(ENG_TEED enable)
 			MvsEncSetTriggerDelay(m_handle, 0, 10);
 			MvsEncSetTriggerDelay(m_handle, 1, 10);
 			MvsEncSetTriggerDelay(m_handle, 2, 10);
-			MvsEncSetTriggerDelay(m_handle, 3, 0);
+			MvsEncSetTriggerDelay(m_handle, 3, 10);
 
 			MvsEncSetTriggerPulseWidth(m_handle, i, 200);
 

@@ -95,6 +95,13 @@ API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOne_(int channelBit)
 }
 
 
+API_EXPORT BOOL uvEng_Mvenc_ReqTrigDelay(UINT8 channel, int delay)
+{
+	if (!uvMvenc_IsConnected() && GetConfig()->IsRunDemo())	return TRUE;
+	return uvMvenc_ReqTrigDelay(channel,delay);
+}
+
+
 
 #if 1
 /*

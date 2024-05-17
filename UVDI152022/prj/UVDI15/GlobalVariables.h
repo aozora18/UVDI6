@@ -584,6 +584,7 @@ enum SearchFlag
 		{
 			const int CHECKTERM = 100; int elapsedMS=0;
 			bool res = false;
+			this_thread::sleep_for(chrono::milliseconds(CHECKTERM));
 			while (res == false && elapsedMS < timeoutDelay)
 			{
 				try

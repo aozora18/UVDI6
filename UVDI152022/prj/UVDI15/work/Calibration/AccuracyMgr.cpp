@@ -294,7 +294,7 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool MoveTillArrive(double x, double y, double spd)
+bool CAccuracyMgr::MoveTillArrive(double x, double y, double spd)
 {
 	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
 		motion.Refresh();
@@ -317,21 +317,35 @@ bool MoveTillArrive(double x, double y, double spd)
 		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, x) || CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, y))
 			return false;
 
-
-		ENG_MMDI vecAxis = ENG_MMDI::en_stage_x;
-
 		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
 		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+		
+		if (x == -1 || y == -1)
+		{
+			if (uvEng_MC2_SendDevAbsMove(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x,
+				x == -1 ? y : x, spd) == false)
+				return false;
 
-		if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
-			return false;
+			return GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					return uvCmn_MC2_IsDrvDoneToggled(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x);
 
-		return GlobalVariables::GetInstance()->Waiter([&]()->bool
+				}, 300000);
+		}
+		else
+		{
+			ENG_MMDI vecAxis = ENG_MMDI::en_axis_none;
+			if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
+			{
+				return false;
+			}
+			return GlobalVariables::GetInstance()->Waiter([&]()->bool
 			{
 				return (ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis));
-				
 			}, 300000);
-
+		}
+			
+		return false;
 }
 
 
@@ -432,8 +446,8 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			int trigCount = std::distance(m_stVctTable.begin(), it);
 			int maxCycle = m_stVctTable.size() / trigCount;
 
-			auto res = uvEng_MC2_SendDevLuriaMode(ENG_MMDI::en_stage_y, ENG_MTAE::en_area);
-			res = uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);
+			/*auto res = uvEng_MC2_SendDevLuriaMode(ENG_MMDI::en_stage_y, ENG_MTAE::en_area);
+			res = uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);*/
 
 			//일단 스타트 포인트로 가긴해야하니까. 
 
@@ -441,14 +455,14 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
 			LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
 			auto axises = motion.GetAxises();
-
+			int incdelay = 0;
+			int decdelay = 13;
+			int zeroOffset[] = { -15,0 };
 
 			auto anchor = [&](double val)->double
 			{
 				return clamp(val, axises["stage"]["y"].min, axises["stage"]["y"].max);
 			};
-
-			
 
 			auto ProcessGrabs = [&](CAtlList <LPG_ACGR>* grabs, int camIdx) -> vector<std::tuple<double, double>>
 				{
@@ -494,7 +508,9 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 					posX = (DOUBLE)m_stVctTable[0].dMotorX;
 					posY = firstAxisPos + (pointTerm > 0 ? -100 : +100);
 					posY = anchor(posY);
+					
 					basicGab = abs(posY - firstAxisPos) * 10000;
+
 					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false)
 						return false;
 
@@ -505,6 +521,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 					posX = (DOUBLE)m_stVctTable[i * trigCount].dMotorX;
 					posY = firstAxisPos + (pointTerm > 0 ? -100 : +100);
 					posY = anchor(posY);
+					basicGab = abs(posY - firstAxisPos) * 10000;
 					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false)
 						return false;
 				}
@@ -512,58 +529,86 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 				posY = lastAxisPos + (pointTerm > 0 ? +100 : -100);  // moveToX ? (DOUBLE)m_stVctTable[i * axisCount].dMotorY : (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist;
 				posY = anchor(posY);
 
-				uvEng_Camera_ResetGrabbedImage();
+				
 				uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 				Sleep(100);
 				trigger.Reset();
 
 				for (int j = 0; j < trigCount; j++)
-					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * gab) + basicGab);// ); //시작좌표.)
+					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * gab) + basicGab + zeroOffset[direction]);// ); //시작좌표.)
 
 				trigger.Regist(direction, m_u8ACamID);
 
-				Sleep(100);
+				
+				uvEng_Mvenc_ReqTrigDelay(m_u8ACamID, direction == TriggerBase::increase ? incdelay : decdelay);
+
+				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+				uvEng_MC2_SendDevLuriaMode(ENG_MMDI::en_stage_y, ENG_MTAE::en_area);
+				
+				GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);
+				}, 300000);
+
+
 				uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);
+				uvEng_Camera_ResetGrabbedImage();
 
-
-				if (MoveTillArrive(posX, posY, 10))
+				if (MoveTillArrive(-1, posY, 10))
 				{
 					auto temp = ProcessGrabs(uvEng_Camera_GetGrabbedMarkAll(), m_u8ACamID);
 
-					if (temp.size() != trigCount-1)
+					if (temp.size() == trigCount)
 					{
-						//throw exception("grab count error.");
+						
+						for (int j = 0; j < temp.size(); j++)
+						{
+							SetPointErrValue(j + offsetVector.size(), std::get<0>(temp[j]), std::get<1>(temp[j]));
+							::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_GRAB, (WPARAM)j + offsetVector.size(), NULL, SMTO_NORMAL, 100, NULL);
+						}
+						
+						offsetVector.insert(offsetVector.end(), temp.begin(), temp.end());
 					}
-
-					offsetVector.insert(offsetVector.end(), temp.begin(), temp.end());
+					else
+					{
+						return false;
+					}
+					
 				}
 				else
 					return false;
-
-				//자... 해당축의 완전한 반대로 이동.
-
-				//초기위치이동.
-
 			}
-		}
+		
+			//fail처리.
+			}
 	};
 	bool res = caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
-	if (res == false)
+	if (res)
 	{
-		int debug = 0;
+		// 동작 완료
+		LOG_MESG(ENG_EDIC::en_2d_cali, _T("Successful 2D Cal"));
+
+		if (NULL != hHwnd)
+		{
+			// Grab View 갱신
+			::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_OK, NULL, SMTO_NORMAL, 100, NULL);
+		}
+
+		
 	}
-
-	// 동작 완료
-	LOG_MESG(ENG_EDIC::en_2d_cali, _T("Successful 2D Cal"));
-
-	if (NULL != hHwnd)
+	else
 	{
-		// Grab View 갱신
-		::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_OK, NULL, SMTO_NORMAL, 100, NULL);
-	}
+		// 동작 완료
+		LOG_MESG(ENG_EDIC::en_2d_cali, _T("Failed 2D Cal"));
 
+		if (NULL != hHwnd)
+		{
+			// Grab View 갱신
+			::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_OK, NULL, SMTO_NORMAL, 100, NULL);
+		}
+	}
 	m_bRunnigThread = FALSE;
-	return TRUE;
+	return res;
 }
 
 /*

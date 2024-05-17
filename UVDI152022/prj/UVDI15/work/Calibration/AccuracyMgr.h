@@ -174,6 +174,7 @@ public:
 	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint, bool toXDirection,bool turnBack);
 
 	BOOL SaveCaliFile(CString strFileName);
+	bool MoveTillArrive(double x, double y, double spd);
 
 	VOID SetUseCalData(BOOL bSet) { m_bUseCalData = bSet; }
 	BOOL GetUseCalData() { return m_bUseCalData; }

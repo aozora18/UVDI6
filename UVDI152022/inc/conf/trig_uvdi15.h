@@ -199,9 +199,9 @@ typedef struct __st_trig_packet_trigger_strobe__
 	UINT32				area_trig_ontime;							/* High가 유지되는 값을 입력 (1 값 = 1 ns) */
 	UINT32				area_strob_ontime;							/* Hight가 유지되는 값을 입력 (1 값 = 1 ns) */
 	UINT32				area_strob_trig_delay;						/* 출력되는 Trigger의 Delay 값을 입력 (1 ns) */
-	UINT32				area_trig_pos_plus;							/* Area Trigger Position (1 ~ 16)의 값에 이 Register 값이 증가되어 Strobe와 Trigger 신호가 출력됨 */
+	INT32				area_trig_pos_plus;							/* Area Trigger Position (1 ~ 16)의 값에 이 Register 값이 증가되어 Strobe와 Trigger 신호가 출력됨 */
 																	/* ex> area_trig_pos = 100이고, 이 Register 값이 10이면 Encoder의 110에서 Strobe와 Trigger가 출력됨 */
-	UINT32				area_trig_pos_minus;						/* Area Trigger Position (1 ~ 16)의 값에 이 Register 값이 감소되어 Strobe와 Trigger 신호가 출력됨 */
+	INT32				area_trig_pos_minus;						/* Area Trigger Position (1 ~ 16)의 값에 이 Register 값이 감소되어 Strobe와 Trigger 신호가 출력됨 */
 																	/* ex> area_trig_pos = 100이고, 이 Register 값이 10이면 Encoder의 90에서 Strobe와 Trigger가 출력됨 */
 
 	/*

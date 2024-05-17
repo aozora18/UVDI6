@@ -80,6 +80,7 @@ public:
 	BOOL				ReqWriteAreaTrigPosCh(UINT8 cam_id, UINT8 start, UINT8 count, PINT32 pos,
 											  ENG_TEED enable, BOOL clear);
 	BOOL				ReqResetTrigCount();
+	BOOL				ReqTrigDelay(UINT8 channel, int delay);
 	BOOL				IsInitRecvData() { return m_bInitRecv; };
 	BOOL				IsTrigPosEqual(UINT8 cam_id, UINT8 index, UINT32 pos);
 

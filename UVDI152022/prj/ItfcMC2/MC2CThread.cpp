@@ -854,13 +854,8 @@ BOOL CMC2CThread::WriteStageMoveVec(ENG_MMDI m_drv_id, ENG_MMDI s_drv_id,
 		pstData->param_3		= velo;
 
 		/* 메모리 멥에 등록 (Object 0x3801, PDO Reference Value Collective Object) */
-		bSucc	= WriteObjectValueByIndex(UINT8(m_drv_id), 0x0000, pstWrite->index);
-		if (bSucc)
-		{
-			/* MC2 패킷 송신 */
-			bSucc	= AddPktData(m_pPktReqWrite, u32Size, 0x01);
-		}
-
+		bSucc = WriteObjectValueByIndex(UINT8(m_drv_id), 0x0000, pstWrite->index) && AddPktData(m_pPktReqWrite, u32Size, 0x01);
+	
 		/* 동기 해제 */
 		m_syncPktSend.Leave();
 	}

@@ -294,6 +294,46 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool MoveTillArrive(double x, double y, double spd)
+{
+	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+		motion.Refresh();
+
+		LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
+		
+		if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
+			pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
+			!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
+			!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
+			!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
+			!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
+		{
+			return false;
+		}
+
+		if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y))
+			return true;
+
+		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, x) || CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, y))
+			return false;
+
+
+		ENG_MMDI vecAxis = ENG_MMDI::en_stage_x;
+
+		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
+		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+
+		if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
+			return false;
+
+		return GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return (ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis));
+				
+			}, 300000);
+
+}
+
 
 BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 {
@@ -321,7 +361,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 
 
 	std::vector<std::function<bool()>> caliTask =
-	{ 
+	{
 		[&]()
 		{
 			for (int nWorkStep = m_nStartIndex; nWorkStep < (int)m_stVctTable.size(); nWorkStep++)
@@ -381,14 +421,14 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 		},
 		[&]()->bool
 		{
-			if (m_stVctTable.size() < 1) 
+			if (m_stVctTable.size() < 1)
 				return false;
-			
-			if (fabs(m_stVctTable[0].dMotorY - m_stVctTable[1].dMotorY) < 4.99f) 
+
+			if (fabs(m_stVctTable[0].dMotorY - m_stVctTable[1].dMotorY) < 4.99f)
 				return false;
-			
+
 			auto it = std::find_if(m_stVctTable.begin(), m_stVctTable.end(), [&](const ST_ACCR_PARAM& v) {return m_stVctTable[0].dMotorX != v.dMotorX; });
-			
+
 			int trigCount = std::distance(m_stVctTable.begin(), it);
 			int maxCycle = m_stVctTable.size() / trigCount;
 
@@ -396,62 +436,57 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			res = uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);
 
 			//일단 스타트 포인트로 가긴해야하니까. 
-			
+
 			auto trigger = GlobalVariables::GetInstance()->GetTrigger();
 			auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
 			LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
 			auto axises = motion.GetAxises();
-			
+
 
 			auto anchor = [&](double val)->double
+			{
+				return clamp(val, axises["stage"]["y"].min, axises["stage"]["y"].max);
+			};
+
+			
+
+			auto ProcessGrabs = [&](CAtlList <LPG_ACGR>* grabs, int camIdx) -> vector<std::tuple<double, double>>
 				{
-					val = min(val, axises["stage"]["y"].max);
-					val = max(val, axises["stage"]["y"].min);
-					return val;
+					vector< std::tuple<double, double> > offsets;
+
+					for (int i = 0; i < grabs->GetCount(); i++)
+					{
+						auto at = grabs->GetAt(grabs->FindIndex(i));
+						if (at->cam_id != camIdx)
+							continue;
+
+						offsets.push_back(make_tuple(at->move_mm_x, at->move_mm_y));
+					}
+					return offsets;
 				};
 
-			auto MoveTillArrive = [&](double x, double y ,double spd)->bool
-			{
-				motion.Refresh();
-
-				if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y)) 
-					return true;
-
-				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
-				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
-
-				ENG_MMDI vecAxis = ENG_MMDI::en_stage_x;
-				
-				if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
-					return false;
-
-				return GlobalVariables::GetInstance()->Waiter([&]()->bool
-					{
-						bool res = ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis);
-						return res;
-
-					}, 300000);
-					
-			};
-			
 			bool initMove = false;
-			
 			double posX = 0;
 			double posY = 0;
+			vector<std::tuple<double, double>> offsetVector;
 
 			for (int i = 0; i < maxCycle; i++)
 			{
-				auto pointTerm = m_stVctTable[i * trigCount+1].dMotorY - m_stVctTable[i * trigCount].dMotorY; //크기와 방향
+				if (TRUE == m_bStop)
+				{
+					return FALSE;
+				}
+
+				auto pointTerm = m_stVctTable[i * trigCount + 1].dMotorY - m_stVctTable[i * trigCount].dMotorY; //크기와 방향
 				auto firstAxisPos = m_stVctTable[i * trigCount].dMotorY;
 				auto secondAxisPos = m_stVctTable[(i * trigCount) + 1].dMotorY;
-				auto lastAxisPos = m_stVctTable[(i * trigCount) + (trigCount-1)].dMotorY;
+				auto lastAxisPos = m_stVctTable[(i * trigCount) + (trigCount - 1)].dMotorY;
 
 				auto apositAxisPos = m_stVctTable[i * trigCount].dMotorX;
 				INT32 gab = abs(pointTerm * 10000);
-				INT32 basicGab = 0; 
+				INT32 basicGab = 0;
 
 				auto direction = (pointTerm > 0 ? TriggerBase::increase : TriggerBase::decrease);
-
 
 
 				if (initMove == false)
@@ -460,8 +495,9 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 					posY = firstAxisPos + (pointTerm > 0 ? -100 : +100);
 					posY = anchor(posY);
 					basicGab = abs(posY - firstAxisPos) * 10000;
-					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false) 
+					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false)
 						return false;
+
 					initMove = true;
 				}
 				else
@@ -472,10 +508,10 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 					if (MoveTillArrive(posX, posY, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false)
 						return false;
 				}
-				
+
 				posY = lastAxisPos + (pointTerm > 0 ? +100 : -100);  // moveToX ? (DOUBLE)m_stVctTable[i * axisCount].dMotorY : (DOUBLE)direction == TriggerBase::increase ? minDist : maxDist;
 				posY = anchor(posY);
-				
+
 				uvEng_Camera_ResetGrabbedImage();
 				uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 				Sleep(100);
@@ -489,36 +525,28 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 				Sleep(100);
 				uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);
 
-				if (MoveTillArrive(posX, posY, 10) == false)
+
+				if (MoveTillArrive(posX, posY, 10))
+				{
+					auto temp = ProcessGrabs(uvEng_Camera_GetGrabbedMarkAll(), m_u8ACamID);
+
+					if (temp.size() != trigCount-1)
+					{
+						//throw exception("grab count error.");
+					}
+
+					offsetVector.insert(offsetVector.end(), temp.begin(), temp.end());
+				}
+				else
 					return false;
 
-
 				//자... 해당축의 완전한 반대로 이동.
-				
+
 				//초기위치이동.
-				
+
 			}
-
-			
-			/*
-			캘리영역 첫줄을 가져와서 비교한다.
-			첫줄과 막줄의 데이터의 XY를 비교한다. 
-			X,Y중 같은 값을 가진게 이동축이다. 즉 SP(100,10) EP(500,10) 이라면 Y 축 기준으로 움직이는것이다. 
-
-			그리고 같은 데이터로 SP와 EP에서 증가된다면 스테이지 기준축은 - 리미트 에서 시작하고 반대라면 +
-			 리미트에서 시작한다. 
-
-			 SP - EP는 리미트 - 리미트간 이동으로 설정한다. 
-
-			 매 기준 ROW, COL 처리시 트리거 등록해주면된다. 
-
-			 시작한다. 
-			*/
-
-
 		}
 	};
-
 	bool res = caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
 	if (res == false)
 	{
@@ -764,13 +792,13 @@ BOOL CAccuracyMgr::Move(ENG_MMDI eMotor, double dPos, int nTimeOut, double dDiff
 	return FALSE;
 }
 
-BOOL CAccuracyMgr::MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut, double dDiffDistance)
+BOOL CAccuracyMgr::MotionCalcMoving(double dMoveX, double dMoveY, double dVel, int nTimeOut, double dDiffDistance)
 {
 	CTactTimeCheck cTime;
 	UINT8 u8InstAngle = uvEng_GetConfig()->set_cams.acam_inst_angle; // 카메라가 설치될 때, 회전 여부 (0: 회전 없음, 1: 180도 회전)
 	double dACamPosX = dMoveX, dStagePosY = dMoveY;
 	double dDiffACamPos = 0, dDiffYPos = 0;
-	double dVel = uvEng_GetConfig()->mc2_svc.step_velo;
+	dVel = dVel == -1 ? uvEng_GetConfig()->mc2_svc.step_velo : dVel;
 	ENG_MMDI enXDrv;
 
 	if (FALSE == m_bUseCamDrv)
@@ -793,7 +821,7 @@ BOOL CAccuracyMgr::MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut, 
 		dStagePosY = dMoveY + (dStagePosY * -1.0);
 	}
 
-	if (CInterLockManager::GetInstance()->CheckMoveInterlock(enXDrv, dACamPosX))
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(enXDrv, dACamPosX) || CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dStagePosY))
 	{
 		return FALSE;
 	}
@@ -801,10 +829,7 @@ BOOL CAccuracyMgr::MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut, 
 	if (FALSE == uvEng_MC2_SendDevAbsMove(enXDrv, dACamPosX, dVel))	return FALSE;
 	Sleep(100);
 
-	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dStagePosY))
-	{
-		return FALSE;
-	}
+	
 
 	if (FALSE == uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_y, dStagePosY, dVel)) return FALSE;
 	Sleep(100);

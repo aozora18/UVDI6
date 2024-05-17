@@ -158,7 +158,7 @@ protected:
 
 	VOID Wait(int nTime);
 	BOOL Move(ENG_MMDI eMotor, double dPos, int nTimeOut = 60000, double dDiffDistance = DEF_MOTION_CALI_CENTERING_MIN);
-	BOOL MotionCalcMoving(double dMoveX, double dMoveY, int nTimeOut = 60000, double dDiffDistance = DEF_MOTION_CALI_CENTERING_MIN);
+	BOOL MotionCalcMoving(double dMoveX, double dMoveY, double dVel = -1, int nTimeOut = 60000, double dDiffDistance = DEF_MOTION_CALI_CENTERING_MIN);
 	BOOL GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount);
 
 	/* 공용 변수 */

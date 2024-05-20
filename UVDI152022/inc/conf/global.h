@@ -49,11 +49,15 @@ using namespace std;
 class CDPoint
 {
 public:
-	double x, y;
+	double x;
+	double y;
+	double x2;
+	double y2;
 	CDPoint(double x, double y) : x(x), y(y) {}
 	CDPoint()
 	{
 		x = y = 0.0;
+		x2 = y2 = 0;
 	}
 };
 

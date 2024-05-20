@@ -1095,15 +1095,15 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 
 			dpStartPos.x = _ttof(stVctParam[0].strValue);
 			dpStartPos.y = _ttof(stVctParam[1].strValue);
+			dpStartPos.x2 = std::stod(string(CT2A(stVctParam[8].strValue.GetLength() == 0 ? L"0" : stVctParam[8].strValue)));
+			dpStartPos.y2 = std::stod(string(CT2A(stVctParam[9].strValue.GetLength() == 0 ? L"0" : stVctParam[9].strValue)));
 
 			CAccuracyMgr::GetInstance()->MakeMeasureField(strFileName, dpStartPos, 0, 0,
 				_ttof(stVctParam[4].strValue),
 				_ttof(stVctParam[5].strValue),
 				CPoint(_ttoi(stVctParam[2].strValue), _ttoi(stVctParam[3].strValue)) , 
 				stVctParam[6].strValue == "1" ? true : false,
-				stVctParam[7].strValue == "1" ? true : false,
-				std::stod(string(CT2A(stVctParam[8].strValue.GetLength() == 0 ? L"0" : stVctParam[8].strValue))),
-				std::stod(string(CT2A(stVctParam[9].strValue.GetLength() == 0 ? L"0" : stVctParam[9].strValue))));
+				stVctParam[7].strValue == "1" ? true : false);
 		
 		}
 	}
@@ -1158,9 +1158,16 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 
 	bool expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
 
+	CAccuracyMgr::GetInstance()->SetExpoAreaMeasure(expoAreaMeasure);
 
 	if (expoAreaMeasure)
 	{
+		if (CAccuracyMgr::GetInstance()->IsGbrpadPosSetted() == false)
+		{
+			AfxMessageBox(_T("시작 거버 포지션 지정이 되어있지 않습니다. "), MB_OK);
+			return;
+		}
+
 		CAccuracyMgr::GetInstance()->SetUseCamDrv(FALSE);
 		strText = _T("노광영역 보정테이블 작성.\n계속 진행하시겠습니까?");
 	}

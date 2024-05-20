@@ -80,6 +80,7 @@ VOID CAccuracyMgr::Terminate()
 VOID CAccuracyMgr::SortField(VCT_ACCR_TABLE& stVctField)
 {
 	double dX = 0, dY = 0;
+	double valX = 0, valY = 0;
 
 	std::sort(stVctField.begin(), stVctField.end(), _SortY);
 
@@ -93,12 +94,21 @@ VOID CAccuracyMgr::SortField(VCT_ACCR_TABLE& stVctField)
 				{
 					dX = stVctField[j].dMotorX;
 					dY = stVctField[j].dMotorY;
+					
+					valX = stVctField[j].dValueX;
+					valY = stVctField[j].dValueY;
 
 					stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
 					stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
 
+					stVctField[j].dValueX = stVctField[j + 1].dValueX;
+					stVctField[j].dValueY = stVctField[j + 1].dValueY;
+
 					stVctField[j + 1].dMotorX = dX;
 					stVctField[j + 1].dMotorY = dY;
+					//뭐야 이거 존나 큰 버그잖아?? 혹시 값은 정렬안시킨건가???
+					stVctField[j + 1].dValueX = valX;
+					stVctField[j + 1].dValueY = valY;
 				}
 			}
 		}
@@ -144,11 +154,14 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 	m_stVctTable.clear();
 	m_stVctTable.shrink_to_fit();
 
+	const int MOTOR_ONLY = 2;
+	const int WITH_GERBER = 4;
+
+
 	if (TRUE == sFile.Open(strPath, CStdioFile::shareDenyNone | CStdioFile::modeRead))
 	{
-
+		SetGbrPadInitialPos(0, 0);
 		
-
 		while (sFile.ReadString(strLine))
 		{
 			vector<double> dblTokens;
@@ -156,10 +169,17 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 
 			int cnt = Stuffs::GetStuffs().ParseAndFillVector(strLine, ',', dblTokens, strToken);
 
-			if (cnt == 2)
+			if (cnt == MOTOR_ONLY || cnt == WITH_GERBER)
 			{
 				stValue.dMotorX = dblTokens[0];
 				stValue.dMotorY = dblTokens[1];
+
+				if (cnt == WITH_GERBER)
+				{
+					stValue.dGbrX = dblTokens[2];
+					stValue.dGbrY = dblTokens[3];
+				}
+
 				m_stVctTable.push_back(stValue);
 			}
 			else //한개밖에 안나올것같다.
@@ -194,7 +214,7 @@ CDPoint rotatePointAroundAnotherPoint(CDPoint P, CDPoint anchorPos, double theta
 }
 
 
-BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint,bool toXDirection,bool turnBack,double padPosX, double padPosY)
+BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint,bool toXDirection,bool turnBack)
 {
 	CFileException ex;
 	CStdioFile sFile;
@@ -204,7 +224,7 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 	int nMaxIndex = cpMaxPoint.x   * cpMaxPoint.y ; 
 	
 	vector<CDPoint> buffer;
-
+	
 
 	double dRadian = degreesToRadians(dAngle);
 
@@ -215,14 +235,24 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 
 	for (int i = 1; i < nMaxIndex; i++)
 	{
-		
-		CDPoint tempPoint = toXDirection == true ?
+		CDPoint motorPoint = toXDirection == true ?
 				CDPoint((double)(dpStartPos.x + ((i % cpMaxPoint.x) * dPitch)),
 					(double)(dpStartPos.y + ((i / cpMaxPoint.x) * dPitch))) :
 				CDPoint((double)(dpStartPos.x + ((i / cpMaxPoint.y) * dPitch)),
 					(double)(dpStartPos.y + ((i % cpMaxPoint.y) * dPitch)));
 
-		CDPoint tempRotated = rotatePointAroundAnotherPoint(tempPoint, dpStartPos, dRadian);
+
+		CDPoint gbrPoint = toXDirection == true ?
+			CDPoint((double)(dpStartPos.x2 + ((i % cpMaxPoint.x) * dPitch)),
+				(double)(dpStartPos.y2 + ((i / cpMaxPoint.x) * dPitch))) :
+			CDPoint((double)(dpStartPos.x2 + ((i / cpMaxPoint.y) * dPitch)),
+				(double)(dpStartPos.y2 + ((i % cpMaxPoint.y) * dPitch)));
+
+
+		CDPoint tempRotated = rotatePointAroundAnotherPoint(motorPoint, dpStartPos, dRadian);
+
+		tempRotated.x2 = gbrPoint.x;
+		tempRotated.y2 = gbrPoint.y;
 
 		buffer.push_back(tempRotated);
 
@@ -233,7 +263,7 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 
 			for each (CDPoint var in buffer)
 			{
-				strLine.Format(_T("%.4f,%.4f,\n"), var.x, var.y);
+				strLine.Format(_T("%.4f,%.4f,%.4f,%.4f\n"), var.x, var.y, var.x2, var.y2);
 				strWrite.Append(strLine);
 			}
 
@@ -247,9 +277,9 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 	{
 		sFile.SeekToBegin();
 		
-		if (padPosX != 0 && padPosY != 0)
+		if (dpStartPos.x2 != 0 && dpStartPos.y2 != 0)
 		{
-			strLine.Format(_T("%.4f,%.4f,0,0,0,0,0,0,0,0,0,0,\n"), padPosX, padPosY);
+			strLine.Format(_T("%.4f,%.4f,0,0,0,0,0,0,0,0,0,0,\n"), dpStartPos.x2, dpStartPos.y2);
 			sFile.WriteString(strLine);
 		}
 
@@ -290,8 +320,10 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 			uvEng_ACamCali_GetCaliPosEx(stVctField[i].dMotorX, stVctField[i].dMotorY, dACamPosX, dStagePosY);
 		}
 
+
 		strLine.Format(_T(" %+.4f, %+.4f, %+.4f, %+.4f,\n"),
-			stVctField[i].dMotorX, stVctField[i].dMotorY,
+			(expoAreaMeasure ? stVctField[i].dGbrX : stVctField[i].dMotorX),
+			(expoAreaMeasure != 0 ? stVctField[i].dGbrY : stVctField[i].dMotorY),
 			dACamPosX + stVctField[i].dValueX, dStagePosY + stVctField[i].dValueY);
 
 		strWrite += strLine;

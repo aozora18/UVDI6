@@ -10,12 +10,18 @@ typedef struct stAccuracyMeasureParam
 	double dValueX;
 	double dValueY;
 
+	double dGbrX;
+	double dGbrY;
+
 	stAccuracyMeasureParam()
 	{
+		dGbrX = 0;
+		dGbrY = 0;
 		dMotorX = 0;
 		dMotorY = 0;
 		dValueX = 0;
 		dValueY = 0;
+		
 	}
 
 } ST_ACCR_PARAM;
@@ -73,9 +79,15 @@ public:
 		multi,
 	};
 
-	DoubleMarkAccurcytest doubleMarkAccurtest;
-	SearchMode serchmode = SearchMode::single;
+	void SetExpoAreaMeasure(bool set)
+	{
+		expoAreaMeasure = set;
+	}
 
+	bool IsGbrpadPosSetted()
+	{
+		return gbrPadInitialPosX != 0 && gbrPadInitialPosY != 0;
+	}
 
 	void SetGbrPadInitialPos(double x, double y)
 	{
@@ -122,6 +134,10 @@ public:
 
 
 protected:
+
+	DoubleMarkAccurcytest doubleMarkAccurtest;
+	SearchMode serchmode = SearchMode::single;
+	bool expoAreaMeasure = false;
 
 	enum EnMeasureStep
 	{
@@ -183,7 +199,7 @@ public:
 	ST_FIELD ClacField(VCT_ACCR_TABLE stVctField);
 
 	BOOL LoadMeasureField(CString strPath);
-	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint, bool toXDirection,bool turnBack, double padPosX, double padPosY);
+	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint, bool toXDirection,bool turnBack);
 
 	BOOL SaveCaliFile(CString strFileName);
 	bool MoveTillArrive(double x, double y, double spd);

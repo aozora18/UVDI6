@@ -152,7 +152,7 @@ protected:
 	VOID				SetLiveView(BOOL bLive);
 	VOID				UpdateLiveView();
 	VOID				ResetDataViewPoint(UINT32 u32Row);
-	bool IsSearchMarkTypeChanged();
+	bool				IsSearchMarkTypeChanged();
 	BOOL				SaveClacFile();
 
 	VOID				LoadMeasureField();
@@ -179,7 +179,7 @@ private:
 	BOOL				m_bCamLiveState;
 	UINT8				m_u8SelHead;
 	UINT32				m_u32IndexNum;
-
+	
 	unsigned long long	m_ullTimeMove;
 
 	BOOL				m_bHoldCtrl;

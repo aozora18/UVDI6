@@ -323,7 +323,7 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 
 		strLine.Format(_T(" %+.4f, %+.4f, %+.4f, %+.4f,\n"),
 			(expoAreaMeasure ? stVctField[i].dGbrX : stVctField[i].dMotorX),
-			(expoAreaMeasure != 0 ? stVctField[i].dGbrY : stVctField[i].dMotorY),
+			(expoAreaMeasure ? stVctField[i].dGbrY : stVctField[i].dMotorY),
 			dACamPosX + stVctField[i].dValueX, dStagePosY + stVctField[i].dValueY);
 
 		strWrite += strLine;

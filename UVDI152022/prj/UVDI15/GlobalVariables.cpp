@@ -148,11 +148,16 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 
 			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
 			int camCount = cfg->set_cams.acam_count;
-			for (int i = 0; i < camCount; i++)
+			for (int i = 0; i < camCount; i++) 
 			{
 				try
 				{
-					TCHAR* name = cfg->file_dat.staticAcamCali[i];
+					TCHAR* name = cfg->file_dat.staticAcamAlignCali[i];
+					
+					std::basic_string<TCHAR> str(name);
+					if (str.empty())
+						continue;
+
 					std::ifstream file(name);
 
 					for (std::string line; std::getline(file, line);)
@@ -160,10 +165,10 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 						const std::vector<double> tokens = tokenize(line, re);
 						if (tokens.size() != DATACOUNT) continue;
 
-						caliDataMap[i + 1].push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
+						caliDataMap[i + 1][CaliTableType::align].push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
 					}
-					if (caliDataMap[i + 1].size() != 0)
-						SortPos(caliDataMap[i]);
+					if (caliDataMap[i + 1][CaliTableType::align].size() != 0)
+						SortPos(caliDataMap[i][CaliTableType::align]);
 
 				}
 				catch (...)

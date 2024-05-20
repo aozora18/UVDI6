@@ -243,8 +243,11 @@ BOOL CConfUvdi15::LoadConfigFileName()
 	TCHAR temp[MAX_FILE_LEN] = { 0, };
 	for (int i=0; i < cfgCamCnt; i++)
 	{
-		swprintf_s(temp, MAX_FILE_LEN, L"FILE_STATIC_ALIGN_CAM%d", i+1);
-		GetConfigStr(temp, m_pstCfg->file_dat.staticAcamCali[i], MAX_FILE_LEN);
+		swprintf_s(temp, MAX_FILE_LEN, L"FILE_STATIC_ALIGNCALI_CAM%d", i+1);
+		GetConfigStr(temp, m_pstCfg->file_dat.staticAcamAlignCali[i], MAX_FILE_LEN);
+
+		swprintf_s(temp, MAX_FILE_LEN, L"FILE_STATIC_EXPOCALI_CAM%d", i + 1);
+		GetConfigStr(temp, m_pstCfg->file_dat.staticAcamExpoCali[i], MAX_FILE_LEN);
 	}
 #endif
 

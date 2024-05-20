@@ -619,7 +619,8 @@ typedef struct __st_config_file_data_name__
 	TCHAR				trig_cali[MAX_FILE_LEN];
 	TCHAR				thick_cali[MAX_FILE_LEN];
 	TCHAR				correct_y[MAX_FILE_LEN];
-	TCHAR				staticAcamCali[3][MAX_FILE_LEN];
+	TCHAR				staticAcamAlignCali[3][MAX_FILE_LEN];
+	TCHAR				staticAcamExpoCali[3][MAX_FILE_LEN];
 }	STG_CFDN,	*LPG_CFDN;
 
 /* Setup the Align Camera Device for Basler */

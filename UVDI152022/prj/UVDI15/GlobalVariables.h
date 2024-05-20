@@ -248,11 +248,17 @@ enum SearchFlag
 
 	class CaliCalc
 	{
+		enum CaliTableType
+		{
+			expo,
+			align
+		};
+
 	public:
 		bool caliInfoLoadComplete = false;
 	
 	protected:
-		map<int, vector<CaliPoint>> caliDataMap;
+		map<int,  map<CaliTableType, vector<CaliPoint>>> caliDataMap;
 
 		double LimittoMicro(double val);
 

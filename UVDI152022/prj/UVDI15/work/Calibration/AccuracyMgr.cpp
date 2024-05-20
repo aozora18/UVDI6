@@ -8,6 +8,8 @@
 #include "../../MainApp.h"
 
 #include "../../GlobalVariables.h"
+#include "../../stuffs.h"
+
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -144,20 +146,26 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 
 	if (TRUE == sFile.Open(strPath, CStdioFile::shareDenyNone | CStdioFile::modeRead))
 	{
+
+		
+
 		while (sFile.ReadString(strLine))
 		{
-			// Parsing
-			AfxExtractSubString(strValue, strLine, 0, _T(','));
-			stValue.dMotorX = _ttof(strValue);
-			AfxExtractSubString(strValue, strLine, 1, _T(','));
-			stValue.dMotorY = _ttof(strValue);
+			vector<double> dblTokens;
+			vector<string> strToken;
 
-			if (TRUE == strValue.IsEmpty())
+			int cnt = Stuffs::GetStuffs().ParseAndFillVector(strLine, ',', dblTokens, strToken);
+
+			if (cnt == 2)
 			{
-				break;
+				stValue.dMotorX = dblTokens[0];
+				stValue.dMotorY = dblTokens[1];
+				m_stVctTable.push_back(stValue);
 			}
-
-			m_stVctTable.push_back(stValue);
+			else //한개밖에 안나올것같다.
+			{
+				SetGbrPadInitialPos(dblTokens[0], dblTokens[1]);
+			}
 		}
 
 		sFile.Close();
@@ -186,7 +194,7 @@ CDPoint rotatePointAroundAnotherPoint(CDPoint P, CDPoint anchorPos, double theta
 }
 
 
-BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint,bool toXDirection,bool turnBack)
+BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpMaxPoint,bool toXDirection,bool turnBack,double padPosX, double padPosY)
 {
 	CFileException ex;
 	CStdioFile sFile;
@@ -234,10 +242,17 @@ BOOL CAccuracyMgr::MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u
 		}
 	}
 
-
-	if (TRUE == sFile.Open(strPath, CFile::modeWrite | CFile::modeCreate | CFile::modeNoTruncate, &ex))
+	
+	if (TRUE == sFile.Open(strPath, CFile::modeWrite | CFile::modeCreate , &ex))
 	{
 		sFile.SeekToBegin();
+		
+		if (padPosX != 0 && padPosY != 0)
+		{
+			strLine.Format(_T("%.4f,%.4f,0,0,0,0,0,0,0,0,0,0,\n"), padPosX, padPosY);
+			sFile.WriteString(strLine);
+		}
+
 		sFile.WriteString(strWrite);
 		sFile.Close();
 		return TRUE;
@@ -282,7 +297,7 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 		strWrite += strLine;
 	}
 
-	if (TRUE == sFile.Open(strFileName, CFile::modeWrite | CFile::modeCreate | CFile::modeNoTruncate, &ex))
+	if (TRUE == sFile.Open(strFileName, CFile::modeWrite | CFile::modeCreate , &ex))
 	{
 		sFile.SeekToBegin();
 		sFile.WriteString(strWrite);

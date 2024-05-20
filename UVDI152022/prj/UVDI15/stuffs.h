@@ -5,6 +5,9 @@
 #include <string>
 #include <chrono>
 #include <fstream>
+#include <atlstr.h>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -62,7 +65,27 @@ public:
 	{
 		RemoveOldfiles(GetCurrentExePath() + "\\save_img",1*24); //하루지난건 싹 삭제.
 	}
-		
+	
+	int ParseAndFillVector(const TCHAR* str, char seperator,  std::vector<double>& vec,std::vector<string> orgVec)
+	{
+		vec.clear();
+		std::wstring temp = std::wstring(str);
+		std::string utf8Str(temp.begin(), temp.end());
+
+		std::stringstream ss(utf8Str);
+		std::string token;
+		int cnt = 0;
+		while (std::getline(ss, token, seperator))
+		{
+			double val = std::stod(token);
+			vec.push_back(val);
+			orgVec.push_back(token);
+			++cnt;
+		}
+		return cnt;
+	}
+
+
 };
 
 	 

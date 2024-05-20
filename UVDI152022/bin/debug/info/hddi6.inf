@@ -1034,7 +1034,7 @@ MODEL_CALI              = 500.000000
 [MARK_FIND]
 
 MAX_MARK_REGIST         = 4
-MAX_MARK_GRAB           = 100
+MAX_MARK_GRAB           = 110
 MAX_MARK_FIND           = 1
 
 SCORE_RATE              = 80.0000

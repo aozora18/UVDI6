@@ -76,6 +76,14 @@ public:
 	DoubleMarkAccurcytest doubleMarkAccurtest;
 	SearchMode serchmode = SearchMode::single;
 
+
+	void SetGbrPadInitialPos(double x, double y)
+	{
+
+		gbrPadInitialPosX = x;
+		gbrPadInitialPosY = y;
+	}
+
 	void SetSearchMode(SearchMode mode)
 	{
 		serchmode = mode;
@@ -152,6 +160,10 @@ protected:
 	
 	VCT_ACCR_TABLE		m_stVctTable;
 
+	double gbrPadInitialPosX = 0;
+	double gbrPadInitialPosY = 0;
+
+
 
 	/* 로컬 함수 */
 protected:
@@ -171,7 +183,7 @@ public:
 	ST_FIELD ClacField(VCT_ACCR_TABLE stVctField);
 
 	BOOL LoadMeasureField(CString strPath);
-	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint, bool toXDirection,bool turnBack);
+	BOOL MakeMeasureField(CString strPath, CDPoint dpStartPos, UINT8 u8StartPoint, UINT8 u8Dir, double dAngle, double dPitch, CPoint cpPoint, bool toXDirection,bool turnBack, double padPosX, double padPosY);
 
 	BOOL SaveCaliFile(CString strFileName);
 	bool MoveTillArrive(double x, double y, double spd);

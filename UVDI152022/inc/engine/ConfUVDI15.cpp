@@ -376,21 +376,21 @@ BOOL CConfUvdi15::SaveConfigSetupCamera()
 	return TRUE;
 }
 
-void ParseAndFillVector(const TCHAR* str, std::vector<double>& vec)
-{
-	vec.clear();
-	std::wstring temp = std::wstring(str);
-	std::string utf8Str(temp.begin(), temp.end());
-
-	std::stringstream ss(utf8Str);
-	std::string token;
-
-	while (std::getline(ss, token, ','))
-	{
-		double val = std::stod(token);
-		vec.push_back(val);
-	}
-}
+//void ParseAndFillVector(const TCHAR* str, std::vector<double>& vec)
+//{
+//	vec.clear();
+//	std::wstring temp = std::wstring(str);
+//	std::string utf8Str(temp.begin(), temp.end());
+//
+//	std::stringstream ss(utf8Str);
+//	std::string token;
+//
+//	while (std::getline(ss, token, ','))
+//	{
+//		double val = std::stod(token);
+//		vec.push_back(val);
+//	}
+//}
 
 /*
  desc : Load or Save the config file (SETUP_ALIGN)
@@ -436,16 +436,16 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 		m_pstCfg->set_align.table_unloader_xy[i-1][1]	= GetConfigDouble(tzKey);
 	}
 
-	
-	vector<double> buff;
+
+	/*vector<double> buff;
 	GetConfigStr(L"G_MARK_OFFSET", longStrVal, 2048);
 	ParseAndFillVector(longStrVal, buff);
 
-	for(int i=0 ; i < buff.size();)
+	for (int i = 0; i < buff.size();)
 	{
 		double offsetX = buff[i++];
 		double offsetY = buff[i++];
-		m_pstCfg->set_align.markOffsetPtr->Push(true ,std::make_tuple(offsetX, offsetY));
+		m_pstCfg->set_align.markOffsetPtr->Push(true, std::make_tuple(offsetX, offsetY));
 	}
 
 	GetConfigStr(L"L_MARK_OFFSET", longStrVal, 2048);
@@ -456,7 +456,7 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 		double offsetX = buff[i++];
 		double offsetY = buff[i++];
 		m_pstCfg->set_align.markOffsetPtr->Push(false, std::make_tuple(offsetX, offsetY));
-	}
+	}*/
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");
 	m_pstCfg->set_align.mark_horz_diff = GetConfigDouble(tzKey);

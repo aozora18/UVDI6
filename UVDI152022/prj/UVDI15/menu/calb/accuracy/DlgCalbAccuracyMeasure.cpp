@@ -1057,6 +1057,26 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 	stVctParam.push_back(stParam);//7
 
 
+	stParam.Init();
+	stParam.strName = _T("first pad Pos x");
+	stParam.strValue = _T("");
+	stParam.strUnit = _T("mm");
+	stParam.enFormat = ENM_DITM::en_double;
+	stParam.dMin = 0;
+	stParam.dMax = 1000;
+	stParam.u8DecPts = 4;
+	stVctParam.push_back(stParam);//8
+
+	stParam.Init();
+	stParam.strName = _T("first pad Pos y");
+	stParam.strValue = _T("");
+	stParam.strUnit = _T("mm");
+	stParam.enFormat = ENM_DITM::en_double;
+	stParam.dMin = 0;
+	stParam.dMax = 1000;
+	stParam.u8DecPts = 4;
+	stVctParam.push_back(stParam);//9
+
 
 	if (IDOK == dlg.MyDoModal(stVctParam))
 	{
@@ -1081,7 +1101,10 @@ VOID CDlgCalbAccuracyMeasure::MakeField()
 				_ttof(stVctParam[5].strValue),
 				CPoint(_ttoi(stVctParam[2].strValue), _ttoi(stVctParam[3].strValue)) , 
 				stVctParam[6].strValue == "1" ? true : false,
-				stVctParam[7].strValue == "1" ? true : false);
+				stVctParam[7].strValue == "1" ? true : false,
+				std::stod(string(CT2A(stVctParam[8].strValue.GetLength() == 0 ? L"0" : stVctParam[8].strValue))),
+				std::stod(string(CT2A(stVctParam[9].strValue.GetLength() == 0 ? L"0" : stVctParam[9].strValue))));
+		
 		}
 	}
 }

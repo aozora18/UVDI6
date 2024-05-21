@@ -208,61 +208,73 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 }
 
 
-CaliPoint CaliCalc::EstimateOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
+
+CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
+{
+#undef max
+	double closestDistance = std::numeric_limits<double>::max();
+	double secondClosestDistance = std::numeric_limits<double>::max();
+
+	CaliPoint closestPoint{};
+	CaliPoint secondClosestPoint{};
+
+	bool fixX = x == -1 ? true : false;
+	bool fixY = y == -1 ? true : false;
+
+	for (const auto& point : points)
+	{
+		x = fixX && x != point.x ? point.x : x; //소팅축 고정
+		y = fixY && y != point.y ? point.y : y;
+
+		double currentDistance = std::sqrt(std::pow(point.x - x, 2) + std::pow(point.y - y, 2));
+
+		if (currentDistance < closestDistance)
+		{
+			secondClosestDistance = closestDistance;
+			secondClosestPoint = closestPoint;
+
+			closestDistance = currentDistance;
+			closestPoint = point;
+		}
+		else if (currentDistance < secondClosestDistance)
+		{
+			secondClosestDistance = currentDistance;
+			secondClosestPoint = point;
+		}
+	}
+
+	double totalInverseDistance = (1 / closestDistance) + (1 / secondClosestDistance);
+	double weightClosest = (1 / closestDistance) / totalInverseDistance;
+	double weightSecondClosest = (1 / secondClosestDistance) / totalInverseDistance;
+
+	CaliPoint weightedAverageOffset;
+	weightedAverageOffset.x = x;
+	weightedAverageOffset.y = y;
+	weightedAverageOffset.offsetX = (closestPoint.offsetX * weightClosest) + (secondClosestPoint.offsetX * weightSecondClosest);
+	weightedAverageOffset.offsetY = (closestPoint.offsetY * weightClosest) + (secondClosestPoint.offsetY * weightSecondClosest);
+
+	return weightedAverageOffset;
+}
+
+
+
+CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
+{
+	const int STAGE_CALI_INDEX = 3;
+	auto& expoData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::expo];
+	CaliPoint weightedAverageOffset = Estimate(expoData, gbrX, gbrY);
+	return weightedAverageOffset;
+}
+
+
+CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
 {
 	const int STAGE_CALI_INDEX = 3;
 	auto& stageCaliData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::align];
 	auto& camCaliData = caliDataMap[camIdx][CaliTableType::align];
 
-	auto estimate = [=](vector<CaliPoint>& points, double x, double y) -> CaliPoint
-		{
-#undef max
-			double closestDistance = std::numeric_limits<double>::max();
-			double secondClosestDistance = std::numeric_limits<double>::max();
-
-			CaliPoint closestPoint{};
-			CaliPoint secondClosestPoint{};
-
-			bool fixX = x == -1 ? true : false;
-			bool fixY = y == -1 ? true : false;
-
-			for (const auto& point : points)
-			{
-				x = fixX && x != point.x ? point.x : x; //소팅축 고정
-				y = fixY && y != point.y ? point.y : y;
-
-				double currentDistance = std::sqrt(std::pow(point.x - x, 2) + std::pow(point.y - y, 2));
-
-				if (currentDistance < closestDistance)
-				{
-					secondClosestDistance = closestDistance;
-					secondClosestPoint = closestPoint;
-
-					closestDistance = currentDistance;
-					closestPoint = point;
-				}
-				else if (currentDistance < secondClosestDistance)
-				{
-					secondClosestDistance = currentDistance;
-					secondClosestPoint = point;
-				}
-			}
-
-			double totalInverseDistance = (1 / closestDistance) + (1 / secondClosestDistance);
-			double weightClosest = (1 / closestDistance) / totalInverseDistance;
-			double weightSecondClosest = (1 / secondClosestDistance) / totalInverseDistance;
-
-			CaliPoint weightedAverageOffset;
-			weightedAverageOffset.x = x;
-			weightedAverageOffset.y = y;
-			weightedAverageOffset.offsetX = (closestPoint.offsetX * weightClosest) + (secondClosestPoint.offsetX * weightSecondClosest);
-			weightedAverageOffset.offsetY = (closestPoint.offsetY * weightClosest) + (secondClosestPoint.offsetY * weightSecondClosest);
-
-			return weightedAverageOffset;
-		};
-
-	CaliPoint stageOffset = estimate(stageCaliData, stageX, stageY);
-	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? estimate(camCaliData, camX, -1) : CaliPoint();
+	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
+	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
 
 	return stageOffset + camOffset;
 }
@@ -277,9 +289,14 @@ void AlignMotion::Destroy()
 }
 
 
-CaliPoint AlignMotion::EstimateOffset(int camIdx, double stageX, double stageY, double camX)
+CaliPoint AlignMotion::EstimateExpoOffset(double gbrX, double gbrY)
 {
-	return caliCalcInst.EstimateOffset(camIdx, stageX, stageY, camX);
+	return caliCalcInst.EstimateExpoOffset(gbrX, gbrY);
+}
+
+CaliPoint AlignMotion::EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX)
+{
+	return caliCalcInst.EstimateAlignOffset(camIdx, stageX, stageY, camX);
 }
 
  
@@ -572,9 +589,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return status.markPoolForCam[camNum];
 	}
 
-	void AlignMotion::SetAlignOffsetPool(vector<CaliPoint> offsetPool)
+	void AlignMotion::SetAlignOffsetPool(map< CaliTableType, vector<CaliPoint>> offsetPool)
 	{
-		status.alignOffsetPool = offsetPool;
+		status.offsetPool = offsetPool;
 	}
 
 	void AlignMotion::SetFiducialPool(bool useDefault, ENG_AMOS alignMotion, ENG_ATGL alignType)

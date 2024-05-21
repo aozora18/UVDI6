@@ -2827,7 +2827,13 @@ typedef struct __st_xml_mark_x_y__
 	DOUBLE				mark_y;		/* 단위: mm */
 	UINT32				reserve;    //리저브
 
-	void ClaerFlag() { reserve = 0;}
+
+	std::tuple<double, double> GetMarkPos() 
+	{
+		return std::make_tuple(mark_x, mark_y);
+	}
+
+	void ClearFlag() { reserve = 0;}
 
 	void SetFlag(STG_XMXY_RESERVE_FLAG flag)
 	{

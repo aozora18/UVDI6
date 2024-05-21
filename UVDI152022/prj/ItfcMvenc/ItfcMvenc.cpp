@@ -435,7 +435,8 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id, UINT8 lamp_type, BOOL enabl)
 #else
 	//bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
 //	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
-	bSucc = g_pMvencThread->ReqWriteTrigOutOne_(0b1000 | (1 << (cam_id-1)));
+
+	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
 
 #endif
 	/* Trigger & Strobe : Disabled */

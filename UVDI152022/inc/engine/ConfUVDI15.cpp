@@ -497,49 +497,45 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 	}
 
 	
-	vector<tuple<double, double>> globalOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(true);
-	vector<tuple<double, double>> localOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(false);
+	/*vector<tuple<double, double>> globalOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(true);
+	vector<tuple<double, double>> localOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(false);*/
 	
-
-	
-	std::string tempStr = string("");
+	//std::string tempStr = string("");
 	
 	//swprintf_s(tzIPv4, IPv4_LENGTH, L"%d.%d.%d.%d", ipv4[0], ipv4[1], ipv4[2], ipv4[3]);
-	int precision = 3;
+	//int precision = 3;
 
-	for (i = 0; i < globalOffsets.size(); i++)
-	{
-		tempStr.append(std::to_string(round(std::get<0>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-		tempStr.append(",");
-		tempStr.append(std::to_string(round(std::get<1>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-		if (i + 1 != globalOffsets.size())
-			tempStr.append(",");
-	}
+	//for (i = 0; i < globalOffsets.size(); i++)
+	//{
+	//	tempStr.append(std::to_string(round(std::get<0>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+	//	tempStr.append(",");
+	//	tempStr.append(std::to_string(round(std::get<1>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+	//	if (i + 1 != globalOffsets.size())
+	//		tempStr.append(",");
+	//}
 
-	swprintf_s(tzKey, MAX_KEY_STRING, L"G_MARK_OFFSET");
-	int len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
-	TCHAR* szUniCode = new TCHAR[len];
-	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
-	SetConfigStr(tzKey, szUniCode);
-	delete[] szUniCode;
+	//swprintf_s(tzKey, MAX_KEY_STRING, L"G_MARK_OFFSET");
+	//int len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
+	//TCHAR* szUniCode = new TCHAR[len];
+	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
+	//SetConfigStr(tzKey, szUniCode);
+	//delete[] szUniCode;
 
-	tempStr = string("");
-	for (i = 0; i < localOffsets.size(); i++)
-	{
-		tempStr.append(std::to_string(round(std::get<0>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-		tempStr.append(",");
-		tempStr.append(std::to_string(round(std::get<1>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-		if(i+1 != localOffsets.size())
-			tempStr.append(",");
-	}
-	swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET");
-	len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
-	szUniCode = new TCHAR[len];
-	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
-	SetConfigStr(tzKey, szUniCode);
-	delete[] szUniCode;
-
-
+	//tempStr = string("");
+	//for (i = 0; i < localOffsets.size(); i++)
+	//{
+	//	tempStr.append(std::to_string(round(std::get<0>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+	//	tempStr.append(",");
+	//	tempStr.append(std::to_string(round(std::get<1>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
+	//	if(i+1 != localOffsets.size())
+	//		tempStr.append(",");
+	//}
+	//swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET");
+	//len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
+	//szUniCode = new TCHAR[len];
+	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
+	//SetConfigStr(tzKey, szUniCode);
+	//delete[] szUniCode;
 
 	//for (i = 0; i < localOffsets.size(); i++)
 	//{

@@ -61,6 +61,12 @@ enum SearchFlag
 	all,
 };
 
+enum CaliTableType
+{
+	expo,
+	align
+};
+
 
 	template <typename T>
 	class Singleton
@@ -112,7 +118,7 @@ enum SearchFlag
  
 
 
-	struct CaliPoint
+	struct CaliPoint 
 	{
 		CaliPoint(double x,
 			double y,
@@ -143,6 +149,8 @@ enum SearchFlag
 			result.y = this->y + other.y;
 			result.offsetX = this->offsetX + other.offsetX;
 			result.offsetY = this->offsetY + other.offsetY;
+
+			result.srcFid = result.srcFid;
 			return result;
 		}
 
@@ -154,6 +162,7 @@ enum SearchFlag
 			result.y = this->y - other.y;
 			result.offsetX = this->offsetX - other.offsetX;
 			result.offsetY = this->offsetY - other.offsetY;
+			result.srcFid = this->srcFid;
 			return result;
 		}
 
@@ -251,12 +260,7 @@ enum SearchFlag
 
 	class CaliCalc
 	{
-		enum CaliTableType
-		{
-			expo,
-			align
-		};
-
+		
 	public:
 		bool caliInfoLoadComplete = false;
 	
@@ -268,11 +272,14 @@ enum SearchFlag
 
 		void SortPos(std::vector<CaliPoint>& dataList);
 
-	
+		CaliPoint Estimate(vector<CaliPoint>& points, double x, double y);
 		CaliPoint CalculateAverageOffset(const std::vector<CaliPoint>& nearbyPoints);
 	public:
+
 		void LoadCaliData(LPG_CIEA cfg);
-		CaliPoint EstimateOffset(int camIdx, double stageX, double stageY, double camX);
+		CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX);
+		CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
+		
 
 	};
 
@@ -372,7 +379,7 @@ enum SearchFlag
 		{
 			SetDataReady(false);
 			//markPoolForCamLocal.clear(); //카메라별 풀링.
-			alignOffsetPool.clear();
+			offsetPool.clear();
 			markPoolForCam.clear();
 			markList.clear(); //column별 풀링
 			markMapConst.clear(); //원본
@@ -390,7 +397,11 @@ enum SearchFlag
 		int lastScanCount = 0;
 
 		//map<int, vector<STG_XMXY>> markPoolForCamGlobal; //카메라별 풀링.
-		vector<CaliPoint> alignOffsetPool;
+
+		
+		map< CaliTableType ,vector<CaliPoint>> offsetPool;
+		
+		
 		map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
 		map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것
 		//map<int, vector<STG_XMXY>> markMapProcess; //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
@@ -421,7 +432,8 @@ enum SearchFlag
 			etc = 0b00000010,
 		};
 
-		CaliPoint EstimateOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
+		CaliPoint EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
+		CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
 		void Destroy();
 
 	protected:
@@ -520,7 +532,7 @@ enum SearchFlag
 
 		vector<STG_XMXY> GetFiducialPool(int camNum);
 		void UpdateParamValues();
-		void SetAlignOffsetPool(vector<CaliPoint> offsetPool);
+		void SetAlignOffsetPool(map< CaliTableType, vector<CaliPoint>> offsetPool);
 		void SetFiducialPool(bool useDefault = true, ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam, ENG_ATGL alignType = ENG_ATGL::en_global_4_local_0_point);
 		void DoInitial(LPG_CIEA pstCfg);
 	};

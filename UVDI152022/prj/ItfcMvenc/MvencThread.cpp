@@ -1188,16 +1188,17 @@ BOOL CMvencThread::ReqWriteTrigOutOne_(UINT32 channelBit,int trigTime)
 	/* 동기 진입 */
 	if (m_syncSend.Enter())
 	{
-		/* 명령어 설정 */
-		stPktData.command = (UINT32)ENG_TBPC::en_trig_out_one;
-		stPktData.enc_out_val = channelBit;
+		
+		///* 명령어 설정 */
+		//stPktData.command = (UINT32)ENG_TBPC::en_trig_out_one;
+		//stPktData.enc_out_val = channelBit;
 
 
 		MvsEncSetPositiveRun(m_handle, channelBit);
-		Sleep(trigTime);
+		ReqResetTrigCount();
 		MvsEncSetPositiveRun(m_handle, 0);
 
-		m_u64SendTime = GetTickCount64();
+		//m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
 		m_syncSend.Leave();
 	}

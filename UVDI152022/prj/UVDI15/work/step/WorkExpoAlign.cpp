@@ -295,7 +295,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 		if (m_enWorkState == ENG_JWNS::en_next)
 		{
-			alignOffsetPool.clear();
+			offsetPool.clear();
 			motions.SetFiducialPool();
 		}
 	}
@@ -551,7 +551,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 			if (m_enWorkState == ENG_JWNS::en_next)
 			{
-				alignOffsetPool.clear();
+				offsetPool.clear();
 				motions.SetFiducialPool();
 				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 			}
@@ -619,15 +619,22 @@ void CWorkExpoAlign::DoAlignStaticCam()
 							string temp = "x" + std::to_string(CENTER_CAM);
 							
 							
-							auto alignOffset = motions.EstimateOffset(CENTER_CAM, 
-																	motions.GetAxises()["stage"]["x"].currPos,
-																	motions.GetAxises()["stage"]["y"].currPos,
-																	CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+							auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
+								motions.GetAxises()["stage"]["x"].currPos,
+								motions.GetAxises()["stage"]["y"].currPos,
+								CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 							
-							
-							string tempo;
+
+							auto markPos = first->GetMarkPos();
+							auto expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+
 							alignOffset.srcFid = *first;
-							alignOffsetPool.push_back(alignOffset);
+							
+							auto diff = expoOffset - alignOffset;
+							diff.srcFid = *first;
+
+							offsetPool[CaliTableType::align].push_back(alignOffset);
+							offsetPool[CaliTableType::expo].push_back(diff);
 
 							if (SingleGrab(CENTER_CAM))
 							{
@@ -661,7 +668,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		
 		case 0x0a:
 		{
-			motions.SetAlignOffsetPool(alignOffsetPool);
+			motions.SetAlignOffsetPool(offsetPool);
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none); 
 		}
 		break;

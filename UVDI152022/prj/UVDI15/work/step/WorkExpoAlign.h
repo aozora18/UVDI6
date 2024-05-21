@@ -23,7 +23,9 @@ protected:
 		toScanMoving = 1,    //스캔을 위해 이동하는 스텝
 	};
 public:
-	vector<CaliPoint> alignOffsetPool;
+
+	map< CaliTableType, vector<CaliPoint>> offsetPool;
+
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();
 	int scanCount = 0;

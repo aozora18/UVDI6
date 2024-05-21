@@ -1637,9 +1637,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		return nullptr;
 	};
 
-	auto GetOffset = [&](int tgtMarkIdx, CaliPoint& temp)->bool
+	auto GetOffset = [&](CaliTableType type, int tgtMarkIdx, CaliPoint& temp)->bool
 						{
-							auto offsetPool = motions.status.alignOffsetPool;
+							auto offsetPool = motions.status.offsetPool[type];
 							auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
 							if (find == offsetPool.end())
 							{
@@ -1649,6 +1649,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 							return true;
 						};
 
+	
 	auto GetGrab = [&](int camIdx, int tgtMarkIdx , ENG_AMTF markType)->LPG_ACGR
 					{
 						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
@@ -1698,21 +1699,21 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			return ENG_JWNS::en_error;
 
 		CaliPoint offset;
-		if (GetOffset(temp.tgt_id, offset) == false)
-			return ENG_JWNS::en_error;
+		/*if (GetOffset(CaliTableType::align, temp.tgt_id, offset) == false)
+			return ENG_JWNS::en_error;*/
 
 		temp.mark_x -= grab->move_mm_x;
 		temp.mark_y -= grab->move_mm_y;
+		
 		temp.reserve = grab->reserve;
 
 		if (pstSetAlign->use_mark_offset)
 		{
-			std::tuple<double, double> val;
-			if (pstSetAlign->markOffsetPtr->Get(isGlobal, temp.tgt_id, val))
-			{
-				temp.mark_x += std::get<0>(val);
-				temp.mark_y += std::get<1>(val);
-			}
+			if (GetOffset(CaliTableType::expo, temp.tgt_id, offset) == false)
+				return ENG_JWNS::en_error;
+
+			temp.mark_x += offset.offsetX;
+			temp.mark_y += offset.offsetY;
 		}
 		lstMarks.AddTail(temp);
 	}
@@ -1993,47 +1994,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				}
 			}
 		}
-
-
-		//if (pstSetAlign->use_Localmark_offset)
-		//{
-		//	for (i = 0; i < u8MarkG; i++)
-		//	{
-		//		swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, pstSetAlign->mark_offset_x[i], pstSetAlign->mark_offset_y[i]);
-		//		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-		//	}
-
-		//	for (i = 0; i < u8MarkG; i++)
-		//	{
-		//		lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x += pstSetAlign->mark_offset_x[i];
-		//		lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y += pstSetAlign->mark_offset_y[i];
-
-		//		swprintf_s(tzMsg, 256, L"Offset + Global Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(
-// [stMarkPos1.org_id].y / 1000000.0f));
-		//		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-		//	}
-		//}
-
-
-	//// -------------------------    여기는 로컬  (마크옵셋적용시) --------------------------
-	//	if (pstSetAlign->use_mark_offset)
-	//	{
-	//		for (i = u8MarkG; i <u8MarkG+u8MarkL; i++)
-	//		{
-	//			swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, pstSetAlign->mark_offset_x[i], pstSetAlign->mark_offset_y[i]);
-	//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-	//		}
-
-	//		for (i = u8MarkG; i <u8MarkG+u8MarkL; i++)
-	//		{
-	//				lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x += pstSetAlign->mark_offset_x[i];
-	//				lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y += pstSetAlign->mark_offset_y[i];
-
-	//			swprintf_s(tzMsg, 256, L"Offset + Global Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y / 1000000.0f));
-	//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-	//		}
-	//	}
-		
 
 		if (bSucc)
 		{

@@ -166,7 +166,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 				if (m_enWorkState == ENG_JWNS::en_next)
 				{
-					alignOffsetPool.clear();
+					offsetPool.clear();
 					motions.SetFiducialPool();
 					grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 				}
@@ -235,16 +235,25 @@ void CWorkMarkTest::DoAlignStaticCam()
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 							
 							//여기서 현재 위치기반 보정정보 갖고오기.
-							auto alignOffset = motions.EstimateOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
+							auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
 												             		              motions.GetAxises()["stage"]["y"].currPos,
 																				  CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 
+							auto markPos = first->GetMarkPos();
+							auto expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+
 							alignOffset.srcFid = *first;
-							alignOffsetPool.push_back(alignOffset);
+							offsetPool[CaliTableType::align].push_back(alignOffset);
+
+							auto diff = expoOffset - alignOffset;
+							diff.srcFid = *first;
+							offsetPool[CaliTableType::expo].push_back(diff);
 							
 							if (SingleGrab(CENTER_CAM))
 							{
-								uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+
 								grabMarkPath.erase(first);
 							}
 						}
@@ -273,7 +282,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 			case 0x0a:
 			{
-				motions.SetAlignOffsetPool(alignOffsetPool);
+				motions.SetAlignOffsetPool(offsetPool);
 				m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
 			}
 			break;

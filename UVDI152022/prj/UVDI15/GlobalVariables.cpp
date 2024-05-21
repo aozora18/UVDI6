@@ -242,16 +242,28 @@ CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
 			secondClosestPoint = point;
 		}
 	}
-
-	double totalInverseDistance = (1 / closestDistance) + (1 / secondClosestDistance);
-	double weightClosest = (1 / closestDistance) / totalInverseDistance;
-	double weightSecondClosest = (1 / secondClosestDistance) / totalInverseDistance;
-
 	CaliPoint weightedAverageOffset;
-	weightedAverageOffset.x = x;
-	weightedAverageOffset.y = y;
-	weightedAverageOffset.offsetX = (closestPoint.offsetX * weightClosest) + (secondClosestPoint.offsetX * weightSecondClosest);
-	weightedAverageOffset.offsetY = (closestPoint.offsetY * weightClosest) + (secondClosestPoint.offsetY * weightSecondClosest);
+
+	const double LIMIT = 0.0001;
+	if (closestDistance <= LIMIT)
+	{
+		weightedAverageOffset.x = x;
+		weightedAverageOffset.y = y;
+		weightedAverageOffset.offsetX = closestPoint.offsetX;
+		weightedAverageOffset.offsetY = closestPoint.offsetY;
+	}
+	else
+	{
+		double totalInverseDistance = (1 / closestDistance) + (1 / secondClosestDistance);
+		double weightClosest = (1 / closestDistance) / totalInverseDistance;
+		double weightSecondClosest = (1 / secondClosestDistance) / totalInverseDistance;
+
+		weightedAverageOffset.x = x;
+		weightedAverageOffset.y = y;
+		weightedAverageOffset.offsetX = (closestPoint.offsetX * weightClosest) + (secondClosestPoint.offsetX * weightSecondClosest);
+		weightedAverageOffset.offsetY = (closestPoint.offsetY * weightClosest) + (secondClosestPoint.offsetY * weightSecondClosest);
+	}
+	
 
 	return weightedAverageOffset;
 }

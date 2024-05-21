@@ -699,13 +699,13 @@ FILE_THICK_CALI         	= thick_cali
 FILE_CORRECT_Y         	 = correct_y
 FILE_MARK_RECIPE=
 FILE_MARK_ROI=
-FILE_STATIC_ALIGNCALI_CAM1 = D:\3.DI Master\UVDI15\UVDI152022\bin\debug\HDDI6_data\xy2d\acam1_cali_Static.dat
-FILE_STATIC_ALIGNCALI_CAM2 = D:\3.DI Master\UVDI15\UVDI152022\bin\debug\HDDI6_data\xy2d\acam2_cali_Static.dat
-FILE_STATIC_ALIGNCALI_CAM3 = D:\3.DI Master\UVDI15\UVDI152022\bin\debug\HDDI6_data\xy2d\acam3_cali_Static.dat
+FILE_STATIC_ALIGNCALI_CAM1 = D:\3.DI Master\UVDI6\UVDI152022\bin\debug\HDDI6_data\xy2d\acam1_cali_Static.dat
+FILE_STATIC_ALIGNCALI_CAM2 = D:\3.DI Master\UVDI6\UVDI152022\bin\debug\HDDI6_data\xy2d\acam2_cali_Static.dat
+FILE_STATIC_ALIGNCALI_CAM3 = D:\3.DI Master\UVDI6\UVDI152022\bin\debug\HDDI6_data\xy2d\acam3_cali_Static.dat
 
-FILE_STATIC_EXPOCALI_CAM1 = 
-FILE_STATIC_EXPOCALI_CAM2 = 
-FILE_STATIC_EXPOCALI_CAM3 = D:\3.DI Master\UVDI15\UVDI152022\bin\debug\HDDI6_data\xy2d\acam3_expocali_static.dat
+FILE_STATIC_EXPOCALI_CAM1 =
+FILE_STATIC_EXPOCALI_CAM2 =
+FILE_STATIC_EXPOCALI_CAM3 = D:\3.DI Master\UVDI6\UVDI152022\bin\debug\HDDI6_data\xy2d\acam3_expocali_static.dat
 ;-------------------------------------------------------------------------------------------------
 ; [SETUP_CAMERA]
 ;

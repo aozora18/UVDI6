@@ -120,6 +120,8 @@ CaliPoint CaliCalc::CalculateAverageOffset(const std::vector<CaliPoint>& nearbyP
 void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 {
 
+	
+
 	auto tokenize = [&](string str, regex re) -> vector<double>
 		{
 			std::sregex_token_iterator it{ str.begin(), str.end(), re, -1 };
@@ -140,36 +142,51 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 		};
 
 
-	auto loadSeq = [=](LPG_CIEA cfg)
+	auto StackVector = [&](TCHAR* name, vector<CaliPoint>& dataList)
 		{
+			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
 			const int DATACOUNT = 4;
 			const std::regex re(R"([\s|,]+)");
+			dataList.clear();
+			std::basic_string<TCHAR> str(name);
+			if (str.empty()) return;
+
+			try
+			{
+				std::ifstream file(name);
+
+				for (std::string line; std::getline(file, line);)
+				{
+					const std::vector<double> tokens = tokenize(line, re);
+					if (tokens.size() != DATACOUNT) continue;
+
+					dataList.push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
+				}
+			}
+			catch (exception e)
+			{
+				int debug = 0;
+			}
+
+		};
 
 
-			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
+	auto loadSeq = [&](LPG_CIEA cfg)
+		{		
 			int camCount = cfg->set_cams.acam_count;
 			for (int i = 0; i < camCount; i++) 
 			{
 				try
 				{
 					TCHAR* name = cfg->file_dat.staticAcamAlignCali[i];
-					
-					std::basic_string<TCHAR> str(name);
-					if (str.empty())
-						continue;
-
-					std::ifstream file(name);
-
-					for (std::string line; std::getline(file, line);)
-					{
-						const std::vector<double> tokens = tokenize(line, re);
-						if (tokens.size() != DATACOUNT) continue;
-
-						caliDataMap[i + 1][CaliTableType::align].push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
-					}
+					StackVector(name, caliDataMap[i + 1][CaliTableType::align]);
 					if (caliDataMap[i + 1][CaliTableType::align].size() != 0)
-						SortPos(caliDataMap[i][CaliTableType::align]);
+						SortPos(caliDataMap[i+1][CaliTableType::align]);
 
+					name = cfg->file_dat.staticAcamExpoCali[i];
+					StackVector(name, caliDataMap[i + 1][CaliTableType::expo]);
+					if (caliDataMap[i + 1][CaliTableType::expo].size() != 0)
+						SortPos(caliDataMap[i+1][CaliTableType::expo]);
 				}
 				catch (...)
 				{
@@ -188,10 +205,10 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 CaliPoint CaliCalc::EstimateOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
 {
 	const int STAGE_CALI_INDEX = 3;
-	auto stageCaliData = caliDataMap[STAGE_CALI_INDEX];
-	auto camCaliData = caliDataMap[camIdx];
+	auto& stageCaliData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::align];
+	auto& camCaliData = caliDataMap[camIdx][CaliTableType::align];
 
-	auto estimate = [=](vector<CaliPoint> points, double x, double y) -> CaliPoint
+	auto estimate = [=](vector<CaliPoint>& points, double x, double y) -> CaliPoint
 		{
 #undef max
 			double closestDistance = std::numeric_limits<double>::max();
@@ -239,7 +256,7 @@ CaliPoint CaliCalc::EstimateOffset(int camIdx, double stageX = 0, double stageY 
 		};
 
 	CaliPoint stageOffset = estimate(stageCaliData, stageX, stageY);
-	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? estimate(caliDataMap[camIdx], camX, -1) : CaliPoint();
+	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? estimate(camCaliData, camX, -1) : CaliPoint();
 
 	return stageOffset + camOffset;
 }

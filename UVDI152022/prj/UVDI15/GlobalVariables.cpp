@@ -142,12 +142,15 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 		};
 
 
-	auto StackVector = [&](TCHAR* name, vector<CaliPoint>& dataList)
+	auto StackVector = [&](TCHAR* name, vector<CaliPoint>& dataList , vector<double>& featureStored)
 		{
 			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
 			const int DATACOUNT = 4;
 			const std::regex re(R"([\s|,]+)");
+			
 			dataList.clear();
+			featureStored.clear();
+
 			std::basic_string<TCHAR> str(name);
 			if (str.empty()) return;
 
@@ -158,9 +161,12 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 				for (std::string line; std::getline(file, line);)
 				{
 					const std::vector<double> tokens = tokenize(line, re);
-					if (tokens.size() != DATACOUNT) continue;
+					if (tokens.empty()) continue;
 
-					dataList.push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
+					if (tokens.size() != DATACOUNT)
+						std::copy(tokens.begin(), tokens.end(), std::back_inserter(featureStored));
+					else
+						dataList.push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
 				}
 			}
 			catch (exception e)
@@ -179,12 +185,12 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 				try
 				{
 					TCHAR* name = cfg->file_dat.staticAcamAlignCali[i];
-					StackVector(name, caliDataMap[i + 1][CaliTableType::align]);
+					StackVector(name, caliDataMap[i + 1][CaliTableType::align], calidataFeature[i + 1][CaliTableType::align]);
 					if (caliDataMap[i + 1][CaliTableType::align].size() != 0)
 						SortPos(caliDataMap[i+1][CaliTableType::align]);
 
 					name = cfg->file_dat.staticAcamExpoCali[i];
-					StackVector(name, caliDataMap[i + 1][CaliTableType::expo]);
+					StackVector(name, caliDataMap[i + 1][CaliTableType::expo], calidataFeature[i + 1][CaliTableType::align]);
 					if (caliDataMap[i + 1][CaliTableType::expo].size() != 0)
 						SortPos(caliDataMap[i+1][CaliTableType::expo]);
 				}

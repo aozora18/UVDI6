@@ -5,6 +5,9 @@
 #include <filesystem>
 #include <chrono>
 
+#include <cassert>
+
+#include <list>
 #include <map>
 #include <string>
 #include <chrono>
@@ -258,6 +261,7 @@ enum SearchFlag
 		bool caliInfoLoadComplete = false;
 	
 	protected:
+		map<int, map<CaliTableType, vector<double>>> calidataFeature;
 		map<int,  map<CaliTableType, vector<CaliPoint>>> caliDataMap;
 
 		double LimittoMicro(double val);

@@ -669,7 +669,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= Local_6um_Acc_Coord_Ring_2X2
+RECIPE_NAME= 6um_MasterGlass_D12
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -923,6 +923,9 @@ MARK2_ORG_GERB_X            = 22.4510
 MARK2_ORG_GERB_Y            = 22.4570
 
 MARK2_STAGE_X               = 263.0000
+
+MARKZERO_OFFSET_X = -0.004
+MARKZERO_OFFSET_Y = 0.008
 
 DIST_CAM1TO3 = 462.8059
 DIST_CAM2TO3 = 199.2866

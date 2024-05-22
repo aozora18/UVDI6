@@ -636,10 +636,17 @@ void CWorkExpoAlign::DoAlignStaticCam()
 							offsetPool[CaliTableType::align].push_back(alignOffset);
 							offsetPool[CaliTableType::expo].push_back(diff);
 
+
+							TCHAR tzMsg[256] = { NULL };
 							if (SingleGrab(CENTER_CAM))
 							{
 								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+								{
 									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+								
+									swprintf_s(tzMsg, 256, L"align_offset_x = %.4f mark_offset_y =%.4f", alignOffset.offsetX, alignOffset.offsetY);
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+								}
 
 								grabMarkPath.erase(first);
 

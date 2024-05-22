@@ -500,6 +500,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		const int CAM1 = 0;
 		const int CAM2 = 1;
 
+		const int X = 0;
+		const int Y = 1;
+
 		double mark2Xgab = (markParams.caliGerbermark2x - markParams.currGerbermark2x);
 		double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
 
@@ -515,9 +518,12 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		double camYOffset = camNum == 3 ? markParams.distCam2cam[_1to3_Y_GAB] :
 							camNum == 2 ? markParams.distCam2cam[_1to2_Y_GAB] : 0;
 
+		double markzeroOffsetX = markParams.markZeroOffset[X];
+		double markzeroOffsetY = markParams.markZeroOffset[Y];
+
 		//역산시작
-		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;
-		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset;
+		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset + markzeroOffsetX;
+		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset + markzeroOffsetY;
 
 		point.mark_x = std::round(tempGerberX * std::pow(10, 3)) / std::pow(10, 3);;
 		point.mark_y = std::round(tempGerberY * std::pow(10, 3)) / std::pow(10, 3); ;
@@ -569,13 +575,18 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		if(pstCfg == nullptr || thick == nullptr || alignRecipe == nullptr)
 			throw exception();
 		
+		const int X = 0;
+		const int Y = 1;
+		
 		markParams.distCam2cam[_1to3] = pstCfg->set_align.distCam2Cam[_1to3];
 		markParams.distCam2cam[_2to3] = pstCfg->set_align.distCam2Cam[_2to3];
 		markParams.distCam2cam[_1to3_Y_OFFSET] = pstCfg->set_align.distCam2Cam[_1to3_Y_OFFSET];
 		markParams.mark2StageX = pstCfg->set_align.table_unloader_xy[0][0];
 		markParams.caliGerbermark2x = pstCfg->set_align.mark2_org_gerb_xy[0];
 		markParams.caliGerbermark2y = pstCfg->set_align.mark2_org_gerb_xy[1];
-		
+		markParams.markZeroOffset[X] = pstCfg->set_align.markZeroOffset[X];
+		markParams.markZeroOffset[Y] = pstCfg->set_align.markZeroOffset[Y];
+
 		markParams.distCam2cam[_1to2_Y_OFFSET] = thick->mark2_stage_y[1] - thick->mark2_stage_y[0];
 		markParams.mark2cam1Y = std::round(thick->mark2_stage_y[0]  * std::pow(10, 3)) / std::pow(10, 3);
 		markParams.mark2cam2Y = std::round(thick->mark2_stage_y[1] * std::pow(10, 3)) / std::pow(10, 3);

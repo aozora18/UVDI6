@@ -244,18 +244,29 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 							alignOffset.srcFid = *first;
 							offsetPool[CaliTableType::align].push_back(alignOffset);
-
-							auto diff = expoOffset - alignOffset;
+							
+							auto diff = alignOffset - expoOffset;
 							diff.srcFid = *first;
 							offsetPool[CaliTableType::expo].push_back(diff);
 							
+							TCHAR tzMsg[256] = { NULL };
 							if (SingleGrab(CENTER_CAM))
 							{
 								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+								{
+
 									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
 
-								grabMarkPath.erase(first);
+
+									swprintf_s(tzMsg, 256, L"%s", first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+									swprintf_s(tzMsg, 256, L"TGT_align%d_offset_x = %.4f mark_offset_y =%.4f", first->tgt_id, alignOffset.offsetX, alignOffset.offsetY);
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+									swprintf_s(tzMsg, 256, L"TGT_expo%d_offset_x = %.4f mark_offset_y =%.4f", first->tgt_id, diff.offsetX, diff.offsetY);
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+								}
 							}
+							grabMarkPath.erase(first);
 						}
 					}
 					return false;

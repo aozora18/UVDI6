@@ -289,6 +289,7 @@ enum CaliTableType
 		double currGerbermark2x = 0, currGerbermark2y = 0;
 		double caliGerbermark2x = 0, caliGerbermark2y = 0;
 		int threshold = 10;
+		double markZeroOffset[2] = { 0, };
 		double mark2StageX = 0;
 		double mark2cam1Y = 0;
 		double mark2cam2Y = 0;

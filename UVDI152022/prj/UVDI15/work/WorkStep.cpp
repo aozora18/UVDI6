@@ -1615,6 +1615,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	std::tuple<double, double> val;
 	STG_XMXY temp;
 
+	TCHAR tzMsg[256] = { NULL };
+
 	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 	bool success = true;
@@ -1679,24 +1681,46 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		bool isGlobal = i < status.globalMarkCnt ? true : false;
 
 
+		/* Global Fiducial 적재 */
 		if (isGlobal)
 		{
 			if (uvEng_Luria_GetGlobalMark(i, &temp) == false)
+			{
+				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
 				return ENG_JWNS::en_error;
+			}
+			else
+			{
+				swprintf_s(tzMsg, 256, L"Global Luria Mark%d : X = %.4f Y = %.4f", i + 1, temp.mark_x, temp.mark_y);
+				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			}
 		}
+		/* Local Fiducial 적재 */
 		else
 		{
 			if (uvEng_Luria_GetLocalMark(i - status.globalMarkCnt, &temp) == false)
+			{
+				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the local mark from selected gerber file");
 				return ENG_JWNS::en_error;
+			}
+			else
+			{
+				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", i + 1, temp.mark_x, temp.mark_y);
+				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			}
 		}
 		
+		/* Grabbed Mark images의 결과 값 가져오기 */
 		auto grab = GetGrab(CENTERCAM, temp.tgt_id, isGlobal ? ENG_AMTF::en_global : ENG_AMTF::en_local);
 
-		if(grab == nullptr)
+		if (grab == nullptr)
 			return ENG_JWNS::en_error;
 
 		if (grab->marked == false)
 			return ENG_JWNS::en_error;
+
+		swprintf_s(tzMsg, 256, L"Global Local Mark%d Move_mm: X = %.4f Y = %.4f", i + 1, grab->move_mm_x, grab->move_mm_y);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 		CaliPoint offset;
 		/*if (GetOffset(CaliTableType::align, temp.tgt_id, offset) == false)
@@ -1712,6 +1736,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			if (GetOffset(CaliTableType::expo, temp.tgt_id, offset) == false)
 				return ENG_JWNS::en_error;
 
+			swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, offset.offsetX, offset.offsetY);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
 			temp.mark_x += offset.offsetX;
 			temp.mark_y += offset.offsetY;
 		}
@@ -1719,16 +1746,81 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	}
 
 
+	/* -------------------------------------------------------------------------------------- */
+/* 거버에 등록된 Global Fiducial Mark와 Grabbed Image들 간의 직선 / 대각선 등의 크기 비교 */
+/* -------------------------------------------------------------------------------------- */
+	int i;
+	BOOL bSucc = TRUE;
+	CAtlList <STG_XMXY> lsOrgMarks;
+	const int CrossLengthCount = 6;
+	STG_XMXY stMarkPos1 = { NULL }, stMarkPos2 = { NULL };
+	UINT8 u8Reg1[6] = { 0, 1, 0, 2, 0, 1 }, u8Reg2[6] = { 2, 3, 1, 3, 3, 2 };
+	INT32 i32Inverse = 1, i32DistS[6] = { NULL }, i32DistT[6] = { NULL };
+	for (i = 0; i < status.globalMarkCnt; i++)
+	{
+		bSucc = uvEng_Luria_GetGlobalMark(i, &stMarkPos1);
+		if (!bSucc)	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+		else		lsOrgMarks.AddTail(stMarkPos1);
+	}
+	/* 원래 거버 좌표 상의 마크 넓이 / 높이 값 임시 저장 */
+	for (i = 0; bSucc && i < CrossLengthCount; i++)
+	{
+		stMarkPos1 = lsOrgMarks.GetAt(lsOrgMarks.FindIndex(u8Reg1[i]));
+		stMarkPos2 = lsOrgMarks.GetAt(lsOrgMarks.FindIndex(u8Reg2[i]));
+		/* mm -> 0.1 um or 100 nm */
+		i32DistS[i] = (INT32)ROUNDED(sqrt(pow(stMarkPos1.mark_x - stMarkPos2.mark_x, 2) +
+			pow(stMarkPos1.mark_y - stMarkPos2.mark_y, 2)) * 10000.0f, 0);
+	}
+
+	CUniToChar csCnv;
+	UINT8 u8MarkLen[6] = { NULL };
+	UINT32 u32MarkDist = 0;
+	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
+	/* 측정 오차 값이 적용된 마크 넓이 / 높이 값 임시 저장 */
+	if (status.globalMarkCnt == 0x04)
+	{
+		for (i = 0; i < CrossLengthCount; i++)
+		{
+			stMarkPos1 = lstMarks.GetAt(lstMarks.FindIndex(u8Reg1[i]));
+			stMarkPos2 = lstMarks.GetAt(lstMarks.FindIndex(u8Reg2[i]));
+
+			/* mm -> 0.1 um or 100 nm */
+			i32DistT[i] = (INT32)ROUNDED(sqrt(pow(stMarkPos1.mark_x - stMarkPos2.mark_x, 2) +
+				pow(stMarkPos1.mark_y - stMarkPos2.mark_y, 2)) * 10000.0f, 0);
+			u32MarkDist = (UINT32)abs(i32DistS[i] - i32DistT[i]);
+			u8MarkLen[i] = u32MarkDist <= (pstRecipe->global_mark_dist[i] * 10) ? 0x01 : 0x02;
+			pstMarkDiff->SetMarkLenDiff(i, u32MarkDist);
+			pstMarkDiff->SetMarkLenValid(i, u8MarkLen[i]);	/* Mark 간의 간격 (대각선 포함)에 대해 유효성 설정 (상/하 수평선, 좌/우 수직선, 대각선 2개 = 총 6개 */
+		}
+	}
+	swprintf_s(tzMsg, 256, L"Limit Dist = %d, %d, %d, %d, %d, %d",
+		pstRecipe->global_mark_dist[0], pstRecipe->global_mark_dist[1], pstRecipe->global_mark_dist[2],
+		pstRecipe->global_mark_dist[3], pstRecipe->global_mark_dist[4], pstRecipe->global_mark_dist[5]);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+	swprintf_s(tzMsg, 256, L"Result Dist = %.1f, %.1f, %.1f, %.1f, %.1f, %.1f",
+		pstMarkDiff->result[0].diff * 100000.0f, pstMarkDiff->result[1].diff * 100000.0f, pstMarkDiff->result[2].diff * 100000.0f,
+		pstMarkDiff->result[3].diff * 100000.0f, pstMarkDiff->result[4].diff * 100000.0f, pstMarkDiff->result[5].diff * 100000.0f);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+
+
+	/* Global Transformation Recipe 정보 설정 */
 	if (uvEng_Luria_ReqSetGlobalTransformationRecipe(0x00, 0x00, 0x00) == false)
 		return ENG_JWNS::en_error;
-	
-		uvCmn_Luria_ResetRegistrationStatus();
-
+	/* 기존 상태 값 초기화 */
+	uvCmn_Luria_ResetRegistrationStatus();
+	/* 무조건 Shared Local Zone 사용 안함으로 설정해야 함 */
 	if (uvEng_Luria_ReqSetUseSharedLocalZones(0x00) == false)
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)");
 		return ENG_JWNS::en_error;
+	}
 
 	auto fidCnt = lstMarks.GetCount();
-	
+
 	//LPG_I32XY pstMarks = NULL;
 	//pstMarks = new STG_I32XY[fidCnt];
 
@@ -1742,18 +1834,26 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			auto at = lstMarks.GetAt(lstMarks.FindIndex(j));
 			if (at.org_id == (isGlobal ? i : i - status.globalMarkCnt) && at.GetFlag(isGlobal ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL))
 			{
+				swprintf_s(tzMsg, 256, L"Global, Local Regist Mark%d : X =%.4f Y = %.4f", i + 1, at.mark_x, at.mark_y);
+				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
 				pstMarks[i].x = (INT32)ROUNDED(at.mark_x * 1000000.0f, 0);
 				pstMarks[i].y = (INT32)ROUNDED(at.mark_y * 1000000.0f, 0);
+
 			}
 		}
 	}
 
+	/* Luria에 변경된 Mark 위치 값 등록 진행 */
 	if (uvEng_Luria_ReqSetRegistPointsAndRun(fidCnt, pstMarks.get()) == false)
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)");
 		return ENG_JWNS::en_error;
+	}
 
 	uvEng_Luria_ReqGetGetTransformationParams(0);
 
-	
+
 	SetSendCmdTime();
 
 	return ENG_JWNS::en_next;

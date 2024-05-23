@@ -236,7 +236,13 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 			auto IndexOf = [&](vector<STG_XMXY>& pool, int idx,bool& isGlobal)->int //역산해야한다. 그럼 이 마크시퀀스는 각 로컬이나 글로벌에서 몇번째인가?
 			{
 				int sum = 0;
-				if (pool.size() == 0) return -1;
+				if (pool.empty() || pool.size() <= idx)
+				{
+					TCHAR errStr[200] = { NULL };
+					swprintf_s(errStr, 200, L"grab pool count mismatching. poolsize = %d , gtabcount = %d" , pool.size() , idx);
+					LOG_ERROR(ENG_EDIC::en_uvdi15, errStr);
+					return -1;
+				}
 
 				isGlobal = pool[idx].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 				if (idx == 0) return 0;

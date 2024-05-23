@@ -1691,7 +1691,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			}
 			else
 			{
-				swprintf_s(tzMsg, 256, L"Global Luria Mark%d : X = %.4f Y = %.4f", i + 1, temp.mark_x, temp.mark_y);
+				swprintf_s(tzMsg, 256, L"Global Luria Mark%d : X = %.4f Y = %.4f", temp.org_id, temp.mark_x, temp.mark_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 			}
 		}
@@ -1705,7 +1705,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			}
 			else
 			{
-				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", i + 1, temp.mark_x, temp.mark_y);
+				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f",temp.org_id, temp.mark_x, temp.mark_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 			}
 		}
@@ -1719,7 +1719,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		if (grab->marked == false)
 			return ENG_JWNS::en_error;
 
-		swprintf_s(tzMsg, 256, L"Global Local Mark%d Move_mm: X = %.4f Y = %.4f", i + 1, grab->move_mm_x, grab->move_mm_y);
+		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f",(isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 		CaliPoint offset;
@@ -1736,7 +1736,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			if (GetOffset(CaliTableType::expo, temp.tgt_id, offset) == false)
 				return ENG_JWNS::en_error;
 
-			swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, offset.offsetX, offset.offsetY);
+			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, offset.offsetX, offset.offsetY);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 			temp.mark_x += offset.offsetX;
@@ -1834,7 +1834,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			auto at = lstMarks.GetAt(lstMarks.FindIndex(j));
 			if (at.org_id == (isGlobal ? i : i - status.globalMarkCnt) && at.GetFlag(isGlobal ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL))
 			{
-				swprintf_s(tzMsg, 256, L"Global, Local Regist Mark%d : X =%.4f Y = %.4f", i + 1, at.mark_x, at.mark_y);
+				swprintf_s(tzMsg, 256, L"%s Regist Mark%d : X =%.4f Y = %.4f", (isGlobal ? L"Global" : L"Local"), at.org_id, at.mark_x, at.mark_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 				pstMarks[i].x = (INT32)ROUNDED(at.mark_x * 1000000.0f, 0);
@@ -1885,22 +1885,30 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	std::tuple<double, double> val;
 	CUniToChar csCnv;
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	//LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
-
+	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Align.Mark.Regist");
 
 	/* XML 파일에 등록된 Mark 개수 확인 */
 	u8MarkG = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	//if (uvEng_Luria_IsMarkMixedGlobalLocal())
-	//{
 	u8MarkL = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
-	//}
-
-	/* 마크 개수만큼 메모리 할당 */
 	pstMarks = (LPG_I32XY)::Alloc(sizeof(STG_I32XY) * UINT32(u8MarkG + u8MarkL));
 	ASSERT(pstMarks);
+
+	auto grabFindFunc = [&]( int markTgt, CAtlList <LPG_ACGR>* grabPtr , STG_XMXY_RESERVE_FLAG matchingFlags) -> LPG_ACGR
+		{
+			if (grabPtr == NULL)
+				return nullptr;
+
+			for (int i = 0; i < grabPtr->GetCount(); i++)
+			{
+				auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
+				if (grab != nullptr && grab->fiducialMarkIndex == markTgt && (pstGrab->reserve && matchingFlags) == matchingFlags)
+					return grab;
+			}
+			return nullptr;
+		};
 
 	/* 현재 노광 모드가 Align Expose 인 경우만 수행하도록 함 */
 	switch (m_enWorkJobID)
@@ -1938,6 +1946,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		swprintf_s(tzMsg, 256, L"Global Luria Mark%d : X = %.4f Y = %.4f", i + 1, stMarkPos1.mark_x, stMarkPos1.mark_y);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
+
+	if(bSucc == false)
+		return ENG_JWNS::en_error;
+
+#if(0)
 	const int CrossLengthCount = 6;
 	/* -------------------------------------------------------------------------------------- */
 	/* 거버에 등록된 Global Fiducial Mark와 Grabbed Image들 간의 직선 / 대각선 등의 크기 비교 */
@@ -1951,6 +1964,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		i32DistS[i] = (INT32)ROUNDED(sqrt(pow(stMarkPos1.mark_x - stMarkPos2.mark_x, 2) +
 			pow(stMarkPos1.mark_y - stMarkPos2.mark_y, 2)) * 10000.0f, 0);
 	}
+#endif
 
 	/* Align Mark로 측정된 오차 값에 Camera Calibration Offset 적용 */
 	if ((ENG_BWOK::en_mark_test == m_enWorkJobID ||
@@ -1960,141 +1974,116 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	{
 
 		//-------------------------    글로벌 마크 (옵셋 미적용)   아주 일관성이 없어 아주 ------------------------
+		auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
+
 		for (i = 0; bSucc && i < u8MarkG; i++)
 		{
-			/* Global Mark < 4 > Points */
-			GetGlobalMarkIndex(i, u8CamID, u8ImgID);
-			/* Grabbed Mark images의 결과 값 가져오기 */
-			pstGrab = uvEng_Camera_GetGrabbedMark(u8CamID, u8ImgID);
+			auto& lstMarkAt = lstMarks.GetAt(lstMarks.FindIndex(i));
+
+			pstGrab = grabFindFunc(lstMarkAt.tgt_id, grabMark, STG_XMXY_RESERVE_FLAG::GLOBAL);
 
 			if (!pstGrab)
 			{
 				swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (global mark) "
-					L"(cam_id=%d,mark_id=%d)", u8CamID, u8ImgID);
+					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
 				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-				bSucc = FALSE;
+				return ENG_JWNS::en_error;
 			}
-			/* ---------------------------------------------------------------- */
-			/* Align Mark 측정 오차에 최종 Mark Offset 값 포함해서 위치 재 조정 */
-			/* ---------------------------------------------------------------- */
-			if (bSucc)
-			{
-				bSucc = pstGrab->marked == 0x01;
-				if (bSucc)
-				{
-
-					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x -= pstGrab->move_mm_x;
-					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y -= pstGrab->move_mm_y;
-
-					swprintf_s(tzMsg, 256, L"Global Mark%d Move_mm: X = %.4f Y = %.4f", i + 1, pstGrab->move_mm_x, pstGrab->move_mm_y);
-					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-				}
-				else
-				{
-					swprintf_s(tzMesg, 128, L"The mark image (global) was grabbed, but failed to find a model "
-						L"(cam_id=%d,mark_id=%d)", u8CamID, u8ImgID);
-					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-				}
-			}
-		}
-
-		// -------------------------    여기는 글로벌  (마크옵셋적용시) --------------------------
-		if (pstSetAlign->use_mark_offset)
-		{
-
-			for (i = 0; i < u8MarkG; i++)
-			{
-				if (pstSetAlign->use_mark_offset && pstSetAlign->markOffsetPtr->Get(true, i, val))
-				{
-					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_x += std::get<0>(val);
-					lstMarks.GetAt(lstMarks.FindIndex(i)).mark_y += std::get<1>(val);
-
-					swprintf_s(tzMsg, 256, L"mark%d_offset_x = %.4f mark_offset_y =%.4f", i + 1, std::get<0>(val), std::get<1>(val));
-					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-
-				}
-
-				swprintf_s(tzMsg, 256, L"Offset + Global Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y / 1000000.0f));
-				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-			}
-		}
-		//	------------------------------여기까지 글로벌  -------------------------------
-
-
-		/* Local Fiducial 적재  이거 아래로 내리고 인덱스 초기화해야함 존나 더러움*/
-
-
-		// ----------------------------  여기부터 로컬 ----------------------------
-		
-		auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
-		//lstMarks.RemoveAll();
-
-		for (i = 0; i < u8MarkL; i++)
-		{
-			//stMarkPos1 = status.markList[ENG_AMTF::en_local][i]; //로컬 마크 인덱스별로 참조.
-			uvEng_Luria_GetLocalMark(i, &stMarkPos1);
-			lstMarks.AddTail(stMarkPos1);
-			swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", stMarkPos1.tgt_id, stMarkPos1.mark_x, stMarkPos1.mark_y);
-			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-		}
-
-		auto grabFindFunc = [&](int startIdx, int markTgt, CAtlList <LPG_ACGR>* grabPtr) -> LPG_ACGR
-			{
-				if (grabPtr == NULL)
-					return nullptr;
-
-				for (int i = startIdx; i < grabPtr->GetCount(); i++)
-				{
-					auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
-					if (grab != nullptr && grab->fiducialMarkIndex == markTgt)
-						return grab;
-				}
-				return nullptr;
-			};
-		
-		auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
-
-		if(!IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
-		for ( j=u8MarkG; j<u8MarkG+u8MarkL;j++)
-		{
 			
-			auto localMarkIndex = lstMarks.FindIndex(j); //<-이건 배열 인덱스 
-			STG_XMXY& localMarkInfo = lstMarks.GetAt(localMarkIndex);
-
-			pstGrab = grabFindFunc(u8MarkG,localMarkInfo.tgt_id, grabMark);
-
-			if (pstGrab == nullptr)
+			if (pstGrab->marked == 0x01)
 			{
-				bSucc = FALSE;
-				break;
+				lstMarkAt.mark_x -= pstGrab->move_mm_x;
+				lstMarkAt.mark_y -= pstGrab->move_mm_y;
+
+				swprintf_s(tzMsg, 256, L"Global Mark%d Move_mm: X = %.4f Y = %.4f", lstMarkAt.tgt_id, pstGrab->move_mm_x, pstGrab->move_mm_y);
+				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+				if (pstSetAlign->use_mark_offset)
+				{
+					if (pstSetAlign->markOffsetPtr->Get(true, lstMarkAt.tgt_id, val) == false)
+					{
+						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.tgt_id);
+						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+						bSucc = FALSE;
+					}
+
+					lstMarkAt.mark_x += std::get<0>(val);
+					lstMarkAt.mark_y += std::get<1>(val);
+
+					swprintf_s(tzMsg, 256, L"GLOBAL mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.tgt_id, std::get<0>(val), std::get<1>(val));
+					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+				}
 			}
 			else
 			{
-				/* ---------------------------------------------------------------- */
-				/* Align Mark 측정 오차에 최종 Mark Offset 값 포함해서 위치 재 조정 */
-				/* ---------------------------------------------------------------- */
-				bSucc = pstGrab->marked == 0x01;
-				if (bSucc)
+				swprintf_s(tzMesg, 128, L"The mark image (global) was grabbed, but failed to find a model "
+					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			}
+		}
+
+		if (!IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
+		{
+			for (i = 0; i < u8MarkL; i++)
+			{
+				uvEng_Luria_GetLocalMark(i, &stMarkPos1);
+				lstMarks.AddTail(stMarkPos1);
+				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", stMarkPos1.tgt_id, stMarkPos1.mark_x, stMarkPos1.mark_y);
+				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			}
+
+			for (j = u8MarkG; j < u8MarkG + u8MarkL; j++)
+			{
+				STG_XMXY& lstMarkAt = lstMarks.GetAt(lstMarks.FindIndex(j));
+
+				pstGrab = grabFindFunc(lstMarkAt.tgt_id, grabMark, STG_XMXY_RESERVE_FLAG::LOCAL);
+
+				if (pstGrab == nullptr)
 				{
-
-					//abh1000 Local Test
-					localMarkInfo.mark_x -= pstGrab->move_mm_x;
-					localMarkInfo.mark_y -= pstGrab->move_mm_y;
+					swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (local mark) "
+						L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+					return ENG_JWNS::en_error;
+				}
+				else
+				{
+					/* ---------------------------------------------------------------- */
+					/* Align Mark 측정 오차에 최종 Mark Offset 값 포함해서 위치 재 조정 */
+					/* ---------------------------------------------------------------- */
 					
-					
-					if (pstSetAlign->use_mark_offset && pstSetAlign->markOffsetPtr->Get(false, j - u8MarkG, val))
+					if (pstGrab->marked == 0x01)
 					{
-						localMarkInfo.mark_x += std::get<0>(val);
-						localMarkInfo.mark_y += std::get<1>(val);
+						lstMarkAt.mark_x -= pstGrab->move_mm_x;
+						lstMarkAt.mark_y -= pstGrab->move_mm_y;
+
+						if (pstSetAlign->use_mark_offset)
+						{
+							if (pstSetAlign->markOffsetPtr->Get(false, lstMarkAt.tgt_id, val) == false)
+							{
+								swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.tgt_id);
+								LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+								bSucc = FALSE;
+							}
+
+							lstMarkAt.mark_x += std::get<0>(val);
+							lstMarkAt.mark_y += std::get<1>(val);
+
+							swprintf_s(tzMsg, 256, L"local mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.tgt_id, std::get<0>(val), std::get<1>(val));
+							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+						}
 					}
-
-					swprintf_s(tzMsg, 256, L"Local Mark%d Move_mm: X = %.4f Y = %.4f", j - u8MarkG, pstGrab->move_mm_x, pstGrab->move_mm_y);
-					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-
+					else
+					{
+						swprintf_s(tzMesg, 128, L"The mark image (local) was grabbed, but failed to find a model "
+							L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+					}
 				}
 			}
 		}
 
+		
+#if(0)
 		if (bSucc)
 		{
 			/* 측정 오차 값이 적용된 마크 넓이 / 높이 값 임시 저장 */
@@ -2126,15 +2115,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				pstMarkDiff->result[0].diff * 100000.0f, pstMarkDiff->result[1].diff * 100000.0f, pstMarkDiff->result[2].diff * 100000.0f,
 				pstMarkDiff->result[3].diff * 100000.0f, pstMarkDiff->result[4].diff * 100000.0f, pstMarkDiff->result[5].diff * 100000.0f);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-#if 0
-			swprintf_s(tzMesg, 256, L"Dist = (top_horz = %.1f)(btm_horz = %.1f)(lft_vert = %.1f)(rgt_vert = %.1f)(lft_diag = %.1f)(rgt_diag = %.1f) 입니다 노광 하시겠습니까?",
-				pstMarkDiff->result[0].diff * 100000.0f, pstMarkDiff->result[1].diff * 100000.0f, pstMarkDiff->result[2].diff * 100000.0f,
-				pstMarkDiff->result[3].diff * 100000.0f, pstMarkDiff->result[4].diff * 100000.0f, pstMarkDiff->result[5].diff * 100000.0f);
-			if (IDNO == AfxMessageBox(tzMesg, MB_YESNO))
-			{
-				bSucc = FALSE;
-			}
-#endif
+
+
 			if (!pstMarkDiff->IsMarkLenValidAll())
 			{
 				bSucc = FALSE;
@@ -2155,6 +2137,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				bSucc = FALSE;
 			}
 		}
+#endif
+
 	}
 
 	/* Global Transformation Recipe 정보 설정 */
@@ -2168,8 +2152,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		bSucc = FALSE;
 	}
 
-	
-	
 	for (i = 0;i < u8MarkG; i++)
 	{
 		stMarkPos1 = lstMarks.GetAt(lstMarks.FindIndex(i));
@@ -2187,7 +2169,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		pstMarks[stMarkPos1.org_id + u8MarkG].x = (INT32)ROUNDED(stMarkPos1.mark_x * 1000000.0f, 0);	/* mm -> nm */
 		pstMarks[stMarkPos1.org_id + u8MarkG].y = (INT32)ROUNDED(stMarkPos1.mark_y * 1000000.0f, 0);	/* mm -> nm */
 
-		swprintf_s(tzMsg, 256, L"Local Regist Mark%d : X =%.4f Y = %.4f", j- u8MarkG, DOUBLE(pstMarks[stMarkPos1.org_id + u8MarkG].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id + u8MarkG].y / 1000000.0f));
+		swprintf_s(tzMsg, 256, L"Local Regist Mark%d : X =%.4f Y = %.4f", stMarkPos1.org_id, DOUBLE(pstMarks[stMarkPos1.org_id + u8MarkG].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id + u8MarkG].y / 1000000.0f));
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
 
@@ -2209,6 +2191,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	/* 다음 상태 확인까지 일정 시간 지연을 위해서 */
 	SetSendCmdTime();
 
+	return ENG_JWNS::en_error;
 	return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 	//return ENG_JWNS::en_next;
 }

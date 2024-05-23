@@ -59,7 +59,7 @@ RUN_ENGINE_MONITOR      = 0
 RUN_MATERIAL_DETECT     	= 0
 LOG_FILE_SAVED          	= 1
 GRAB_MARK_SAVED         	= 1
-STROBE_LAMP_TYPE        	= 1
+STROBE_LAMP_TYPE        	= 0
 ALIGN_CAMERA_KIND       	= 1
 ALL_ALARM_IGNORE        	= 1
 ALL_WARN_IGNORE         	= 0
@@ -669,7 +669,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 6um_MasterGlass_D12
+RECIPE_NAME= Shoot_G15
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -807,7 +807,7 @@ CAM7_SAFETY_POS= 0.0000
 
 CAM_1_GAIN_LEVEL    = 50
 CAM_2_GAIN_LEVEL    = 50
-CAM_3_GAIN_LEVEL    = 100
+CAM_3_GAIN_LEVEL    = 250
 
 ;film - CAM1 180, CAM2 120
 
@@ -1518,8 +1518,8 @@ MODEL_SHUT_COLOR        = 256.000
 
 MODEL_RING_TYPE         = 256
 
-MODEL_RING_SIZE1        = 2.0000
-MODEL_RING_SIZE2        = 2.5000
+MODEL_RING_SIZE1        = 1.9500
+MODEL_RING_SIZE2        = 2.5500
 
 MODEL_RING_COLOR        = 256.000
 

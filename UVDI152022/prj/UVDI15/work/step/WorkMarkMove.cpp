@@ -116,19 +116,22 @@ void CWorkMarkMove::DoMovingStatic2cam()
 
 }
 
+STG_XMXY markPos = { 0 };
+
 void CWorkMarkMove::DoMovingStatic3cam()
 {
 	/* 작업 단계 별로 동작 처리 */
 	
 	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
-
+	const int CENTERCAM = motions.markParams.centerCamIdx;
+	
 	switch (m_u8StepIt)
 	{
 	case 0x01:
 	{
 		uvEng_Camera_ResetGrabbedImage();
 		m_enWorkState = IsSetTrigPosResetAll();
-		uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);/* Grab Mode 설정 */
+		//uvEng_Camera_SetCamMode(ENG_VCCM::en_grab_mode);/* Grab Mode 설정 */
 	}
 	break;
 	case 0x02: m_enWorkState = IsMotorDriveStopAll();		break;
@@ -137,7 +140,7 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	case 0x05: m_enWorkState = ENG_JWNS::en_next; break; //IsLoadedGerberCheck();		break;
 	case 0x06:
 	{
-		STG_XMXY markPos; const int CENTERCAM = motions.markParams.centerCamIdx;
+		
 		if (uvEng_Luria_GetGlobalMark(m_u8MarkNo - 1, &markPos))
 		{
 			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos);
@@ -149,6 +152,16 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	break;
 
 	case 0x07:
+		string temp = "x" + std::to_string(CENTERCAM);
+		motions.Refresh();
+		auto alignOffset = motions.EstimateAlignOffset(CENTERCAM,
+			motions.GetAxises()["stage"]["x"].currPos,
+			motions.GetAxises()["stage"]["y"].currPos,
+			CENTERCAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+
+		auto expoOffset = motions.EstimateExpoOffset(markPos.mark_x, markPos.mark_y);
+
+
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_none);/* Grab Mode 설정 */
 		m_enWorkState = ENG_JWNS::en_next;
 		//RESERVE

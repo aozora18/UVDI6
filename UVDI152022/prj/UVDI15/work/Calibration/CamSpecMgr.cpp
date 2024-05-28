@@ -226,7 +226,8 @@ BOOL CCamSpecMgr::ACamMovingQuartz(int nTimeOut, double dDiffDistance)
 	ENG_MMDI enACamDrv;
 	if (0x01 == m_u8ACamID)			enACamDrv = ENG_MMDI::en_align_cam1;
 	else if (0x02 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_align_cam2;
-	else if (0x03 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_align_cam2;
+	else if (0x03 == m_u8ACamID)	enACamDrv = ENG_MMDI::en_axis_none;
+	
 
 	double dMoveACamPos = 0, dMoveXPos = 0, dMoveYPos = 0;
 	double dDiffACamPos = 0, dDiffXPos = 0, dDiffYPos = 0;
@@ -248,10 +249,18 @@ BOOL CCamSpecMgr::ACamMovingQuartz(int nTimeOut, double dDiffDistance)
 	/* 현재 이동하고자 하는 모션의 Toggled 값 얻기 */
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
-	uvCmn_MC2_GetDrvDoneToggled(enACamDrv);
+	
+	
+	if (enACamDrv != ENG_MMDI::en_axis_none)
+	{
+		uvCmn_MC2_GetDrvDoneToggled(enACamDrv);
 
-	/* Motion 이동 시키기 */
-	if (FALSE == uvEng_MC2_SendDevAbsMove(enACamDrv, dMoveACamPos, uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)enACamDrv]))	return FALSE;
+		/* Motion 이동 시키기 */
+		if (uvEng_MC2_SendDevAbsMove(enACamDrv, dMoveACamPos, uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)enACamDrv]) == false)
+			return false;
+		
+	}
+
 	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, dMoveXPos))
 	{
 		return FALSE;
@@ -282,7 +291,8 @@ BOOL CCamSpecMgr::ACamMovingQuartz(int nTimeOut, double dDiffDistance)
 		/* 타겟 위치와 현재위치의 오차를 구한다. */
 		dDiffXPos = dMoveXPos - uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_x);
 		dDiffYPos = dMoveYPos - uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);
-		dDiffACamPos = dMoveACamPos - uvCmn_MC2_GetDrvAbsPos(enACamDrv);
+		
+		dDiffACamPos = enACamDrv == ENG_MMDI::en_axis_none ? 0 : dMoveACamPos - uvCmn_MC2_GetDrvAbsPos(enACamDrv);
 
 		/* Motor가 타겟위치에 도달하고 정지 상태일 경우 종료 */
 		if (FALSE == uvCmn_MC2_IsDriveBusy(ENG_MMDI::en_stage_x) &&
@@ -384,7 +394,7 @@ BOOL CCamSpecMgr::GrabQuartzData(STG_ACGR &stGrab, BOOL bRunMode, int nRetryCoun
 	for (int i = 0; i < nRetryCount; i++)
 	{
 		/* Trigger 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ChNo, 0x00, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ChNo))
 		{
 			return FALSE;
 		}

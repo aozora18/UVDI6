@@ -58,8 +58,8 @@ API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOneOnly(UINT8 ch_no, UINT8 lamp_type);
 						트리거 1개 발생 후, 곧바로 트리거 Disable 할지 여부
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOne(UINT8 ch_no, UINT8 lamp_type, BOOL enable=TRUE);
-API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOne_(int channelBit);
+API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOne(UINT8 channelBit);
+API_IMPORT BOOL uvEng_Mvenc_ReqTrigOutOneUseReset(int channelBit);
 
 API_IMPORT BOOL uvEng_Mvenc_ReqTrigDelay(UINT8 channel, int delay);
 #if 1

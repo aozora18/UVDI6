@@ -2041,7 +2041,7 @@ VOID CDlgMark::SetMatchModel()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-	if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID, m_u8lamp_type, FALSE))
+	if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
 		{
 			dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
 			return;
@@ -2148,7 +2148,7 @@ VOID CDlgMark::SetEdgeDetect()
 	/* Align Camera is Edge Detection Mode */
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_edge_mode);
 	/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-	if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID, m_u8lamp_type, FALSE))
+	if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
 	{
 		dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
 		return;
@@ -2379,7 +2379,7 @@ VOID CDlgMark::RegistMarkImage()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID, m_u8lamp_type, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
 		{
 			dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
 			return;
@@ -3402,7 +3402,7 @@ VOID CDlgMark::VisionCalib()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID, m_u8lamp_type, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
 		{
 			dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
 			return;

@@ -233,7 +233,7 @@ BOOL CFlushErrorMgr::GrabbedImage(double& dCenterMove)
 	for (int i = 0; i < nRetryCount; i++)
 	{
 		/* Trigger 1°³ ¹ß»ý */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ChNo, 0x00, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ChNo))
 		{
 			return FALSE;
 		}

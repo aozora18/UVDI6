@@ -410,46 +410,18 @@ API_EXPORT BOOL uvMvenc_ReqTrigOutOneOnly(UINT8 cam_id, UINT8 lamp_type)
 						트리거 1개 발생 후, 곧바로 트리거 Disable 할지 여부
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id, UINT8 lamp_type, BOOL enabl)
+API_EXPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id)
 {
 	BOOL bSucc	= FALSE;
-	UINT32 u32EncOut= GetTrigEncOutVal(cam_id, lamp_type);
-
-	if (!IsConnected())	return FALSE;
-	/* Trigger & Strobe : Enabled */
-	//bSucc	= uvMvenc_ReqTriggerStrobe(TRUE);
-#if 0
-	/* Trigger Out : one pulse */
-	if (bSucc)
-	{
-		switch (g_pstConfig->set_comn.strobe_lamp_type)
-		{
-		case 0x00	:	/* 조명 1 (채널 번호가 아님) */
-			if (0x01 == cam_id)	bSucc = g_pMvencThread->ReqWriteTrigOutOne(0x01000000);
-			else				bSucc = g_pMvencThread->ReqWriteTrigOutOne(0x00000100);	break;
-		case 0x01	:	/* 조명 2 (채널 번호가 아님) */
-			if (0x01 == cam_id)	bSucc = g_pMvencThread->ReqWriteTrigOutOne(0x00010000);
-			else				bSucc = g_pMvencThread->ReqWriteTrigOutOne(0x00000001);	break;
-		}
-	}
-#else
-	//bSucc = g_pMvencThread->ReqWriteTrigOutOne(u32EncOut);
-//	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
-
-	
-	bSucc = g_pMvencThread->ReqWriteTrigOutOne_(0b1000 | (1 << (cam_id - 1)));
-
-#endif
-	/* Trigger & Strobe : Disabled */
-	//if (bSucc && enabl)	bSucc = uvMvenc_ReqTriggerStrobe(FALSE);
+	bSucc = g_pMvencThread->ReqWriteTrigOutOne(cam_id);
 
 	return bSucc;
 }
 
-API_EXPORT BOOL uvMvenc_ReqTrigOutOne_(UINT8 channelBit)
+API_EXPORT BOOL uvMvenc_ReqTrigOutOneUseReset(UINT8 cam_id)
 {
 	if (!IsConnected())	return FALSE;
-	BOOL bSucc = g_pMvencThread->ReqWriteTrigOutOne_(channelBit);
+	BOOL bSucc = g_pMvencThread->ReqWriteTrigOutOneUseReset(cam_id);
 	return bSucc;
 }
 

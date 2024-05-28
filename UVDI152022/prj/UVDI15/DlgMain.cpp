@@ -1412,9 +1412,24 @@ VOID CDlgMain::DeleteMenu()
 {
 	if (!m_pDlgMenu)	return;
 
-	if (m_pDlgMenu->GetSafeHwnd())	m_pDlgMenu->DestroyWindow();
+	try
+	{
+		if (m_pDlgMenu->GetSafeHwnd())
+			m_pDlgMenu->DestroyWindow();
+		
+	}
+	catch (CMemoryException* e)
+	{
+		
+	}
+	catch (CFileException* e)
+	{
+	}
+	catch (CException* e)
+	{
+	}
 	delete m_pDlgMenu;
-	m_pDlgMenu	= NULL;
+	m_pDlgMenu = NULL;
 }
 
 /*

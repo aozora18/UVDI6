@@ -1327,7 +1327,7 @@ VOID CDlgCalbCameraSpec::MarkGrabbedResult()
 		// uvEng_Camera_ResetGrabbedImage();
 
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID, 0x00, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
 		{
 			uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 			AfxMessageBox(L"Failed to send the event for trigger", MB_ICONSTOP | MB_TOPMOST);

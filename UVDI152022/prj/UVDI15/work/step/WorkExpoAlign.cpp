@@ -595,7 +595,36 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 		case 0x07:
 		{
-			auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne_(0b1100); };
+			auto SingleGrab = [&](int camIndex,int& lastGrabCnt) -> bool 
+			{
+				lastGrabCnt = uvEng_Camera_GetGrabbedCount(&camIndex);
+				auto res =  uvEng_Mvenc_ReqTrigOutOne(camIndex);
+				return res;
+			};
+
+			auto RetrySingleGrab = [&](int camIndex) -> bool
+			{
+				int lastGrabCnt = 0; int tryCnt = 0; bool grabResult = false;
+				if (SingleGrab(camIndex, lastGrabCnt))
+				{
+					while (grabResult == false && tryCnt < 3)
+					{
+						grabResult = GlobalVariables::GetInstance()->Waiter([&]()->bool
+							{
+								int grabCnt = uvEng_Camera_GetGrabbedCount(&camIndex);
+								if (grabCnt <= lastGrabCnt) return false;
+
+								auto& grab = uvEng_Camera_GetLastGrabbedACam()[camIndex - 1];
+								
+								if (grab.marked == false)
+									uvEng_Camera_ResetGrabbedImage();
+
+							}, 3 * 1000);
+						tryCnt += grabResult == false ? 1 : 0;
+					}
+				}
+				else return false;
+			};
 
 			bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
@@ -618,6 +647,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 							
 							string temp = "x" + std::to_string(CENTER_CAM);
 							
+							motions.Refresh();
 							
 							auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
 								motions.GetAxises()["stage"]["x"].currPos,
@@ -630,15 +660,15 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 							alignOffset.srcFid = *first;
 							
-							auto diff = expoOffset - alignOffset;
+							auto diff = alignOffset - expoOffset ;
 							diff.srcFid = *first;
 
 							offsetPool[CaliTableType::align].push_back(alignOffset);
 							offsetPool[CaliTableType::expo].push_back(diff);
 
 
-							TCHAR tzMsg[256] = { NULL };
-							if (SingleGrab(CENTER_CAM))
+							TCHAR tzMsg[256] = { NULL }; int lastGrabCnt = 0;
+							if (SingleGrab(CENTER_CAM,lastGrabCnt))
 							{
 								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 								{

@@ -82,16 +82,16 @@ API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOneOnly(UINT8 ch_no, UINT8 lamp_type)
 						트리거 1개 발생 후, 곧바로 트리거 Disable 할지 여부
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOne(UINT8 ch_no, UINT8 lamp_type, BOOL enable)
+API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOne(UINT8 channelBit)
 {
 	if (!uvMvenc_IsConnected() && GetConfig()->IsRunDemo())	return TRUE;
-	return uvMvenc_ReqTrigOutOne(ch_no, lamp_type, enable);
+	return uvMvenc_ReqTrigOutOne(channelBit);
 }
 
-API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOne_(int channelBit)
+API_EXPORT BOOL uvEng_Mvenc_ReqTrigOutOneUseReset(int channelBit)
 {
 	if (!uvMvenc_IsConnected() && GetConfig()->IsRunDemo())	return TRUE;
-	return uvMvenc_ReqTrigOutOne_(channelBit);
+	return uvEng_Mvenc_ReqTrigOutOneUseReset(channelBit);
 }
 
 

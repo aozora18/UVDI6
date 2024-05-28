@@ -72,6 +72,11 @@ VOID ResetGrabbedImage()
 	uvMIL_ResetGrabAll();
 }
 
+//VOID RemoveLastGrab(int camIdx)
+//{
+//
+//}
+
 /*
  desc : Global 4개의 Mark에 대해서 모두 유효한지 검사
  변수 :	cam_id	- [in]  Camera Index (1 or 2)

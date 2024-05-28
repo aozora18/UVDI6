@@ -147,7 +147,7 @@ API_IMPORT BOOL uvMvenc_ReqEncoderOutReset();
 */
 API_IMPORT BOOL uvMvenc_ReqTrigOutOneOnly(UINT8 cam_id, UINT8 lamp_type);
 
-API_IMPORT BOOL uvMvenc_ReqTrigOutOne_(UINT8 channelBit);
+API_IMPORT BOOL uvMvenc_ReqTrigOutOneUseReset(UINT8 channelBit);
 
 API_IMPORT BOOL uvMvenc_ReqTrigDelay(UINT8 channel, int delay);
 /*
@@ -158,7 +158,7 @@ API_IMPORT BOOL uvMvenc_ReqTrigDelay(UINT8 channel, int delay);
 						트리거 1개 발생 후, 곧바로 트리거 Disable 할지 여부
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id, UINT8 lamp_type, BOOL enable=TRUE);
+API_IMPORT BOOL uvMvenc_ReqTrigOutOne(UINT8 cam_id);
 /*
  desc : 기존에 입력된 Trigger 위치 값과 Trigger Board로부터 수신된 입력 값 비교
  parm : ch_no	- [in]  채널 번호 (0x01 ~ 0x04)

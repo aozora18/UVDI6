@@ -1133,14 +1133,9 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 
 	BOOL bSucc			= TRUE;
 	UINT uiStatus		= 0;
-	STG_TPQR stPktData	= {NULL};
-
+	
 	if (m_syncSend.Enter())
 	{
-		/* 명령어 설정 */
-		stPktData.command		= (UINT32)ENG_TBPC::en_trig_out_one;
-		stPktData.enc_out_val	= enc_out;
-		
 		for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
 		{
 			// 강제 트리거 발생 : 단위 확인 필요
@@ -1157,14 +1152,18 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 			}
 		}
 
-		MvsEncSetPositiveRun(m_handle, 0b1000 | (1 << (enc_out - 1)));
-		Sleep(10);
-		MvsEncSetPositiveRun(m_handle, 0);
-
+		if (MvsEncSetPositiveRun(m_handle, 0b1000 | (1 << (enc_out - 1))) == 0)
+		{
+			Sleep(10);
+			MvsEncSetPositiveRun(m_handle, 0);
+		}
+		else
+		{
+			bSucc = FALSE;
+		}
 		m_u64SendTime = GetTickCount64();
 		/* 동기 해제 */
 		m_syncSend.Leave();
-	
 	}
 
 	/* 현재 상태 값 읽기 요청 */
@@ -1178,28 +1177,37 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
  parm : enc_out	- [in]  1 바이트 씩 의미가 있음 (4 Bytes 이므로, 총 4채널)
  retn : TRUE or FALSE
 */
-BOOL CMvencThread::ReqWriteTrigOutOne_(UINT32 channelBit,int trigTime)
+BOOL CMvencThread::ReqWriteTrigOutOneUseReset(UINT32 channelBit)
 {
 	//return true;
 	BOOL bSucc = TRUE;
 	UINT uiStatus = 0;
-	STG_TPQR stPktData = { NULL };
-
+	
+	
 	/* 동기 진입 */
 	if (m_syncSend.Enter())
 	{
-		
-		///* 명령어 설정 */
-		//stPktData.command = (UINT32)ENG_TBPC::en_trig_out_one;
-		//stPktData.enc_out_val = channelBit;
 
+		for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
+		{
+			// 강제 트리거 발생 : 단위 확인 필요
+			uiStatus = MvsEncSetTriggerGenerator(m_handle, i
+				, m_pstShMemTrig->trig_set[i].area_trig_ontime
+				, m_pstShMemTrig->trig_set[i].area_trig_ontime);
 
-		MvsEncSetPositiveRun(m_handle, channelBit);
+			if (uiStatus != 0x00)
+			{
+				TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
+				swprintf_s(tzMesg, LOG_MESG_SIZE, L"MvsEncSetTriggerGenerator API Error (status:%d)", uiStatus);
+				LOG_WARN(ENG_EDIC::en_mvenc, tzMesg);
+				bSucc = FALSE;
+			}
+		}
+
+		MvsEncSetPositiveRun(m_handle, 0b1000 | (1 << (channelBit - 1)));
 		ReqResetTrigCount();
 		MvsEncSetPositiveRun(m_handle, 0);
-
-		//m_u64SendTime = GetTickCount64();
-		/* 동기 해제 */
+		
 		m_syncSend.Leave();
 	}
 

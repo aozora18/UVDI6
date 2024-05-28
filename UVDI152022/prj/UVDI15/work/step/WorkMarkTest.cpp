@@ -212,7 +212,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 			case 0x07:
 			{
-				auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne_(0b1100); };
+				auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne(CENTER_CAM); };
 
 				bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
@@ -233,7 +233,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						{
 							const int STABLE_TIME = 1000;
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-							
+							motions.Refresh();
 							//여기서 현재 위치기반 보정정보 갖고오기.
 							auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
 												             		              motions.GetAxises()["stage"]["y"].currPos,
@@ -260,9 +260,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 									swprintf_s(tzMsg, 256, L"%s", first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
 									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-									swprintf_s(tzMsg, 256, L"TGT_align%d_offset_x = %.4f mark_offset_y =%.4f", first->tgt_id, alignOffset.offsetX, alignOffset.offsetY);
+									swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", first->org_id, alignOffset.offsetX, alignOffset.offsetY);
 									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-									swprintf_s(tzMsg, 256, L"TGT_expo%d_offset_x = %.4f mark_offset_y =%.4f", first->tgt_id, diff.offsetX, diff.offsetY);
+									swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", first->org_id, diff.offsetX, diff.offsetY);
 									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 								}
 							}

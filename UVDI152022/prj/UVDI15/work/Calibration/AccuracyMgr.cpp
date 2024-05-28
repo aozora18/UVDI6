@@ -94,21 +94,39 @@ VOID CAccuracyMgr::SortField(VCT_ACCR_TABLE& stVctField)
 				{
 					dX = stVctField[j].dMotorX;
 					dY = stVctField[j].dMotorY;
-					
+
 					valX = stVctField[j].dValueX;
 					valY = stVctField[j].dValueY;
 
+
 					stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
 					stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
-
+					
 					stVctField[j].dValueX = stVctField[j + 1].dValueX;
 					stVctField[j].dValueY = stVctField[j + 1].dValueY;
 
 					stVctField[j + 1].dMotorX = dX;
 					stVctField[j + 1].dMotorY = dY;
-					//뭐야 이거 존나 큰 버그잖아?? 혹시 값은 정렬안시킨건가???
+
 					stVctField[j + 1].dValueX = valX;
 					stVctField[j + 1].dValueY = valY;
+					
+					//dY = stVctField[j].dMotorY;
+					//
+					//valX = stVctField[j].dValueX;
+					//valY = stVctField[j].dValueY;
+
+					//stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
+					//stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
+
+					//stVctField[j].dValueX = stVctField[j + 1].dValueX;
+					//stVctField[j].dValueY = stVctField[j + 1].dValueY;
+
+					//stVctField[j + 1].dMotorX = dX;
+					//stVctField[j + 1].dMotorY = dY;
+					////뭐야 이거 존나 큰 버그잖아?? 혹시 값은 정렬안시킨건가???
+					//stVctField[j + 1].dValueX = valX;
+					//stVctField[j + 1].dValueY = valY;
 				}
 			}
 		}
@@ -307,37 +325,67 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 	CString strLine;
 	double dACamPosX = 0.0f, dStagePosY = 0.0f;
 
-	SortField(stVctField);
+	
 	LPG_CIEA pstCfg = uvEng_GetConfig();
 	
 	/* 환경 파일 */
-	strWrite.Format(_T("%f\n%f\n0.0000\n%d\n%d\n"), pstCfg->luria_svc.table_expo_start_xy[0][0], pstCfg->luria_svc.table_expo_start_xy[0][1], stFieldData.u32Row, stFieldData.u32Col);
 
-	for (int i = 0; i < (int)stVctField.size(); i++)
-	{
-		if (TRUE == m_bUseCalData)
+	auto MakeBody = [&](bool sorting, bool isExpoAreaMeasure, VCT_ACCR_TABLE vec) -> CString
 		{
-			uvEng_ACamCali_GetCaliPosEx(stVctField[i].dMotorX, stVctField[i].dMotorY, dACamPosX, dStagePosY);
-		}
+			CString body = _T("");
 
+			VCT_ACCR_TABLE tempVec = vec;
+			if(sorting)
+				SortField(tempVec);
 
-		strLine.Format(_T(" %+.4f, %+.4f, %+.4f, %+.4f,\n"),
-			(expoAreaMeasure ? stVctField[i].dGbrX : stVctField[i].dMotorX),
-			(expoAreaMeasure ? stVctField[i].dGbrY : stVctField[i].dMotorY),
-			dACamPosX + stVctField[i].dValueX, dStagePosY + stVctField[i].dValueY);
+			body.Format(_T("%f\n%f\n0.0000\n%d\n%d\n"), pstCfg->luria_svc.table_expo_start_xy[0][0], pstCfg->luria_svc.table_expo_start_xy[0][1], stFieldData.u32Row, stFieldData.u32Col);
 
-		strWrite += strLine;
-	}
+			for (int i = 0; i < (int)tempVec.size(); i++)
+			{
+				if (TRUE == m_bUseCalData)
+				{
+					uvEng_ACamCali_GetCaliPosEx(tempVec[i].dMotorX, tempVec[i].dMotorY, dACamPosX, dStagePosY);
+				}
 
-	if (TRUE == sFile.Open(strFileName, CFile::modeWrite | CFile::modeCreate , &ex))
+				strLine.Format(_T(" %+.4f, %+.4f, %+.4f, %+.4f,\n"),
+					(isExpoAreaMeasure ? tempVec[i].dGbrX : tempVec[i].dMotorX),
+					(isExpoAreaMeasure ? tempVec[i].dGbrY : tempVec[i].dMotorY),
+					dACamPosX + tempVec[i].dValueX, dStagePosY + tempVec[i].dValueY);
+
+				body += strLine;
+			}
+			return body;
+		};
+
+	
+	auto Writefile = [&](CString filename, CString body)->bool
+		{
+			if (TRUE == sFile.Open(filename, CFile::modeWrite | CFile::modeCreate, &ex))
+			{
+				sFile.SeekToBegin();
+				sFile.WriteString(body);
+				sFile.Close();
+				return true;
+			}
+			return false;
+		};
+
+	if (expoAreaMeasure)
 	{
-		sFile.SeekToBegin();
-		sFile.WriteString(strWrite);
-		sFile.Close();
-		return TRUE;
+		strWrite.Format(strFileName , _T("(Sorting_gerberPos).dat"));
+		Writefile(strWrite, MakeBody(true, true, stVctField));
+
+		strWrite.Format(strFileName, _T("(Sorting_gerberPos).dat"));
+		Writefile(strWrite, MakeBody(false, true, stVctField));
 	}
 
-	return FALSE;
+	strWrite.Format(strFileName, _T("(Sorting_stagePos).dat"));
+	Writefile(strWrite, MakeBody(true, false, stVctField));
+
+	strWrite.Format(strFileName, _T("(noSorting_stagePos).dat"));
+	Writefile(strWrite, MakeBody(false, false, stVctField));
+
+	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -992,7 +1040,7 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
 	for (int i = 0; i < nRetryCount; i++)
 	{
 		/* Trigger 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ChNo, 0x00, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ChNo))
 		{
 			return FALSE;
 		}

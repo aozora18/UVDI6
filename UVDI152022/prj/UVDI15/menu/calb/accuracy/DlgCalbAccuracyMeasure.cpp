@@ -908,13 +908,19 @@ BOOL CDlgCalbAccuracyMeasure::SaveClacFile()
 	/* 현재 시간 얻기 */
 	GetLocalTime(&stTm);
 	strTime.Format(_T("%04d-%02d-%02d(%02d%02d)"), stTm.wYear, stTm.wMonth, stTm.wDay, stTm.wHour, stTm.wMinute);
-	strFileName.Format(_T("%s\\%s\\xy2d\\2D_%s.dat"), g_tzWorkDir, CUSTOM_DATA_CONFIG, strTime);
-
+	strFileName.Format(_T("%s\\%s\\xy2d\\2D_%s.dat"), g_tzWorkDir, CUSTOM_DATA_CONFIG, strTime, _T("%s"));
+	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
 	CFileDialog fileSaveDialog(FALSE, strExt, strFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter);
+	BOOL expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
+
+	CAccuracyMgr::GetInstance()->SetExpoAreaMeasure(expoAreaMeasure);
 
 	if (fileSaveDialog.DoModal() == IDOK)
 	{
 		strFileName = fileSaveDialog.GetPathName();
+
+		strFileName = strFileName.Left(strFileName.GetLength() - 4);
+		strFileName.Append(_T("%s"));
 
 		if (FALSE == CAccuracyMgr::GetInstance()->SaveCaliFile(strFileName))
 		{
@@ -1183,6 +1189,7 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 		return;
 	}
 
+
 	if (pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES")
 	{
 		auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
@@ -1268,7 +1275,7 @@ BOOL CDlgCalbAccuracyMeasure::MarkGrab(double* pdErrX, double* pdErrY)
 		// uvEng_Camera_ResetGrabbedImage();
 
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID, 0x00, FALSE))
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
 		{
 			uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 			AfxMessageBox(L"Failed to send the event for trigger", MB_ICONSTOP | MB_TOPMOST);

@@ -1985,7 +1985,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			if (!pstGrab)
 			{
 				swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (global mark) "
-					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
 				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 				return ENG_JWNS::en_error;
 			}
@@ -1995,29 +1995,29 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				lstMarkAt.mark_x -= pstGrab->move_mm_x;
 				lstMarkAt.mark_y -= pstGrab->move_mm_y;
 
-				swprintf_s(tzMsg, 256, L"Global Mark%d Move_mm: X = %.4f Y = %.4f", lstMarkAt.tgt_id, pstGrab->move_mm_x, pstGrab->move_mm_y);
+				swprintf_s(tzMsg, 256, L"Global Mark%d Move_mm: X = %.4f Y = %.4f", lstMarkAt.org_id, pstGrab->move_mm_x, pstGrab->move_mm_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 				if (pstSetAlign->use_mark_offset)
 				{
 					if (pstSetAlign->markOffsetPtr->Get(true, lstMarkAt.tgt_id, val) == false)
 					{
-						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.tgt_id);
+						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 						bSucc = FALSE;
 					}
 
-					lstMarkAt.mark_x += std::get<0>(val);
-					lstMarkAt.mark_y += std::get<1>(val);
+					lstMarkAt.mark_x -= std::get<0>(val);
+					lstMarkAt.mark_y -= std::get<1>(val);
 
-					swprintf_s(tzMsg, 256, L"GLOBAL mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.tgt_id, std::get<0>(val), std::get<1>(val));
+					swprintf_s(tzMsg, 256, L"GLOBAL mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));
 					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 				}
 			}
 			else
 			{
 				swprintf_s(tzMesg, 128, L"The mark image (global) was grabbed, but failed to find a model "
-					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
 				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 			}
 		}
@@ -2028,7 +2028,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			{
 				uvEng_Luria_GetLocalMark(i, &stMarkPos1);
 				lstMarks.AddTail(stMarkPos1);
-				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", stMarkPos1.tgt_id, stMarkPos1.mark_x, stMarkPos1.mark_y);
+				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", stMarkPos1.org_id, stMarkPos1.mark_x, stMarkPos1.mark_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 			}
 
@@ -2041,7 +2041,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				if (pstGrab == nullptr)
 				{
 					swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (local mark) "
-						L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+						L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
 					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 					return ENG_JWNS::en_error;
 				}
@@ -2060,22 +2060,22 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 						{
 							if (pstSetAlign->markOffsetPtr->Get(false, lstMarkAt.tgt_id, val) == false)
 							{
-								swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.tgt_id);
+								swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 								LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 								bSucc = FALSE;
 							}
 
-							lstMarkAt.mark_x += std::get<0>(val);
-							lstMarkAt.mark_y += std::get<1>(val);
+							lstMarkAt.mark_x -= std::get<0>(val);
+							lstMarkAt.mark_y -= std::get<1>(val);
 
-							swprintf_s(tzMsg, 256, L"local mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.tgt_id, std::get<0>(val), std::get<1>(val));
+							swprintf_s(tzMsg, 256, L"local mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));
 							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 						}
 					}
 					else
 					{
 						swprintf_s(tzMesg, 128, L"The mark image (local) was grabbed, but failed to find a model "
-							L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.tgt_id);
+							L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
 						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 					}
 				}
@@ -2159,7 +2159,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		pstMarks[stMarkPos1.org_id].x = (INT32)ROUNDED(stMarkPos1.mark_x * 1000000.0f, 0);	/* mm -> nm */
 		pstMarks[stMarkPos1.org_id].y = (INT32)ROUNDED(stMarkPos1.mark_y * 1000000.0f, 0);	/* mm -> nm */
 
-		swprintf_s(tzMsg, 256, L"Global Regist Mark%d : X =%.4f Y = %.4f", i + 1, DOUBLE(pstMarks[stMarkPos1.org_id].x/ 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y/ 1000000.0f));
+		swprintf_s(tzMsg, 256, L"Global Regist Mark%d : X =%.4f Y = %.4f", stMarkPos1.org_id, DOUBLE(pstMarks[stMarkPos1.org_id].x/ 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y/ 1000000.0f));
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
 	/* 나머지 Local Mark XML 파일에서 읽어들인 순서대로 저장 */
@@ -3915,7 +3915,7 @@ ENG_JWNS CWorkStep::SetTrigOutOneACam(UINT8 cam_id)
 	u8LampType = uvEng_GetConfig()->set_comn.strobe_lamp_type;
 
 	/* Channel 1 번에 트리거 1개 발생 후 바로 Trigger Disabled 수행 */
-	if (!uvEng_Mvenc_ReqTrigOutOne(cam_id, u8LampType, TRUE))	return ENG_JWNS::en_error;
+	if (!uvEng_Mvenc_ReqTrigOutOne(cam_id))	return ENG_JWNS::en_error;
 
 	return ENG_JWNS::en_next;
 }

@@ -212,8 +212,8 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
 {
 #undef max
-	double closestDistance = std::numeric_limits<double>::max();
-	double secondClosestDistance = std::numeric_limits<double>::max();
+	double closestDistance = 99999999;
+	double secondClosestDistance = 99999999;
 
 	CaliPoint closestPoint{};
 	CaliPoint secondClosestPoint{};
@@ -272,15 +272,22 @@ CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
 
 CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
 {
+	TCHAR tzMsg[256] = { NULL };
+	
+
 	const int STAGE_CALI_INDEX = 3;
 	auto& expoData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::expo];
 	CaliPoint weightedAverageOffset = Estimate(expoData, gbrX, gbrY);
+
+	swprintf_s(tzMsg, 256, L"EstimateExpoOffset : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f", gbrX, gbrY, weightedAverageOffset.offsetX, weightedAverageOffset.offsetY);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	return weightedAverageOffset;
 }
 
 
 CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
 {
+
 	const int STAGE_CALI_INDEX = 3;
 	auto& stageCaliData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::align];
 	auto& camCaliData = caliDataMap[camIdx][CaliTableType::align];
@@ -288,7 +295,12 @@ CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double st
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
 	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
 
-	return stageOffset + camOffset;
+	CaliPoint finalv = stageOffset + camOffset;
+	TCHAR tzMsg[256] = { NULL };
+	swprintf_s(tzMsg, 256, L"EstimateAlignOffset stagePos : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f" , stageX, stageY, finalv.offsetX, finalv.offsetY);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+	return finalv;
 }
 
  
@@ -462,7 +474,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 		//pstCfg->
 		//가급적 스테이지를 먼저 움직이고
-
+		Refresh();
 		//스테이지를 움직일수가 없다면 카메라축을 움직인다. 
 		return arrived;
 	}

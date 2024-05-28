@@ -79,58 +79,77 @@ VOID CAccuracyMgr::Terminate()
 
 VOID CAccuracyMgr::SortField(VCT_ACCR_TABLE& stVctField)
 {
-	double dX = 0, dY = 0;
-	double valX = 0, valY = 0;
-
 	std::sort(stVctField.begin(), stVctField.end(), _SortY);
 
-	for (int i = 0; i < (int)stVctField.size() - 1; i++)
+	map<double, VCT_ACCR_TABLE> xSorter;
+	VCT_ACCR_TABLE temp;
+
+	for each (auto var in stVctField)
 	{
-		for (int j = 0; j < (int)stVctField.size() - 1 - i; j++)
+		xSorter[var.dMotorY].push_back(var);
+	}
+
+	for each (auto var in xSorter)
+	{
+		std::sort(var.second.begin(), var.second.end(), _SortX);
+
+		for each (auto val in var.second)
 		{
-			if (DEF_DIFF_POINTS >= fabs(stVctField[j].dMotorY - stVctField[j + 1].dMotorY))
-			{
-				if (stVctField[j].dMotorX > stVctField[j + 1].dMotorX)
-				{
-					dX = stVctField[j].dMotorX;
-					dY = stVctField[j].dMotorY;
-
-					valX = stVctField[j].dValueX;
-					valY = stVctField[j].dValueY;
-
-
-					stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
-					stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
-					
-					stVctField[j].dValueX = stVctField[j + 1].dValueX;
-					stVctField[j].dValueY = stVctField[j + 1].dValueY;
-
-					stVctField[j + 1].dMotorX = dX;
-					stVctField[j + 1].dMotorY = dY;
-
-					stVctField[j + 1].dValueX = valX;
-					stVctField[j + 1].dValueY = valY;
-					
-					//dY = stVctField[j].dMotorY;
-					//
-					//valX = stVctField[j].dValueX;
-					//valY = stVctField[j].dValueY;
-
-					//stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
-					//stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
-
-					//stVctField[j].dValueX = stVctField[j + 1].dValueX;
-					//stVctField[j].dValueY = stVctField[j + 1].dValueY;
-
-					//stVctField[j + 1].dMotorX = dX;
-					//stVctField[j + 1].dMotorY = dY;
-					////뭐야 이거 존나 큰 버그잖아?? 혹시 값은 정렬안시킨건가???
-					//stVctField[j + 1].dValueX = valX;
-					//stVctField[j + 1].dValueY = valY;
-				}
-			}
+			temp.push_back(val);
 		}
 	}
+
+	stVctField = temp; //누구든 또 아래같이 수동소트하면 찢어죽일꺼임. 
+	
+
+
+	//for (int i = 0; i < (int)stVctField.size() - 1; i++)
+	//{
+	//	for (int j = 0; j < (int)stVctField.size() - 1 - i; j++)
+	//	{
+	//		if (DEF_DIFF_POINTS >= fabs(stVctField[j].dMotorY - stVctField[j + 1].dMotorY))
+	//		{
+	//			if (stVctField[j].dMotorX > stVctField[j + 1].dMotorX)
+	//			{
+	//				dX = stVctField[j].dMotorX;
+	//				dY = stVctField[j].dMotorY;
+
+	//				valX = stVctField[j].dValueX;
+	//				valY = stVctField[j].dValueY;
+
+
+	//				stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
+	//				stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
+	//				
+	//				stVctField[j].dValueX = stVctField[j + 1].dValueX;
+	//				stVctField[j].dValueY = stVctField[j + 1].dValueY;
+
+	//				stVctField[j + 1].dMotorX = dX;
+	//				stVctField[j + 1].dMotorY = dY;
+
+	//				stVctField[j + 1].dValueX = valX;
+	//				stVctField[j + 1].dValueY = valY;
+	//				
+	//				//dY = stVctField[j].dMotorY;
+	//				//
+	//				//valX = stVctField[j].dValueX;
+	//				//valY = stVctField[j].dValueY;
+
+	//				//stVctField[j].dMotorX = stVctField[j + 1].dMotorX;
+	//				//stVctField[j].dMotorY = stVctField[j + 1].dMotorY;
+
+	//				//stVctField[j].dValueX = stVctField[j + 1].dValueX;
+	//				//stVctField[j].dValueY = stVctField[j + 1].dValueY;
+
+	//				//stVctField[j + 1].dMotorX = dX;
+	//				//stVctField[j + 1].dMotorY = dY;
+	//				////뭐야 이거 존나 큰 버그잖아?? 혹시 값은 정렬안시킨건가???
+	//				//stVctField[j + 1].dValueX = valX;
+	//				//stVctField[j + 1].dValueY = valY;
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 ST_FIELD CAccuracyMgr::ClacField(VCT_ACCR_TABLE stVctField)

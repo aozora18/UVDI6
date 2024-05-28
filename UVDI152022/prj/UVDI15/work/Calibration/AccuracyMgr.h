@@ -86,7 +86,7 @@ public:
 
 	bool IsGbrpadPosSetted()
 	{
-		return gbrPadInitialPosX != 0 && gbrPadInitialPosY != 0;
+		return gbrPadInitialPosX != -1 && gbrPadInitialPosY != -1;
 	}
 
 	void SetGbrPadInitialPos(double x, double y)
@@ -176,8 +176,8 @@ protected:
 	
 	VCT_ACCR_TABLE		m_stVctTable;
 
-	double gbrPadInitialPosX = 0;
-	double gbrPadInitialPosY = 0;
+	double gbrPadInitialPosX = -1;
+	double gbrPadInitialPosY = -1;
 
 
 

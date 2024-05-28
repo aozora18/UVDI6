@@ -375,7 +375,7 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 		strWrite.Format(strFileName , _T("(Sorting_gerberPos).dat"));
 		Writefile(strWrite, MakeBody(true, true, stVctField));
 
-		strWrite.Format(strFileName, _T("(Sorting_gerberPos).dat"));
+		strWrite.Format(strFileName, _T("(noSorting_gerberPos).dat"));
 		Writefile(strWrite, MakeBody(false, true, stVctField));
 	}
 

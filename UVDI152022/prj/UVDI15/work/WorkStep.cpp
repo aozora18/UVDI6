@@ -1722,7 +1722,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f",(isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-		CaliPoint offset;
+		CaliPoint expoOffset;
+		CaliPoint alignOffset;
 		/*if (GetOffset(CaliTableType::align, temp.tgt_id, offset) == false)
 			return ENG_JWNS::en_error;*/
 
@@ -1733,14 +1734,19 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		if (pstSetAlign->use_mark_offset)
 		{
-			if (GetOffset(CaliTableType::expo, temp.tgt_id, offset) == false)
+			if (GetOffset(CaliTableType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
 
-			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, offset.offsetX, offset.offsetY);
+			if (GetOffset(CaliTableType::align, temp.tgt_id, alignOffset) == false)
+				return ENG_JWNS::en_error;
+
+			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-			temp.mark_x += offset.offsetX;
-			temp.mark_y += offset.offsetY;
+			auto foffsetX = alignOffset.offsetX - (expoOffset.offsetX);
+			auto foffsetY = alignOffset.offsetY - (expoOffset.offsetY);
+			temp.mark_x -= foffsetX;
+			temp.mark_y -= foffsetY;
 		}
 		lstMarks.AddTail(temp);
 	}
@@ -1855,7 +1861,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 
 	SetSendCmdTime();
-
 	return ENG_JWNS::en_next;
 	
 }

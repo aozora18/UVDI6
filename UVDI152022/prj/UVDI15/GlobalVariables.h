@@ -145,8 +145,8 @@ enum CaliTableType
 		CaliPoint operator+(const CaliPoint& other) const
 		{
 			CaliPoint result;
-			result.x = this->x + other.x;
-			result.y = this->y + other.y;
+			result.x = this->x;
+			result.y = this->y;
 			result.offsetX = this->offsetX + other.offsetX;
 			result.offsetY = this->offsetY + other.offsetY;
 
@@ -158,8 +158,8 @@ enum CaliTableType
 		CaliPoint operator-(const CaliPoint& other) const
 		{
 			CaliPoint result;
-			result.x = this->x - other.x;
-			result.y = this->y - other.y;
+			result.x = this->x;
+			result.y = this->y;
 			result.offsetX = this->offsetX - other.offsetX;
 			result.offsetY = this->offsetY - other.offsetY;
 			result.srcFid = this->srcFid;

@@ -245,7 +245,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 							alignOffset.srcFid = *first;
 							offsetPool[CaliTableType::align].push_back(alignOffset);
 							
-							auto diff = alignOffset - expoOffset;
+							auto diff = expoOffset;
 							diff.srcFid = *first;
 							offsetPool[CaliTableType::expo].push_back(diff);
 							

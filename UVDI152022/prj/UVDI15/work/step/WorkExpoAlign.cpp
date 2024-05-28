@@ -660,7 +660,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 							alignOffset.srcFid = *first;
 							
-							auto diff = alignOffset - expoOffset ;
+							auto diff = expoOffset;
+
 							diff.srcFid = *first;
 
 							offsetPool[CaliTableType::align].push_back(alignOffset);

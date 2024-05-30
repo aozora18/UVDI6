@@ -27,7 +27,7 @@ public:
 
 	//void GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path);
 
-	void SetAlignMode();
+	BOOL SetAlignMode();
 	
 	static const int endPointPair = 3;
 

@@ -39,13 +39,19 @@ CWorkMarkTest::~CWorkMarkTest()
 {
 }
 
-void CWorkMarkTest::SetAlignMode()
+BOOL CWorkMarkTest::SetAlignMode()
 {
 	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
 	const int INIT_STEP = 0;
+
+
+	if (alignMotion == ENG_AMOS::none || aligntype == ENG_ATGL::en_global_0_local_0x0_n_point)
+		return FALSE;
+
 	alignCallback[alignMotion][INIT_STEP]();
+	return TRUE;
 }
 
 
@@ -65,8 +71,7 @@ BOOL CWorkMarkTest::InitWork()
 	localMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
 
 	m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
-	SetAlignMode();
-	return TRUE;
+	return SetAlignMode();
 }
 
 void CWorkMarkTest::DoInitStatic2cam()

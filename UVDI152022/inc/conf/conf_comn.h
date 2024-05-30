@@ -85,6 +85,7 @@ typedef enum class __en_system_code_to_string__ : UINT8
 //얼라인 모션
 typedef enum class __en_align_motion__ : UINT16
 {
+	none = 0,
 	en_onthefly_2cam	= 0b0000001000000001, //온더플라이 사이드캠
 	en_onthefly_3cam	= 0b0000001100000001, //온더플라이 센터캠
 	en_static_2cam      = 0b0000001000000010, //스테틱 사이드캠

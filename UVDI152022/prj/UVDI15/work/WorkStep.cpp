@@ -1606,6 +1606,7 @@ ENG_JWNS CWorkStep::IsPrinted()
 
 	return ENG_JWNS::en_wait;
 }
+bool useManual = false;
 
 ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 {
@@ -1732,7 +1733,17 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		
 		temp.reserve = grab->reserve;
 
-		if (pstSetAlign->use_mark_offset)
+		
+		map<int, tuple<double, double>> manualOffsetMap =
+		{
+			{0,make_tuple(0.0028,-0.0041)},
+			{1,make_tuple(0.0002,-0.0062)},
+			{2,make_tuple(-0.0065,-0.0067)},
+			{3,make_tuple(-0.0157,-0.007)}
+		};
+
+
+		if (pstSetAlign->use_mark_offset && useManual == false)
 		{
 			if (GetOffset(CaliTableType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
@@ -1747,6 +1758,15 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			auto foffsetY = alignOffset.offsetY - (expoOffset.offsetY);
 			temp.mark_x -= foffsetX;
 			temp.mark_y -= foffsetY;
+		}
+		else
+		{
+			auto foffsetX = std::get<0>(manualOffsetMap[temp.tgt_id]);
+			auto foffsetY = std::get<1>(manualOffsetMap[temp.tgt_id]);
+
+			temp.mark_x += foffsetX;
+			temp.mark_y += foffsetY;
+
 		}
 		lstMarks.AddTail(temp);
 	}

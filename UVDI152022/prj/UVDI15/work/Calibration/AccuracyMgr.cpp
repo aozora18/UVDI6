@@ -1117,8 +1117,16 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
 */
 VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/)
 {
+
+	if (m_bRunnigThread || GlobalVariables::GetInstance()->GetAlignMotion().NowOnMoving())
+	{
+		AfxMessageBox(_T("Measureing still run. wait for finish or terminate"), MB_ICONSTOP | MB_TOPMOST);
+		return;
+	}
+
 	m_bStop = FALSE;
 	m_bRunnigThread = TRUE;
+
 	m_pMeasureThread = AfxBeginThread(MeasureThread, (LPVOID)hHwnd);
 }
 

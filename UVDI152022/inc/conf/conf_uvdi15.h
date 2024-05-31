@@ -153,7 +153,7 @@ typedef struct __st_config_setup_align_info__
 	//DOUBLE				localMark_offset_y[16];
 
 	DOUBLE				distCam2Cam[3];
-	DOUBLE markZeroOffset[2];
+	//DOUBLE markZeroOffset[2];
 	
 	//DOUBLE				mark_offset_x[4];						/* 각 Global Mark의 offset 설정값(단위: mm) */
 	//DOUBLE				mark_offset_y[4];

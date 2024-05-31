@@ -430,9 +430,6 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	const int X = 0;
 	const int Y = 1;
 
-	m_pstCfg->set_align.markZeroOffset[X] = GetConfigDouble(L"MARKZERO_OFFSET_X");
-	m_pstCfg->set_align.markZeroOffset[Y] = GetConfigDouble(L"MARKZERO_OFFSET_Y");
-
 	m_pstCfg->set_align.distCam2Cam[_1to3] = GetConfigDouble(L"DIST_CAM1TO3");
 	m_pstCfg->set_align.distCam2Cam[_2to3] = GetConfigDouble(L"DIST_CAM2TO3");
 	m_pstCfg->set_align.distCam2Cam[_1to3_Y_OFFSET] = GetConfigDouble(L"RELATE_Y_CAM1TO3");

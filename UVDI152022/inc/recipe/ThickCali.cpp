@@ -75,19 +75,21 @@ BOOL CThickCali::LoadFile()
 	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\%s\\cali\\%s.dat",
 			   m_tzWorkDir, CUSTOM_DATA_CONFIG, GetConfig()->file_dat.thick_cali);
 	/* 파일 열기 */
+	
 	eRet = fopen_s(&fp, csCnv.Uni2Ansi(tzFile), "rt");
 	if (0 != eRet)	return TRUE;
 	while (!feof(fp))
 	{
+		
 		/* 한줄 읽어오기 */
 		memset(szData, 0x00, 1024);
 		fgets(szData, 1024, fp);
 		/* 문자열 길이가 특정 개수 이하인 경우인지 (만약 첫 글자가 주석인 세미콜론(;)이면 Skip) */
-		if (strlen(szData) > 0 && ';' != szData[0] && '\n' != szData[0])
-		{
-			/* 분석 및 등록하기 */
-			ParseAppend(szData, (UINT32)strlen(szData));
-		}
+		if (strlen(szData) == 0 || ';' == szData[0]) 
+			continue;
+
+		ParseAppend(szData, (UINT32)strlen(szData));
+		
 	}
 
 	/* 파일 핸들 닫기 */
@@ -115,7 +117,7 @@ BOOL CThickCali::ParseAppend(CHAR *data, UINT32 size)
 	{
 		if (',' == data[i])	u32Find++;
 	}
-	if (u32Find != u8Div)
+	if (u32Find < u8Div)
 	{
 		AfxMessageBox(L"Failed to analyse the value from <thick_cali> file", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
@@ -125,7 +127,7 @@ BOOL CThickCali::ParseAppend(CHAR *data, UINT32 size)
 	pstRecipe	= (LPG_MACP)::Alloc(sizeof(STG_MACP));
 	ASSERT(pstRecipe);
 
-	for (i=0; i<u8Div;i++)
+	for (i=0; i< u32Find;i++)
 	{
 		pFind	= strchr(pData, ',');
 		if (!pFind)
@@ -140,11 +142,13 @@ BOOL CThickCali::ParseAppend(CHAR *data, UINT32 size)
 
 		switch (i)
 		{
-		case 0x00	:	pstRecipe->film_thick_um	= (UINT32)atoi(szValue);break;
-		case 0x01	:	pstRecipe->mark2_stage_y[0]	= atof(szValue);		break;
-		case 0x02	:	pstRecipe->mark2_stage_y[1]	= atof(szValue);		break;
-		case 0x03	:	pstRecipe->mark2_acam_x[0]	= atof(szValue);		break;
-		case 0x04	:	pstRecipe->mark2_acam_x[1]	= atof(szValue);		break;
+			case 0x00:	pstRecipe->film_thick_um	= (UINT32)atoi(szValue);break;
+			case 0x01:	pstRecipe->mark2_stage_y[0]	= atof(szValue);		break;
+			case 0x02:	pstRecipe->mark2_stage_y[1]	= atof(szValue);		break;
+			case 0x03:	pstRecipe->mark2_acam_x[0]	= atof(szValue);		break;
+			case 0x04:	pstRecipe->mark2_acam_x[1]	= atof(szValue);		break;
+			case 0x05:	pstRecipe->mark2CentercamOffsetXY[0] = atof(szValue);		break;
+			case 0x06:	pstRecipe->mark2CentercamOffsetXY[1] = atof(szValue);		break;
 		}
 	}
 
@@ -252,7 +256,8 @@ BOOL CThickCali::SaveFile()
 		sprintf_s(szData, 256, "%05u,%.4f,%.4f,%.4f,%.4f,\n",
 			pstRecipe->film_thick_um,
 			pstRecipe->mark2_stage_y[0], pstRecipe->mark2_stage_y[1],
-			pstRecipe->mark2_acam_x[0], pstRecipe->mark2_acam_x[1]);
+			pstRecipe->mark2_acam_x[0], pstRecipe->mark2_acam_x[1],
+			pstRecipe->mark2CentercamOffsetXY[0], pstRecipe->mark2CentercamOffsetXY[1]);
 		fputs(szData, fp);
 	}
 

@@ -385,7 +385,7 @@ typedef struct __st_material_thick_acam_calibration_position__
 	UINT32				u32_reserved;
 	DOUBLE				mark2_stage_y[2];						/* 거버에 저장된 Mark 2번 기준 얼라인 카메라 1 or Later의 Y 축 모션 좌표 (단위: mm) */
 	DOUBLE				mark2_acam_x[2];						/* 거버에 저장된 Mark 2번 기준 얼라인 카메라 1 or Later의 X 축 모션 좌표 (단위: mm) */
-
+	DOUBLE				mark2CentercamOffsetXY[2]; //센터캠 마크2 XY옵셋
 	/*
 	 desc : 값 유효
 	 parm : None

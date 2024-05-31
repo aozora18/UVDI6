@@ -492,7 +492,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
 
 		double stageXgab = (axises["stage"]["x"].currPos - markParams.mark2StageX);
-		double stageYgab = (axises["stage"]["y"].currPos - markParams.mark2cam1Y);
+		double stageYgab = (axises["stage"]["y"].currPos - std::get<1>(markParams.mark2CamoffsetXY[1]));
 
 		double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos };
 
@@ -519,23 +519,21 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
 
 		double stageXgab = (axises["stage"]["x"].currPos - markParams.mark2StageX);
-		double stageYgab = (axises["stage"]["y"].currPos - markParams.mark2cam1Y);
+		double stageYgab = (axises["stage"]["y"].currPos - std::get<1>(markParams.mark2CamoffsetXY[1]));
 
+		
 		double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos };
 
-		double camXOffset = camNum == 1 ? camPos[CAM1] - markParams.mark2Cam1X :
-							camNum == 2 ? ((markParams.distCam2cam[_1to3_X_GAB] + markParams.distCam2cam[_3to2_X_GAB]) - markParams.mark2Cam1X) +  camPos[CAM2] :
-							camNum == 3 ? markParams.distCam2cam[_1to3_X_GAB] - markParams.mark2Cam1X : 0;
+		double camXOffset = camNum == 1 ? camPos[CAM1] - std::get<0>(markParams.mark2CamoffsetXY[1]) :
+							camNum == 2 ? ((markParams.distCam2cam[_1to3_X_GAB] + markParams.distCam2cam[_3to2_X_GAB]) - std::get<0>(markParams.mark2CamoffsetXY[1])) +  camPos[CAM2] :
+							camNum == 3 ? (markParams.distCam2cam[_1to3_X_GAB] - std::get<0>(markParams.mark2CamoffsetXY[1])) + std::get<0>(markParams.mark2CamoffsetXY[3]) : 0;
 
-		double camYOffset = camNum == 3 ? markParams.distCam2cam[_1to3_Y_GAB] :
+		double camYOffset = camNum == 3 ? markParams.distCam2cam[_1to3_Y_GAB] + std::get<1>(markParams.mark2CamoffsetXY[3]) :
 							camNum == 2 ? markParams.distCam2cam[_1to2_Y_GAB] : 0;
 
-		double markzeroOffsetX = markParams.markZeroOffset[X];
-		double markzeroOffsetY = markParams.markZeroOffset[Y];
-
 		//역산시작
-		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset + markzeroOffsetX;
-		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset + markzeroOffsetY;
+		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;
+		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset;
 
 		point.mark_x = std::round(tempGerberX * std::pow(10, 3)) / std::pow(10, 3);;
 		point.mark_y = std::round(tempGerberY * std::pow(10, 3)) / std::pow(10, 3); ;
@@ -596,15 +594,21 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		markParams.mark2StageX = pstCfg->set_align.table_unloader_xy[0][0];
 		markParams.caliGerbermark2x = pstCfg->set_align.mark2_org_gerb_xy[0];
 		markParams.caliGerbermark2y = pstCfg->set_align.mark2_org_gerb_xy[1];
-		markParams.markZeroOffset[X] = pstCfg->set_align.markZeroOffset[X];
-		markParams.markZeroOffset[Y] = pstCfg->set_align.markZeroOffset[Y];
+
+		
 
 		markParams.distCam2cam[_1to2_Y_OFFSET] = thick->mark2_stage_y[1] - thick->mark2_stage_y[0];
-		markParams.mark2cam1Y = std::round(thick->mark2_stage_y[0]  * std::pow(10, 3)) / std::pow(10, 3);
-		markParams.mark2cam2Y = std::round(thick->mark2_stage_y[1] * std::pow(10, 3)) / std::pow(10, 3);
-		markParams.mark2Cam1X = std::round(thick->mark2_acam_x[0] * std::pow(10, 3)) / std::pow(10, 3); 
-		markParams.mark2Cam2X = std::round(thick->mark2_acam_x[1] * std::pow(10, 3)) / std::pow(10, 3);
+		
+		markParams.mark2CamoffsetXY[1] = make_tuple(std::round(thick->mark2_acam_x[0] * std::pow(10, 3)) / std::pow(10, 3),
+													std::round(thick->mark2_stage_y[0] * std::pow(10, 3)) / std::pow(10, 3));
+		
+		markParams.mark2CamoffsetXY[2] = make_tuple(std::round(thick->mark2_acam_x[1] * std::pow(10, 3)) / std::pow(10, 3),
+													std::round(thick->mark2_stage_y[1] * std::pow(10, 3)) / std::pow(10, 3));
 
+
+		markParams.mark2CamoffsetXY[3] = make_tuple(std::round(thick->mark2CentercamOffsetXY[0] * std::pow(10, 3)) / std::pow(10, 3),
+													std::round(thick->mark2CentercamOffsetXY[1] * std::pow(10, 3)) / std::pow(10, 3));
+		
 		markParams.alignType = (ENG_ATGL)alignRecipe->align_type;
 		markParams.alignMotion = (ENG_AMOS)alignRecipe->align_motion;
 	

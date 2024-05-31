@@ -669,7 +669,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 6um_Acc_Coord_Dot_D12
+RECIPE_NAME= 6um_onlyGlb_MGlass
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -918,9 +918,8 @@ DOF_FILM_THICK              = 0.0000
 TABLE_UNLOADER_X_1          = 263.0000
 TABLE_UNLOADER_Y_1          = 1350.0000
 
-
-MARK2_ORG_GERB_X            = 21.8270
-MARK2_ORG_GERB_Y            = 24.8590
+MARK2_ORG_GERB_X            = 21.825
+MARK2_ORG_GERB_Y            = 24.8576
 
 MARK2_STAGE_X               = 263.0000
 

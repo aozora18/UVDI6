@@ -669,7 +669,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 6um_MasterGlass_D12
+RECIPE_NAME= 6um_Acc_Coord_Dot_D12
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -805,9 +805,9 @@ CAM7_SAFETY_POS= 0.0000
 
 [CAMERA_BASLER]
 
-CAM_1_GAIN_LEVEL    = 50
+CAM_1_GAIN_LEVEL    = 80
 CAM_2_GAIN_LEVEL    = 50
-CAM_3_GAIN_LEVEL    = 30
+CAM_3_GAIN_LEVEL    = 50
 
 ;film - CAM1 180, CAM2 120
 
@@ -831,7 +831,7 @@ TIME_GRAB_2         = 25
 TIME_STEP_2         = 70
 
 FRAME_3             = 1
-TIME_GRAB_3         = 25
+TIME_GRAB_3         = 80
 TIME_STEP_3         = 70
 
 
@@ -919,8 +919,8 @@ TABLE_UNLOADER_X_1          = 263.0000
 TABLE_UNLOADER_Y_1          = 1350.0000
 
 
-MARK2_ORG_GERB_X            = 21.827
-MARK2_ORG_GERB_Y            = 24.859
+MARK2_ORG_GERB_X            = 21.8270
+MARK2_ORG_GERB_Y            = 24.8590
 
 MARK2_STAGE_X               = 263.0000
 
@@ -1278,10 +1278,10 @@ POINT_DIST              	= 1.0000
 QUARTZ_STAGE_X          	= 265.5000
 QUARTZ_STAGE_Y1         	= 691.6167
 QUARTZ_STAGE_Y2         	= 691.6166
-QUARTZ_STAGE_Y3         	= 691.8784
+QUARTZ_STAGE_Y3         	= 691.8539
 QUARTZ_ACAM_1           	= 247.6017
 QUARTZ_ACAM_2           	= 30.0000
-QUARTZ_ACAM_3          	 = 265.6364
+QUARTZ_ACAM_3          	 = 265.6259
 
 ACAM_ANGLE_1            	= 0.16602309
 ACAM_ANGLE_2            	= 0.02738860
@@ -1297,7 +1297,7 @@ ACAM_PIXEL_UM_2         	= 2.93487840
 ACAM_PIXEL_UM_3         	= 2.93400000
 ACAM_Z_FOCUS_1          	= 5.0000
 ACAM_Z_FOCUS_2          	= 4.2000
-ACAM_Z_FOCUS_3          	= 3.5000
+ACAM_Z_FOCUS_3          	= 3.4800
 
 BRACKET_SIZE_W          = -9.5000
 BRACKET_SIZE_D          = 20.0000
@@ -1381,22 +1381,22 @@ MARK_ACAM2_X            = 436.9230
 
 STEP_MOVE_Y             = 17.0000
 STEP_MOVE_Z             = 20.0000
-STEP_Y_COUNT            = 11
+STEP_Y_COUNT            = 7
 REPEAT_COUNT            = 10
 
 PH_VS_PH_DIST           = 103.4700
 
 MODEL_DIA_SIZE          = 2.000
 MODEL_COLOR             = 256.000
-STEP_X_COUNT= 3
+STEP_X_COUNT= 1
 START_FOCUS= 0.000
-START_ENERGY= 700.000
+START_ENERGY= 140.000
 STEP_FOCUS= 0.100
 STEP_ENERGY= 100.000
 STEP_MOVE_X= 17.0000
 
-START_FOCUS_1= 1.440
-START_FOCUS_2= 0.990
+START_FOCUS_1= 2.550
+START_FOCUS_2= 2.100
 START_FOCUS_3= 1.460
 START_FOCUS_4= 2.340
 START_FOCUS_5= 1.790
@@ -1701,7 +1701,7 @@ STROBE_LAMP[0]		= 200
 STROBE_LAMP[1]		= 50
 STROBE_LAMP[2]		= 200
 STROBE_LAMP[3]		= 100 
-STROBE_LAMP[4]		= 200
+STROBE_LAMP[4]		= 120
 STROBE_LAMP[5]		= 100 
 STROBE_LAMP[6]		= 0
 STROBE_LAMP[7]		= 0 

@@ -180,6 +180,10 @@ VOID CMacButton::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 
 VOID CMacButton::DrawButton(LPDRAWITEMSTRUCT lpDIS)
 {
+	if (lpDIS->hDC == nullptr)
+	{
+		int debug = 0;
+	}
 	CDC* pDC = CDC::FromHandle(lpDIS->hDC);
 	CRect rectItem(lpDIS->rcItem);
 

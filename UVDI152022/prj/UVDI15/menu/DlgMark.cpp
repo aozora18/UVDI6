@@ -172,6 +172,8 @@ BOOL CDlgMark::OnInitDlg()
 	m_edt_out[eMARK_EDT_GAIN_LEVEL3].SetTextToNum(uvEng_GetConfig()->set_basler.cam_gain_level[2], 1);
 
 	ZoomFlag = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
+	searchROI_CAM = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
+
 	menuPart = 99;
 
 	SetDlgItemInt(IDC_MARK_EDT_CALIB_R, calib_row);
@@ -187,7 +189,7 @@ BOOL CDlgMark::OnInitDlg()
 	memset(CalibROI_top, 0, sizeof(int) * (calib_row * calib_col));
 	memset(CalibROI_bottom, 0, sizeof(int) * (calib_row * calib_col));
 
-	searchROI_CAM = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
+	
 
 	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
 		searchROI_CAM[i] = false;
@@ -226,14 +228,19 @@ VOID CDlgMark::OnExitDlg()
 	CloseObject();
 	CloseGrid();
 
+	delete[] ZoomFlag;
+	delete[] searchROI_CAM;
+
 	free(CalibROI_left);
 	free(CalibROI_right);
 	free(CalibROI_top);
 	free(CalibROI_bottom);
 
 
-	delete[] ZoomFlag;
-	delete[] searchROI_CAM;
+	
+
+	//searchROI_CAM = nullptr;
+	//ZoomFlag = nullptr;
 
 	for (int i = 0; i < _countof(m_grd_ctl); i++)
 	{

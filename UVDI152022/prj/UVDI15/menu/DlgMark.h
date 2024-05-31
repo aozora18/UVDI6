@@ -326,6 +326,8 @@ public:
 	bool	um_bMoveFlag;
 	int		menuPart; // menu 선택, 0:imageload, 1:markroi, 2:searchroi, 3:measure, 4:zoom, 99 : 아무것도 선택안된 상태
 	BOOL *searchROI_CAM;
+	BOOL* ZoomFlag;
+	
 	BOOL searchROI_ALL; // 전체 영역 : true, 일부 영역 : false
 	int calib_row;
 	int calib_col;
@@ -359,7 +361,7 @@ public:
 	void MenuZoomOut();
 	void MenuZoomFit();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-	BOOL* ZoomFlag;
+	
 	BOOL OldZoomFlag;
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 };

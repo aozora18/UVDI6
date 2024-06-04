@@ -760,19 +760,15 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
 	uvEng_UpdateJobWorkTime(u64JobTime);
+	TCHAR tzMesg[128] = { NULL };
 
 	if (ENG_JWNS::en_error == m_enWorkState)
-	{
-		TCHAR tzMesg[128] = { NULL };
+	{	
 		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 		/*노광 종료가 되면 Philhmil에 완료보고*/
 		SetPhilProcessCompelet();
-
-		TCHAR tzMesg[128] = { NULL };
-		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		m_enWorkState = ENG_JWNS::en_comp;

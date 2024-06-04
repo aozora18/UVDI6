@@ -1034,8 +1034,11 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 	if (uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y))
 	{
+		auto& measureFlat = uvEng_GetConfig()->measure_flat;
+		auto mean = measureFlat.GetThickMeasureMean();
+
 		/*LDS 기능으로 소재 뚜께 측정하여 허용범위에서 벗어나면 에러 처리하여 작업 중지*/
-		if (uvEng_GetConfig()->measure_flat.u8UseThickCheck)
+		if (measureFlat.u8UseThickCheck)
 		{
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
@@ -1073,7 +1076,7 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-			DOUBLE RealThick = uvEng_GetConfig()->measure_flat.dAlignMeasure + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+			DOUBLE RealThick = mean + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
 			TCHAR tzMsg[256] = { NULL };

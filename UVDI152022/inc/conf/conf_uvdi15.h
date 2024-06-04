@@ -792,6 +792,7 @@ public:
 		if (dAlignMeasure && Init == false)
 			delete dAlignMeasure;
 		dAlignMeasure = nullptr;
+		lastThickness = 0;
 	}
 	UINT8 u8UseMotorT;							/* 0:해당 축 모터 사용안함. 1:해당 축 모터 사용함 */
 	UINT8 u8UseMotorZ;							/* 0:해당 축 모터 사용안함. 1:해당 축 모터 사용함 */
@@ -823,25 +824,23 @@ public:
 	DOUBLE	dLimitZPOS;							/*LDS 실제 측정값과 설정값에 대한 최대 오차값*/
 
 	vector<DOUBLE>* dAlignMeasure;						/*LDS 측정 값*/
-	
+	double lastThickness;
 	
 	void SetThickMeasureResult(DOUBLE d)
 	{
-		std::lock_guard<std::mutex> lock(mtx);
 		Allocate();
-		dAlignMeasure->push_back(d);
+		lastThickness = d;
+		dAlignMeasure->push_back(lastThickness);
 	}
 
 	DOUBLE GetThickMeasure()
 	{
-		std::lock_guard<std::mutex> lock(mtx);
-		Allocate();
-		return dAlignMeasure->empty() ? 0 : dAlignMeasure->back();
+		return lastThickness;
 	}
 
 	DOUBLE GetThickMeasureMean()
 	{
-		std::lock_guard<std::mutex> lock(mtx);
+		//std::lock_guard<std::mutex> lock(mtx);
 		Allocate();
 		int measureCnt = dAlignMeasure->size();
 		if (measureCnt == 0) return 0;
@@ -850,10 +849,11 @@ public:
 		return dAlignMeasure->at(measureCnt >> 1); // 중간값 반환
 	}
 
+
 	void MeasurePoolClear()
 	{
-		std::lock_guard<std::mutex> lock(mtx);
 		Allocate();
+		lastThickness = 0;
 		dAlignMeasure->clear();
 	}
 

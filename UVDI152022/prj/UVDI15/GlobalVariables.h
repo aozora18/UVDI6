@@ -666,7 +666,8 @@ enum CaliTableType
 
 		void Init()
 		{
-			counter["strobeRecved"] = 0;
+			ResetCounter("strobeRecved");
+			ResetCounter("mainUpdate");
 			//alignMotion = new AlignMotion();
 			alignMotion = make_unique<AlignMotion>();
 			alignMotion.get()->motionMutex = &motionMutex;

@@ -746,21 +746,6 @@ void CDlgManual::UpdateGridInformation()
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
 	}
 
-	//abh1000 1019
-	//LPG_LDPP pstPanel = &uvEng_ShMem_GetLuria()->panel;
-	//if (pstPanel->global_rectangle_lock == 1)
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
-	//	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"Rectangle Lock ON");
-	//}
-	//else
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, SEA_GREEN);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-	//	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"Rectangle Lock OFF");
-	//}
-
 	/*scale_xy*/
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, L"ScaleX = %.5f  ScaleY = %.5f", pstParams->scale_xy[0] / 1000000.0f, pstParams->scale_xy[1] / 1000000.0f);
 	if ((pstParams->scale_xy[0] + pstParams->scale_xy[1]) / 2 == 0)
@@ -768,16 +753,6 @@ void CDlgManual::UpdateGridInformation()
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);
 	}
-	//else if ((pstParams->scale_xy[0] + pstParams->scale_xy[1]) / 2 / 1000000.0f > pstRecipeExpo->real_scale_range)
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, SEA_GREEN);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
-	//}
-	//else
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, TOMATO);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
-	//}
 	else
 	{
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, SEA_GREEN);
@@ -786,34 +761,38 @@ void CDlgManual::UpdateGridInformation()
 
 
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-	auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure();
-	DOUBLE RealThick = lastThick + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 	DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
+	//DOUBLE LDSToThickOffset = 1.3;
+	DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+	DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
+	auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure(); //	DOUBLE LDSMeasure = uvEng_GetConfig()->measure_flat.dAlignMeasure;
+	//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
+	DOUBLE RealThick = LDSToThickOffset - lastThick + dmater;
+	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
+	DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+	DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
+
 	/*LDS Thick*/
-	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > LimitZ Pos : %.3f", RealThick, LimitZPos);
+	//m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > LimitZ Pos : %.3f", RealThick, LimitZPos);
+	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);
 	/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
-	if(lastThick == 0)
-	{ 
+	if (lastThick == 0)
+	{
+		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :0 > Material Thick : 0 + Limit : 0");
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);
 	}
-	else if (RealThick < LimitZPos)
-	{
-		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, SEA_GREEN);
-		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
-	}
-	else
+	else if ((RealThick > (MaxZPos + dmater)) || (RealThick < (MinZPos - dmater)))
 	{
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, TOMATO);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
 	}
-	 
-	//else
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, SEA_GREEN);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
-	//}
+	else
+	{
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, SEA_GREEN);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
+	}
 
 
 

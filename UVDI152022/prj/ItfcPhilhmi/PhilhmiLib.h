@@ -60,7 +60,7 @@ protected:
 	volatile BOOL		m_bAutoReconnection;
 	volatile BOOL		m_bRun;
 
-	STG_PP_PACKET_RECV	m_stRecvData;
+	STG_PP_PACKET_RECV	m_stRecvData = { 0, };
 
 	LPG_CTCS			m_pComm;
 	LPG_CCGS			m_pComn;

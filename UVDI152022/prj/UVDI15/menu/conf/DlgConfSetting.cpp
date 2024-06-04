@@ -1469,13 +1469,18 @@ VOID CDlgConfSetting::SeveMarkFind(LPG_CIEA conf)
 */
 VOID CDlgConfSetting::LoadStrobeLamp(LPG_CIEA conf)
 {
-
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_1, conf->set_strobe_lamp.u16StrobeValue[0]);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_2, conf->set_strobe_lamp.u16StrobeValue[1]);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_3, conf->set_strobe_lamp.u16StrobeValue[2]);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_4, conf->set_strobe_lamp.u16StrobeValue[3]);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_5, conf->set_strobe_lamp.u16StrobeValue[4]);
-	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_6, conf->set_strobe_lamp.u16StrobeValue[5]);
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	int strobeValues[] = { 0,1,2,3,4,5 };
+#elif (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	int strobeValues[] = { 0,1,2,4,5,6 };
+#endif
+	int idx = 0;
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_1, conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_2, conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_3, conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_4, conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_5, conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]]);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_6, conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]]);
 }
 
 /*
@@ -1487,18 +1492,26 @@ VOID CDlgConfSetting::SaveStrobeLamp(LPG_CIEA conf)
 {
 	CString strValue;
 
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	int strobeValues[] = { 0,1,2,3,4,5 };
+#elif (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	int strobeValues[] = { 0,1,2,4,5,6 };
+#endif
+
+	int idx = 0;
+
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_1);
-	conf->set_strobe_lamp.u16StrobeValue[0] = _ttoi(strValue);
+	conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]] = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_2);
-	conf->set_strobe_lamp.u16StrobeValue[1] = _ttoi(strValue);
+	conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]] = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_3);
-	conf->set_strobe_lamp.u16StrobeValue[2] = _ttoi(strValue);
+	conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]] = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_4);
-	conf->set_strobe_lamp.u16StrobeValue[3] = _ttoi(strValue);
+	conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]] = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_5);
-	conf->set_strobe_lamp.u16StrobeValue[4] = _ttoi(strValue);
+	conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]] = _ttoi(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::STROBE_LAMP_6);
-	conf->set_strobe_lamp.u16StrobeValue[5] = _ttoi(strValue);
+	conf->set_strobe_lamp.u16StrobeValue[strobeValues[idx++]] = _ttoi(strValue);
 
 }
 

@@ -283,7 +283,8 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	}
 	else
 	{
-		callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+		//callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+		callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
 	}
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }
@@ -294,7 +295,7 @@ VOID CRecvPhil::PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv)
 	stStatusValue.Reset();
 
 	/*포토헤드 LED 보드 및 LED 온도 측정*/
-	uvEng_Luria_ReqGetPhLedTempAll();
+	//uvEng_Luria_ReqGetPhLedTempAll();
 	UINT16(*pLed)[8] = uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_led;
 	UINT16(*pBoard)[8] = uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_board;
 

@@ -178,7 +178,7 @@ void CPhilhmiLib::OnDataReceived(CSocketHandle* pSH, const BYTE* pbData, DWORD d
 
 		if (m_uiDataLength == m_vRecvData.size())
 		{
-			STG_PP_PACKET_RECV stRecv;
+			STG_PP_PACKET_RECV stRecv = { 0, };
 			memcpy(&stRecv, m_vRecvData.data(), m_vRecvData.size());
 			AddPktData(stRecv);
 			m_vRecvData.clear();

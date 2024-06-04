@@ -1362,7 +1362,7 @@ typedef struct __st_phil_packet_c2p_time_sync__ : public __st_phil_packet_header
 		memset(szSyncTime, 0, sizeof(szSyncTime));
 	}
 
-	char szSyncTime[DEF_TIME_LENGTH];       // YYYYMMDDhhmmss		
+	char szSyncTime[DEF_TIME_LENGTH] = {0,};       // YYYYMMDDhhmmss		
 											// ex)20230322142640 : 2023년3월22일14시26분40초		
 
 }	STG_PP_C2P_TIME_SYNC, * LPG_PP_C2P_TIME_SYNC;
@@ -1682,7 +1682,7 @@ typedef struct __st_philhmi_packet_register__
 	/* Command */
 	ENG_TPCS			command;					/* Read/Write : Low 1 Byte, ENG_TBPC <01 : Write, 02 : Read, 07 : IP Write> */
 	
-	STG_PP_PACKET_RECV	pkt;
+	STG_PP_PACKET_RECV	pkt = { 0 };
 
 	/*
 	 desc : 기존 데이터 모두 제거

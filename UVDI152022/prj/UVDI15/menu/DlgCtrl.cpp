@@ -1182,7 +1182,18 @@ void CDlgCtrl::OnGrdIOQuick(int nGrdIndex, NMHDR* pNotifyStruct)
 */
 VOID CDlgCtrl::SetMotionHoming(ENG_MMDI drv_id)
 {
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, 0))
+	{
+		AfxMessageBox(CInterLockManager::GetInstance()->GetLastError());
+	}
+	else
+	{
+		uvEng_MC2_SendDevHoming(drv_id);
+	}
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 	uvEng_MC2_SendDevHoming(drv_id);
+#endif
 }
 
 /*

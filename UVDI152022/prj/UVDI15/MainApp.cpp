@@ -70,7 +70,8 @@ BOOL CMainApp::InitInstance()
 
 	CWinApp::InitInstance();
 	GlobalVariables::GetInstance()->Init();
-	GlobalVariables::GetInstance()->StartWebMonitor();
+	GlobalVariables::GetInstance()->GetWebMonitor().StartWebMonitor();
+	//GlobalVariables::GetInstance()->StartEnvironmentCheck();
 	// OLE 초기화
 	AfxOleInit();
 	// RichEdit 초기화
@@ -93,7 +94,7 @@ BOOL CMainApp::InitInstance()
 		AfxMessageBox(L"Failed to get the current working folder", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
 	}
-	 
+	
 	CDlgMain dlg;
 	m_pMainWnd	= &dlg;
 	INT_PTR nResponse = dlg.DoModal();
@@ -107,7 +108,7 @@ BOOL CMainApp::InitInstance()
 	{
 		delete pShellManager;
 	}
-
+	
 	return FALSE;
 }
 

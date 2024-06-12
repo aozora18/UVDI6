@@ -2,28 +2,7 @@
 //이하는 전부 인라인 클래스임.
 
 using namespace std;
-////#include "framework.h"
-//#include <map>
-//#include <string>
-//#include <chrono>
-//#include <thread>
-//#include <mutex>
-//#include <functional>
-//#include <iostream>
-//#include <vector>
-//#include <thread>
-//#include <mutex>
-//#include <condition_variable>
-//#include <functional>
-//#include <unordered_map>
-//#include <atomic>
-//#include <algorithm>
-//#include <stack>
-//#include <assert.h>
-//
-//#include "../../inc/conf/conf_comn.h"
-//#include "../../inc/conf/luria.h"
-//#include "../../inc/itfe/EItfcMC2.h"
+
 #include "pch.h"
 #include "GlobalVariables.h"
 
@@ -47,24 +26,30 @@ void ConditionWrapper::Reset()
 	isConditionMet = false;
 }
 
-
-
-void ThreadManager::addThread(const std::string& key, std::function<void()> callback)
+void ThreadManager::addThread(const std::string& key, std::atomic<bool>& stopFlag, std::function<void()> callback)
 {
 	if (threads_.find(key) != threads_.end())
 		return;
 
 	std::lock_guard<std::mutex> lock(mutex_);
-	threads_.emplace(key, std::make_unique<std::thread>(callback));
+	threads_.emplace(key, 
+						make_tuple(std::make_unique<std::thread>(callback),
+								   std::ref(stopFlag)));
 }
 
 void ThreadManager::removeThread(const std::string& key)
 {
 	std::lock_guard<std::mutex> lock(mutex_);
 	auto it = threads_.find(key);
-	if (it != threads_.end()) {
-		if (it->second->joinable()) {
-			it->second->join();
+	if (it != threads_.end()) 
+	{
+		auto& thread = std::get<0>(it->second);
+		auto& stopFlag = std::get<1>(it->second);
+
+		if (thread->joinable())
+		{
+			stopFlag.store(true);
+			thread ->join();
 		}
 		threads_.erase(it);
 	}
@@ -72,11 +57,10 @@ void ThreadManager::removeThread(const std::string& key)
 
 void ThreadManager::waitForAllThreads()
 {
-	std::lock_guard<std::mutex> lock(mutex_);
-	for (auto& pair : threads_) {
-		if (pair.second->joinable()) {
-			pair.second->join();
-		}
+	
+	for (auto& pair : threads_) 
+	{
+		removeThread(pair.first);
 	}
 	threads_.clear();
 }
@@ -85,7 +69,7 @@ bool ThreadManager::isThreadRunning(const std::string& key)
 {
 	std::lock_guard<std::mutex> lock(mutex_);
 	auto it = threads_.find(key);
-	return it != threads_.end() && it->second->joinable();
+	return it != threads_.end() && std::get<0>(it->second)->joinable();
 }
 
 
@@ -308,7 +292,7 @@ CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double st
 void AlignMotion::Destroy()
 {
 	lock_guard<mutex> lock(*motionMutex);
-	onUpdate = false;
+	cancelFlag.store(true);
 	axises.clear();
 }
 
@@ -327,7 +311,7 @@ CaliPoint AlignMotion::EstimateAlignOffset(int camIdx, double stageX, double sta
 void AlignMotion::Update()
 {
 	const int updateDelay = 1000;
-	while (onUpdate)
+	while (cancelFlag.load() == false)
 	{
 		Refresh();
 		this_thread::sleep_for(chrono::milliseconds(updateDelay));
@@ -779,8 +763,33 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			[&]()->double {return (double)uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam2); },
 			[&]()->BOOL {return uvCmn_MC2_IsDriveError(ENG_MMDI::en_align_cam2); });;
 
-
-		ThreadManager::getInstance().addThread("update", [&]() {Update(); });
+		
+		ThreadManager::getInstance().addThread("update", cancelFlag,[&]() {Update(); });
 
 	}
  
+
+	void WebMonitor::StartWebMonitor()
+	{
+		const int SERVER_PORT = 5000;
+
+		auto gv = GlobalVariables::GetInstance();
+
+		if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
+			return;
+
+		if (gv->GetWebMonitor().ConnectClient(SERVER_PORT) == false)
+			return;
+	
+		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()
+			{
+				auto gv = GlobalVariables::GetInstance();
+				const int updateDelay = 1;
+				while (cancelFlag.load() == false)
+				{
+					gv->GetWebMonitor().RefreshWebPage();
+					this_thread::sleep_for(chrono::seconds(updateDelay));
+				}
+				gv->GetWebMonitor().StopWebServer();
+			});		
+	}

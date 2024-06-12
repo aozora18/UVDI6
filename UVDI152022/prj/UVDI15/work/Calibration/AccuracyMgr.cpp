@@ -411,56 +411,56 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 
 bool CAccuracyMgr::MoveTillArrive(double x, double y, double spd)
 {
-	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
-		motion.Refresh();
+	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	motion.Refresh();
 
-		LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
+	LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
 		
-		if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
-			pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
-			!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
-			!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
-			!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
-			!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
-		{
-			return false;
-		}
-
-		if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y))
-			return true;
-
-		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, x) || CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, y))
-			return false;
-
-		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
-		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
-		
-		if (x == -1 || y == -1)
-		{
-			if (uvEng_MC2_SendDevAbsMove(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x,
-				x == -1 ? y : x, spd) == false)
-				return false;
-
-			return GlobalVariables::GetInstance()->Waiter([&]()->bool
-				{
-					return uvCmn_MC2_IsDrvDoneToggled(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x);
-
-				}, 300000);
-		}
-		else
-		{
-			ENG_MMDI vecAxis = ENG_MMDI::en_axis_none;
-			if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
-			{
-				return false;
-			}
-			return GlobalVariables::GetInstance()->Waiter([&]()->bool
-			{
-				return (ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis));
-			}, 300000);
-		}
-			
+	if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
+		pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
+		!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
+		!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
+		!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
+		!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
+	{
 		return false;
+	}
+
+	if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y))
+		return true;
+
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, x) || CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, y))
+		return false;
+
+	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
+	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+		
+	if (x == -1 || y == -1)
+	{
+		if (uvEng_MC2_SendDevAbsMove(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x,
+			x == -1 ? y : x, spd) == false)
+			return false;
+
+		return GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvCmn_MC2_IsDrvDoneToggled(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x);
+
+			}, 300000);
+	}
+	else
+	{
+		ENG_MMDI vecAxis = ENG_MMDI::en_axis_none;
+		if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
+		{
+			return false;
+		}
+		return GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return (ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis));
+		}, 300000);
+	}
+			
+	return false;
 }
 
 
@@ -566,8 +566,8 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 
 			//일단 스타트 포인트로 가긴해야하니까. 
 
-			auto trigger = GlobalVariables::GetInstance()->GetTrigger();
-			auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+			auto& trigger = GlobalVariables::GetInstance()->GetTrigger();
+			auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 			LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
 			auto axises = motion.GetAxises();
 			int incdelay = 0;

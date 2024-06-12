@@ -101,7 +101,7 @@ private:
 class ThreadManager : public Singleton<ThreadManager>
 {
 public:
-	void addThread(const std::string& key, std::function<void()> callback);
+	void addThread(const std::string& key, std::atomic<bool>&  stopFlag , std::function<void()> callback);
 
 	void removeThread(const std::string& key);
 
@@ -112,7 +112,7 @@ public:
 
 private:
 
-	std::unordered_map<std::string, std::unique_ptr<std::thread>> threads_;
+	std::unordered_map<std::string, tuple<std::unique_ptr<std::thread>, std::atomic<bool>&>> threads_;
 	std::mutex mutex_;
 };
 
@@ -307,6 +307,36 @@ struct Params
 
 };
 
+
+class Environment //환경요소.
+{
+public :
+	void DoCalib();
+	void Update();
+
+	tuple<double, double> GetCalibOffset()
+	{
+		return calibOffset;
+	}
+
+	bool NeedCalib()
+	{
+		return needCalib;
+	}
+
+
+private:
+	long reCalibTerm;
+	long lastCalibTime;
+	double lastDegree;
+
+	bool needCalib;
+	POINT calibPos;
+	tuple<double, double> calibOffset;
+
+};
+
+
 class Axis //이동가능한축만 등록하며, 특정기능을 담당한다면 옵션추가한다. 
 {
 public:
@@ -373,17 +403,12 @@ public:
 		localMarkCnt = 0;
 		globalMarkCnt = 0;
 
-		//scanCount = 0;
-		//cam1ProcessingColumn = 0;
-		//cam2ProcessingColumn = 0;
-		//markMapProcess.clear(); //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
 		BufferClear();
 	}
 
 	void BufferClear()
 	{
 		SetDataReady(false);
-		//markPoolForCamLocal.clear(); //카메라별 풀링.
 		offsetPool.clear();
 		markPoolForCam.clear();
 		markList.clear(); //column별 풀링
@@ -391,17 +416,12 @@ public:
 	}
 
 	int acamCount = 0;
-	//int scanCount = 0;
 	int gerberRowCnt = 0;
 	int gerberColCnt = 0;
 	int localMarkCnt = 0;
 	int globalMarkCnt = 0;
 
-	//int cam1ProcessingColumn = 0;
-	//int cam2ProcessingColumn = 0;
 	int lastScanCount = 0;
-
-	//map<int, vector<STG_XMXY>> markPoolForCamGlobal; //카메라별 풀링.
 
 
 	map< CaliTableType, vector<CaliPoint>> offsetPool;
@@ -409,7 +429,6 @@ public:
 
 	map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
 	map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것
-	//map<int, vector<STG_XMXY>> markMapProcess; //현재 처리된 상태들 (처리된것들은 1818로 변경됨)
 	std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.	
 };
 
@@ -417,7 +436,8 @@ class AlignMotion
 {
 public:
 	mutex* motionMutex;
-	bool onUpdate = true;
+	std::atomic<bool> cancelFlag = false;
+
 	LPG_CIEA pstCfg = nullptr;
 
 	bool IsDataReady() { return status.IsDataReady(); }
@@ -503,37 +523,7 @@ public:
 		// return pool[index]; .tgt_id;// *= isGlobal ? -1 : 1;
 
 	}
-
-	//int GetFiducialIndex(int camIndex,   CAtlList <LPG_ACGR>* grabList)
-	//{
-	//	//auto grabData = grabList;
-	//	//const int GLOBAL_FIDUCIAL_OFFSET = -1;
-
-	//	if ((grabList == NULL || grabList->GetCount() == 0))
-	//		return -1818;
-
-	//	/*std::map<int, vector<LPG_ACGR>> imgMap;
-
-	//	for (int i = isGlobal ? 0 : status.globalMarkCnt; i < grabData->GetCount(); i++)
-	//	{
-	//		auto val = grabData->GetAt(grabData->FindIndex(i));
-	//		imgMap[val->cam_id].push_back(val);
-	//	}*/
-
-	//	auto pool = status.markPoolForCam[camIndex]; //isGlobal ? status.markPoolForCamGlobal[camIndex] : status.markPoolForCamLocal[camIndex];
-
-	//	int currentCnt = grabList->GetCount(); //imgMap[camIndex].size();
-	//	int poolSize = pool.size();
-
-	//	/*if (currentCnt == 0)
-	//		int debug = 0;*/
-
-	//	if (poolSize == 0)
-	//		return -1818;
-	//	
-
-	//	return pool[currentCnt].tgt_id;// *= isGlobal ? -1 : 1;
-	//}
+	 
 
 	vector<STG_XMXY> GetFiducialPool(int camNum);
 	void UpdateParamValues();
@@ -563,7 +553,9 @@ private:
 	unique_ptr<AlignMotion> alignMotion;
 	unique_ptr<TriggerManager> triggerManager;
 	unique_ptr<WebMonitor> webMonitor;
-	//AlignMotion* alignMotion = nullptr;
+	unique_ptr<Environment> environment;
+
+	
 	template <typename MapType>
 	bool IsKeyExist(const MapType& map, string key)
 	{
@@ -572,34 +564,7 @@ private:
 	}
 
 public:
-	void StartWebMonitor()
-	{
-
-		if (GetWebMonitor().StartWebServer(5000))
-		{
-			if (GetWebMonitor().ConnectClient(5000))
-			{
-				GetWebMonitor().Update("testcategory1", "temperature1", "25");
-				GetWebMonitor().Update("testcategory1", "temperature2", "30");
-				GetWebMonitor().Update("testcategory2", "degree1", "90");
-				GetWebMonitor().Update("testcategory2", "degree2", "45");
-
-				ThreadManager::getInstance().addThread("webmonitor", [&]() 
-				{
-					int count = 0;
-					const int updateDelay = 1;
-					while (true)
-					{
-						auto log = string("testcount") + string(std::to_string(count++));
-
-						GetWebMonitor().Update((char*)log.c_str());
-						GetWebMonitor().RefreshWebPage();
-						this_thread::sleep_for(chrono::seconds(updateDelay));
-					}
-				});
-			}
-		}
-	}
+	void StartWebMonitor();
 
 public:
 
@@ -618,6 +583,10 @@ public:
 		return *webMonitor;
 	}
 
+	Environment& GetEnvironment()
+	{
+		return *environment;
+	}
 
 	void Destroy()
 	{
@@ -625,6 +594,7 @@ public:
 		alignMotion.reset();
 		triggerManager.reset();
 		webMonitor.reset();
+		environment.reset();
 
 		for (auto it = waiter.begin(); it != waiter.end();) {
 			if (it->second.joinable())

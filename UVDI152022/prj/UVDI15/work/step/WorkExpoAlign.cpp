@@ -87,69 +87,13 @@ VOID CWorkExpoAlign::DoWork()
 
 void CWorkExpoAlign::SetAlignMode()
 {
-	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
 	const int INIT_STEP = 0;
 	alignCallback[alignMotion][INIT_STEP]();
-	//auto alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
-
-	//GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool(ENG_AMOS mode, ENG_ATGL aligntype);
-	//GlobalVariables::GetInstance()->GetAlignMotion().SetAlignMode(motion, aligntype);
+	
 }
-
-
-//void CWorkExpoAlign::GeneratePath(ENG_AMOS mode, ENG_ATGL alignType, vector<STG_XMXY>& path)
-//{
-//	globalMarkCnt = globalMarkCnt;
-//	localMarkCnt = localMarkCnt;
-//	//m_u8MarkCount = m_u8MarkCount;
-//
-//	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-//
-//	switch (mode)
-//	{
-//	case ENG_AMOS::en_onthefly_2cam:
-//	{
-//
-//	}
-//	break;
-//
-//	case ENG_AMOS::en_onthefly_3cam:
-//	{
-//
-//	}
-//	break;
-//
-//	case ENG_AMOS::en_static_2cam:
-//	{
-//
-//	}
-//	break;
-//
-//	case ENG_AMOS::en_static_3cam:
-//	{
-//		STG_XMXY lookat;
-//		const int centercam = 3;
-//		bool res = true;
-//
-//		motions.GetGerberPosUseCamPos(centercam, lookat);
-//
-//		STG_XMXY current = lookat;
-//
-//		while (res == true)
-//			if (res = motions.GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, path, current))
-//				path.push_back(current);
-//
-//
-//		//motions
-//
-//	}
-//	break;
-//	}
-//}
-
-
 
 /*
  desc : 노광 완료 후 각종 정보 저장
@@ -275,7 +219,7 @@ void CWorkExpoAlign::DoInitOnthefly2cam()
 
 void CWorkExpoAlign::DoAlignOnthefly2cam()
 {
-	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
 	case 0x01: 

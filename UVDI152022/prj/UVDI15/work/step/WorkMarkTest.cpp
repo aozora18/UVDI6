@@ -41,7 +41,7 @@ CWorkMarkTest::~CWorkMarkTest()
 
 BOOL CWorkMarkTest::SetAlignMode()
 {
-	auto motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
 	const int INIT_STEP = 0;

@@ -122,7 +122,7 @@ void CWorkMarkMove::DoMovingStatic3cam()
 {
 	/* 작업 단계 별로 동작 처리 */
 	
-	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	const int CENTERCAM = motions.markParams.centerCamIdx;
 	
 	switch (m_u8StepIt)

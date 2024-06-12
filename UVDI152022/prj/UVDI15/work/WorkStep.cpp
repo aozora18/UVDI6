@@ -1664,7 +1664,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	TCHAR tzMsg[256] = { NULL };
 
-	auto motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 	bool success = true;
 	const int CENTERCAM = motions.markParams.centerCamIdx;

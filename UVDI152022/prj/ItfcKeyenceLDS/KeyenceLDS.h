@@ -17,7 +17,7 @@ enum COMM_RETURNS
 	eCOMM_ERROR_INVALIDDATA,
 	eCOMM_ERROR_DISCONNECTED,
 	eCOMM_ERROR_TIMEOUT,
-}; 
+};
 
 class CKeyenceLDS : public CSocketCComm
 {
@@ -57,16 +57,16 @@ public:
 		eIL_ZERO_SHIFT = 1,
 		eIL_RESET_ZERO_SHIFT,
 		eIL_RESET_REQ,
-//		eIL_RESET_INIT_REQ = 5,
+		//		eIL_RESET_INIT_REQ = 5,
 	};
 
 private:
-	long RecvProcess(long lSize, BYTE *pbyData);
+	long RecvProcess(long lSize, BYTE* pbyData);
 	long WaitReply(char* pszRecv, DWORD dwTimeout);
 
 public:
 	bool Connect();
-	
+
 	long ReadData(char* pszRecv, DWORD dwTimeout, BOOL bReadStatus = FALSE);
 	long WriteData(int nModuleIdx, int nCode, DWORD dwTimeout);
 
@@ -74,7 +74,7 @@ public:
 	BOOL ZeroShift(int nModuleIdx, DWORD dwTimeout = 5000);
 	BOOL ResetZeroShift(int nModuleIdx, DWORD dwTimeout = 5000);
 	BOOL ResetDevice(int nModuleIdx, DWORD dwTimeout = 5000);
-//	BOOL ResetInitDevice(int nModuleIdx, DWORD dwTimeout = 5000);
+	//	BOOL ResetInitDevice(int nModuleIdx, DWORD dwTimeout = 5000);
 
 	void ZeroSet(double dValue) { m_dBaseValue = dValue; }
 	void SetDecimalPos(double dValue) { m_dDecimalPos = dValue; }

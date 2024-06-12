@@ -43,6 +43,18 @@ static char THIS_FILE[] = __FILE__;
 
 #define	USE_ENGINE_LIB	1	/* 엔진 라이브러리 실행 여부 */
 Stuffs Stuffs::stuffUtils; // 초기화
+
+void updatePender()
+{
+	auto updateCnt = GlobalVariables::GetInstance()->GetCount("mainUpdate");
+
+	GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return updateCnt != GlobalVariables::GetInstance()->GetCount("mainUpdate");
+		});
+}
+
+
 /*
  desc : 생성자
  parm : 자신의 윈도 ID, 부모 윈도 객체
@@ -145,6 +157,7 @@ VOID CDlgMain::OnSysCommand(UINT32 id, LPARAM lparam)
 BOOL CDlgMain::OnInitDlg()
 {
 	
+
 	UINT32 u32Size	= 0, i = 0;
 	Stuffs::GetStuffs().RemoveOldFiles();
 #if (USE_ENGINE_LIB)
@@ -523,6 +536,7 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 			UpdatePeriod(u64Tick, bBusy);
 			m_bMainBusy = bBusy;/*장비 동작 중*/
 			m_u64TickPeriod = u64Tick;
+			GlobalVariables::GetInstance()->IncCount("mainUpdate");
 		}
 	}
 
@@ -654,6 +668,7 @@ LRESULT CDlgMain::OnMsgMainPhilMsg(WPARAM wparam, LPARAM lparam)
 	return 0L;
 }
 
+
 // by sysandj : philhmi 관련 메세지 요청
 LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 {
@@ -711,6 +726,8 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_SELECT:
+
+		updatePender();
 		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil, this, m_bMainBusy);
 	break;
 
@@ -722,6 +739,9 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE:
+
+		updatePender();
+		
 		/*Recv 정상 수신 확인*/
 		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
@@ -738,6 +758,10 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_REL_MOVE:
 		/*Recv 정상 수신 확인*/
+
+		updatePender();
+
+
 		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
 			for (int i = 0; i < pstPhil->st_c2p_rel_move.usCount; i++)
@@ -753,6 +777,10 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_CHAR_MOVE:
 		/*Recv 정상 수신 확인*/
+
+		updatePender();
+
+
 		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
 		{
 			for (int i = 0; i < pstPhil->st_c2p_char_move.usCount; i++)
@@ -768,6 +796,8 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		break;
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE		 :
+
+		updatePender();
 		CRecvPhil::GetInstance()->PhilSendProcessExecute(pstPhil, this, m_bMainBusy);
 		break; 
 
@@ -784,6 +814,9 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		//PhilSendChageMode(pstPhil);
 		break;
 	case (int)ENG_PHPC::ePHILHMI_C2P_INITIAL_EXECUTE:
+		
+		updatePender();
+
 		CRecvPhil::GetInstance()->PhilSendInitialExecute(pstPhil, this, m_bMainBusy);
 		break;
 	case (int)ENG_PHPC::ePHILHMI_C2P_EVENT_STATUS:
@@ -1632,7 +1665,7 @@ VOID CDlgMain::UpdateLDSMeasure()
 
 	dValue = uvEng_KeyenceLDS_Measure(0);
 	
-	if (dValue == 9999.999) 
+	if (dValue < -5 || dValue > 5)
 		return;
 
 	uvEng_GetConfig()->measure_flat.SetThickMeasureResult(((dValue * 10000) / 10000));
@@ -1984,6 +2017,8 @@ BOOL CDlgMain::PhilSendMoveRecvAck(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 	BOOL Succ = TRUE;
 	unsigned short	ErrorCode = ePHILHMI_ERR_OK;
 	g_u16PhilCommand = stRecv->st_header.nCommand;
+
+	//Sleep(1000);//일단 넣읍시다.
 
 	if (is_busy)
 	{
@@ -2452,7 +2487,7 @@ VOID CDlgMain::PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv)
 	/*현재 시간*/
 	SYSTEMTIME stTm = { NULL };
 	GetLocalTime(&stTm);
-	char szSyncTime[DEF_TIME_LENGTH + 1];
+	char szSyncTime[DEF_TIME_LENGTH + 1] = { 0, };
 	sprintf_s(stRecv->st_c2p_time_sync.szSyncTime, DEF_TIME_LENGTH + 1, "%04d%02d%02d%02d%02d%02d",
 		stTm.wYear, stTm.wMonth, stTm.wDay, stTm.wHour, stTm.wMinute, stTm.wSecond);
 	memcpy(stRecv->st_c2p_time_sync.szSyncTime, szSyncTime, DEF_TIME_LENGTH);

@@ -1106,8 +1106,11 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
 		}
 	}
 
-	/* 시간 초과 */
-	return FALSE;
+	
+		/*측정 실패시 패스 하고 연속실행*/
+	stGrab.move_mm_x = 9999;
+	stGrab.move_mm_y = 9999;
+	return TRUE;
 }
 
 /*

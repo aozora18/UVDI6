@@ -174,6 +174,9 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 
+	/*레시피 정보 가져오기*/
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+
 	/* 현재 컴퓨터 날짜를 파일명으로 설정 */
 	GetLocalTime(&stTm);
 	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\logs\\expo\\%04d-%02d-%02d.csv",
@@ -209,73 +212,59 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	/*ExpoLog 기록*/
 	memcpy(m_stExpoLog.data, tzResult, 40);
 
-	/* 노광 시간 / 노광 성공 / 거버 이름 / 소재 두께 / 에너지 */
-	UINT64 u64JobTime = uvEng_GetJobWorkTime();
-	swprintf_s(tzResult, 1024, L"%u,%s,%S,%d,%.4f,",
-		uvCmn_GetTimeToType(u64JobTime, 0x03), tzState[state], pstRecipe->gerber_name, pstRecipe->material_thick, pstRecipe->expo_energy);
+
+	/* 온도 / 노광 시간 / 노광 성공 / 노광 모드 / 소재 배율 / 소재 회전 */
+	swprintf_s(tzResult, 1024, L"\%llu,%s,%.2f,%.2f,",
+		uvEng_GetJobWorkTime(), tzState[state], pstExpoRecipe->real_scale_range, pstExpoRecipe->real_rotaion_range);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	/*ExpoLog 기록*/
+	m_stExpoLog.expo_time = uvEng_GetJobWorkTime();
+	m_stExpoLog.expo_succ = state;
+	m_stExpoLog.real_scale = pstExpoRecipe->real_scale_range;
+	m_stExpoLog.real_rotaion = pstExpoRecipe->real_rotaion_range;
 
 
 	/* 마크 간의 6 곳 길이 측정 오차 값 과 전체 노광하는데 소요된 시간 저장 */
-	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	swprintf_s(tzResult, 1024, L"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,",
-		pstMarkDiff->result[0].diff * 100.0f, pstMarkDiff->result[1].diff * 100.0f, pstMarkDiff->result[2].diff * 100.0f,
-		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
-	//swprintf_s(tzResult, 1024, L"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,",
-	//		   uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz),
-	//		   uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz),
-	//		   uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert),
-	//		   uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert),
-	//		   uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag),
-	//		   uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag)
-	//		   );
+		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz),
+		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz),
+		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert),
+		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert),
+		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag),
+		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag));
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	/* 얼라인 마크 검색 결과 값 저장 */
-	pstMark	= uvEng_Camera_GetGrabbedMark(0x01, 0x00);
-	if (pstMark)
-	{
-		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%u,%.4f,%.4f,",
-				   pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-				   pstMark->move_mm_x, pstMark->move_mm_y);
-		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	}
-	pstMark	= uvEng_Camera_GetGrabbedMark(0x01, 0x01);
-	if (pstMark)
-	{
-		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%u,%.4f,%.4f,",
-				   pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-				   pstMark->move_mm_x, pstMark->move_mm_y);
-		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	}
-	pstMark	= uvEng_Camera_GetGrabbedMark(0x02, 0x00);
-	if (pstMark)
-	{
-		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%u,%.4f,%.4f,",
-				   pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-				   pstMark->move_mm_x, pstMark->move_mm_y);
-		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	}
-	pstMark	= uvEng_Camera_GetGrabbedMark(0x02, 0x01);
-	if (pstMark)
-	{
-		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%u,%.4f,%.4f,",
-				   pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-				   pstMark->move_mm_x, pstMark->move_mm_y);
-		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	}
-	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
-	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
+	/*ExpoLog 기록*/
+	m_stExpoLog.global_dist[0] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz);
+	m_stExpoLog.global_dist[1] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz);
+	m_stExpoLog.global_dist[2] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert);
+	m_stExpoLog.global_dist[3] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert);
+	m_stExpoLog.global_dist[4] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag);
+	m_stExpoLog.global_dist[5] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag);
 
 
 	/*ExpoLog 기록*/
-	memcpy(m_stExpoLog.gerber_name, pstRecipe->gerber_name, MAX_GERBER_NAME);
-	m_stExpoLog.material_thick = pstRecipe->material_thick;
-	m_stExpoLog.expo_energy = pstRecipe->expo_energy;
+	//memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);
+	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
+	m_stExpoLog.material_thick = pstJobRecipe->material_thick;
+	m_stExpoLog.expo_energy = pstJobRecipe->expo_energy;
+
 	m_stExpoLog.align_type = pstAlignRecipe->align_type;
+#ifdef USE_ALIGNMOTION
+	m_stExpoLog.align_motion = pstAlignRecipe->align_motion;
+#endif
 	m_stExpoLog.mark_type = pstAlignRecipe->mark_type;
 	m_stExpoLog.lamp_type = pstAlignRecipe->lamp_type;
 	m_stExpoLog.gain_level[0] = pstAlignRecipe->gain_level[0];
 	m_stExpoLog.gain_level[1] = pstAlignRecipe->gain_level[1];
+
+	m_stExpoLog.led_duty_cycle = pstExpoRecipe->led_duty_cycle;
+	//sprintf_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
+	strcpy_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
+
+	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
+	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
+
+
 }
 
 
@@ -407,12 +396,19 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		SaveExpoResult(0x00);
 		m_u8StepIt = 0x01;
 
+		/*노광 종료가 되면 Philhmil에 완료보고*/
+		SetPhilProcessCompelet();
+
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
-		//m_enWorkState = ENG_JWNS::en_comp;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		m_enWorkState = ENG_JWNS::en_comp;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		m_enWorkState = ENG_JWNS::en_error;
+#endif
+
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
@@ -764,16 +760,25 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
 	uvEng_UpdateJobWorkTime(u64JobTime);
+	TCHAR tzMesg[128] = { NULL };
 
 	if (ENG_JWNS::en_error == m_enWorkState)
-	{
-		TCHAR tzMesg[128] = { NULL };
+	{	
 		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
+		/*노광 종료가 되면 Philhmil에 완료보고*/
+		SetPhilProcessCompelet();
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		m_enWorkState = ENG_JWNS::en_comp;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+		m_enWorkState = ENG_JWNS::en_error;
 		SaveExpoResult(0x00);
 		m_u8StepIt = 0x01;
-		m_enWorkState = ENG_JWNS::en_error;
+#endif
+
+
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
@@ -831,6 +836,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 
 
+
 VOID CWorkExpoAlign::SetPhilProcessCompelet()
 {
 	STG_PP_P2C_PROCESS_COMP			stProcessComp;
@@ -842,22 +848,75 @@ VOID CWorkExpoAlign::SetPhilProcessCompelet()
 	sprintf_s(stProcessComp.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, m_stExpoLog.recipe_name);
 	sprintf_s(stProcessComp.szGlassID, DEF_MAX_GLASS_NAME_LENGTH, m_stExpoLog.glassID);
 
-	/*노광 결과 파라미터값*/
-	stProcessComp.usCount = 3;
-	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "CHAR");
-	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "data");
-	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, m_stExpoLog.data);
+	stProcessComp.usCount = 15;
+	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
+	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Data");
+	sprintf_s(stProcessComp.stVar[0].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%S", m_stExpoLog.data);
 
-	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT64");
-	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "expo_time");
-	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_time);
+	sprintf_s(stProcessComp.stVar[1].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
+	sprintf_s(stProcessComp.stVar[1].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Time");
+	sprintf_s(stProcessComp.stVar[1].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%lld", m_stExpoLog.expo_time);
 
-	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "UINT8");
-	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "expo_succ");
-	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
+	sprintf_s(stProcessComp.stVar[2].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "BOOL");
+	sprintf_s(stProcessComp.stVar[2].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Mode");
+	sprintf_s(stProcessComp.stVar[2].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "0");
+
+	sprintf_s(stProcessComp.stVar[3].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "BOOL");
+	sprintf_s(stProcessComp.stVar[3].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Succ");
+	sprintf_s(stProcessComp.stVar[3].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.expo_succ);
+
+	sprintf_s(stProcessComp.stVar[4].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[4].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_top_horz");
+	sprintf_s(stProcessComp.stVar[4].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.4f", m_stExpoLog.global_dist[0]);
+
+	sprintf_s(stProcessComp.stVar[5].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[5].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_btm_horz");
+	sprintf_s(stProcessComp.stVar[5].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.4f", m_stExpoLog.global_dist[0]);
+
+	sprintf_s(stProcessComp.stVar[6].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[6].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_lft_vert");
+	sprintf_s(stProcessComp.stVar[6].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.4f", m_stExpoLog.global_dist[0]);
+
+	sprintf_s(stProcessComp.stVar[7].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[7].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_rgt_vert");
+	sprintf_s(stProcessComp.stVar[7].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.4f", m_stExpoLog.global_dist[0]);
+
+	sprintf_s(stProcessComp.stVar[8].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[8].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_lft_diag");
+	sprintf_s(stProcessComp.stVar[8].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.4f", m_stExpoLog.global_dist[0]);
+
+	sprintf_s(stProcessComp.stVar[9].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[9].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "GrabDist_rgt_diag");
+	sprintf_s(stProcessComp.stVar[9].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%.4f", m_stExpoLog.global_dist[0]);
+
+	sprintf_s(stProcessComp.stVar[10].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
+	sprintf_s(stProcessComp.stVar[10].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Gerber_Name");
+	sprintf_s(stProcessComp.stVar[10].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%s", m_stExpoLog.gerber_name);
+
+	sprintf_s(stProcessComp.stVar[11].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "INT");
+	sprintf_s(stProcessComp.stVar[11].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Material_Thick");
+	sprintf_s(stProcessComp.stVar[11].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.material_thick);
+
+	sprintf_s(stProcessComp.stVar[12].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "DOUBLE");
+	sprintf_s(stProcessComp.stVar[12].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Expo_Energy");
+	sprintf_s(stProcessComp.stVar[12].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, " %.1f", m_stExpoLog.expo_energy);
+
+	sprintf_s(stProcessComp.stVar[13].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
+	sprintf_s(stProcessComp.stVar[13].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Power_Name");
+	sprintf_s(stProcessComp.stVar[13].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%s", m_stExpoLog.power_name);
+
+	sprintf_s(stProcessComp.stVar[14].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "INT");
+	sprintf_s(stProcessComp.stVar[14].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Led_Duty_Cycle");
+	sprintf_s(stProcessComp.stVar[14].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.led_duty_cycle);
+
+	if (!m_stExpoLog.expo_succ)
+	{
+		stProcessComp.usErrorCode = ePHILHMI_ERR_STATUS_COMPLETE;
+	}
 
 	uvEng_Philhmi_Send_P2C_PROCESS_COMP(stProcessComp, stProcessCompAck);
 }
+
 
 VOID CWorkExpoAlign::txtWrite(CString msg)
 {

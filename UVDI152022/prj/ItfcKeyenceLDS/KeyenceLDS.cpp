@@ -42,7 +42,7 @@ bool CKeyenceLDS::Connect()
 	return NetOpen(pczLocalIP, pczRemoteIP, uczPort);
 }
 
-long CKeyenceLDS::RecvProcess(long lSize, BYTE *pbyData)
+long CKeyenceLDS::RecvProcess(long lSize, BYTE* pbyData)
 {
 	if (0 >= lSize)
 		return -1;
@@ -51,10 +51,10 @@ long CKeyenceLDS::RecvProcess(long lSize, BYTE *pbyData)
 
 	if (TryEnterCriticalSection(&m_csRecv))
 	{
-		m_strBuffer += strBuf;	
+		m_strBuffer += strBuf;
 		LeaveCriticalSection(&m_csRecv);
 	}
-	
+
 	return 0;
 }
 
@@ -66,8 +66,8 @@ long CKeyenceLDS::WaitReply(char* pszRecv, DWORD dwTimeout)
 	{
 		if (TryEnterCriticalSection(&m_csRecv))
 		{
-		
-			
+
+
 			if (m_strBuffer.find(DEF_CMD_ERROR) != std::string::npos)
 			{
 				m_strBuffer.replace(0, m_strBuffer.find(m_strCMD) + 3, "");
@@ -111,14 +111,14 @@ long CKeyenceLDS::ReadData(char* pszRecv, DWORD dwTimeout, BOOL bReadStatus)
 
 	EnterCriticalSection(&m_csSend);
 	m_strCMD = (TRUE == bReadStatus) ? DEF_CMD_STATUS_READ : DEF_CMD_READ;
-	
+
 	CString strMsg;
 
 	strMsg = m_strCMD.c_str();
 	strMsg += _T(DEF_CMD_END);
 
 	long lSize = strMsg.GetLength();
-	char *szMsg = new char[lSize];
+	char* szMsg = new char[lSize];
 
 	memcpy(szMsg, CStringA(strMsg), lSize);
 	Send(lSize, (BYTE*)szMsg);
@@ -146,13 +146,13 @@ long CKeyenceLDS::WriteData(int nModuleIdx, int nCode, DWORD dwTimeout)
 	EnterCriticalSection(&m_csSend);
 
 	m_strCMD = DEF_CMD_SELECT_WRITE;
-	
+
 	CString strMsg;
 
 	strMsg.Format(_T("%s,%02d,%03d,%s%s"), _T(DEF_CMD_SELECT_WRITE), nModuleIdx, nCode, _T(DEF_CMD_EXECUTED), _T(DEF_CMD_END));
 
 	long lSize = strMsg.GetLength();
-	char *szMsg = new char[lSize];
+	char* szMsg = new char[lSize];
 
 	memcpy(szMsg, CStringA(strMsg), lSize);
 
@@ -225,7 +225,6 @@ long CKeyenceLDS::LDSMeasure(double* pdValue, int nModuleIdx, DWORD dwTimeout)
 	char pszRecv[255];
 	CString strValue;
 	double dValue = 0;
-	double error = 9999.999;
 
 	int nResult = ReadData(pszRecv, dwTimeout);
 
@@ -244,7 +243,7 @@ long CKeyenceLDS::LDSMeasure(double* pdValue, int nModuleIdx, DWORD dwTimeout)
 	{
 		// Error
 		// AddLog
-		*pdValue = error;
+		*pdValue = 9999.999;
 		return eCOMM_ERROR_INVALIDDATA;
 	}
 

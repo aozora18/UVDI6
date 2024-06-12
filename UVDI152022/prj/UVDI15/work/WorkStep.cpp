@@ -914,6 +914,16 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam1);
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam2);
 
+	/*노광 시작 위치로 이동시 인터락 검사*/
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, dbStagePosX))
+	{
+		return ENG_JWNS::en_error;
+	}
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dbStagePosY))
+	{
+		return ENG_JWNS::en_error;
+	}
+
 	/* Stage Moving (Vector) (Vector Moving하는 기본 축 정보 저장) */
 	if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
 									   dbStagePosX, dbStagePosY, dbStageVeloY, m_enVectMoveDrv))
@@ -1025,20 +1035,53 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 	if (uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y))
 	{
 		auto& measureFlat = uvEng_GetConfig()->measure_flat;
-		/*LDS 기능으로 소재 뚜께 측정하여 허용범위에서 벗어나면 에러 처리하여 작업 중지*/
-		
-		
+		auto mean = measureFlat.GetThickMeasureMean();
 
+		/*LDS 기능으로 소재 뚜께 측정하여 허용범위에서 벗어나면 에러 처리하여 작업 중지*/
 		if (measureFlat.u8UseThickCheck)
-		{	
-			auto mean = measureFlat.GetThickMeasureMean();
+		{
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+
+			DOUBLE dLDSZPOS = uvEng_GetConfig()->acam_spec.acam_z_focus[1];
+			DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
+			
+			DOUBLE LDSToThickOffset = 0;
+			//LDSToThickOffset = 1.3;
+			LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-			DOUBLE RealThick =  + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+			//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
+			DOUBLE RealThick = LDSToThickOffset - mean + dmater;
+			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+			DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+			DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
+
+			TCHAR tzMsg[256] = { NULL };
+			swprintf_s(tzMsg, 256, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+			/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
+			if ((RealThick > (MaxZPos + dmater)) || (RealThick < (MinZPos - dmater)))
+			{
+				//swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > LimitZ Pos : %.3f]", RealThick, LimitZPos);
+				swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f]", RealThick, dmater, LimitZPos);
+
+				CDlgMesg dlgMesg;
+				if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
+
+					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
+				return ENG_JWNS::en_error;
+			}
+
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
+			DOUBLE RealThick = mean + uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
 			TCHAR tzMsg[256] = { NULL };
 			swprintf_s(tzMsg, 256, L"CheckThick LDS Measure = %.4f Offset Z Pos = %.4f LimitPos = %.4f",
-				mean
+				uvEng_GetConfig()->measure_flat.dAlignMeasure
 				, uvEng_GetConfig()->measure_flat.dOffsetZPOS
 				, uvEng_GetConfig()->measure_flat.dLimitZPOS);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
@@ -1051,9 +1094,12 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 				CDlgMesg dlgMesg;
 				if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
 
-				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
+					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
 				return ENG_JWNS::en_error;
 			}
+#endif
+
+
 		}
 
 		return ENG_JWNS::en_next;
@@ -2545,7 +2591,7 @@ ENG_JWNS CWorkStep::IsACamZAxisMovedAll(unsigned long& lastUniqueID)
 	//	}
 	//}
 #elif (USE_IO_LINK_PHILHMI == 1)
-	STG_PP_PACKET_RECV stRecv;
+	STG_PP_PACKET_RECV stRecv = { 0, };
 	stRecv.st_c2p_abs_move_comp.Reset();
 	//if (FALSE == uvEng_Philhmi_GetRecvWaitFromUniqueID(lastUniqueID, &stRecv, 10000))
 	//{

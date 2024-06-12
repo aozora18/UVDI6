@@ -3617,8 +3617,8 @@ VOID CDlgMark::UpdataStrobeView()
 			}
 			else if (3 == nRow)
 			{
-				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol + pGrid->GetColumnCount()];
-				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol + pGrid->GetColumnCount()]);
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + 1 + vColSize.size()];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + 1 + vColSize.size()]);
 
 			}
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
@@ -3652,21 +3652,44 @@ VOID CDlgMark::setStrobeValue()
 
 	UINT16 recvStrobeValues[8];
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	GlobalVariables::getInstance()->ResetCounter("strobeRecved");
 	/*Cam1*/
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0] = (UINT16)pGrid->GetItemTextToInt(1, 0);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0]);
+	Sleep(100);
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1] = (UINT16)pGrid->GetItemTextToInt(1, 1);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 1, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[1]);
+	Sleep(100);
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2] = (UINT16)pGrid->GetItemTextToInt(1, 2);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 2, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[2]);
+	Sleep(100);
 
 	/*Cam2*/
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4] = (UINT16)pGrid->GetItemTextToInt(3, 0);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 4, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[4]);
+	Sleep(100);
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5] = (UINT16)pGrid->GetItemTextToInt(3, 1);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[5]);
+	Sleep(100);
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[6] = (UINT16)pGrid->GetItemTextToInt(3, 2);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[6]);
+	Sleep(100);
+
+	GlobalVariables::getInstance()->Waiter("strobe",
+		[]
+		{
+			return GlobalVariables::getInstance()->GetCount("strobeRecved") == 6;
+		},
+		[]
+		{
+			MessageBoxEx(nullptr, _T("Write succeed.\t"), _T("ok"), MB_OK, LANG_ENGLISH);
+		},
+		[&]
+		{
+			std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::getInstance()->GetCount("strobeRecved")) + L"\t";
+			MessageBoxEx(nullptr, info.c_str(), _T("failed"), MB_OK, LANG_ENGLISH);
+		}
+	);
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 
 	GlobalVariables::GetInstance()->ResetCounter("strobeRecved");

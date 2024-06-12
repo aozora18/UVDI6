@@ -582,6 +582,13 @@ INT32 CDirectPhComn::SetRecvReplyAck(PUINT8 data)
 	memcpy(&u16Data, pData, 2);
 	m_pstShMemDP->get_last_received_reply_error = SWAP16(u16Data);
 
+	//abh1000 추후 삭제
+	if (m_pstShMemDP->get_last_received_reply_error == 10066)
+	{
+		return (0x00000002);
+	}
+
+
 	/* 가장 최근에 발생된 에러 코드 값 반환 */
 	if (m_pstShMemDP->get_last_received_reply_error)
 	{

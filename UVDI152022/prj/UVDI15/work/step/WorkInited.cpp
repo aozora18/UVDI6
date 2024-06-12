@@ -152,7 +152,8 @@ VOID CWorkInited::SetWorkNext()
 		if (m_u8StepTotal == m_u8StepIt)
 		{
 			m_enWorkState = ENG_JWNS::en_comp;
-
+			/* 에러 메시지 초기화 */
+			uvCmn_Logs_ResetErrorMesg();
 			/*Philhmi에 초기화 완료 신호 보내기*/
 			PhilInitComp(0x01);
 			/* 항상 호출*/
@@ -481,7 +482,8 @@ ENG_JWNS CWorkInited::IsTableSettings()
 {
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Table.Settings");
-	return uvCmn_Luria_IsTableSetting(0x01) ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+	/*return uvCmn_Luria_IsTableSetting(0x01) ? ENG_JWNS::en_next : ENG_JWNS::en_wait;*/
+	return ENG_JWNS::en_next;
 }
 
 /*

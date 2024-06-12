@@ -202,6 +202,7 @@ VOID CDlgAuto::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	if (m_pPgr)
 	{
 		m_pPgr->SetPos((int)uvEng_GetWorkStepRate());
+		m_pPgr->m_strTestText = uvEng_GetWorkStepName();
 	}
 
 	if (m_pDlgMain)
@@ -667,7 +668,7 @@ void CDlgAuto::UpdateGridProcess()
 
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::ENERGE + 1, 1, _T("%.3f [mJ]"), pstJob->expo_energy);
 
-	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::SPEED + 1, 1, _T("%.1f [%%]"), pstJob->expo_speed * 100.0);
+	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::SPEED + 1, 1, _T("%.1f [%%]"), pstJob->frame_rate / 10.0f);
 
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::GERBER_NAME + 1, 1, _T("%s"), clsCvt.Ansi2Uni(pstJob->gerber_name));
 

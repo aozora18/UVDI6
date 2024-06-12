@@ -307,10 +307,10 @@ extern "C" {
 */
 API_EXPORT BOOL uvLuria_Init(LPG_CIEA config, LPG_LDSM shmem, CCodeToStr *error, BOOL init_send)
 {
-#ifndef _DEBUG
-	/* Restart the Luria Service */
-	uvCmn_RestartService(L"Luria");
-#endif
+//#ifndef _DEBUG
+//	/* Restart the Luria Service */
+//	uvCmn_RestartService(L"Luria");
+//#endif
 	/* Luria Shared Memory */
 	g_pstShMemLuria	= shmem;
 	/* All Configuration */

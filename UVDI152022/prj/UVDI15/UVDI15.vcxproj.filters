@@ -519,6 +519,9 @@
     <ClInclude Include="stuffs.h">
       <Filter>02.메인 파일</Filter>
     </ClInclude>
+    <ClInclude Include="webViewinterop.h">
+      <Filter>02.메인 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

@@ -70,7 +70,7 @@ BOOL CMainApp::InitInstance()
 
 	CWinApp::InitInstance();
 	GlobalVariables::GetInstance()->Init();
-
+	GlobalVariables::GetInstance()->StartWebMonitor();
 	// OLE 초기화
 	AfxOleInit();
 	// RichEdit 초기화

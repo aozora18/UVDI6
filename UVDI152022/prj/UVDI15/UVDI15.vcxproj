@@ -245,6 +245,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="DlgMain.h" />
+    <ClInclude Include="webViewinterop.h" />
     <ClInclude Include="WheatyExceptionReport.h" />
     <ClInclude Include="work\Calibration\AccuracyMgr.h" />
     <ClInclude Include="work\Calibration\CamSpecMgr.h" />

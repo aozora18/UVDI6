@@ -4,6 +4,8 @@
 // 그러나 여기에 나열된 파일은 빌드 간 업데이트되는 경우 모두 다시 컴파일됩니다.
 // 여기에 자주 업데이트할 파일을 추가하지 마세요. 그러면 성능이 저하됩니다.
 
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+
 #ifndef PCH_H
 #define PCH_H
 

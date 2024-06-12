@@ -574,15 +574,29 @@ private:
 public:
 	void StartWebMonitor()
 	{
-		if (GetWebMonitor().StartWebServer())
+
+		if (GetWebMonitor().StartWebServer(5000))
 		{
-			if (GetWebMonitor().ConnectClient())
+			if (GetWebMonitor().ConnectClient(5000))
 			{
-				GetWebMonitor().Update(string("new1"), string("b1"), string("c"));
-				GetWebMonitor().Update(string("new2"), string("b2"), string("c"));
+				GetWebMonitor().Update("testcategory1", "temperature1", "25");
+				GetWebMonitor().Update("testcategory1", "temperature2", "30");
+				GetWebMonitor().Update("testcategory2", "degree1", "90");
+				GetWebMonitor().Update("testcategory2", "degree2", "45");
 
+				ThreadManager::getInstance().addThread("webmonitor", [&]() 
+				{
+					int count = 0;
+					const int updateDelay = 1;
+					while (true)
+					{
+						auto log = string("testcount") + string(std::to_string(count++));
 
-				GetWebMonitor().RefreshWebPage();
+						GetWebMonitor().Update((char*)log.c_str());
+						GetWebMonitor().RefreshWebPage();
+						this_thread::sleep_for(chrono::seconds(updateDelay));
+					}
+				});
 			}
 		}
 	}

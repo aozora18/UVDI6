@@ -475,7 +475,6 @@ void CWorkExpoAlign::DoInitStaticCam()
 void CWorkExpoAlign::DoAlignStaticCam()
 {
 	
-
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	int CENTER_CAM = motions.markParams.centerCamIdx;
@@ -486,24 +485,27 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		{
 		case 0x01: 
 		{
-			
-			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
-
-			if (m_enWorkState == ENG_JWNS::en_next)
+	
+			if (!(motions.GetCalifeature(CaliTableType::align).caliCamIdx == CENTER_CAM) ||
+				!(motions.GetCalifeature(CaliTableType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
 			{
-				offsetPool.clear();
-				motions.SetFiducialPool();
-				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+				m_enWorkState = ENG_JWNS::en_error;
+				return;
 			}
+
+			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 
 		}
 		break;	    /* 노광 가능한 상태인지 여부 확인 */
 
 		case 0x02: 
 		{
-			
-			m_enWorkState = ENG_JWNS::en_next;  //IsLoadedGerberCheck(); 불필요.
-		}break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+			map<int, ENG_MMDI> axisMap = { {1,ENG_MMDI::en_align_cam1}, {2,ENG_MMDI::en_align_cam2}, {3,ENG_MMDI::en_axis_none} };
+			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
+			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;  //IsLoadedGerberCheck(); 불필요.
+		}
+		break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+
 		case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 		case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
 		case 0x05:
@@ -520,6 +522,9 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 		case 0x06:
 		{
+			offsetPool.clear();
+			motions.SetFiducialPool();
+			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 			//string temp = "x" + std::to_string(CENTER_CAM);
 			//if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)

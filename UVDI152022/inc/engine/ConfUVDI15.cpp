@@ -236,20 +236,10 @@ BOOL CConfUvdi15::LoadConfigFileName()
 	GetConfigStr(L"FILE_THICK_CALI", m_pstCfg->file_dat.thick_cali, MAX_FILE_LEN);
 	GetConfigStr(L"FILE_CORRECT_Y", m_pstCfg->file_dat.correct_y, MAX_FILE_LEN);
 
+	GetConfigStr(L"FILE_STATIC_ALIGNCALI_CAM" , m_pstCfg->file_dat.staticAcamAlignCali, MAX_FILE_LEN);
+	GetConfigStr(L"FILE_STATIC_EXPOCALI_CAM" , m_pstCfg->file_dat.staticAcamExpoCali, MAX_FILE_LEN);
+	
 
-
-#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
-	const int cfgCamCnt = 3;
-	TCHAR temp[MAX_FILE_LEN] = { 0, };
-	for (int i=0; i < cfgCamCnt; i++)
-	{
-		swprintf_s(temp, MAX_FILE_LEN, L"FILE_STATIC_ALIGNCALI_CAM%d", i+1);
-		GetConfigStr(temp, m_pstCfg->file_dat.staticAcamAlignCali[i], MAX_FILE_LEN);
-
-		swprintf_s(temp, MAX_FILE_LEN, L"FILE_STATIC_EXPOCALI_CAM%d", i + 1);
-		GetConfigStr(temp, m_pstCfg->file_dat.staticAcamExpoCali[i], MAX_FILE_LEN);
-	}
-#endif
 
 	return TRUE;
 }
@@ -420,7 +410,7 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	m_pstCfg->set_align.mark2_org_gerb_xy[1]	= GetConfigDouble(L"MARK2_ORG_GERB_Y");
 	m_pstCfg->set_align.mark2_stage_x			= GetConfigDouble(L"MARK2_STAGE_X");
 
-
+	m_pstCfg->set_align.centerCamIdx = GetConfigUint8(L"CENTER_CAM_INDEX");
 
 	//m_pstCfg->set_align.use_Localmark_offset = GetConfigDouble(L"USE_LOCAL_MARK_OFFSET");
 
@@ -481,6 +471,7 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 
 	//SetConfigUint32(L"ALIGN_METHOD",			m_pstCfg->set_align.align_method);
 	SetConfigUint32(L"USE_2D_CALI_DATA",		m_pstCfg->set_align.use_2d_cali_data);
+	SetConfigUint32(L"CENTER_CAM_INDEX", m_pstCfg->set_align.centerCamIdx);
 	SetConfigDouble(L"DOF_FILM_THICK",			m_pstCfg->set_align.dof_film_thick,	4);
 
 	SetConfigDouble(L"MARK2_ORG_GERB_X",		m_pstCfg->set_align.mark2_org_gerb_xy[0],	4);

@@ -163,34 +163,32 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 
 	auto loadSeq = [&](LPG_CIEA cfg)
 		{		
-			int camCount = cfg->set_cams.acam_count;
-			for (int i = 0; i < camCount; i++) 
+			
+			try
 			{
-				try
+				vector<double> temp;
+				TCHAR* name = cfg->file_dat.staticAcamAlignCali;
+				StackVector(name, caliDataMap[CaliTableType::align], temp);
+				if (caliDataMap[CaliTableType::align].size() != 0)
 				{
-					vector<double> temp;
-					TCHAR* name = cfg->file_dat.staticAcamAlignCali[i];
-					StackVector(name, caliDataMap[i + 1][CaliTableType::align], temp);
-					if (caliDataMap[i + 1][CaliTableType::align].size() != 0)
-					{
-						SortPos(caliDataMap[i + 1][CaliTableType::align]);
-						calidataFeature[i + 1][CaliTableType::align] = CaliFeature(temp);
-					}
-
-					name = cfg->file_dat.staticAcamExpoCali[i];
-					StackVector(name, caliDataMap[i + 1][CaliTableType::expo], temp);
-					if (caliDataMap[i + 1][CaliTableType::expo].size() != 0)
-					{
-						SortPos(caliDataMap[i + 1][CaliTableType::expo]);
-						calidataFeature[i + 1][CaliTableType::align] = CaliFeature(temp);
-					}
+					SortPos(caliDataMap[CaliTableType::align]);
+					calidataFeature[CaliTableType::align] = CaliFeature(temp);
 				}
-				catch (...)
+
+				name = cfg->file_dat.staticAcamExpoCali;
+				StackVector(name, caliDataMap[CaliTableType::expo], temp);
+				if (caliDataMap[CaliTableType::expo].size() != 0)
 				{
-					caliInfoLoadComplete = false;
-					return;
+					SortPos(caliDataMap[CaliTableType::expo]);
+					calidataFeature[CaliTableType::expo] = CaliFeature(temp);
 				}
 			}
+			catch (...)
+			{
+				caliInfoLoadComplete = false;
+				return;
+			}
+			
 			caliInfoLoadComplete = true;
 		};
 
@@ -266,8 +264,8 @@ CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
 	TCHAR tzMsg[256] = { NULL };
 	
 
-	const int STAGE_CALI_INDEX = 3;
-	auto& expoData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::expo];
+	
+	auto& expoData = caliDataMap[CaliTableType::expo];
 	CaliPoint weightedAverageOffset = Estimate(expoData, gbrX, gbrY);
 
 	swprintf_s(tzMsg, 256, L"EstimateExpoOffset : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f", gbrX, gbrY, weightedAverageOffset.offsetX, weightedAverageOffset.offsetY);
@@ -275,18 +273,22 @@ CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
 	return weightedAverageOffset;
 }
 
+CaliCalc::CaliFeature CaliCalc::GetCalifeature(CaliTableType type)
+{
+	return calidataFeature.count(type) == 0 ? CaliCalc::CaliFeature() : calidataFeature[type];
+}
 
 CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
 {
 
 	const int STAGE_CALI_INDEX = 3;
-	auto& stageCaliData = caliDataMap[STAGE_CALI_INDEX][CaliTableType::align];
-	auto& camCaliData = caliDataMap[camIdx][CaliTableType::align];
+	auto& stageCaliData = caliDataMap[CaliTableType::align];
+	auto& camCaliData = caliDataMap[CaliTableType::align];
 
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
-	CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
+	//CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
 
-	CaliPoint finalv = stageOffset + camOffset;
+	CaliPoint finalv = stageOffset;// +camOffset;
 	TCHAR tzMsg[256] = { NULL };
 	swprintf_s(tzMsg, 256, L"EstimateAlignOffset stagePos : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f" , stageX, stageY, finalv.offsetX, finalv.offsetY);
 	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
@@ -307,6 +309,11 @@ void AlignMotion::Destroy()
 CaliPoint AlignMotion::EstimateExpoOffset(double gbrX, double gbrY)
 {
 	return caliCalcInst.EstimateExpoOffset(gbrX, gbrY);
+}
+
+CaliCalc::CaliFeature AlignMotion::GetCalifeature(CaliTableType type)
+{
+	return caliCalcInst.GetCalifeature(type);
 }
 
 CaliPoint AlignMotion::EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX)
@@ -611,7 +618,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			markParams.currGerbermark2x = std::round(temp.mark_x * std::pow(10, 3)) / std::pow(10, 3);
 			markParams.currGerbermark2y = std::round(temp.mark_y * std::pow(10, 3)) / std::pow(10, 3);
 		}
-
+		markParams.centerCamIdx = pstCfg->set_align.centerCamIdx;
 	}
 
 	vector<STG_XMXY> AlignMotion::GetFiducialPool(int camNum)

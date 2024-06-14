@@ -261,14 +261,20 @@ private:
 
 class CaliCalc
 {
-
+public :
 	struct CaliFeature
 	{
 		double expoStartX, expoStartY, dummy;
 		int caliCamIdx;
 		double caliCamXPos;
 		int dataRowCnt, dataColCnt;
-		CaliFeature() {}
+
+		CaliFeature() 
+		{
+			caliCamIdx = -1;
+			expoStartX = 0;expoStartY = 0;dummy = 0;caliCamXPos = 0;dataRowCnt = 0;dataColCnt = 0;
+		}
+
 		CaliFeature(vector<double> featureVec)
 		{
 			auto begin = featureVec.begin();
@@ -278,18 +284,19 @@ class CaliCalc
 			dummy = begin != featureVec.end() ? (double)*begin++ : 0;
 			dataRowCnt = begin != featureVec.end() ? (int)*begin++ : 0;
 			dataColCnt = begin != featureVec.end() ? (int)*begin++ : 0;
-			caliCamIdx = begin != featureVec.end() ? (int)*begin++ : 0;
+			caliCamIdx = begin != featureVec.end() ? (int)*begin++ : -1;
 			caliCamXPos = begin != featureVec.end() ? (double)*begin++ : 0;
 		}
 	};
+
 
 public:
 	bool caliInfoLoadComplete = false;
 	CaliFeature features;
 
 protected:
-	map<int, map<CaliTableType, CaliFeature>> calidataFeature;
-	map<int, map<CaliTableType, vector<CaliPoint>>> caliDataMap;
+	map<CaliTableType, CaliFeature> calidataFeature;
+	map<CaliTableType, vector<CaliPoint>> caliDataMap;
 
 	double LimittoMicro(double val);
 
@@ -302,8 +309,8 @@ public:
 	void LoadCaliData(LPG_CIEA cfg);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX);
 	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
-
-
+	CaliFeature GetCalifeature(CaliTableType type);
+	
 };
 
 
@@ -312,12 +319,7 @@ struct Params
 	double currGerbermark2x = 0, currGerbermark2y = 0;
 	double caliGerbermark2x = 0, caliGerbermark2y = 0;
 	int threshold = 10;
-	//double markZeroOffset[2] = { 0, };
 	double mark2StageX = 0;
-	//		double mark2cam1Y = 0;
-	//		double mark2cam2Y = 0;
-			//double mark2Cam1X = 0;
-			//double mark2Cam2X = 0;
 
 	map<int, tuple<double, double>> mark2CamoffsetXY;
 
@@ -483,6 +485,7 @@ public:
 		etc = 0b00000010,
 	};
 
+	CaliCalc::CaliFeature GetCalifeature(CaliTableType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
 	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
 	void Destroy();

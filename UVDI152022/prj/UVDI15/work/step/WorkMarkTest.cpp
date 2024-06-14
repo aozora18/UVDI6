@@ -167,23 +167,34 @@ void CWorkMarkTest::DoAlignStaticCam()
 		{
 			case 0x01: 
 			{
+
+				if (!(motions.GetCalifeature(CaliTableType::align).caliCamIdx == CENTER_CAM) ||
+					!(motions.GetCalifeature(CaliTableType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
+				{
+					m_enWorkState = ENG_JWNS::en_error;
+					return;
+				}
+				
 				m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 
-				if (m_enWorkState == ENG_JWNS::en_next)
-				{
-					offsetPool.clear();
-					motions.SetFiducialPool();
-					grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
-				}
+				
 			}
 			break;	    /* 노광 가능한 상태인지 여부 확인 */
 			case 0x02: 
 			{
-				m_enWorkState = ENG_JWNS::en_next; 
-//				m_enWorkState = IsLoadedGerberCheck(); //<- 불필요
+				map<int, ENG_MMDI> axisMap = { {1,ENG_MMDI::en_align_cam1}, {2,ENG_MMDI::en_align_cam2}, {3,ENG_MMDI::en_axis_none} };
+				auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
+				m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;  //IsLoadedGerberCheck(); 불필요.
 			}
 			break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
-			case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
+			case 0x03: 
+			{
+				
+				m_enWorkState = SetTrigEnable(FALSE);
+				
+				
+			}
+			break;	/* Trigger Event - 비활성화 설정 */
 			case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */	
 			case 0x05:
 			{
@@ -198,20 +209,10 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 			case 0x06:
 			{
+				offsetPool.clear();
+				motions.SetFiducialPool();
+				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
-				//string temp = "x" + std::to_string(CENTER_CAM);
-				//if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
-				//	for (int i = 0; i < grabMarkPath.size(); i++)
-				//	{
-				//		auto alignOffset = motions.EstimateOffset(CENTER_CAM, 
-				//													grabMarkPath[i].mark_x, 
-				//													grabMarkPath[i].mark_y,
-				//													CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-				//		uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-				//	}
-
-				////여기서 등록하자. 
-
 			}
 			break;
 

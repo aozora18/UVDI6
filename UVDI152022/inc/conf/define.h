@@ -87,11 +87,11 @@
 /* --------------------------------------------------------------------------------------------- */
 
 /* 프로젝트 제품별 코드 값 */
-#define	CUSTOM_CODE_PODIS_LLS10					0x1110	/* PH Z Axis Motor : Stepper */
-#define	CUSTOM_CODE_PODIS_LLS06					0x1106	/* PH Z Axis Motor : Linear Motor */
-#define	CUSTOM_CODE_GEN2I						0x2000
-#define	CUSTOM_CODE_HANWHA_QCELL				0x3000
-#define	CUSTOM_CODE_UTRONIX						0x4000
+//#define	CUSTOM_CODE_PODIS_LLS10					0x1110	/* PH Z Axis Motor : Stepper */
+//#define	CUSTOM_CODE_PODIS_LLS06					0x1106	/* PH Z Axis Motor : Linear Motor */
+//#define	CUSTOM_CODE_GEN2I						0x2000
+//#define	CUSTOM_CODE_HANWHA_QCELL				0x3000
+//#define	CUSTOM_CODE_UTRONIX						0x4000
 #define CUSTOM_CODE_UVDI15						0x5000 /*Absoilst  UVDI 15um*/
 #define CUSTOM_CODE_HDDI6						0x6000 /*Absoilst  HDDI 6um*/
 

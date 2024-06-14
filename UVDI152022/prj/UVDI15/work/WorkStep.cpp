@@ -871,6 +871,58 @@ ENG_JWNS CWorkStep::IsTrigRegistLocal(UINT8 scan)
 	return ENG_JWNS::en_next;
 }
 
+bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
+{	
+	bool doneToggleCam[2];
+
+	LPG_CIEA pstCfg = uvEng_GetConfig();
+
+	auto Move = [&](ENG_MMDI camAxis,double pos, bool waiting) -> bool
+		{
+			uvCmn_MC2_GetDrvDoneToggled(camAxis);
+			auto res = (camAxis == ENG_MMDI::en_align_cam1 || camAxis == ENG_MMDI::en_align_cam2) &&
+				!CInterLockManager::GetInstance()->CheckMoveInterlock(camAxis, pos) &&
+				uvEng_MC2_SendDevAbsMove(camAxis, pos, uvEng_GetConfig()->mc2_svc.step_velo);
+
+			if (waiting == false) return res;
+
+			res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					return uvCmn_MC2_IsDrvDoneToggled(camAxis);
+				},30*1000);
+		
+			return res;
+		};
+
+	
+	// 동작은 동시에
+	auto res1 = false, res2 = false;
+	
+	res1 = Move(ENG_MMDI::en_align_cam1, pstCfg->set_cams.safety_pos[0], false);
+		
+
+	res2 = Move(ENG_MMDI::en_align_cam2, pstCfg->set_cams.safety_pos[1], false);
+		
+	
+	if(res1)
+	res1 = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam1);
+		}, 30 * 1000);
+
+	if(res2)
+	res2 = GlobalVariables::GetInstance()->Waiter([&]()->bool
+	{
+		return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam2);
+	}, 30 * 1000);
+
+	if (res1 == res2 && res1 == true && callbackAxis != ENG_MMDI::en_axis_none)
+	{
+		return Move(callbackAxis, pos, true);
+	}
+	else res1 == res2 && res1 == true;
+}
+
 /*
  desc : 얼라인 마크 측정을 위해 스테이지를 Unloader 및
 		Align Camera 1 / 2를 각각 Mark 1 / 3 번의 위치로 이동
@@ -882,7 +934,7 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 	UINT8 u8BaseXY		= 0x00, u8Mark = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
 	UINT16 u16MarkType	= 0x0000;
 	DOUBLE /*dbACamDistX, dbACamDistY, dbDiffMark, */dbACamVeloX, dbStageVeloY;
-	DOUBLE dbStagePosX, dbStagePosY, dbACam1PosX;
+	DOUBLE dbStagePosX, dbStagePosY;
 	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
 
 	SetStepName(L"Set.Align.Moving.Init (Global)");
@@ -904,10 +956,9 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 	m_dbPosACam[0]	= GetACamMark2MotionX(2);	/* 얼라인 Mark 2 (Left/Bottom)번에 해당되는 카메라 1번의 X 축 실제 모션 위치 */
 	m_dbPosACam[1]	= GetACamMark2MotionX(4);	/* Camera 1대비 Camera2 값을 벌리려는 간격 */
 
-	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
-	dbStageVeloY	= uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
-	dbACamVeloX		= uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_align_cam1];
 
+	dbStageVeloY = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
+	
 	/* 모든 Motor Drive의 토글 값 저장 */
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
@@ -928,31 +979,10 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 	if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
 									   dbStagePosX, dbStagePosY, dbStageVeloY, m_enVectMoveDrv))
 		return ENG_JWNS::en_error;
-	/* 현재 카메라 1 번의 절대 위치 기준 대비, 이동하고자 하는 절대 위치 값이 큰 값인지 혹은 */
-	/* 작은 값인지 여부에 따라, Align Camera 1 혹은 2 번 중 어느 것을 먼저 이동해야 할지 결정*/
-	dbACam1PosX	= uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1);
-	if (m_dbPosACam[0] > dbACam1PosX)
-	{
-		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2, m_dbPosACam[1], dbACamVeloX))
-			return ENG_JWNS::en_error;
-		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, m_dbPosACam[0], dbACamVeloX))
-			return ENG_JWNS::en_error;
-	}
-	else
-	{
-		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, m_dbPosACam[0], dbACamVeloX))
-			return ENG_JWNS::en_error;
-		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2, m_dbPosACam[1], dbACamVeloX))
-			return ENG_JWNS::en_error;
-	}
 
-	TCHAR tzMsg[256] = { NULL };
-	swprintf_s(tzMsg, 256, L"SetAlignMovingInit : StageX = %.4f StageY = %.4f Cam1X = %.4f Cam2X = %.4f", dbStagePosX, dbStagePosY, m_dbPosACam[0], m_dbPosACam[1]);
-	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+	auto res = MoveCamToSafetypos();
 
-
-
-	return ENG_JWNS::en_next;
+	return res == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 }
 
 /*
@@ -961,7 +991,7 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
  retn : wait, error, complete or next
 */
 
-ENG_JWNS CWorkStep::IsAlignMovedInit()
+ENG_JWNS CWorkStep::IsAlignMovedInit(function<bool()> callback)
 {
 	if (!IsWorkRepeat())	SetStepName(L"Is.Align.Moved.Init");
 
@@ -984,6 +1014,10 @@ ENG_JWNS CWorkStep::IsAlignMovedInit()
 		uvEng_GetConfig()->measure_flat.MeasurePoolClear();
 	}
 
+	if (callback != nullptr)
+	{
+		return callback() ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+	}
 	return ENG_JWNS::en_next;
 }
 

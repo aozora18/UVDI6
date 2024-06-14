@@ -76,7 +76,7 @@ protected:
 	ENG_JWNS			IsTrigRegistLocal(UINT8 scan);
 
 	ENG_JWNS			SetAlignMovingInit();
-	ENG_JWNS			IsAlignMovedInit();
+	ENG_JWNS			IsAlignMovedInit(function<bool()> callback = nullptr);
 	ENG_JWNS			SetAlignMovingGlobal();
 	ENG_JWNS			IsAlignMovedGlobal();
 	ENG_JWNS			SetAlignMovingLocal(UINT8 mode, UINT8 scan);
@@ -176,7 +176,8 @@ protected:
 	ENG_JWNS			SetTrigOutOneACam(UINT8 cam_id);
 	ENG_JWNS			GetJobLists(UINT32 time);
 
-	bool				SetAutoFocusFeatures();
+	bool SetAutoFocusFeatures();
+	bool MoveCamToSafetypos(ENG_MMDI callbackAxis = ENG_MMDI::en_axis_none, double pos = 0);
 
 	ENG_JWNS			CheckValidRecipe();
 	ENG_JWNS			IsSetTrigPosResetAll();

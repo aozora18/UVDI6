@@ -3736,7 +3736,7 @@ VOID CDlgMark::setStrobeValue()
 		std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::GetInstance()->GetCount("strobeRecved")) + L"\t";
 		MessageBoxEx(nullptr, info.c_str(), _T("failed"), MB_OK, LANG_ENGLISH);
 	}
-	);
+	,10000);
 
 	#endif
 

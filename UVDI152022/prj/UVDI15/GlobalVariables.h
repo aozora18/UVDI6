@@ -262,11 +262,33 @@ private:
 class CaliCalc
 {
 
+	struct CaliFeature
+	{
+		double expoStartX, expoStartY, dummy;
+		int caliCamIdx;
+		double caliCamXPos;
+		int dataRowCnt, dataColCnt;
+		CaliFeature() {}
+		CaliFeature(vector<double> featureVec)
+		{
+			auto begin = featureVec.begin();
+
+			expoStartX = begin != featureVec.end() ? (double)*begin++ : 0;
+			expoStartY = begin != featureVec.end() ? (double)*begin++ : 0;
+			dummy = begin != featureVec.end() ? (double)*begin++ : 0;
+			dataRowCnt = begin != featureVec.end() ? (int)*begin++ : 0;
+			dataColCnt = begin != featureVec.end() ? (int)*begin++ : 0;
+			caliCamIdx = begin != featureVec.end() ? (int)*begin++ : 0;
+			caliCamXPos = begin != featureVec.end() ? (double)*begin++ : 0;
+		}
+	};
+
 public:
 	bool caliInfoLoadComplete = false;
+	CaliFeature features;
 
 protected:
-	map<int, map<CaliTableType, vector<double>>> calidataFeature;
+	map<int, map<CaliTableType, CaliFeature>> calidataFeature;
 	map<int, map<CaliTableType, vector<CaliPoint>>> caliDataMap;
 
 	double LimittoMicro(double val);
@@ -311,8 +333,9 @@ struct Params
 class Environment //환경요소.
 {
 public :
-	void DoCalib();
-	void Update();
+	bool DoCalib();
+	void UpdateStateValue();
+	void WriteCalibResult();
 
 	tuple<double, double> GetCalibOffset()
 	{
@@ -328,11 +351,14 @@ public :
 private:
 	long reCalibTerm;
 	long lastCalibTime;
-	double lastDegree;
-
+	double lastTemperature;
+	
 	bool needCalib;
-	POINT calibPos;
-	tuple<double, double> calibOffset;
+
+	int calibCamIdx;
+	double calibCamX;
+	tuple<double, double> calibStagePos;
+	tuple<double, double> calibOffset; //<-가장 최근에 실행한결과값.
 
 };
 
@@ -657,10 +683,15 @@ public:
 				}
 
 				if (condition)
-					if (callback != nullptr)callback();
-					else
-						if (timeoutCallback != nullptr)
-							timeoutCallback();
+				{
+					if (callback != nullptr)
+						callback();
+				}
+				else
+				{
+					if (timeoutCallback != nullptr)
+						timeoutCallback();
+				}
 
 				waiter.erase(key);
 

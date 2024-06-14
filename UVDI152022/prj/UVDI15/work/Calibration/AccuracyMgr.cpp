@@ -349,15 +349,37 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 	
 	/* È¯°æ ÆÄÀÏ */
 
+
+	int staticCamIdx = -1;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	staticCamIdx = 3;
+#endif
+
+
+
 	auto MakeBody = [&](bool sorting, bool isExpoAreaMeasure, VCT_ACCR_TABLE vec) -> CString
 		{
+
+			auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+			motion.Refresh();
+
 			CString body = _T("");
 
 			VCT_ACCR_TABLE tempVec = vec;
-			if(sorting)
+			if (sorting)
 				SortField(tempVec);
 
-			body.Format(_T("%f\n%f\n0.0000\n%d\n%d\n"), pstCfg->luria_svc.table_expo_start_xy[0][0], pstCfg->luria_svc.table_expo_start_xy[0][1], stFieldData.u32Row, stFieldData.u32Col);
+			//Ä·ÀÎµ¦½º ±×¸®°í Ä·ÀÎµ¦½º°¡ 1,2¶ó¸é Ä·xÁÂÇ¥
+			body.Format(_T("%f\n%f\n%f\n%d\n%d\n%d\n%f\n"),
+				pstCfg->luria_svc.table_expo_start_xy[0][0],
+				pstCfg->luria_svc.table_expo_start_xy[0][1],
+				0.0000,
+				stFieldData.u32Row, 
+				stFieldData.u32Col,
+				m_u8ACamID,
+				[&]()->double { return m_u8ACamID == staticCamIdx ? 0 : motion.GetAxises()["cam"][("x" + std::to_string(m_u8ACamID)).c_str()].currPos; }());
 
 			for (int i = 0; i < (int)tempVec.size(); i++)
 			{
@@ -598,6 +620,9 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			double posX = 0;
 			double posY = 0;
 			vector<std::tuple<double, double>> offsetVector;
+
+			//GlobalVariables::GetEnvironment();
+
 
 			for (int i = 0; i < maxCycle; i++)
 			{

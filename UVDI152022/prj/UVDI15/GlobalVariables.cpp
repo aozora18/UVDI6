@@ -129,7 +129,7 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 	auto StackVector = [&](TCHAR* name, vector<CaliPoint>& dataList , vector<double>& featureStored)
 		{
 			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
-			const int DATACOUNT = 4;
+			const int DATACOUNT = 4; //x,y, offsetx,offsety
 			const std::regex re(R"([\s|,]+)");
 			
 			dataList.clear();
@@ -168,15 +168,22 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 			{
 				try
 				{
+					vector<double> temp;
 					TCHAR* name = cfg->file_dat.staticAcamAlignCali[i];
-					StackVector(name, caliDataMap[i + 1][CaliTableType::align], calidataFeature[i + 1][CaliTableType::align]);
+					StackVector(name, caliDataMap[i + 1][CaliTableType::align], temp);
 					if (caliDataMap[i + 1][CaliTableType::align].size() != 0)
-						SortPos(caliDataMap[i+1][CaliTableType::align]);
+					{
+						SortPos(caliDataMap[i + 1][CaliTableType::align]);
+						calidataFeature[i + 1][CaliTableType::align] = CaliFeature(temp);
+					}
 
 					name = cfg->file_dat.staticAcamExpoCali[i];
-					StackVector(name, caliDataMap[i + 1][CaliTableType::expo], calidataFeature[i + 1][CaliTableType::align]);
+					StackVector(name, caliDataMap[i + 1][CaliTableType::expo], temp);
 					if (caliDataMap[i + 1][CaliTableType::expo].size() != 0)
-						SortPos(caliDataMap[i+1][CaliTableType::expo]);
+					{
+						SortPos(caliDataMap[i + 1][CaliTableType::expo]);
+						calidataFeature[i + 1][CaliTableType::align] = CaliFeature(temp);
+					}
 				}
 				catch (...)
 				{
@@ -792,4 +799,44 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				}
 				gv->GetWebMonitor().StopWebServer();
 			});		
+	}
+
+
+	void Environment::WriteCalibResult()
+	{
+
+	}
+
+	bool Environment::DoCalib()
+	{
+		/*
+		드라이버에 에러가있는지
+		현재 모션이 사용중인지
+		혹시 메인스레드에 뭔가 작업중인지?
+		
+		
+
+		카메라는 일단 충돌방지를 위해 각자 safety위치로.
+
+		스테이지 이동
+
+		카메라z축 이동
+
+		스테이블 3초
+
+		그랩
+
+		옵셋갖고 
+		
+		save하고 
+		return 결과.
+		
+		*/
+		return true;
+	}
+
+
+	void Environment::UpdateStateValue()
+	{
+		//info에서 일단 가져옴.
 	}

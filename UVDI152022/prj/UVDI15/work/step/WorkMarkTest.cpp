@@ -81,7 +81,7 @@ void CWorkMarkTest::DoInitStatic2cam()
 
 void CWorkMarkTest::DoInitStaticCam()
 {
-	m_u8StepTotal = 0x10;
+	m_u8StepTotal = 0;
 }
 
 void CWorkMarkTest::DoInitOnthefly3cam()
@@ -155,70 +155,54 @@ void CWorkMarkTest::DoAlignStatic2cam()
 //스테틱 3캠
 void CWorkMarkTest::DoAlignStaticCam()
 {
-	
-
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	int CENTER_CAM = motions.markParams.centerCamIdx;
 
-	try
+	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
+	static vector<function<void()>> stepWork =
 	{
-		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
+		[&]() 
 		{
-			case 0x01: 
-			{
-
-				if (!(motions.GetCalifeature(CaliTableType::align).caliCamIdx == CENTER_CAM) ||
-					!(motions.GetCalifeature(CaliTableType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
+			if (!(motions.GetCalifeature(CaliTableType::align).caliCamIdx == CENTER_CAM) ||
+				!(motions.GetCalifeature(CaliTableType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
 				{
 					m_enWorkState = ENG_JWNS::en_error;
 					return;
 				}
-				
-				m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 
-				
-			}
-			break;	    /* 노광 가능한 상태인지 여부 확인 */
-			case 0x02: 
-			{
-				map<int, ENG_MMDI> axisMap = { {1,ENG_MMDI::en_align_cam1}, {2,ENG_MMDI::en_align_cam2}, {3,ENG_MMDI::en_axis_none} };
+				m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+		},  // 0x01: 
+		[&]()
+		{
+			map<int, ENG_MMDI> axisMap = { {1,ENG_MMDI::en_align_cam1}, {2,ENG_MMDI::en_align_cam2}, {3,ENG_MMDI::en_axis_none} };
 				auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
 				m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;  //IsLoadedGerberCheck(); 불필요.
-			}
-			break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
-			case 0x03: 
-			{
-				
-				m_enWorkState = SetTrigEnable(FALSE);
-				
-				
-			}
-			break;	/* Trigger Event - 비활성화 설정 */
-			case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */	
-			case 0x05:
-			{
-				uvEng_ACamCali_ResetAllCaliData();
-				uvEng_Camera_ResetGrabbedImage();
-				m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
-
-				
-
-			}
-			break;	//3캠 이동위치 경로설정
-
-			case 0x06:
-			{
-				offsetPool.clear();
-				motions.SetFiducialPool();
-				grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
-				m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
-			}
-			break;
-
-			case 0x07:
-			{
-				auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne(CENTER_CAM); };
+		},
+		[&]()
+		{
+			m_enWorkState = SetTrigEnable(FALSE);
+		},
+		[&]()
+		{
+			m_enWorkState = IsTrigEnabled(FALSE);
+		},
+		[&]()
+		{
+			uvEng_ACamCali_ResetAllCaliData();
+			uvEng_Camera_ResetGrabbedImage();
+			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
+		},
+		[&]()
+		{
+			offsetPool.clear();
+			motions.SetFiducialPool();
+			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
+			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
+		},
+		[&]()
+		{
+			auto SingleGrab = [&](int camIndex) -> bool {return uvEng_Mvenc_ReqTrigOutOne(CENTER_CAM); };
 
 				bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
@@ -228,7 +212,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 					}
 					else
 					{
-						if (grabMarkPath.size() == 0) 
+						if (grabMarkPath.size() == 0)
 							return true;
 
 						auto first = grabMarkPath.begin();
@@ -242,7 +226,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 							motions.Refresh();
 							//여기서 현재 위치기반 보정정보 갖고오기.
 							auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
-												             		              motions.GetAxises()["stage"]["y"].currPos,
+																				  motions.GetAxises()["stage"]["y"].currPos,
 																				  CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 
 							auto markPos = first->GetMarkPos();
@@ -250,20 +234,17 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 							alignOffset.srcFid = *first;
 							offsetPool[CaliTableType::align].push_back(alignOffset);
-							
+
 							auto diff = expoOffset;
 							diff.srcFid = *first;
 							offsetPool[CaliTableType::expo].push_back(diff);
-							
+
 							TCHAR tzMsg[256] = { NULL };
 							if (SingleGrab(CENTER_CAM))
 							{
 								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 								{
-
 									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-
-
 									swprintf_s(tzMsg, 256, L"%s", first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
 									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 									swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", first->org_id, alignOffset.offsetX, alignOffset.offsetY);
@@ -278,55 +259,52 @@ void CWorkMarkTest::DoAlignStaticCam()
 					return false;
 				}, 60 * 1000 * 2);
 				m_enWorkState = complete == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
-			}
-			break;
+		},
+		[&]()
+		{
+			SetUIRefresh(true);
+			m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
+		},
+		[&]()
+		{
+			m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
+		},
+		[&]()
+		{
+			motions.SetAlignOffsetPool(offsetPool);
+			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
+		},
+		[&]()
+		{
+			m_enWorkState = SetAlignMarkRegistforStatic();
+		},
+		[&]()
+		{
+			m_enWorkState = IsAlignMarkRegist();
+		},
+		[&]()
+		{
+			m_enWorkState = SetWorkWaitTime(1000);
+		},
+		[&]()
+		{
+			m_enWorkState = IsWorkWaitTime();
+		},
+		[&]()
+		{
+			m_enWorkState = SetMovingUnloader();
+		},
+		[&]()
+		{
+			m_enWorkState = IsMovedUnloader();
+		},
+	};
 
-			case 0x08:
-			{
-				SetUIRefresh(true);
-				m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
-			}
-			break;
+	m_u8StepTotal = stepWork.size();
 
-
-			case 0x09:
-			{
-				//m_enWorkState = ENG_JWNS::en_next;
-				m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
-			}
-			break;
-
-
-			case 0x0a:
-			{
-				motions.SetAlignOffsetPool(offsetPool);
-				m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
-			}
-			break;
-
-			case 0x0b:
-			{
-				m_enWorkState =  SetAlignMarkRegistforStatic();
-			}
-			break;
-
-			case 0x0c:
-			{
-				m_enWorkState = IsAlignMarkRegist();
-			}
-			break;
-
-
-			case 0x0d:m_enWorkState = SetWorkWaitTime(1000);					break;
-			case 0x0e:m_enWorkState = IsWorkWaitTime();							break;
-			case 0x0f: 
-			{
-//				SetPrePrinting();
-	//			IsPrePrinted();
-				m_enWorkState = SetMovingUnloader();
-			}break;
-			case 0x10: m_enWorkState = IsMovedUnloader();						break;
-		}
+	try
+	{
+		stepWork[m_u8StepIt]();
 	}
 	catch (const std::exception&)
 	{

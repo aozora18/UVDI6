@@ -154,7 +154,7 @@ typedef struct __st_config_setup_align_info__
 
 	DOUBLE				distCam2Cam[3];
 	//DOUBLE markZeroOffset[2];
-	
+	int centerCamIdx;//센터캠으로 사용할 캠 인덱스 (1,2,3)
 	//DOUBLE				mark_offset_x[4];						/* 각 Global Mark의 offset 설정값(단위: mm) */
 	//DOUBLE				mark_offset_y[4];
 
@@ -619,8 +619,8 @@ typedef struct __st_config_file_data_name__
 	TCHAR				trig_cali[MAX_FILE_LEN];
 	TCHAR				thick_cali[MAX_FILE_LEN];
 	TCHAR				correct_y[MAX_FILE_LEN];
-	TCHAR				staticAcamAlignCali[3][MAX_FILE_LEN];
-	TCHAR				staticAcamExpoCali[3][MAX_FILE_LEN];
+	TCHAR				staticAcamAlignCali[MAX_FILE_LEN];
+	TCHAR				staticAcamExpoCali[MAX_FILE_LEN];
 }	STG_CFDN,	*LPG_CFDN;
 
 /* Setup the Align Camera Device for Basler */

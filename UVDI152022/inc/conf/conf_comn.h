@@ -234,24 +234,8 @@ typedef enum class __en_mc2_motion_drive_id__ : UINT8
 	en_stage_y						= 0x01,
 	//en_stage_y						= 0x02,
 
-#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_PODIS_LLS10)
-	en_align_cam1					= 0x04,
-	en_align_cam2					= 0x05,
-	en_axis_ph1						= 0x06,
-	en_axis_ph2						= 0x07,
 
-	en_axis_acam1					= 0x21,
-	en_axis_acam2					= 0x22,
-#elif (DELIVERY_PRODUCT_ID == CUSTOM_CODE_PODIS_LLS06)
-	en_axis_ph1						= 0x02,
-	en_axis_ph2						= 0x03,
-	en_align_cam1					= 0x04,
-	en_align_cam2					= 0x05,
-
-	en_axis_acam1					= 0x21,
-	en_axis_acam2					= 0x22,
-
-#elif (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 	en_align_cam1					= 0x04,
 	en_align_cam2					= 0x05,
 
@@ -274,16 +258,8 @@ typedef enum class __en_mc2_motion_drive_id__ : UINT8
 
 	en_axis_acam1					= 0x12,
 	en_axis_acam2					= 0x13,
-
-#elif (DELIVERY_PRODUCT_ID == CUSTOM_CODE_GEN2I)
-	en_axis_ph1						= 0x04,
-	en_axis_ph2						= 0x05,
-	en_axis_tsa_z					= 0x06,
-
-	en_axis_bsa_z					= 0x21,
-	en_axis_pin_z					= 0x22,
-	en_axis_pin_x					= 0x24,
 #endif
+
 	en_axis_none					= 0xf0,
 	en_all							= 0xff,
 

@@ -42,6 +42,13 @@ private:
 
 class CCamMain : public CImageEventHandler, public CConfigurationEventHandler
 {
+
+public:
+	enum TriggerMode
+	{
+		IOLine,
+		Software,
+	};
 /* 생성자 & 파괴자 */
 public:
 
@@ -50,14 +57,14 @@ public:
 
 public:
 
-/* 구조체 & 열거형 */
-	typedef enum class __en_camera_trigger_run_mode__
-	{
-		en_soft_trig	= 0x00,
-		en_hw_trig		= 0x01,
-		en_continue		= 0x02,
-
-	}	ENM_CTRM;
+///* 구조체 & 열거형 */
+//	typedef enum class __en_camera_trigger_run_mode__
+//	{
+//		en_soft_trig	= 0x00,
+//		en_hw_trig		= 0x01,
+//		en_continue		= 0x02,
+//
+//	}	ENM_CTRM; //안씀.
 
 /* 가상함수 재정의 */
 public:
@@ -113,7 +120,7 @@ protected:
 
 /* 공용 함수 */
 public:
-
+	ENG_TRGM 			triggerMode;
 	BOOL				AttachDevice();
 	VOID				DetachDevice();
 	BOOL				IsConnected();
@@ -123,6 +130,9 @@ public:
 	VOID				ResetGrabbedImage();
 
 	BOOL				SetParamUpdate();
+	ENG_TRGM GetTriggerMode();
+	void GetSwTrigGrabImage();
+	bool				ChangeTriggerMode( ENG_TRGM mode);
 	VOID				SetCamMode(ENG_VCCM mode);
 	ENG_VCCM			GetCamMode()			{	return m_enCamMode;	}
 

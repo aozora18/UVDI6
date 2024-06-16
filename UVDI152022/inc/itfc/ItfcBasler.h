@@ -203,7 +203,10 @@ API_IMPORT BOOL uvBasler_IsValidGrabMarkNum(UINT8 cam_id, UINT8 img_id);
  parm : None
  retn : None
 */
+API_IMPORT VOID uvBasler_ChangeTriggerMode(int camIdx,ENG_TRGM mode);
 API_IMPORT VOID uvBasler_ResetGrabbedImage();
+API_IMPORT ENG_TRGM uvBasler_GetTriggerMode(int camIdx);
+API_IMPORT VOID uvBasler_Camera_SWGrab(int camIdx);
 /*
  desc : Global Mark 대상으로, 2 개의 검색된 마크 정보 반환
  parm : direct	- [in]  측정지점 (0 - 1번 마크와 3번 마크 간의 길이 값)

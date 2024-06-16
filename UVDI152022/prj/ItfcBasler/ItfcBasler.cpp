@@ -597,6 +597,28 @@ API_EXPORT VOID uvBasler_ResetGrabbedImage()
 	ResetGrabbedImage();
 }
 
+API_EXPORT VOID uvBasler_Camera_SWGrab(int camIdx)
+{
+	if (!g_pCamThread) return;
+
+		g_pCamThread->GetSwTrigGrabImage(camIdx);
+}
+
+
+
+API_EXPORT ENG_TRGM uvBasler_GetTriggerMode(int camIdx)
+{
+	if (!g_pCamThread)	return ENG_TRGM::en_line_none;
+		return g_pCamThread->GetTriggerMode(camIdx);
+}
+
+API_EXPORT VOID uvBasler_ChangeTriggerMode(int camIdx, ENG_TRGM mode)
+{
+	if (!g_pCamThread)	return;
+		g_pCamThread->ChangeTriggerMode(camIdx,mode);
+}
+
+
 /*
  desc : Calibration Image가 존재하면, Align Mark 수행
  변수 :	cam_id	- [in]  Camera Index (1 or 2)

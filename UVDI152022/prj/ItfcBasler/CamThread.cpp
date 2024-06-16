@@ -547,6 +547,26 @@ CAtlList <LPG_ACGR>* CCamThread::GetGrabbedMarkAll()
 	return GetGrabImage();
 }
 
+void CCamThread::GetSwTrigGrabImage(int camIdx)
+{
+	return m_pCamMain[camIdx - 1]->GetSwTrigGrabImage();
+}
+
+ENG_TRGM CCamThread::GetTriggerMode(int camIdx)
+{
+	return m_pCamMain[camIdx - 1]->GetTriggerMode();
+		
+}
+
+void CCamThread::ChangeTriggerMode(int camIdx, ENG_TRGM mode)
+{
+	if(m_pCamMain[camIdx-1]->triggerMode != mode)
+		m_pCamMain[camIdx - 1]->ChangeTriggerMode(mode);
+
+	
+
+}
+
 /*
  desc : Grabbed Image가 존재하면, Align Mark 수행
  parm :	cam_id	- [in]  Camera Index (1 or 2)

@@ -2048,10 +2048,22 @@ VOID CDlgMark::SetMatchModel()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-	if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
+
+		uvEng_Camera_TriggerMode((int)u8ACamID,ENG_TRGM::en_Sw_mode);
+
+		auto triggerMode = uvEng_Camera_GetTriggerMode(u8ACamID);
+
+		if (triggerMode == ENG_TRGM::en_Sw_mode)
 		{
-			dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
-			return;
+			uvEng_Camera_SWGrab(u8ACamID);
+		}
+		else
+		{
+			if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
+			{
+				dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
+				return;
+			}
 		}
 	}
 	//uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);

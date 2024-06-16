@@ -90,6 +90,9 @@ public:
 
 	VOID				SetMatchParam(UINT8 rotate, DOUBLE match);
 	CAtlList <LPG_ACGR>* GetGrabbedMarkAll();
+	void ChangeTriggerMode(int camIdx, ENG_TRGM mode);
+	ENG_TRGM GetTriggerMode(int camIdx);
+	void GetSwTrigGrabImage(int camIdx);
 	LPG_ACGR			RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc, int flipDir=-1); // default mode = 0xff
 	BOOL				RunModelStep(UINT8 cam_id, UINT16 count, BOOL angle, LPG_ACGR results, UINT8 dlg_id, UINT8 mark_no, UINT8 img_proc);
 	BOOL				RunModelExam(DOUBLE score, DOUBLE scale, LPG_ACGR results);

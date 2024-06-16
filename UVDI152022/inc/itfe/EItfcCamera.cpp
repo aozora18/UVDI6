@@ -199,6 +199,25 @@ API_EXPORT VOID uvEng_Camera_ResetGrabbedImage()
 	uvBasler_ResetGrabbedImage();
 }
 
+
+API_EXPORT VOID  uvEng_Camera_SWGrab(int camIdx)
+{
+	return uvBasler_Camera_SWGrab(camIdx);
+}
+
+
+API_EXPORT ENG_TRGM uvEng_Camera_GetTriggerMode(int camIdx)
+{
+	return uvBasler_GetTriggerMode(camIdx);
+}
+
+API_EXPORT VOID uvEng_Camera_TriggerMode(int camIdx, ENG_TRGM mode)
+{
+	uvBasler_ChangeTriggerMode(camIdx,mode);
+}
+
+
+
 /*
  desc : Vision Camera Mode 설정
  parm : mode	- [in]  ENG_VCCM::en_xxx

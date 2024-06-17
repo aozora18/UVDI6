@@ -223,56 +223,6 @@ VOID CCamThread::ProcGrabbedImage(UINT8 cam_id, UINT8 dlg_id, UINT8 img_proc)
 					LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
 				}
 			}
-			
-
-			//switch (alignMotion)
-			//{	
-			//	case ENG_AMOS::en_onthefly_2cam:
-			//	{
-			//	
-			//		
-			//	}
-			//	break;
-
-			//	case ENG_AMOS::en_static_3cam:
-			//	{
-			//		
-			//		//globalGrab = alignMotionPtr->status.globalMarkCnt > pstGrab->img_id ? true : false;
-			//		bFinded = uvMIL_RunModelFind(pstGrab->cam_id, pstGrab->img_id, pstGrab->img_id, pstGrab->grab_data, dlg_id, globalGrab == true ? GLOBAL_MARK : LOCAL_MARK, FALSE, img_proc); // global mark
-			//	}
-			//	break;
-
-			//	default:
-			//	{
-			//		throw ACCESS_EXCEPTION("not implement.");
-			//	}
-			//	break;
-			//}
-
-			/* Get the search result value of mark regardless of success or failure of the search */
-			/*pstGrab	= uvMIL_GetLastGrabbedMark();
-
-			if (!pstGrab)	LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
-			else
-			{
-				pstGrab->grabTime = timeGetTime();
-				pstGrab->fiducialMarkIndex = -1818;
-				pstGrab->reserve = 0;
-				pstGrab->marked = UINT8(bFinded);
-
-
-				if ((UINT8)m_lstGrab.GetCount() < m_u8MaxGrab)
-				{
-					pstGrab->reserve = globalGrab ? STG_XMXY_RESERVE_FLAG::GLOBAL : STG_XMXY_RESERVE_FLAG::LOCAL;
-					pstGrab->fiducialMarkIndex = alignMotionPtr == NULL ? -1818 : alignMotionPtr->GetFiducialIndex(cam_id, &m_lstGrab);
-					m_lstGrab.AddTail(pstGrab);
-					int debugh = 0;
-				}
-				else
-				{
-					LOG_ERROR(ENG_EDIC::en_basler, L"The number of images captured has been exceeded");
-				}
-			}*/
 		}
 		/* 동기화 해제 */
 		m_syncGrab.Leave();
@@ -299,6 +249,36 @@ BOOL CCamThread::SetGrabbedMark(LPG_ACGR grab, LPG_GMFR gmfr, LPG_GMSR gmsr)
 	SetGrabbedMark(&stGrab);
 
 	return TRUE;
+}
+
+//마지막 그랩 빼기.
+bool CCamThread::RemoveLastGrab(int camIdx)
+{
+	
+	bool res = false;
+
+	/* 동기화 진입 */
+	if (m_syncGrab.Enter())
+	{
+		POSITION lastIdx = nullptr;
+		for (int i = 0; i < m_lstGrab.GetCount(); i++)
+		{
+			auto pos = m_lstGrab.FindIndex(i);
+			auto val = m_lstGrab.GetAt(pos);
+			lastIdx = val->cam_id == camIdx ? pos : lastIdx;
+		}
+
+		if (lastIdx != nullptr)
+		{
+			m_lstGrab.RemoveAt(lastIdx);
+			res = true;
+		}
+
+		/* 동기화 해제 */
+		m_syncGrab.Leave();
+	}
+
+	return res;
 }
 
 /*
@@ -547,7 +527,7 @@ CAtlList <LPG_ACGR>* CCamThread::GetGrabbedMarkAll()
 	return GetGrabImage();
 }
 
-void CCamThread::GetSwTrigGrabImage(int camIdx)
+bool CCamThread::GetSwTrigGrabImage(int camIdx)
 {
 	return m_pCamMain[camIdx - 1]->GetSwTrigGrabImage();
 }

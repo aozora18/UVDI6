@@ -200,7 +200,7 @@ API_EXPORT VOID uvEng_Camera_ResetGrabbedImage()
 }
 
 
-API_EXPORT VOID  uvEng_Camera_SWGrab(int camIdx)
+API_EXPORT bool  uvEng_Camera_SWGrab(int camIdx)
 {
 	return uvBasler_Camera_SWGrab(camIdx);
 }

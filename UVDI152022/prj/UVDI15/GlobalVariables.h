@@ -453,7 +453,7 @@ public:
 
 
 	map< CaliTableType, vector<CaliPoint>> offsetPool;
-
+	STG_XMXY mark2; //마크2
 
 	map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
 	map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것

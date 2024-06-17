@@ -131,7 +131,7 @@ public:
 
 	BOOL				SetParamUpdate();
 	ENG_TRGM GetTriggerMode();
-	void GetSwTrigGrabImage();
+	bool GetSwTrigGrabImage();
 	bool				ChangeTriggerMode( ENG_TRGM mode);
 	VOID				SetCamMode(ENG_VCCM mode);
 	ENG_VCCM			GetCamMode()			{	return m_enCamMode;	}

@@ -278,27 +278,30 @@ VOID CCamMain::StopGrab()
 	}
 }
 
-void CCamMain::GetSwTrigGrabImage()
+bool CCamMain::GetSwTrigGrabImage()
 {
 	try
 	{
 		if (GetTriggerMode() != ENG_TRGM::en_Sw_mode)
 			throw exception("not a en_sw_mode");
-
+			
 			m_pCamera->TriggerSoftware.Execute();
+
+			return true;
 	}
 	catch (exception e)
 	{
 		m_pCamera->StopGrabbing();
 		swprintf_s(m_tzErrMsg, 1024, L"Failed to start the grabbing = %hs", e.what());
 		LOG_ERROR(ENG_EDIC::en_basler, m_tzErrMsg);
+		return false;
 	}
 	catch (const GenericException& e)
 	{
 		m_pCamera->StopGrabbing();
 		swprintf_s(m_tzErrMsg, 1024, L"Failed to start the grabbing = %hs", e.GetDescription());
 		LOG_ERROR(ENG_EDIC::en_basler, m_tzErrMsg);
-		
+		return false;
 	}
 }
 
@@ -310,11 +313,13 @@ ENG_TRGM CCamMain::GetTriggerMode()
 
 bool CCamMain::ChangeTriggerMode(ENG_TRGM mode)
 {
-	//트리거 관련  (트리거모드 )
-	m_pCamera->TriggerMode.SetValue(TriggerMode_Off);
-
-	switch (mode)
+	try
 	{
+		//트리거 관련  (트리거모드 )
+		m_pCamera->TriggerMode.SetValue(TriggerMode_Off);
+
+		switch (mode)
+		{
 		case ENG_TRGM::en_line_mode:
 		{
 			m_pCamera->TriggerSelector.SetValue(TriggerSelector_FrameStart);
@@ -329,10 +334,16 @@ bool CCamMain::ChangeTriggerMode(ENG_TRGM mode)
 			m_pCamera->TriggerSource.SetValue(TriggerSource_Software);
 		}
 		break;
+		}
+		triggerMode = mode;
+		m_pCamera->TriggerMode.SetValue(TriggerMode_On);
+		return true;
 	}
-	triggerMode = mode;
-	m_pCamera->TriggerMode.SetValue(TriggerMode_On);
-	return true;
+	catch (...)
+	{
+		return false;
+	}
+	
 }
 
 /*

@@ -178,6 +178,7 @@ protected:
 
 	bool SetAutoFocusFeatures();
 	bool MoveCamToSafetypos(ENG_MMDI callbackAxis = ENG_MMDI::en_axis_none, double pos = 0);
+	BOOL MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting);
 
 	ENG_JWNS			CheckValidRecipe();
 	ENG_JWNS			IsSetTrigPosResetAll();

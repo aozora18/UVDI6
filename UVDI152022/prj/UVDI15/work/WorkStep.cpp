@@ -871,38 +871,41 @@ ENG_JWNS CWorkStep::IsTrigRegistLocal(UINT8 scan)
 	return ENG_JWNS::en_next;
 }
 
+BOOL CWorkStep::MoveAxis(ENG_MMDI axis, bool absolute, double pos,bool waiting)
+{
+	double curr = uvCmn_MC2_GetDrvAbsPos(axis);
+
+	double dest = absolute ? pos :  curr + pos;
+
+	if (uvCmn_MC2_IsDriveError(axis) || 
+		CInterLockManager::GetInstance()->CheckMoveInterlock(axis, dest))
+		return false;
+	
+	uvCmn_MC2_GetDrvDoneToggled(axis);
+	
+	BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, uvEng_GetConfig()->mc2_svc.step_velo);
+
+	if(waiting && res)
+	res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvCmn_MC2_IsDrvDoneToggled(axis);
+		}, 30 * 1000);
+
+	return res;
+}
+
+
 bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
 {	
 	bool doneToggleCam[2];
 
 	LPG_CIEA pstCfg = uvEng_GetConfig();
 
-	auto Move = [&](ENG_MMDI camAxis,double pos, bool waiting) -> bool
-		{
-			uvCmn_MC2_GetDrvDoneToggled(camAxis);
-			auto res = (camAxis == ENG_MMDI::en_align_cam1 || camAxis == ENG_MMDI::en_align_cam2) &&
-				!CInterLockManager::GetInstance()->CheckMoveInterlock(camAxis, pos) &&
-				uvEng_MC2_SendDevAbsMove(camAxis, pos, uvEng_GetConfig()->mc2_svc.step_velo);
-
-			if (waiting == false) return res;
-
-			res = GlobalVariables::GetInstance()->Waiter([&]()->bool
-				{
-					return uvCmn_MC2_IsDrvDoneToggled(camAxis);
-				},30*1000);
-		
-			return res;
-		};
-
-	
 	// 동작은 동시에
 	auto res1 = false, res2 = false;
 	
-	res1 = Move(ENG_MMDI::en_align_cam1, pstCfg->set_cams.safety_pos[0], false);
-		
-
-	res2 = Move(ENG_MMDI::en_align_cam2, pstCfg->set_cams.safety_pos[1], false);
-		
+	res1 = MoveAxis(ENG_MMDI::en_align_cam1,true, pstCfg->set_cams.safety_pos[0], false);
+	res2 = MoveAxis(ENG_MMDI::en_align_cam2, true, pstCfg->set_cams.safety_pos[1], false);
 	
 	if(res1)
 	res1 = GlobalVariables::GetInstance()->Waiter([&]()->bool
@@ -918,7 +921,7 @@ bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
 
 	if (res1 == res2 && res1 == true && callbackAxis != ENG_MMDI::en_axis_none)
 	{
-		return Move(callbackAxis, pos, true);
+		return MoveAxis(callbackAxis,true, pos, true);
 	}
 	else res1 == res2 && res1 == true;
 }

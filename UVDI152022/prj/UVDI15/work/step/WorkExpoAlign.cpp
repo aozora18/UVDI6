@@ -526,6 +526,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			motions.SetFiducialPool();
 			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
+
 			//string temp = "x" + std::to_string(CENTER_CAM);
 			//if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
 				/*for (int i = 0; i < grabMarkPath.size(); i++)

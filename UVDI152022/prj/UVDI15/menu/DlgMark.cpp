@@ -2053,18 +2053,21 @@ VOID CDlgMark::SetMatchModel()
 
 		auto triggerMode = uvEng_Camera_GetTriggerMode(u8ACamID);
 
-		if (triggerMode == ENG_TRGM::en_Sw_mode)
+		static vector<function<bool()>> trigAction =
 		{
-			uvEng_Camera_SWGrab(u8ACamID);
-		}
-		else
-		{
-			if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
+			[&]() {return uvEng_Camera_SWGrab(u8ACamID); },
+			[&]() 
 			{
-				dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
-				return;
-			}
-		}
+				if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
+				{
+					dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
+					return false;
+				}
+				return true;
+			},
+		};
+		
+		if (trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1] == false) return;
 	}
 	//uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
 

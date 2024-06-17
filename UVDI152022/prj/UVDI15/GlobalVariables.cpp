@@ -676,13 +676,20 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			status.acamCount = sideCamCnt;
 		};
 
-		auto GenStatic3camFid = [&]() //<-얘는 작업직전 실시간으로 해야함.
+		auto GenStatic3camFid = [&]() //<-얘는 작업직전 실시간으로 해야함. 
 		{
 			STG_XMXY lookat;
 			const int centercam = centerCamIdx;
 			bool res = true;
 
-			GetGerberPosUseCamPos(centercam, lookat);
+			const bool MARK2_FIRST = true; //
+
+			if (MARK2_FIRST)
+			{
+				lookat = status.mark2;//마크2
+			}
+			else
+				GetGerberPosUseCamPos(centercam, lookat); //현재상황 기준 최단거리조건.
 
 			STG_XMXY current = lookat;
 			auto& pool =  status.markPoolForCam[centercam];
@@ -691,9 +698,6 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
 				{
 					pool.push_back(current);
-
-					//throw exception();
-					//여기서 보정테이블값 넣어주면된다.
 				}
 		};
 
@@ -710,6 +714,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				for (int i = 0; i < globalFiducial->GetCount(); i++)
 					if (globalFiducial->GetMark(i, temp))
 					{
+						if (temp.tgt_id == 2)
+							status.mark2 = temp;
 						temp.SetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 						status.markList[ENG_AMTF::en_global].push_back(temp);
 						status.markList[ENG_AMTF::en_mixed].push_back(temp);
@@ -785,19 +791,20 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void WebMonitor::StartWebMonitor()
 	{
-		const int SERVER_PORT = 5000;
-
-		auto gv = GlobalVariables::GetInstance();
-
-		if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
-			return;
-
-		if (gv->GetWebMonitor().ConnectClient(SERVER_PORT) == false)
-			return;
+		
 	
 		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()
 			{
+				const int SERVER_PORT = 5000;
+
 				auto gv = GlobalVariables::GetInstance();
+
+				if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
+					return;
+
+				if (gv->GetWebMonitor().ConnectClient(SERVER_PORT) == false)
+					return;
+
 				const int updateDelay = 1;
 				while (cancelFlag.load() == false)
 				{

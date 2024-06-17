@@ -122,7 +122,7 @@ API_IMPORT VOID uvEng_Camera_ResetGrabbedMark();
 */
 API_IMPORT VOID uvEng_Camera_TriggerMode(int camIdx, ENG_TRGM mode);
 API_IMPORT VOID uvEng_Camera_ResetGrabbedImage();
-API_IMPORT VOID  uvEng_Camera_SWGrab(int camIdx);
+API_IMPORT bool  uvEng_Camera_SWGrab(int camIdx);
 API_IMPORT ENG_TRGM uvEng_Camera_GetTriggerMode(int camIdx);
 /*
  desc : Vision Camera Mode 설정

@@ -597,11 +597,10 @@ API_EXPORT VOID uvBasler_ResetGrabbedImage()
 	ResetGrabbedImage();
 }
 
-API_EXPORT VOID uvBasler_Camera_SWGrab(int camIdx)
+API_EXPORT bool uvBasler_Camera_SWGrab(int camIdx)
 {
-	if (!g_pCamThread) return;
-
-		g_pCamThread->GetSwTrigGrabImage(camIdx);
+	if (!g_pCamThread) return false;;
+		return g_pCamThread->GetSwTrigGrabImage(camIdx);
 }
 
 

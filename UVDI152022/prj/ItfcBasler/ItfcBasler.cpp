@@ -72,11 +72,6 @@ VOID ResetGrabbedImage()
 	uvMIL_ResetGrabAll();
 }
 
-//VOID RemoveLastGrab(int camIdx)
-//{
-//
-//}
-
 /*
  desc : Global 4개의 Mark에 대해서 모두 유효한지 검사
  변수 :	cam_id	- [in]  Camera Index (1 or 2)
@@ -596,6 +591,13 @@ API_EXPORT VOID uvBasler_ResetGrabbedImage()
 	if (!g_pCamThread)	return;
 	ResetGrabbedImage();
 }
+
+API_EXPORT bool uvBasler_RemoveLastGrab(int camNum)
+{
+	if (!g_pCamThread)	return false;
+	return g_pCamThread->RemoveLastGrab(camNum);
+}
+
 
 API_EXPORT bool uvBasler_Camera_SWGrab(int camIdx)
 {

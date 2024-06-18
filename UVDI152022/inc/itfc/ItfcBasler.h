@@ -124,6 +124,10 @@ API_IMPORT BOOL uvBasler_IsConnected(UINT8 cam_id);
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvBasler_IsConnectedAll();
+
+
+API_IMPORT bool uvBasler_RemoveLastGrab(int camNum);
+
 /*
  desc : 현재 등록된 Grabbed 이미지 개수 반환
  parm : None

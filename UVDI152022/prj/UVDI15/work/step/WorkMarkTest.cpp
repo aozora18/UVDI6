@@ -187,7 +187,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				{3,ENG_MMDI::en_axis_none} 
 			};
 			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
-			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error; 
+											m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error; 
 		},
 		[&]()
 		{
@@ -240,30 +240,33 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 			auto ProcessRefind = [&]() -> bool
 				{
-					int tryCnt = 1;
-					float fovStep = 1.0f; //mm
+					float fovStep = 1.0f; // fov 절반임. mm
 					bool sutable = false;
 					UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
 					UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010 , MUP = 0b00100100, MDOWN = 0b00101000;
 					vector<int> searchMap = { MUP,MRIGHT,MDOWN,MDOWN,MLEFT,MLEFT,MUP,MUP };
 					
-
 					//자 찾기로직 시작.
-					sutable = IsMarkFind();
+					if (sutable = IsMarkFind() && sutable == true) //이전 그랩결과가 올바르다면 아래 로직을 수행할 필요가 없다.
+						return sutable;
 
 					auto step = searchMap.begin();
 					while (sutable == false && step != searchMap.end())
 					{
-						sutable = MoveAxis((*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y,false,
-											((*step & MLEFT) != 0 || (*step & MUP) != 0) ? fovStep * -1 : fovStep,true);
-						if (sutable == false) continue;
+						if(sutable = MoveAxis((*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y,false,
+											((*step & MLEFT) != 0 || (*step & MUP) != 0) ? fovStep * -1 : fovStep,true) && sutable == false)
+											break;  //이동실패
 						
-						sutable = SingleGrab(CENTER_CAM);
-						if (sutable == false) continue;
-						
-						sutable = IsMarkFind();
-						
+						if(sutable = SingleGrab(CENTER_CAM) && sutable == false) //그랩실패
+							break;
 
+						if(sutable = IsMarkFind() && sutable == true) //마크찾기 성공.
+							break;
+
+						if (sutable = uvEng_Camera_RemoveLastGrab(CENTER_CAM) && sutable == false) //막장빼야함.
+							break;
+
+						step++;
 					}
 
 					return sutable;
@@ -320,6 +323,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 							}
 							if (USE_REFIND == true && diff.srcFid.tgt_id == MARK2) //그랩엔 성공했고,  use refind이며 tgt가 mark2일때.
 							{
+								
+								ProcessRefind();
 								//여기서 실제 마크2 그랩데이터 가져와서 마크가 존재하는지 확인하고 존재하지 않으면 
 							}
 							grabMarkPath.erase(first);

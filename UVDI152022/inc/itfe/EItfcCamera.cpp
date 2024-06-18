@@ -200,6 +200,12 @@ API_EXPORT VOID uvEng_Camera_ResetGrabbedImage()
 }
 
 
+API_EXPORT bool uvEng_Camera_RemoveLastGrab(int camIdx)
+{
+	return uvBasler_RemoveLastGrab(camIdx);
+}
+
+
 API_EXPORT bool  uvEng_Camera_SWGrab(int camIdx)
 {
 	return uvBasler_Camera_SWGrab(camIdx);
@@ -316,6 +322,7 @@ API_EXPORT VOID uvEng_Camera_DrawStripBitmap(HDC hdc, RECT draw, UINT8 cam_id, L
 //	case ENG_VCPK::en_camera_ids_ph			:	uvIDS_DrawLiveBitmap(hwnd, save);			break;
 	}
 }
+
 
 /*
  desc : Grabbed Mark의 처리된 개수 반환

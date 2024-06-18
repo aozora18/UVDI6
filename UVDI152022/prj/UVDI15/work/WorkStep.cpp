@@ -877,7 +877,7 @@ BOOL CWorkStep::MoveAxis(ENG_MMDI axis, bool absolute, double pos,bool waiting)
 
 	double dest = absolute ? pos :  curr + pos;
 
-	if (uvCmn_MC2_IsDriveError(axis) || 
+	if (uvCmn_MC2_IsDriveError(axis) || uvCmn_MC2_IsMotorDriveStopAll() == false ||
 		CInterLockManager::GetInstance()->CheckMoveInterlock(axis, dest))
 		return false;
 	

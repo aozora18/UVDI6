@@ -401,10 +401,11 @@ public:
 };
 
 
-struct Status
+class Status
 {
 private:
 	bool dataReady;
+	tuple<double, double> refindOffset;
 
 public:
 	bool IsDataReady() { return dataReady; }
@@ -419,6 +420,17 @@ public:
 	int GetCenterColumn()
 	{
 		return gerberColCnt / acamCount;
+	}
+
+	void GetRefindOffset(double& x, double& y)
+	{
+		x = std::get<0>(refindOffset);
+		y = std::get<1>(refindOffset);
+	}
+
+	void SetRefindOffset(tuple<double, double> refindOffset)
+	{
+		this->refindOffset = refindOffset;
 	}
 
 	void Init()
@@ -437,6 +449,7 @@ public:
 	void BufferClear()
 	{
 		SetDataReady(false);
+		refindOffset = make_tuple(0, 0);
 		offsetPool.clear();
 		markPoolForCam.clear();
 		markList.clear(); //column별 풀링

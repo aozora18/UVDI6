@@ -1689,7 +1689,7 @@ ENG_JWNS CWorkStep::IsPrinted()
 
 	return ENG_JWNS::en_wait;
 }
-bool useManual = false;
+//bool useManual = false;
 
 ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 {
@@ -1724,16 +1724,16 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	};
 
 	auto GetOffset = [&](CaliTableType type, int tgtMarkIdx, CaliPoint& temp)->bool
-						{
-							auto offsetPool = motions.status.offsetPool[type];
-							auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
-							if (find == offsetPool.end())
-							{
-									return false;
-							} 
-							temp = (*find);
-							return true;
-						};
+		{
+			auto offsetPool = motions.status.offsetPool[type];
+			auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
+			if (find == offsetPool.end())
+			{
+				return false;
+			}
+			temp = (*find);
+			return true;
+		};
 
 	
 	auto GetGrab = [&](int camIdx, int tgtMarkIdx , ENG_AMTF markType)->LPG_ACGR
@@ -1759,6 +1759,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 						}
 						return find;
 					};
+
+	double refineOffsetX = 0, refineOffsetY = 0;
+	motions.status.GetRefindOffset(refineOffsetX, refineOffsetY);
 
 	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
 	{
@@ -1811,22 +1814,21 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		/*if (GetOffset(CaliTableType::align, temp.tgt_id, offset) == false)
 			return ENG_JWNS::en_error;*/
 
-		temp.mark_x -= grab->move_mm_x;
-		temp.mark_y -= grab->move_mm_y;
+		temp.mark_x -= (grab->move_mm_x + refineOffsetX);
+		temp.mark_y -= (grab->move_mm_y + refineOffsetY);
 		
 		temp.reserve = grab->reserve;
 
-		
-		map<int, tuple<double, double>> manualOffsetMap =
-		{
-			{0,make_tuple(0.0028,-0.0041)},
-			{1,make_tuple(0.0002,-0.0062)},
-			{2,make_tuple(-0.0065,-0.0067)},
-			{3,make_tuple(-0.0157,-0.007)}
-		};
+		//map<int, tuple<double, double>> manualOffsetMap =
+		//{
+		//	{0,make_tuple(0.0028,-0.0041)},
+		//	{1,make_tuple(0.0002,-0.0062)},
+		//	{2,make_tuple(-0.0065,-0.0067)},
+		//	{3,make_tuple(-0.0157,-0.007)}
+		//};
 
 
-		if (pstSetAlign->use_mark_offset && useManual == false)
+		if (pstSetAlign->use_mark_offset)// && useManual == false
 		{
 			if (GetOffset(CaliTableType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
@@ -1842,7 +1844,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			temp.mark_x -= foffsetX;
 			temp.mark_y -= foffsetY;
 		}
-		else
+		/*else
 		{
 			auto foffsetX = std::get<0>(manualOffsetMap[temp.tgt_id]);
 			auto foffsetY = std::get<1>(manualOffsetMap[temp.tgt_id]);
@@ -1850,7 +1852,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			temp.mark_x += foffsetX;
 			temp.mark_y += foffsetY;
 
-		}
+		}*/
 		lstMarks.AddTail(temp);
 	}
 

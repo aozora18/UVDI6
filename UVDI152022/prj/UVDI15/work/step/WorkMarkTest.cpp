@@ -214,6 +214,10 @@ void CWorkMarkTest::DoAlignStaticCam()
 		{
 			const int MARK2 = 2;
 			const bool USE_REFIND = true;
+			const int STABLE_TIME = 1000;
+			UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
+			UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010, MUP = 0b00100100, MDOWN = 0b00101000;
+			TCHAR tzMsg[256] = { NULL };
 
 			auto SingleGrab = [&](int camIndex) -> bool 
 			{
@@ -230,48 +234,82 @@ void CWorkMarkTest::DoAlignStaticCam()
 			};
 
 			auto IsMarkFind = [&]() -> bool
-				{
-					auto lastGrab = uvEng_Camera_GetLastGrabbedMark();
+			{
+				auto lastGrab = uvEng_Camera_GetLastGrabbedMark();
 
-					if (lastGrab == nullptr) return false; //그랩 자체가 문제.
-					if (lastGrab->IsMarkValid()) return true; //이젠 찾을필요가 없다. 
-					if (lastGrab->score_rate > 0 || lastGrab->scale_rate > 0) return true; //이게 좀 그런데 이건 찾긴했으나 조건이 좀 안좋은상태, 여기서 최적조건 찾는 로직으로 또 빠질수가 있다. 
-				};
+				if (lastGrab == nullptr) return false; //그랩 자체가 문제.
+				if (lastGrab->IsMarkValid()) return true; //이젠 찾을필요가 없다. 
+				if (lastGrab->score_rate > 0 || lastGrab->scale_rate > 0) return true; //이게 좀 그런데 이건 찾긴했으나 조건이 좀 안좋은상태, 여기서 최적조건 찾는 로직으로 또 빠질수가 있다. 
+			};
 
 			auto ProcessRefind = [&]() -> bool
-				{
-					float fovStep = 1.0f; // fov 절반임. mm
-					bool sutable = false;
-					UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
-					UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010 , MUP = 0b00100100, MDOWN = 0b00101000;
-					vector<int> searchMap = { MUP,MRIGHT,MDOWN,MDOWN,MLEFT,MLEFT,MUP,MUP };
+			{
+				float fovStep = 1.0f; // fov 절반임. mm
+				bool sutable = false;
+				vector<int> searchMap = { MUP,MRIGHT,MDOWN,MDOWN,MLEFT,MLEFT,MUP,MUP };
 					
-					//자 찾기로직 시작.
-					if (sutable = IsMarkFind() && sutable == true) //이전 그랩결과가 올바르다면 아래 로직을 수행할 필요가 없다.
-						return sutable;
-
-					auto step = searchMap.begin();
-					while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
-					{
-						if(sutable = MoveAxis((*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y,false,
-											((*step & MLEFT) != 0 || (*step & MUP) != 0) ? fovStep * -1 : fovStep,true) && sutable == false)
-											break;  //이동실패
-						
-						if(sutable = SingleGrab(CENTER_CAM) && sutable == false) //그랩실패
-							break;
-
-						if(sutable = IsMarkFind() && sutable == true) //마크찾기 성공.
-							break;
-
-						if (sutable = uvEng_Camera_RemoveLastGrab(CENTER_CAM) && sutable == false) //막장빼야함.
-							break;
-
-						step++;
-					}
-
+				//자 찾기로직 시작.
+				if (sutable = IsMarkFind() && sutable == true) //이전 그랩결과가 올바르다면 아래 로직을 수행할 필요가 없다.
 					return sutable;
+
+				auto step = searchMap.begin();
+				while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
+				{
+					if(sutable = MoveAxis((*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y,false,
+										((*step & MLEFT) != 0 || (*step & MUP) != 0) ? fovStep * -1 : fovStep,true) && sutable == false)
+										break;  //이동실패
+						
+					if(sutable = SingleGrab(CENTER_CAM) && sutable == false) //그랩실패
+						break;
+
+					if(sutable = IsMarkFind() && sutable == true) //마크찾기 성공.
+						break;
+
+					if (sutable = uvEng_Camera_RemoveLastGrab(CENTER_CAM) && sutable == false) //막장빼야함.
+						break;
+
+					step++;
+				}
+
+				return sutable;
+			};
+
+
+			auto SetCurrentOffsets = [&](STG_XMXY* mark, CaliPoint& alignOffset, CaliPoint& expoOffset)
+				{
+					string temp = "x" + std::to_string(CENTER_CAM);
+					
+					auto markPos = mark->GetMarkPos();
+
+					alignOffset = motions.EstimateAlignOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
+						motions.GetAxises()["stage"]["y"].currPos,
+						CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+
+					expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+
+					alignOffset.srcFid = *mark;
+					expoOffset.srcFid = *mark;
+					
 				};
 
+			auto GetCurrStagePos = [&]()->tuple<double, double>
+				{
+					this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+					motions.Refresh();
+
+					return make_tuple(motions.GetAxises()["stage"]["x"].currPos, motions.GetAxises()["stage"]["y"].currPos);
+
+				};
+
+
+			auto PathExchange = [&](vector<STG_XMXY>& paths, tuple<double,double> offsets)
+				{
+					for(auto& val : paths)
+					{
+						val.mark_x += std::get<0>(offsets);
+						val.mark_y += std::get<1>(offsets);
+					}
+				};
 
 			bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 			{
@@ -281,63 +319,67 @@ void CWorkMarkTest::DoAlignStaticCam()
 				}
 				else
 				{
-					if (grabMarkPath.size() == 0) 
-						return true; //정상완료
+					auto currPath = grabMarkPath.begin();
+					auto arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
+					
+					if (arrival == false) return false;
+					
+					this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+					motions.Refresh();
 
-					auto first = grabMarkPath.begin();
-					auto arrival = motions.MovetoGerberPos(CENTER_CAM, *first);
-					string temp = "x" + std::to_string(CENTER_CAM);
+					auto currPosBeforeRefind = GetCurrStagePos();
 
-					if (arrival == true)
+					if (SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 					{
-						const int STABLE_TIME = 1000;
-						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-						motions.Refresh();
-						//여기서 현재 위치기반 보정정보 갖고오기.
-						auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM, motions.GetAxises()["stage"]["x"].currPos,
-																				motions.GetAxises()["stage"]["y"].currPos,
-																				CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-
-						auto markPos = first->GetMarkPos();
-						auto expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
-
-						alignOffset.srcFid = *first;
-						offsetPool[CaliTableType::align].push_back(alignOffset);
-
-						auto diff = expoOffset;
-						diff.srcFid = *first;
-						offsetPool[CaliTableType::expo].push_back(diff);
-
-						TCHAR tzMsg[256] = { NULL };
-						if (SingleGrab(CENTER_CAM)) //딱 그랩만 성공한거.
-						{
-							if (uvEng_GetConfig()->set_align.use_2d_cali_data)
-							{
-								uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-								swprintf_s(tzMsg, 256, L"%s", first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
-								LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-								swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", first->org_id, alignOffset.offsetX, alignOffset.offsetY);
-								LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-								swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", first->org_id, diff.offsetX, diff.offsetY);
-								LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-							}
-							if (USE_REFIND == true && diff.srcFid.tgt_id == MARK2) //그랩엔 성공했고,  use refind이며 tgt가 mark2일때.
-							{
-								
-								ProcessRefind();
-								//여기서 실제 마크2 그랩데이터 가져와서 마크가 존재하는지 확인하고 존재하지 않으면 
-							}
-							grabMarkPath.erase(first);
-						}
-						else
-						{
-							return false; //그랩 자체를 못했을때.
-						}
+						m_enWorkState = ENG_JWNS::en_error;
+						return true;
 					}
+
+					//여기서 현재 위치기반 보정정보 갖고오기.
+					CaliPoint alignOffset,expoOffset;
+					
+					if (USE_REFIND == true && currPath->tgt_id == MARK2) //그랩엔 성공했고,  use refind이며 tgt가 mark2일때.
+					{
+						auto findRes = ProcessRefind(); //여기서 실제 마크2 그랩데이터 가져와서 마크가 존재하는지 확인
+						m_enWorkState = findRes == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+					
+						if (findRes == false) return true; //최종마크찾기 실패.
+
+						//차이가 얼마나 나는지 확인해야한다.(회전은 없다고 가정)
+
+						auto currPosAfterRefind = GetCurrStagePos();
+
+						auto posGab = make_tuple(std::get<0>(currPosAfterRefind) - std::get<0>(currPosBeforeRefind) ,
+												 std::get<1>(currPosAfterRefind) - std::get<1>(currPosBeforeRefind));
+
+						motions.status.SetRefindOffset(posGab);
+						//다음부터 이동할 마크에 일괄적용. 
+						PathExchange(grabMarkPath, posGab);
+					}
+					
+					SetCurrentOffsets(&(*currPath), alignOffset, expoOffset);
+					offsetPool[CaliTableType::align].push_back(alignOffset); 
+					offsetPool[CaliTableType::expo].push_back(expoOffset);
+
+					if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+					{
+						uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+						swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
+						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+						swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
+						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+						swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
+						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+					}
+					
+					grabMarkPath.erase(currPath);
+
+					if (grabMarkPath.empty())
+						return true; //정상완료
 				}
 				return false;
 			}, 60 * 1000 * 2);
-			m_enWorkState = complete == true && CWork::GetAbort() == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+			m_enWorkState = complete == true && m_enWorkState != ENG_JWNS::en_error ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		},
 		[&]()
 		{

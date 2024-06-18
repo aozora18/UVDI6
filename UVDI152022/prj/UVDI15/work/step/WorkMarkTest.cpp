@@ -187,7 +187,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				{3,ENG_MMDI::en_axis_none} 
 			};
 			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
-											m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error; 
+			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error; 
 		},
 		[&]()
 		{

@@ -2049,7 +2049,7 @@ VOID CDlgMark::SetMatchModel()
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
 
-		uvEng_Camera_TriggerMode((int)u8ACamID,ENG_TRGM::en_Sw_mode);
+		uvEng_Camera_TriggerMode((int)u8ACamID,ENG_TRGM::en_line_mode);
 
 		auto triggerMode = uvEng_Camera_GetTriggerMode(u8ACamID);
 
@@ -2067,7 +2067,7 @@ VOID CDlgMark::SetMatchModel()
 			},
 		};
 		
-		if (trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1] == false) return;
+		if (trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1]() == false) return;
 	}
 	//uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
 

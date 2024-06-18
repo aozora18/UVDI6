@@ -251,7 +251,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						return sutable;
 
 					auto step = searchMap.begin();
-					while (sutable == false && step != searchMap.end())
+					while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
 					{
 						if(sutable = MoveAxis((*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y,false,
 											((*step & MLEFT) != 0 || (*step & MUP) != 0) ? fovStep * -1 : fovStep,true) && sutable == false)
@@ -337,7 +337,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				}
 				return false;
 			}, 60 * 1000 * 2);
-			m_enWorkState = complete == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+			m_enWorkState = complete == true && CWork::GetAbort() == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		},
 		[&]()
 		{
@@ -384,6 +384,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 	try
 	{
 		stepWork[m_u8StepIt]();
+		if (CWork::GetAbort())
+			m_enWorkState = ENG_JWNS::en_error;
 	}
 	catch (const std::exception&)
 	{

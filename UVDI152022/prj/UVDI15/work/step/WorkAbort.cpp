@@ -85,6 +85,7 @@ VOID CWorkAbort::DoWork()
 	case 0x0a: m_enWorkState = IsMovedUnloader();						break;
 	}
 
+	CWork::SetAbort(); //<-이제 타 work에서 abort를 stop으로 처리가능하게 함. 참고바람. static임 모든 cwork에서 공유.
 	/* 다음 작업 진행 여부 판단 */
 	CWork::SetWorkNext();
 	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */

@@ -15,6 +15,8 @@
 static char THIS_FILE[]	= __FILE__;
 #endif
 
+atomic<bool> CWork::aborted;
+
 /*
  desc : »ý¼ºÀÚ
  parm : None
@@ -23,6 +25,7 @@ static char THIS_FILE[]	= __FILE__;
 CWork::CWork()
 {
 	m_enWorkJobID	= ENG_BWOK::en_work_none;
+	aborted.store(false);
 }
 
 /*

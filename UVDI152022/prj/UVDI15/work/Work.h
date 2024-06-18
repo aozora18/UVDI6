@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <atomic>
 
 class CWork
 {
@@ -9,15 +10,26 @@ public:
 
 	CWork();
 	virtual ~CWork();
+	
+
+	static void SetAbort() 
+	{
+		aborted.store(false);
+	}
+
+	static bool GetAbort()
+	{
+		return aborted.load();
+	}
 
 /* 가상함수 재정의 */
 protected:
 public:
-
+	static  atomic<bool> aborted;
 
 /* 열거형 */
 protected:
-
+	
 
 /* 로컬 변수 */
 protected:
@@ -50,6 +62,9 @@ protected:
 #if 0
 	CMySection			m_csSyncAbortSet;		/* 작업 취소 여부 동기화 */
 #endif
+
+private:
+	
 
 /* 로컬 함수 */
 protected:

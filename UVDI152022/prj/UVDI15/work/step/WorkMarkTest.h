@@ -16,7 +16,7 @@ public:
 	CWorkMarkTest(LPG_CELA expo);
 	virtual ~CWorkMarkTest();
 	
-	map< CaliTableType, vector<CaliPoint>> offsetPool;
+	map< OffsetType, vector<CaliPoint>> offsetPool;
 
 	/* 가상함수 재정의 */
 protected:

@@ -1723,7 +1723,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		return nullptr;
 	};
 
-	auto GetOffset = [&](CaliTableType type, int tgtMarkIdx, CaliPoint& temp)->bool
+	auto GetOffset = [&](OffsetType type, int tgtMarkIdx, CaliPoint& temp)->bool
 		{
 			auto offsetPool = motions.status.offsetPool[type];
 			auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
@@ -1811,7 +1811,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		CaliPoint expoOffset;
 		CaliPoint alignOffset;
-		/*if (GetOffset(CaliTableType::align, temp.tgt_id, offset) == false)
+		/*if (GetOffset(OffsetType::align, temp.tgt_id, offset) == false)
 			return ENG_JWNS::en_error;*/
 
 		temp.mark_x -= (grab->move_mm_x + refineOffsetX);
@@ -1830,10 +1830,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		if (pstSetAlign->use_mark_offset)// && useManual == false
 		{
-			if (GetOffset(CaliTableType::expo, temp.tgt_id, expoOffset) == false)
+			if (GetOffset(OffsetType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
 
-			if (GetOffset(CaliTableType::align, temp.tgt_id, alignOffset) == false)
+			if (GetOffset(OffsetType::align, temp.tgt_id, alignOffset) == false)
 				return ENG_JWNS::en_error;
 
 			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);

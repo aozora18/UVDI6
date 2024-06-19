@@ -719,7 +719,7 @@ API_EXPORT BOOL uvBasler_RunModelExam(DOUBLE score, DOUBLE scale, LPG_ACGR resul
 API_EXPORT BOOL uvBasler_RunEdgeDetect(UINT8 cam_id, UINT8 saved)
 {
 	/* 기존 Grabbed Image 제거 */
-	ResetGrabbedImage();
+	
 	/* New Grabbed Image 처리 */
 	if (cam_id < 1 || g_pstConfig->set_cams.acam_count < cam_id)	return FALSE;
 	return g_pCamThread->RunEdgeDetect(cam_id, saved);

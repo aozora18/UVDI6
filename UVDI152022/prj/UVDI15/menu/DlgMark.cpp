@@ -2047,6 +2047,10 @@ VOID CDlgMark::SetMatchModel()
 		}
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
+		
+		
+		//uvEng_Camera_SetCamMode(ENG_VCCM::en_edge_mode);
+		
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
 
 		uvEng_Camera_TriggerMode((int)u8ACamID,ENG_TRGM::en_line_mode);
@@ -2075,6 +2079,9 @@ VOID CDlgMark::SetMatchModel()
 	do {
 		UINT8 mode = 0xff;
 		/* Grabbed Image가 존재하는지 확인 */
+		//uvEng_Camera_RunEdgeDetect(u8ACamID);
+		
+		
 		pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, m_chk_img[0].GetCheck(),0);
 		if (pstGrab && 0x00 != pstGrab->marked)	break;	/* 결과 값 출력 */
 		/* 임의 시간 동안 응답이 없으면 루프 빠져 나감 */

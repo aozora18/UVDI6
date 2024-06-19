@@ -24,7 +24,7 @@ protected:
 	};
 public:
 
-	map< CaliTableType, vector<CaliPoint>> offsetPool;
+	map< OffsetType, vector<CaliPoint>> offsetPool;
 
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();

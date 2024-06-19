@@ -486,8 +486,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		case 0x01: 
 		{
 	
-			if (!(motions.GetCalifeature(CaliTableType::align).caliCamIdx == CENTER_CAM) ||
-				!(motions.GetCalifeature(CaliTableType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
+			if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
+				!(motions.GetCalifeature(OffsetType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
 			{
 				m_enWorkState = ENG_JWNS::en_error;
 				return;
@@ -501,7 +501,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		case 0x02: 
 		{
 			map<int, ENG_MMDI> axisMap = { {1,ENG_MMDI::en_align_cam1}, {2,ENG_MMDI::en_align_cam2}, {3,ENG_MMDI::en_axis_none} };
-			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
+			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(OffsetType::expo).caliCamXPos);
 			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;  //IsLoadedGerberCheck(); 불필요.
 		}
 		break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
@@ -610,8 +610,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 							diff.srcFid = *first;
 
-							offsetPool[CaliTableType::align].push_back(alignOffset);
-							offsetPool[CaliTableType::expo].push_back(diff);
+							offsetPool[OffsetType::align].push_back(alignOffset);
+							offsetPool[OffsetType::expo].push_back(diff);
 
 
 							TCHAR tzMsg[256] = { NULL }; int lastGrabCnt = 0;

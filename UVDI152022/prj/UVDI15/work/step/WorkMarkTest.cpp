@@ -164,8 +164,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 	{
 		[&]() 
 		{
-			if (!(motions.GetCalifeature(CaliTableType::align).caliCamIdx == CENTER_CAM) ||
-				!(motions.GetCalifeature(CaliTableType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
+			if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
+				!(motions.GetCalifeature(OffsetType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
 				{
 					m_enWorkState = ENG_JWNS::en_error;
 				}
@@ -186,7 +186,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				{2,ENG_MMDI::en_align_cam2}, 
 				{3,ENG_MMDI::en_axis_none} 
 			};
-			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(CaliTableType::expo).caliCamXPos);
+			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(OffsetType::expo).caliCamXPos);
 			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error; 
 		},
 		[&]()
@@ -348,9 +348,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 						//차이가 얼마나 나는지 확인해야한다.(회전은 없다고 가정)
 
 						auto currPosAfterRefind = GetCurrStagePos();
-
-						auto posGab = make_tuple(std::get<0>(currPosAfterRefind) - std::get<0>(currPosBeforeRefind) ,
-												 std::get<1>(currPosAfterRefind) - std::get<1>(currPosBeforeRefind));
+						const int x = 0, y = 1;
+						auto posGab = make_tuple(std::get<x>(currPosAfterRefind) - std::get<x>(currPosBeforeRefind) ,
+												 std::get<y>(currPosAfterRefind) - std::get<y>(currPosBeforeRefind));
 
 						motions.status.SetRefindOffset(posGab);
 						//다음부터 이동할 마크에 일괄적용. 
@@ -358,8 +358,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 					}
 					
 					SetCurrentOffsets(&(*currPath), alignOffset, expoOffset);
-					offsetPool[CaliTableType::align].push_back(alignOffset); 
-					offsetPool[CaliTableType::expo].push_back(expoOffset);
+					offsetPool[OffsetType::align].push_back(alignOffset);
+					offsetPool[OffsetType::expo].push_back(expoOffset);
 
 					if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 					{

@@ -62,10 +62,11 @@ enum SearchFlag
 	all,
 };
 
-enum CaliTableType
+enum OffsetType
 {
 	expo,
-	align
+	align,
+	refind,
 };
 
 
@@ -295,8 +296,8 @@ public:
 	CaliFeature features;
 
 protected:
-	map<CaliTableType, CaliFeature> calidataFeature;
-	map<CaliTableType, vector<CaliPoint>> caliDataMap;
+	map<OffsetType, CaliFeature> calidataFeature;
+	map<OffsetType, vector<CaliPoint>> caliDataMap;
 
 	double LimittoMicro(double val);
 
@@ -309,7 +310,7 @@ public:
 	void LoadCaliData(LPG_CIEA cfg);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX);
 	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
-	CaliFeature GetCalifeature(CaliTableType type);
+	CaliFeature GetCalifeature(OffsetType type);
 	
 };
 
@@ -465,7 +466,7 @@ public:
 	int lastScanCount = 0;
 
 
-	map< CaliTableType, vector<CaliPoint>> offsetPool;
+	map< OffsetType, vector<CaliPoint>> offsetPool;
 	STG_XMXY mark2; //마크2
 
 	map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
@@ -498,7 +499,7 @@ public:
 		etc = 0b00000010,
 	};
 
-	CaliCalc::CaliFeature GetCalifeature(CaliTableType type);
+	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
 	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
 	void Destroy();
@@ -569,7 +570,7 @@ public:
 
 	vector<STG_XMXY> GetFiducialPool(int camNum);
 	void UpdateParamValues();
-	void SetAlignOffsetPool(map< CaliTableType, vector<CaliPoint>> offsetPool);
+	void SetAlignOffsetPool(map< OffsetType, vector<CaliPoint>> offsetPool);
 	void SetFiducialPool(bool useDefault = true, ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam, ENG_ATGL alignType = ENG_ATGL::en_global_4_local_0_point);
 	void DoInitial(LPG_CIEA pstCfg);
 };

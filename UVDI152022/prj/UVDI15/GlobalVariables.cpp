@@ -168,19 +168,19 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 			{
 				vector<double> temp;
 				TCHAR* name = cfg->file_dat.staticAcamAlignCali;
-				StackVector(name, caliDataMap[CaliTableType::align], temp);
-				if (caliDataMap[CaliTableType::align].size() != 0)
+				StackVector(name, caliDataMap[OffsetType::align], temp);
+				if (caliDataMap[OffsetType::align].size() != 0)
 				{
-					SortPos(caliDataMap[CaliTableType::align]);
-					calidataFeature[CaliTableType::align] = CaliFeature(temp);
+					SortPos(caliDataMap[OffsetType::align]);
+					calidataFeature[OffsetType::align] = CaliFeature(temp);
 				}
 
 				name = cfg->file_dat.staticAcamExpoCali;
-				StackVector(name, caliDataMap[CaliTableType::expo], temp);
-				if (caliDataMap[CaliTableType::expo].size() != 0)
+				StackVector(name, caliDataMap[OffsetType::expo], temp);
+				if (caliDataMap[OffsetType::expo].size() != 0)
 				{
-					SortPos(caliDataMap[CaliTableType::expo]);
-					calidataFeature[CaliTableType::expo] = CaliFeature(temp);
+					SortPos(caliDataMap[OffsetType::expo]);
+					calidataFeature[OffsetType::expo] = CaliFeature(temp);
 				}
 			}
 			catch (...)
@@ -265,7 +265,7 @@ CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
 	
 
 	
-	auto& expoData = caliDataMap[CaliTableType::expo];
+	auto& expoData = caliDataMap[OffsetType::expo];
 	CaliPoint weightedAverageOffset = Estimate(expoData, gbrX, gbrY);
 
 	swprintf_s(tzMsg, 256, L"EstimateExpoOffset : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f", gbrX, gbrY, weightedAverageOffset.offsetX, weightedAverageOffset.offsetY);
@@ -273,7 +273,7 @@ CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
 	return weightedAverageOffset;
 }
 
-CaliCalc::CaliFeature CaliCalc::GetCalifeature(CaliTableType type)
+CaliCalc::CaliFeature CaliCalc::GetCalifeature(OffsetType type)
 {
 	return calidataFeature.count(type) == 0 ? CaliCalc::CaliFeature() : calidataFeature[type];
 }
@@ -282,8 +282,8 @@ CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double st
 {
 
 	const int STAGE_CALI_INDEX = 3;
-	auto& stageCaliData = caliDataMap[CaliTableType::align];
-	auto& camCaliData = caliDataMap[CaliTableType::align];
+	auto& stageCaliData = caliDataMap[OffsetType::align];
+	auto& camCaliData = caliDataMap[OffsetType::align];
 
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
 	//CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
@@ -311,7 +311,7 @@ CaliPoint AlignMotion::EstimateExpoOffset(double gbrX, double gbrY)
 	return caliCalcInst.EstimateExpoOffset(gbrX, gbrY);
 }
 
-CaliCalc::CaliFeature AlignMotion::GetCalifeature(CaliTableType type)
+CaliCalc::CaliFeature AlignMotion::GetCalifeature(OffsetType type)
 {
 	return caliCalcInst.GetCalifeature(type);
 }
@@ -626,7 +626,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return status.markPoolForCam[camNum];
 	}
 
-	void AlignMotion::SetAlignOffsetPool(map< CaliTableType, vector<CaliPoint>> offsetPool)
+	void AlignMotion::SetAlignOffsetPool(map< OffsetType, vector<CaliPoint>> offsetPool)
 	{
 		status.offsetPool = offsetPool;
 	}

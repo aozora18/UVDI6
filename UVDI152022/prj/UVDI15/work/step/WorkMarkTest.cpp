@@ -327,7 +327,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 					this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 					motions.Refresh();
 
-					auto currPosBeforeRefind = GetCurrStagePos();
+					
 
 					if (SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 					{
@@ -336,14 +336,15 @@ void CWorkMarkTest::DoAlignStaticCam()
 					}
 
 					//여기서 현재 위치기반 보정정보 갖고오기.
-					CaliPoint alignOffset,expoOffset;
+					CaliPoint alignOffset, expoOffset;// , refindOffset;
 					
-					if (USE_REFIND == true && currPath->tgt_id == MARK2) //그랩엔 성공했고,  use refind이며 tgt가 mark2일때.
+					if (USE_REFIND == true) //그랩엔 성공했고,  use refind이며 tgt가 mark2일때.
 					{
+						auto currPosBeforeRefind = GetCurrStagePos();
 						auto findRes = ProcessRefind(); //여기서 실제 마크2 그랩데이터 가져와서 마크가 존재하는지 확인
 						m_enWorkState = findRes == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 					
-						if (findRes == false) return true; //최종마크찾기 실패.
+						if (m_enWorkState == ENG_JWNS::en_error) return true; //최종마크찾기 실패.
 
 						//차이가 얼마나 나는지 확인해야한다.(회전은 없다고 가정)
 
@@ -352,12 +353,14 @@ void CWorkMarkTest::DoAlignStaticCam()
 						auto posGab = make_tuple(std::get<x>(currPosAfterRefind) - std::get<x>(currPosBeforeRefind) ,
 												 std::get<y>(currPosAfterRefind) - std::get<y>(currPosBeforeRefind));
 
-						motions.status.SetRefindOffset(posGab);
+						//refindOffset = 
+						motions.status.offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x,currPath->mark_y, std::get<x>(posGab), std::get<x>(posGab),*currPath));
 						//다음부터 이동할 마크에 일괄적용. 
-						PathExchange(grabMarkPath, posGab);
+						//PathExchange(grabMarkPath, posGab);
 					}
 					
 					SetCurrentOffsets(&(*currPath), alignOffset, expoOffset);
+
 					offsetPool[OffsetType::align].push_back(alignOffset);
 					offsetPool[OffsetType::expo].push_back(expoOffset);
 

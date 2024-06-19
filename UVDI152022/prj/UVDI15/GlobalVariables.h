@@ -133,6 +133,19 @@ struct CaliPoint
 		this->offsetY = offsetY;
 	}
 
+	CaliPoint(double x,
+		double y,
+		double offsetX,
+		double offsetY,
+		STG_XMXY srcFid)
+	{
+		this->x = x;
+		this->y = y;
+		this->offsetX = offsetX;
+		this->offsetY = offsetY;
+		this->srcFid = srcFid;
+	}
+
 
 	CaliPoint()
 	{
@@ -406,7 +419,7 @@ class Status
 {
 private:
 	bool dataReady;
-	tuple<double, double> refindOffset;
+	//tuple<double, double> refindOffset;
 
 public:
 	bool IsDataReady() { return dataReady; }
@@ -423,16 +436,16 @@ public:
 		return gerberColCnt / acamCount;
 	}
 
-	void GetRefindOffset(double& x, double& y)
+	/*void GetRefindOffset(double& x, double& y)
 	{
 		x = std::get<0>(refindOffset);
 		y = std::get<1>(refindOffset);
-	}
+	}*/
 
-	void SetRefindOffset(tuple<double, double> refindOffset)
+	/*void SetRefindOffset(tuple<double, double> refindOffset)
 	{
 		this->refindOffset = refindOffset;
-	}
+	}*/
 
 	void Init()
 	{
@@ -450,7 +463,7 @@ public:
 	void BufferClear()
 	{
 		SetDataReady(false);
-		refindOffset = make_tuple(0, 0);
+		//refindOffset = make_tuple(0, 0);
 		offsetPool.clear();
 		markPoolForCam.clear();
 		markList.clear(); //column별 풀링
@@ -467,8 +480,9 @@ public:
 
 
 	map< OffsetType, vector<CaliPoint>> offsetPool;
-	STG_XMXY mark2; //마크2
-
+	
+	STG_XMXY mark1, mark2; //마크1,2
+	
 	map<int, vector<STG_XMXY>> markPoolForCam; //카메라별 풀링.
 	map<int, vector<STG_XMXY>> markMapConst; //원본인데 스켄라인별로 정렬된것
 	std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.	

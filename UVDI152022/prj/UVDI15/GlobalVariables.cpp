@@ -352,6 +352,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 	caliCalcInst.LoadCaliData(cfg);
 }
 
+
+
 	bool AlignMotion::GetNearFid(STG_XMXY currentPos, SearchFlag flag, vector<STG_XMXY> skipList, STG_XMXY& findFid)
 	{
 		std::vector<STG_XMXY> temp = (flag == SearchFlag::global ? status.markList[ENG_AMTF::en_global] :
@@ -681,24 +683,36 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			STG_XMXY lookat;
 			const int centercam = centerCamIdx;
 			bool res = true;
+			
+			vector<STG_XMXY> lookatPool;
+			
+			const bool USE_REFIND = true; //
 
-			const bool MARK2_FIRST = true; //
-
-			if (MARK2_FIRST)
+			if (USE_REFIND) //순서대로
 			{
-				lookat = status.mark2;//마크2
+				auto& pool = status.markPoolForCam[centercam];
+				auto flag = alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all;
+
+				if(flag == SearchFlag::global)
+					pool.insert(pool.end(), status.markList[ENG_AMTF::en_global].begin(), status.markList[ENG_AMTF::en_global].end());
+				
+				if (flag == SearchFlag::all)
+					pool.insert(pool.end(), status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end());
 			}
-			else
-				GetGerberPosUseCamPos(centercam, lookat); //현재상황 기준 최단거리조건.
+			else //최단거리
+			{
+				STG_XMXY current = lookat;
+				auto& pool = status.markPoolForCam[centercam];
 
-			STG_XMXY current = lookat;
-			auto& pool =  status.markPoolForCam[centercam];
+				while (res == true)
+					if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
+					{
+						pool.push_back(current);
+					}
 
-			while (res == true)
-				if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
-				{
-					pool.push_back(current);
-				}
+				GetGerberPosUseCamPos(centercam, lookat); //현재위치 기준 최단거리조건.
+			}
+			
 		};
 
 
@@ -714,8 +728,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				for (int i = 0; i < globalFiducial->GetCount(); i++)
 					if (globalFiducial->GetMark(i, temp))
 					{
-						if (temp.tgt_id == 2)
-							status.mark2 = temp;
+						if (temp.tgt_id == 1) status.mark1 = temp;
+						else if (temp.tgt_id == 2) status.mark2 = temp;
 						temp.SetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 						status.markList[ENG_AMTF::en_global].push_back(temp);
 						status.markList[ENG_AMTF::en_mixed].push_back(temp);

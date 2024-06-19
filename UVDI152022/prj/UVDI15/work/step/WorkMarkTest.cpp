@@ -354,7 +354,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 												 std::get<y>(currPosAfterRefind) - std::get<y>(currPosBeforeRefind));
 
 						//refindOffset = 
-						motions.status.offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x,currPath->mark_y, std::get<x>(posGab), std::get<x>(posGab),*currPath));
+						motions.status.offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x,currPath->mark_y, std::get<x>(posGab), std::get<y>(posGab),*currPath));
 						//다음부터 이동할 마크에 일괄적용. 
 						//PathExchange(grabMarkPath, posGab);
 					}

@@ -346,7 +346,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 					
 						if (m_enWorkState == ENG_JWNS::en_error) return true; //최종마크찾기 실패.
 
-						//차이가 얼마나 나는지 확인해야한다.(회전은 없다고 가정)
+						//차이가 얼마나 나는지 확인해야한다.
 
 						auto currPosAfterRefind = GetCurrStagePos();
 						const int x = 0, y = 1;

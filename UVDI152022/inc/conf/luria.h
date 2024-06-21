@@ -2845,6 +2845,28 @@ typedef struct __st_xml_mark_x_y__
 		return (reserve & flag) != 0;
 	}
 
+	STG_XMXY()
+	{
+		this->mark_x = 0;
+		this->mark_y = 0;
+
+		this->org_id=0;
+		this->tgt_id = 0;
+		
+		this->reserve = 0;
+	}
+
+	STG_XMXY(double markX, double markY)
+	{
+		this->mark_x = markX;
+		this->mark_y = markY;
+
+		this->org_id = 0;
+		this->tgt_id = 0;
+
+		this->reserve = 0;
+	}
+
 }	STG_XMXY,	*LPG_XMXY;
 
 typedef struct __st_mark_info__

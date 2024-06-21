@@ -5,6 +5,9 @@ using namespace std;
 
 #include "pch.h"
 #include "GlobalVariables.h"
+#include "work\Work.h"
+
+CommonMotionStuffs CommonMotionStuffs::inst;
 
 bool ConditionWrapper::WaitFor(std::chrono::milliseconds timeout)
 {
@@ -568,8 +571,6 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void AlignMotion::UpdateParamValues()
 	{
-		
-
 		LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
 
 		LPG_MACP thick = job != nullptr ? uvEng_ThickCali_GetRecipe(job->cali_thick) : nullptr;
@@ -647,36 +648,36 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		status.BufferClear();
 
 		auto GenOntheFly2camFid = [&]()
-	{
-			int tempX = 0, tempY = 0;
-			GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
+		{
+				int tempX = 0, tempY = 0;
+				GetFiducialDimension(ENG_AMTF::en_local, tempX, tempY);
 			
-			bool basicUp = true; // 위에서 아래로 올라갈경우이다. 
-			bool toUp = basicUp;
-			for (int i = 0; i < tempX; i++)
-			{
-				vector<STG_XMXY> temp;
-				std::copy(status.markList[ENG_AMTF::en_local].begin() + (i * tempY),
-					status.markList[ENG_AMTF::en_local].begin() + (i * tempY) + tempY,
-					std::back_inserter(temp));
+				bool basicUp = true; // 위에서 아래로 올라갈경우이다. 
+				bool toUp = basicUp;
+				for (int i = 0; i < tempX; i++)
+				{
+					vector<STG_XMXY> temp;
+					std::copy(status.markList[ENG_AMTF::en_local].begin() + (i * tempY),
+						status.markList[ENG_AMTF::en_local].begin() + (i * tempY) + tempY,
+						std::back_inserter(temp));
 
-				std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
+					std::copy(temp.begin(), temp.end(), std::back_inserter(status.markMapConst[i]));
 
-				auto tgt = &status.markPoolForCam[i >= (tempX / sideCamCnt) ? 2 : 1];
+					auto tgt = &status.markPoolForCam[i >= (tempX / sideCamCnt) ? 2 : 1];
 
-				if (i == tempX / sideCamCnt)
-					toUp = basicUp;
+					if (i == tempX / sideCamCnt)
+						toUp = basicUp;
 
-				if (toUp)
-					std::reverse(temp.begin(), temp.end());
+					if (toUp)
+						std::reverse(temp.begin(), temp.end());
 
-				toUp = !toUp;
+					toUp = !toUp;
 
-				tgt->insert(tgt->end(), temp.begin(), temp.end());
-			}
-			status.lastScanCount = tempX / sideCamCnt;
-			status.acamCount = sideCamCnt;
-		};
+					tgt->insert(tgt->end(), temp.begin(), temp.end());
+				}
+				status.lastScanCount = tempX / sideCamCnt;
+				status.acamCount = sideCamCnt;
+			};
 
 		auto GenStatic3camFid = [&]() //<-얘는 작업직전 실시간으로 해야함. 
 		{
@@ -686,9 +687,10 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			
 			vector<STG_XMXY> lookatPool;
 			
-			const bool USE_REFIND = true; //
+			
+			const bool useRefind = GlobalVariables::GetInstance()->GetRefindMotion().IsUseRefind();
 
-			if (USE_REFIND) //순서대로
+			if (useRefind) //순서대로
 			{
 				auto& pool = status.markPoolForCam[centercam];
 				auto flag = alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all;
@@ -701,6 +703,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			}
 			else //최단거리
 			{
+				GetGerberPosUseCamPos(centercam, lookat); //현재상황 기준 최단거리조건.
 				STG_XMXY current = lookat;
 				auto& pool = status.markPoolForCam[centercam];
 
@@ -709,10 +712,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 					{
 						pool.push_back(current);
 					}
-
-				GetGerberPosUseCamPos(centercam, lookat); //현재위치 기준 최단거리조건.
 			}
-			
 		};
 
 
@@ -868,3 +868,266 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 	{
 		//info에서 일단 가져옴.
 	}
+
+
+	
+RefindMotion::RefindMotion()
+{
+	rstValue = RSTValue();
+}
+
+bool RefindMotion::RSTValue::GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY)
+{
+	if (rstCalcReady == false)
+		return false;
+	
+
+	// 예상되는 선분의 벡터와 실제 관측된 선분의 벡터 계산
+	double originalVecX = orgEndX - orgStartX;
+	double originalVecY = orgEndY - orgStartY;
+	double observedVecX = obsEndX - obsStartX;
+	double observedVecY = obsEndY - obsStartY;
+
+	// 벡터의 크기 계산
+	double originalLength = std::sqrt(originalVecX * originalVecX + originalVecY * originalVecY);
+	double observedLength = std::sqrt(observedVecX * observedVecX + observedVecY * observedVecY);
+
+	// 스케일링 비율 계산
+	double scale = observedLength / originalLength;
+
+	// 벡터의 내적 계산
+	double dotProduct = originalVecX * observedVecX + originalVecY * observedVecY;
+
+	// 각도 계산
+	double cosTheta = dotProduct / (originalLength * observedLength);
+	double thetaRad = std::acos(cosTheta);
+
+	// 방향 결정 (외적을 사용하여 방향을 판단)
+	double crossProduct = originalVecX * observedVecY - originalVecY * observedVecX;
+	thetaRad = crossProduct < 0 ? -thetaRad : thetaRad;
+
+	// 예상 점을 원점으로 이동한 후 스케일링과 회전 적용
+	double translatedX = estimatedX - orgStartX;
+	double translatedY = estimatedY - orgStartY;
+	double scaledX = translatedX * scale;
+	double scaledY = translatedY * scale;
+	double rotatedX = scaledX * std::cos(thetaRad) - scaledY * std::sin(thetaRad);
+	double rotatedY = scaledX * std::sin(thetaRad) + scaledY * std::cos(thetaRad);
+
+	// 회전한 좌표를 실제 관측된 선분의 시작점으로 평행 이동
+	correctedX = rotatedX + obsStartX;
+	correctedY = rotatedY + obsStartY;
+}
+ 
+
+bool RefindMotion::GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY)
+{
+	return rstValue.GetEstimatePos(estimatedX, estimatedY, correctedX, correctedY);
+}
+
+
+//ROTATE, SCALE, TRANSFORM
+bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> representPoints,bool& errFlag)
+{
+	const int STABLE_TIME = 1000;
+	const int PAIR = 2;
+	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
+	errFlag = false;
+	tuple<double, double> diffOffset;
+
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	vector<tuple<STG_XMXY, double, double>> findOffsets;
+
+	if (representPoints.size() != PAIR)
+	{
+		errFlag = true;
+		return false;
+	}
+
+	auto res =  GlobalVariables::GetInstance()->Waiter([&]()->bool
+	{
+		try
+		{
+			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
+			auto currPath = representPoints.begin();
+			motions.MovetoGerberPos(centerCam, *currPath);
+			sleep(100);
+
+			motions.Refresh();
+			if (motions.NowOnMoving() == true)
+				return false;
+
+			if (CommonMotionStuffs::GetInstance().SingleGrab(centerCam) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+				throw exception();
+
+			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam));
+			return true;
+
+			auto findRes = ProcessRefind(centerCam);
+
+			if (findRes == false)
+				throw exception();
+
+			auto currPosAfterRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
+
+			diffOffset = make_tuple(std::get<0>(currPosAfterRefind) - std::get<0>(currPosBeforeRefind),
+									std::get<1>(currPosAfterRefind) - std::get<1>(currPosBeforeRefind));
+
+			findOffsets.push_back(make_tuple(*currPath, std::get<0>(diffOffset), std::get<1>(diffOffset)));
+			representPoints.erase(currPath);
+
+			if (representPoints.empty()) 
+				return true; //정상완료
+		}
+		catch (...)
+		{
+			errFlag = true;
+			return true;
+		}
+	}, 60 * 1000 * 2);
+
+	if (res == false)
+		return res;
+
+	//여기서 rst 계산.
+
+	
+	rstValue = RSTValue(std::get<0>(findOffsets[0]).mark_x, std::get<0>(findOffsets[0]).mark_y,
+						std::get<0>(findOffsets[1]).mark_x, std::get<0>(findOffsets[1]).mark_y,
+						std::get<0>(findOffsets[0]).mark_x + std::get<1>(findOffsets[0]), std::get<0>(findOffsets[0]).mark_y + std::get<2>(findOffsets[0]),
+						std::get<0>(findOffsets[1]).mark_x + std::get<1>(findOffsets[1]), std::get<0>(findOffsets[1]).mark_y + std::get<2>(findOffsets[1]));
+						
+	return true;
+
+}
+
+bool RefindMotion::ProcessRefind(int centerCam)
+{
+	UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
+	UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010, MUP = 0b00100100, MDOWN = 0b00101000;
+	const int STABLE_TIME = 1000;
+
+	bool sutable = false;
+	vector<int> searchMap = { MUP,MRIGHT,MDOWN,MDOWN,MLEFT,MLEFT,MUP,MUP };
+
+	auto step = searchMap.begin();
+
+	while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
+	{
+		auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
+		auto modeDelta = (*step & MLEFT) != 0 || (*step & MRIGHT) != 0 ? stepSizeX : stepSizeY;
+		modeDelta = ((*step & MLEFT) != 0 || (*step & MUP) != 0) ? modeDelta * -1 : modeDelta;
+
+		if (sutable = CommonMotionStuffs::GetInstance().MoveAxis(targetAxis, false, modeDelta, true) && sutable == false)
+			break;  //이동실패
+
+		this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+
+		sutable = CommonMotionStuffs::GetInstance().SingleGrab(centerCam);
+		
+		if (sutable == false) //그랩실패
+			break;
+
+		sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam);
+		if (sutable == true) //마크찾기 성공.
+			break;
+
+		sutable = uvEng_Camera_RemoveLastGrab(centerCam);
+		if (sutable == false) //막장빼야함.
+			break;
+
+		step++;
+	}
+
+	return sutable;
+}
+
+tuple<double, double> CommonMotionStuffs::GetCurrStagePos()
+{
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	motions.Refresh();
+	return make_tuple(motions.GetAxises()["stage"]["x"].currPos, motions.GetAxises()["stage"]["y"].currPos);
+}
+
+bool CommonMotionStuffs::SingleGrab(int camIndex)
+{
+	auto triggerMode = uvEng_Camera_GetTriggerMode(camIndex);
+	static vector<function<bool()>> trigAction =
+	{
+		[&]() {return uvEng_Camera_SWGrab(camIndex); },
+		[&]() {return uvEng_Mvenc_ReqTrigOutOne(camIndex); },
+	};
+
+	return trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1]();
+}
+
+bool CommonMotionStuffs::IsMarkFindInLastGrab()
+{
+	auto lastGrab = uvEng_Camera_GetLastGrabbedMark();
+
+	if (lastGrab == nullptr) return false; //그랩 자체가 문제.
+	if (lastGrab->IsMarkValid()) return true; //이젠 찾을필요가 없다. 
+	if (lastGrab->score_rate > 0 || lastGrab->scale_rate > 0) return true; //이게 좀 그런데 이건 찾긴했으나 조건이 좀 안좋은상태, 여기서 최적조건 찾는 로직으로 또 빠질수가 있다. 
+}
+
+bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx)
+{
+	CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
+
+	int cnt = grabs->GetCount();
+	if (cnt == 0) return false;
+
+	LPG_ACGR lastGrab = nullptr;
+
+	for (int i = 0; i < grabs->GetCount(); i++)
+	{
+		auto grab = grabs->GetAt(grabs->FindIndex(i));
+		if (grab->cam_id != camIdx) continue;
+		if (grab->IsMarkValid()) continue;
+		if (lastGrab->score_rate == 0 || lastGrab->scale_rate == 0) continue;
+
+		lastGrab = grab;
+	}
+
+	return lastGrab == nullptr ? false : true;
+}
+
+void CommonMotionStuffs::GetCurrentOffsets(int centerCam , STG_XMXY* mark, CaliPoint& alignOffset, CaliPoint& expoOffset)
+{
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	string temp = "x" + std::to_string(centerCam);
+
+	auto markPos = mark->GetMarkPos();
+
+	alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos,
+		motions.GetAxises()["stage"]["y"].currPos,
+		centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+
+	expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+
+	alignOffset.srcFid = *mark;
+	expoOffset.srcFid = *mark;
+}
+
+bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout)
+{
+	double curr = uvCmn_MC2_GetDrvAbsPos(axis);
+
+	double dest = absolute ? pos : curr + pos;
+
+	if (uvCmn_MC2_IsDriveError(axis) || uvCmn_MC2_IsMotorDriveStopAll() == false ||
+		CInterLockManager::GetInstance()->CheckMoveInterlock(axis, dest))
+		return false;
+
+	uvCmn_MC2_GetDrvDoneToggled(axis);
+
+	BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, uvEng_GetConfig()->mc2_svc.step_velo);
+
+	if (waiting && res)
+		res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvCmn_MC2_IsDrvDoneToggled(axis);
+			}, timeout);
+
+	return res;
+}

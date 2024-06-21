@@ -228,6 +228,8 @@ public:
 
 };
 
+
+
 class TriggerManager : TriggerBase
 {
 public:
@@ -488,6 +490,81 @@ public:
 	std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.	
 };
 
+
+class CommonMotionStuffs
+{
+private:
+	static  CommonMotionStuffs inst;
+
+public:
+	static CommonMotionStuffs& GetInstance()
+	{
+		return inst;
+	}
+	
+	tuple<double, double> GetCurrStagePos();
+
+	bool SingleGrab(int camIndex);
+
+	bool IsMarkFindInLastGrab();
+
+	bool IsMarkFindInLastGrab(int camIdx);
+
+	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000);
+
+	void GetCurrentOffsets(int centerCam, STG_XMXY* mark, CaliPoint& alignOffset, CaliPoint& expoOffset);
+	
+
+};
+
+class RefindMotion
+{
+	struct  RSTValue
+	{
+		double orgStartX, orgStartY, orgEndX, orgEndY;
+		double obsStartX, obsStartY, obsEndX, obsEndY;
+		bool rstCalcReady;
+
+		void GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
+
+		RSTValue()
+		{
+			this->rstCalcReady = false;
+		}
+
+		RSTValue(double orgStartX, double orgStartY, double orgEndX, double orgEndY, double obsStartX, double obsStartY, double obsEndX, double obsEndY)
+		{
+			this->orgStartX = orgStartX;
+			this->orgStartY = orgStartY;
+			this->orgEndX = orgEndX;
+			this->orgEndY = orgEndY;
+			this->obsStartX = obsStartX;
+			this->obsStartY = obsStartY;
+			this->obsEndX = obsEndX;
+			this->obsEndY = obsEndY;
+			this->rstCalcReady = true;
+		}
+	};
+
+
+private:
+	bool useRefind;
+	double stepSizeX, stepSizeY;
+	RSTValue rstValue;
+public:
+	bool IsUseRefind() { return useRefind; }
+
+	RefindMotion();
+
+	bool ProcessRefind(int centerCam);
+	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag);//ROTATE, SCALE, TRANSFORM
+	bool GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
+	
+
+	
+
+};
+
 class AlignMotion
 {
 public:
@@ -550,7 +627,6 @@ public:
 	bool CheckAlignScanFinished(int scanCount);
 	//void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);
 
-
 	bool GetFiducialInfo(int camIndex, CAtlList <LPG_ACGR>* grabPool, int index, STG_XMXY& xmxy)
 	{
 		auto pool = status.markPoolForCam[camIndex];
@@ -608,6 +684,7 @@ private:
 	map<string, thread> waiter;
 	mutex motionMutex;
 	unique_ptr<AlignMotion> alignMotion;
+	unique_ptr<RefindMotion> refindMotion;
 	unique_ptr<TriggerManager> triggerManager;
 	unique_ptr<WebMonitor> webMonitor;
 	unique_ptr<Environment> environment;
@@ -630,6 +707,11 @@ public:
 		return *alignMotion;
 	}
 
+	RefindMotion& GetRefindMotion()
+	{
+		return *refindMotion;
+	}
+
 	TriggerManager& GetTrigger()
 	{
 		return *triggerManager;
@@ -649,6 +731,7 @@ public:
 	{
 		GetAlignMotion().Destroy();
 		alignMotion.reset();
+		refindMotion.reset();
 		triggerManager.reset();
 		webMonitor.reset();
 		environment.reset();
@@ -736,6 +819,7 @@ public:
 		ResetCounter("strobeRecved");
 		ResetCounter("mainUpdate");
 		alignMotion = make_unique<AlignMotion>();
+		refindMotion = make_unique<RefindMotion>();
 		alignMotion.get()->motionMutex = &motionMutex;
 		webMonitor = make_unique<WebMonitor>();
 		triggerManager = make_unique<TriggerManager>();

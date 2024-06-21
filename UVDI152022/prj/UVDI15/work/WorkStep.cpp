@@ -1729,6 +1729,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
 			if (find == offsetPool.end())
 			{
+				temp = CaliPoint();
 				return false;
 			}
 			temp = (*find);
@@ -1760,8 +1761,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 						return find;
 					};
 
-	double refineOffsetX = 0, refineOffsetY = 0;
-	motions.status.GetRefindOffset(refineOffsetX, refineOffsetY);
 
 	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
 	{
@@ -1809,15 +1808,20 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f",(isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-		CaliPoint expoOffset;
-		CaliPoint alignOffset;
+		CaliPoint expoOffset, alignOffset,refindOffset;
+		
 		/*if (GetOffset(OffsetType::align, temp.tgt_id, offset) == false)
 			return ENG_JWNS::en_error;*/
 
-		temp.mark_x -= (grab->move_mm_x + refineOffsetX);
-		temp.mark_y -= (grab->move_mm_y + refineOffsetY);
+		temp.mark_x -= grab->move_mm_x; 
+		temp.mark_y -= grab->move_mm_y;
 		
 		temp.reserve = grab->reserve;
+
+
+		GetOffset(OffsetType::refind, temp.tgt_id, refindOffset);
+		temp.mark_x += refindOffset.offsetX; //<내 생각엔 +가 맞는데 잘 모르겠다.  일단 모션만보자. 
+		temp.mark_y += refindOffset.offsetY;
 
 		//map<int, tuple<double, double>> manualOffsetMap =
 		//{
@@ -1826,6 +1830,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		//	{2,make_tuple(-0.0065,-0.0067)},
 		//	{3,make_tuple(-0.0157,-0.007)}
 		//};
+
 
 
 		if (pstSetAlign->use_mark_offset)// && useManual == false
@@ -1844,6 +1849,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			temp.mark_x -= foffsetX;
 			temp.mark_y -= foffsetY;
 		}
+		
+		
+		
+
+
 		/*else
 		{
 			auto foffsetX = std::get<0>(manualOffsetMap[temp.tgt_id]);

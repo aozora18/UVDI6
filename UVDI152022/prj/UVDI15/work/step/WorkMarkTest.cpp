@@ -232,7 +232,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 					if (filteredPath.size() != PAIR)
 						throw exception();
 					
-					if(refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath , errFlag) == false)
+					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag);
+
+					if(errFlag == true)
 						throw exception();
 
 					//여기서 2개 빼주면되겠네. 근데 테스트를 위해서 일단 빼주지는 않는다. 

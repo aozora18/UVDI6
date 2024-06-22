@@ -525,7 +525,7 @@ class RefindMotion
 		double obsStartX, obsStartY, obsEndX, obsEndY;
 		bool rstCalcReady;
 
-		void GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
+		bool GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
 
 		RSTValue()
 		{
@@ -557,7 +557,7 @@ public:
 	RefindMotion();
 
 	bool ProcessRefind(int centerCam);
-	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag);//ROTATE, SCALE, TRANSFORM
+	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag, std::vector<STG_XMXY>& offsetPoints);//ROTATE, SCALE, TRANSFORM
 	bool GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
 	
 

@@ -881,7 +881,6 @@ bool RefindMotion::RSTValue::GetEstimatePos(double estimatedX, double estimatedY
 	if (rstCalcReady == false)
 		return false;
 	
-
 	// 예상되는 선분의 벡터와 실제 관측된 선분의 벡터 계산
 	double originalVecX = orgEndX - orgStartX;
 	double originalVecY = orgEndY - orgStartY;
@@ -927,27 +926,26 @@ bool RefindMotion::GetEstimatePos(double estimatedX, double estimatedY, double& 
 
 
 //ROTATE, SCALE, TRANSFORM
-bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> representPoints,bool& errFlag)
+bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> representPoints,bool& errFlag, std::vector<STG_XMXY>& offsetPoints)
 {
 	const int STABLE_TIME = 1000;
 	const int PAIR = 2;
 	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
 	errFlag = false;
-	tuple<double, double> diffOffset;
+	tuple<double, double> diffOffset; //절대좌표 차이값
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	vector<tuple<STG_XMXY, double, double>> findOffsets;
+	vector<tuple<STG_XMXY, double, double>> findOffsets; //원래 좌표 구조 , 절대좌표 차이값
 
-	if (representPoints.size() != PAIR)
-	{
-		errFlag = true;
-		return false;
-	}
+	
 
 	auto res =  GlobalVariables::GetInstance()->Waiter([&]()->bool
 	{
 		try
 		{
+			if (representPoints.size() != PAIR)
+				throw exception();
+
 			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 			auto currPath = representPoints.begin();
 			motions.MovetoGerberPos(centerCam, *currPath);
@@ -961,7 +959,10 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 				throw exception();
 
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam));
-			return true;
+			{
+				offsetPoints.push_back(STG_XMXY(0, 0, currPath->org_id));
+				return true;
+			}
 
 			auto findRes = ProcessRefind(centerCam);
 
@@ -972,7 +973,17 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 			diffOffset = make_tuple(std::get<0>(currPosAfterRefind) - std::get<0>(currPosBeforeRefind),
 									std::get<1>(currPosAfterRefind) - std::get<1>(currPosBeforeRefind));
-
+			
+			offsetPoints.push_back(STG_XMXY(std::get<0>(diffOffset), std::get<1>(diffOffset), currPath->org_id));
+			//if (&offsetPool != nullptr) //옵셋풀이 주어졌을땐 추가해야함. //여기다 이거 넣는게 맘안들어죽것네 ㅡㅡ;
+			//{
+			//	CaliPoint expo, align, refind;
+			//	CommonMotionStuffs::GetInstance().GetCurrentOffsets(centerCam, &*currPath, align, expo);
+			//	offsetPool[OffsetType::align].push_back(align);
+			//	offsetPool[OffsetType::expo].push_back(expo);
+			//	offsetPool[OffsetType::refind].push_back(CaliPoint(0,0, std::get<0>(diffOffset), std::get<1>(diffOffset),*currPath));
+			//}
+			//
 			findOffsets.push_back(make_tuple(*currPath, std::get<0>(diffOffset), std::get<1>(diffOffset)));
 			representPoints.erase(currPath);
 
@@ -1001,7 +1012,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 }
 
-bool RefindMotion::ProcessRefind(int centerCam)
+bool RefindMotion::ProcessRefind(int centerCam) //패턴기반.
 {
 	UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
 	UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010, MUP = 0b00100100, MDOWN = 0b00101000;

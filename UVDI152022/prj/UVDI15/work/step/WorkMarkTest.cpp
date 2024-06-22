@@ -225,23 +225,32 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 				try
 				{
-					std::vector<STG_XMXY> filteredPath;
+					std::vector<STG_XMXY> filteredPath, offsetBuff;
 					std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
 								[](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
 
 					if (filteredPath.size() != PAIR)
 						throw exception();
 					
-					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag);
+					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag, offsetBuff);
 
 					if(errFlag == true)
 						throw exception();
 
-					//여기서 2개 빼주면되겠네. 근데 테스트를 위해서 일단 빼주지는 않는다. 
+					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(), 
+												[](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+					
+					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]), [&](STG_XMXY v)->CaliPoint 
+					{
+						auto find = std::find_if(filteredPath.begin(), filteredPath.end(), [&](STG_XMXY sv) {return sv.org_id == v.org_id; });
+						return CaliPoint(find->mark_x,find->mark_y, v.mark_x,v.mark_y,*find); 
+					}); //리파인드 옵셋에 2개 추가.
 
-					//아니야 여기서 빼줘야한다. 
-
-
+					grabMarkPath.erase(match, grabMarkPath.end());//2포인트는 끝났으니 빼주면된다. 
+					
+					//*****************************************************************************//
+					CaliPoint expo, align;
+					sdfasdf
 
 					m_enWorkState = ENG_JWNS::en_next;
 				}
@@ -258,128 +267,134 @@ void CWorkMarkTest::DoAlignStaticCam()
 			bool complete = false;
 
 			//옵셋을 찾기위한 기준 거버 2개를 취한다. 
-			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
-
-					if (motions.NowOnMoving() == true)
+					try
 					{
-						this_thread::sleep_for(chrono::milliseconds(100));
-					}
-					else
-					{
-						STG_XMXY estimatedXMXY;
-						auto currPath = grabMarkPath.begin();
-						double estimatedX = 0, estimatedY = 0;
-						refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
-
-						auto arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
-						if (arrival == false) return false;
-
-						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-						motions.Refresh();
-
-
-						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+						if (motions.NowOnMoving() == true)
 						{
-							m_enWorkState = ENG_JWNS::en_error;
-							return true;
+							this_thread::sleep_for(chrono::milliseconds(100));
 						}
-
-						grabMarkPath.erase(currPath);
-
-						if (grabMarkPath.empty())
+						else
 						{
-							//여기서 두 점간 옵셋및 회전 유추.
+							STG_XMXY estimatedXMXY;
+							auto currPath = grabMarkPath.begin();
+							double estimatedX = 0, estimatedY = 0;
+							bool arrival = false;
 
+							if (refindMotion.IsUseRefind())
+							{
+								refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
+								arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
+							}
+							else
+								arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
 
-							return true;
+							
+							if (arrival == false) return false;
+
+							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+							motions.Refresh();
+
+							if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+								throw exception();
+
+							if (refindMotion.ProcessRefind(CENTER_CAM) == false) //못찾았음 큰일.
+								throw exception();
+
+							grabMarkPath.erase(currPath);
+
+							if (grabMarkPath.empty())
+								return true;
 						}
-
-
 					}
-				});
-
-			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
-			{
-				if (motions.NowOnMoving() == true)
-				{
-					this_thread::sleep_for(chrono::milliseconds(100));
-				}
-				else
-				{
-					auto currPath = grabMarkPath.begin();
-					auto arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
-					
-					if (arrival == false) return false;
-					
-					this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-					motions.Refresh();
-
-					if (refindMotion.IsUseRefind() == true)
-					{
-
-						std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
-							[](const STG_XMXY& v) { return v.tgt_id == 1 || v.tgt_id == 2; });
-
-
-						refindMotion.ProcessEstimateRST()
-					}
-					else
-					{
-
-					}
-
-					if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+					catch (...)
 					{
 						m_enWorkState = ENG_JWNS::en_error;
 						return true;
-					}
+					}}, (60 * 1000) * grabMarkPath.size());
 
-					//여기서 현재 위치기반 보정정보 갖고오기.
-					CaliPoint alignOffset, expoOffset;// , refindOffset;
-					
-					if (refindMotion.IsUseRefind() == true) 
-					{
-						auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
-						auto findRes = refindMotion.ProcessRefind(CENTER_CAM);
-						m_enWorkState = findRes == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
-					
-						if (m_enWorkState == ENG_JWNS::en_error) return true; //최종마크찾기 실패.
+			//complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			//{
+			//	if (motions.NowOnMoving() == true)
+			//	{
+			//		this_thread::sleep_for(chrono::milliseconds(100));
+			//	}
+			//	else
+			//	{
+			//		auto currPath = grabMarkPath.begin();
+			//		auto arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
+			//		
+			//		if (arrival == false) return false;
+			//		
+			//		this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+			//		motions.Refresh();
 
-						//차이가 얼마나 나는지 확인해야한다.
+			//		if (refindMotion.IsUseRefind() == true)
+			//		{
 
-						auto currPosAfterRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
-						const int x = 0, y = 1;
-						auto posGab = make_tuple(std::get<x>(currPosAfterRefind) - std::get<x>(currPosBeforeRefind) ,
-												 std::get<y>(currPosAfterRefind) - std::get<y>(currPosBeforeRefind));
+			//			std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
+			//				[](const STG_XMXY& v) { return v.tgt_id == 1 || v.tgt_id == 2; });
 
-						motions.status.offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x,currPath->mark_y, std::get<x>(posGab), std::get<y>(posGab),*currPath));
-					}
-					
-					SetCurrentOffsets(&(*currPath), alignOffset, expoOffset);
 
-					offsetPool[OffsetType::align].push_back(alignOffset);
-					offsetPool[OffsetType::expo].push_back(expoOffset);
+			//			refindMotion.ProcessEstimateRST()
+			//		}
+			//		else
+			//		{
 
-					if (uvEng_GetConfig()->set_align.use_2d_cali_data)
-					{
-						TCHAR tzMsg[255] = { NULL };
-						uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-						swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
-						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-						swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
-						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-						swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
-						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-					}
-					
-					grabMarkPath.erase(currPath);
+			//		}
 
-					if (grabMarkPath.empty())
-						return true; //정상완료
-				}
-				return false;
-			}, (60 * 1000) * grabMarkPath.size());
+			//		if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+			//		{
+			//			m_enWorkState = ENG_JWNS::en_error;
+			//			return true;
+			//		}
+
+			//		//여기서 현재 위치기반 보정정보 갖고오기.
+			//		CaliPoint alignOffset, expoOffset;// , refindOffset;
+			//		
+			//		if (refindMotion.IsUseRefind() == true) 
+			//		{
+			//			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
+			//			auto findRes = refindMotion.ProcessRefind(CENTER_CAM);
+			//			m_enWorkState = findRes == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+			//		
+			//			if (m_enWorkState == ENG_JWNS::en_error) return true; //최종마크찾기 실패.
+
+			//			//차이가 얼마나 나는지 확인해야한다.
+
+			//			auto currPosAfterRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
+			//			const int x = 0, y = 1;
+			//			auto posGab = make_tuple(std::get<x>(currPosAfterRefind) - std::get<x>(currPosBeforeRefind) ,
+			//									 std::get<y>(currPosAfterRefind) - std::get<y>(currPosBeforeRefind));
+
+			//			motions.status.offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x,currPath->mark_y, std::get<x>(posGab), std::get<y>(posGab),*currPath));
+			//		}
+			//		
+			//		SetCurrentOffsets(&(*currPath), alignOffset, expoOffset);
+
+			//		offsetPool[OffsetType::align].push_back(alignOffset);
+			//		offsetPool[OffsetType::expo].push_back(expoOffset);
+
+			//		if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+			//		{
+			//			TCHAR tzMsg[255] = { NULL };
+			//			uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+			//			swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
+			//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			//			swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
+			//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			//			swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
+			//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			//		}
+			//		
+			//		grabMarkPath.erase(currPath);
+
+			//		if (grabMarkPath.empty())
+			//			return true; //정상완료
+			//	}
+			//	return false;
+			//}, (60 * 1000) * grabMarkPath.size());
 			
 			m_enWorkState = complete == true && m_enWorkState != ENG_JWNS::en_error ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		},

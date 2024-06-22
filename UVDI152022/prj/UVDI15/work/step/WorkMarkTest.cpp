@@ -225,9 +225,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 				try
 				{
-					std::vector<STG_XMXY> filteredPath, offsetBuff;
+					std::vector<STG_XMXY> filteredPath, offsetBuff, offsetAdapteduff;;
 					std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
-								[](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+								[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
 
 					if (filteredPath.size() != PAIR)
 						throw exception();
@@ -247,10 +247,17 @@ void CWorkMarkTest::DoAlignStaticCam()
 					}); //리파인드 옵셋에 2개 추가.
 
 					grabMarkPath.erase(match, grabMarkPath.end());//2포인트는 끝났으니 빼주면된다. 
-					
+
+			
 					//*****************************************************************************//
 					CaliPoint expo, align;
-					sdfasdf
+			
+					for (int i = 0; i < PAIR; i++)
+					{
+						CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, &(filteredPath[i] + offsetBuff[i]), align, expo);
+						offsetPool[OffsetType::align].push_back(align);
+						offsetPool[OffsetType::expo].push_back(expo);
+					}
 
 					m_enWorkState = ENG_JWNS::en_next;
 				}
@@ -266,31 +273,32 @@ void CWorkMarkTest::DoAlignStaticCam()
 			const int STABLE_TIME = 1000;
 			bool complete = false;
 
-			//옵셋을 찾기위한 기준 거버 2개를 취한다. 
 				complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
 					try
 					{
 						if (motions.NowOnMoving() == true)
 						{
-							this_thread::sleep_for(chrono::milliseconds(100));
+							return false;
 						}
 						else
 						{
 							STG_XMXY estimatedXMXY;
-							auto currPath = grabMarkPath.begin();
-							double estimatedX = 0, estimatedY = 0;
+							auto currPath = grabMarkPath.begin(); //refind의
+							
 							bool arrival = false;
 
 							if (refindMotion.IsUseRefind())
 							{
+								double estimatedX = 0, estimatedY = 0;
 								refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
 								arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
 							}
 							else
+							{
 								arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
+							}
 
-							
 							if (arrival == false) return false;
 
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));

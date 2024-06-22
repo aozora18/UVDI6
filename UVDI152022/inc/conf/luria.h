@@ -2867,6 +2867,34 @@ typedef struct __st_xml_mark_x_y__
 		this->reserve = 0;
 	}
 
+	__st_xml_mark_x_y__ operator+(const __st_xml_mark_x_y__& other) const 
+	{
+		__st_xml_mark_x_y__ result;
+		result.mark_x = this->mark_x + other.mark_x;
+		result.mark_y = this->mark_y + other.mark_y;
+
+		result.org_id = this->org_id;
+		result.tgt_id = this->tgt_id;
+
+		result.reserve = this->reserve;
+		
+		return result;
+	}
+
+	__st_xml_mark_x_y__ operator-(const __st_xml_mark_x_y__& other) const
+	{
+		__st_xml_mark_x_y__ result;
+		result.mark_x = this->mark_x - other.mark_x;
+		result.mark_y = this->mark_y - other.mark_y;
+
+		result.org_id = this->org_id;
+		result.tgt_id = this->tgt_id;
+
+		result.reserve = this->reserve;
+
+		return result;
+	}
+
 }	STG_XMXY,	*LPG_XMXY;
 
 typedef struct __st_mark_info__

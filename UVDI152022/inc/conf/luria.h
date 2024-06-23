@@ -2875,6 +2875,17 @@ typedef struct __st_xml_mark_x_y__ : __st_xml_mark_x_y__extensions
 		this->reserve = 0;
 	}
 
+	__st_xml_mark_x_y__(double markX, double markY)
+	{
+		this->mark_x = markX;
+		this->mark_y = markY;
+
+		this->org_id = 0;
+		this->tgt_id = 0;
+
+		this->reserve = 0;
+	}
+
 	__st_xml_mark_x_y__(double markX, double markY,int markID)
 	{
 		this->mark_x = markX;

@@ -1013,18 +1013,22 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 }
 
-bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>& refindOffset) //패턴기반.
+bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refindOffset, std::tuple<double, double>* grabOffset) //패턴기반.
 {
 	UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
 	UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010, MUP = 0b00100100, MDOWN = 0b00101000;
+	
+	double grabOffsetX = 0, grabOffsetY;
 	const int STABLE_TIME = 1000;
-	refindOffset = make_tuple(0, 0);
+	
+	if(refindOffset != nullptr)
+		*refindOffset = make_tuple(0, 0);
+
 	auto prevStagePos = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 	bool sutable = false;
 	vector<int> searchMap = { MUP,MRIGHT,MDOWN,MDOWN,MLEFT,MLEFT,MUP,MUP };
 
 	auto step = searchMap.begin();
-
 	while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
 	{
 		auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
@@ -1041,7 +1045,6 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>& refi
 		if (sutable == false) //그랩실패
 			break;
 
-		
 		sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam);
 		if (sutable == true) //마크찾기 성공.
 			break;
@@ -1053,10 +1056,10 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>& refi
 		step++;
 	}
 
-	if (sutable)
+	if (sutable && refindOffset != nullptr)
 	{
 		auto currStagePos = CommonMotionStuffs::GetInstance().GetCurrStagePos();
-		refindOffset = make_tuple(std::get<0>(currStagePos) - std::get<0>(prevStagePos) ,
+		*refindOffset = make_tuple(std::get<0>(currStagePos) - std::get<0>(prevStagePos) ,
 								  std::get<1>(currStagePos) - std::get<1>(prevStagePos));
 	}
 	return sutable;

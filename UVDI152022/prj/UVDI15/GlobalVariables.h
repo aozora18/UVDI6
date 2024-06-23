@@ -508,11 +508,11 @@ public:
 
 	bool IsMarkFindInLastGrab();
 
-	bool IsMarkFindInLastGrab(int camIdx);
+	bool IsMarkFindInLastGrab(int camIdx, double* grabOffsetX = nullptr, double* grabOffsetY = nullptr);
 
 	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000);
 
-	void GetCurrentOffsets(int centerCam, STG_XMXY* mark, CaliPoint& alignOffset, CaliPoint& expoOffset);
+	void GetCurrentOffsets(int centerCam, STG_XMXY mark, CaliPoint& alignOffset, CaliPoint& expoOffset);
 	
 
 };
@@ -557,7 +557,7 @@ public:
 	RefindMotion();
 
 	bool ProcessRefind(int centerCam);
-	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag, std::vector<STG_XMXY>& offsetPoints);//ROTATE, SCALE, TRANSFORM
+	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag, std::vector<STG_XMXY>& refindOffsetPoints);//ROTATE, SCALE, TRANSFORM
 	bool GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
 	
 

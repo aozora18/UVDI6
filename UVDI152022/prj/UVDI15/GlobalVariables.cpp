@@ -926,7 +926,7 @@ bool RefindMotion::GetEstimatePos(double estimatedX, double estimatedY, double& 
 
 
 //ROTATE, SCALE, TRANSFORM
-bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> representPoints,bool& errFlag, std::vector<STG_XMXY>& offsetPoints)
+bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> representPoints,bool& errFlag, std::vector<STG_XMXY>& refindOffsetPoints)
 {
 	const int STABLE_TIME = 1000;
 	const int PAIR = 2;
@@ -936,8 +936,6 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	vector<tuple<STG_XMXY, double, double>> findOffsets; //원래 좌표 구조 , 절대좌표 차이값
-
-	
 
 	auto res =  GlobalVariables::GetInstance()->Waiter([&]()->bool
 	{
@@ -958,9 +956,11 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			if (CommonMotionStuffs::GetInstance().SingleGrab(centerCam) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 				throw exception();
 
-			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam));
+			
+			double grabOffsetX = 0, grabOffsetY = 0;
+			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY));
 			{
-				offsetPoints.push_back(STG_XMXY(0, 0, currPath->org_id));
+				refindOffsetPoints.push_back(STG_XMXY(currPath->mark_x, currPath->mark_y, grabOffsetX, grabOffsetY, currPath->org_id));
 				return true;
 			}
 
@@ -974,7 +974,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			diffOffset = make_tuple(std::get<0>(currPosAfterRefind) - std::get<0>(currPosBeforeRefind),
 									std::get<1>(currPosAfterRefind) - std::get<1>(currPosBeforeRefind));
 			
-			offsetPoints.push_back(STG_XMXY(std::get<0>(diffOffset), std::get<1>(diffOffset), currPath->org_id));
+			refindOffsetPoints.push_back(STG_XMXY(std::get<0>(diffOffset), std::get<1>(diffOffset), grabOffsetX, grabOffsetX, currPath->org_id));
 			//if (&offsetPool != nullptr) //옵셋풀이 주어졌을땐 추가해야함. //여기다 이거 넣는게 맘안들어죽것네 ㅡㅡ;
 			//{
 			//	CaliPoint expo, align, refind;
@@ -1039,6 +1039,7 @@ bool RefindMotion::ProcessRefind(int centerCam) //패턴기반.
 		if (sutable == false) //그랩실패
 			break;
 
+		
 		sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam);
 		if (sutable == true) //마크찾기 성공.
 			break;
@@ -1081,7 +1082,7 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab()
 	if (lastGrab->score_rate > 0 || lastGrab->scale_rate > 0) return true; //이게 좀 그런데 이건 찾긴했으나 조건이 좀 안좋은상태, 여기서 최적조건 찾는 로직으로 또 빠질수가 있다. 
 }
 
-bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx)
+bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, double* grabOffsetY)
 {
 	CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
 
@@ -1097,18 +1098,22 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx)
 		if (grab->IsMarkValid()) continue;
 		if (lastGrab->score_rate == 0 || lastGrab->scale_rate == 0) continue;
 
+		if(grabOffsetX != nullptr)
+			*grabOffsetX = grab->move_mm_x;
+		if (grabOffsetY != nullptr)
+			*grabOffsetY = grab->move_mm_y;
 		lastGrab = grab;
 	}
 
 	return lastGrab == nullptr ? false : true;
 }
 
-void CommonMotionStuffs::GetCurrentOffsets(int centerCam , STG_XMXY* mark, CaliPoint& alignOffset, CaliPoint& expoOffset)
+void CommonMotionStuffs::GetCurrentOffsets(int centerCam , STG_XMXY mark, CaliPoint& alignOffset, CaliPoint& expoOffset)
 {
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	string temp = "x" + std::to_string(centerCam);
 
-	auto markPos = mark->GetMarkPos();
+	auto markPos = mark.GetMarkPos();
 
 	alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos,
 		motions.GetAxises()["stage"]["y"].currPos,
@@ -1116,8 +1121,8 @@ void CommonMotionStuffs::GetCurrentOffsets(int centerCam , STG_XMXY* mark, CaliP
 
 	expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
 
-	alignOffset.srcFid = *mark;
-	expoOffset.srcFid = *mark;
+	alignOffset.srcFid = mark;
+	expoOffset.srcFid = mark;
 }
 
 bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout)

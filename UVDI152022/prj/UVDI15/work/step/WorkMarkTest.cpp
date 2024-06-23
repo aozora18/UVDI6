@@ -240,7 +240,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(), 
 												[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
 					
-					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]), [&](STG_XMXY v)->CaliPoint 
+					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]), 
+					[&](STG_XMXY v)->CaliPoint 
 					{
 						auto find = std::find_if(filteredPath.begin(), filteredPath.end(), [&](STG_XMXY sv) {return sv.org_id == v.org_id; });
 						return CaliPoint(find->mark_x,find->mark_y, v.mark_x,v.mark_y,*find); 
@@ -254,7 +255,11 @@ void CWorkMarkTest::DoAlignStaticCam()
 			
 					for (int i = 0; i < PAIR; i++)
 					{
-						CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, &(filteredPath[i] + offsetBuff[i]), align, expo);
+						auto combine = filteredPath[i] + offsetBuff[i];
+						combine.mark_x += filteredPath[i].offsetX; //그랩에러옵셋까지 포함한거.
+						combine.mark_y += filteredPath[i].offsetY; //그랩에러옵셋까지 포함한거.
+						CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combine, align, expo);
+					
 						offsetPool[OffsetType::align].push_back(align);
 						offsetPool[OffsetType::expo].push_back(expo);
 					}
@@ -283,14 +288,17 @@ void CWorkMarkTest::DoAlignStaticCam()
 						}
 						else
 						{
-							STG_XMXY estimatedXMXY;
-							auto currPath = grabMarkPath.begin(); //refind의
 							
+							auto currPath = grabMarkPath.begin(); 
+							bool refind = refindMotion.IsUseRefind();
 							bool arrival = false;
+							double grabOffsetX=0, grabOffsetY = 0;
+							double estimatedX = 0, estimatedY = 0;
+							STG_XMXY estimatedXMXY = STG_XMXY(currPath->mark_x, currPath->mark_y, currPath->org_id);
 
-							if (refindMotion.IsUseRefind())
+							if (refind)
 							{
-								double estimatedX = 0, estimatedY = 0;
+								
 								refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
 								arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
 							}
@@ -307,8 +315,40 @@ void CWorkMarkTest::DoAlignStaticCam()
 							if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 								throw exception();
 
-							if (refindMotion.ProcessRefind(CENTER_CAM) == false) //못찾았음 큰일.
-								throw exception();
+							auto found = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(CENTER_CAM, &grabOffsetX, &grabOffsetY);
+
+							if (found == false)
+							{
+								
+							}
+							else
+							{
+
+								CaliPoint alignOffset, expoOffset;
+
+								STG_XMXY combineAddGrabOffset = STG_XMXY(currPath->mark_x + (estimatedXMXY.mark_x - currPath->mark_x) + grabOffsetX,
+															currPath->mark_y + (estimatedXMXY.mark_y - currPath->mark_y) + grabOffsetY,
+															currPath->org_id);
+
+								
+
+								CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
+								offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x - currPath->mark_x,estimatedXMXY.mark_y - currPath->mark_y));
+								offsetPool[OffsetType::align].push_back(alignOffset);
+								offsetPool[OffsetType::expo].push_back(expoOffset);
+
+								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+								{
+									TCHAR tzMsg[255] = { NULL };
+									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+									swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+									swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+									swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
+									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+								}
+							}
 
 							grabMarkPath.erase(currPath);
 

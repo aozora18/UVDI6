@@ -2818,8 +2818,13 @@ enum STG_XMXY_RESERVE_FLAG : UINT32
 	USED =      0b0000000000000000000000001000000000000000,
 };
 
+typedef struct __st_xml_mark_x_y__extensions
+{
+	double offsetX, offsetY;
+} STG_XMXY_EX;
+
 /* XML에서 읽어들인 마크 구성 정보 */
-typedef struct __st_xml_mark_x_y__
+typedef struct __st_xml_mark_x_y__ : __st_xml_mark_x_y__extensions
 {
 	UINT32				org_id;		/* Sorting 이전에 저장된 메모리 저장 위치 (XML 파일로부터 읽어들인 순서) */
 	UINT32				tgt_id;		/* Sorting 이후에 저장된 메모리 저장 위치 (얼라인 마크 검사를 위한 순서) */
@@ -2853,6 +2858,20 @@ typedef struct __st_xml_mark_x_y__
 		this->org_id=0;
 		this->tgt_id = 0;
 		
+		this->reserve = 0;
+	}
+
+	__st_xml_mark_x_y__(double markX, double markY,double offsetX, double offsetY, int markID)
+	{
+		this->mark_x = markX;
+		this->mark_y = markY;
+
+		this->offsetX = offsetX;
+		this->offsetY = offsetY;
+
+		this->org_id = markID;
+		this->tgt_id = markID;
+
 		this->reserve = 0;
 	}
 

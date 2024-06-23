@@ -559,7 +559,7 @@ BOOL CJobSelectXml::SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
 	DOUBLE dbMinY = +999999.0f;
 	DOUBLE dbMaxY = -999999.0f;
 	LPG_XMXY pstXY = NULL, pstNext;
-	STG_XMXY stXY = { NULL };
+	STG_XMXY stXY = { STG_XMXY(), };
 
 	map<double, double> mx, my;
 
@@ -753,7 +753,7 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 	UINT16 i, u16Row = 0, u16Col = 0, u16Cnt = 0/* Stripe 내의 1 Block 마다 Fiducial 개수 */;
 	BOOL bSharedType = FALSE;
 	/* Gerber X, Y 좌표 저장 임시 리스트 */
-	STG_XMXY stOrgXY = { NULL }, stBmpXY = { NULL }, stGbrXY = { NULL };
+	STG_XMXY stOrgXY = { STG_XMXY(),}, stBmpXY = { STG_XMXY(), }, stGbrXY = { STG_XMXY() ,};
 	CAtlList <STG_XMXY> lstGbrXY;
 
 	tinyxml2::XMLDocument xmlDoc;
@@ -1330,7 +1330,7 @@ BOOL CJobSelectXml::IsMarkExistGlobal()
 */
 DOUBLE CJobSelectXml::GetGlobalMarkDist(ENG_GMDD direct)
 {
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(),};
 
 	if (!GetGlobalMark(direct, stData[0], stData[1]))	return 0.0f;
 	/* 절대 값 반환 */
@@ -1348,7 +1348,7 @@ DOUBLE CJobSelectXml::GetGlobalMarkDiffX(UINT8 mark_x1, UINT8 mark_x2)
 	if (!m_pFidGlobal)	return 0;
 
 	UINT8 u8Mark = (UINT8)m_pFidGlobal->GetCount();
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(),};
 
 	if ((u8Mark != 4) && (u8Mark != 2) && (u8Mark != 3))	return 0;
 	if (mark_x1 < 1 || mark_x2 < 1 || mark_x1 > 4 || mark_x2 > 4 || mark_x1 == mark_x2)	return 0;
@@ -1372,7 +1372,7 @@ DOUBLE CJobSelectXml::GetGlobalMarkDiffY(UINT8 mark_y1, UINT8 mark_y2)
 	if (!m_pFidGlobal)	return 0;
 
 	UINT8 u8Mark = (UINT8)m_pFidGlobal->GetCount();
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(), };
 
 	if ((u8Mark != 4) && (u8Mark != 2) && (u8Mark != 3))	return 0;
 	if (mark_y1 < 1 || mark_y2 < 1 || mark_y1 > 4 || mark_y2 > 4 || mark_y1 == mark_y2)	return 0;
@@ -1398,7 +1398,7 @@ DOUBLE CJobSelectXml::GetGlobalMarkDiffVertX(UINT8 type)
 	if (!m_pFidGlobal)	return 0;
 
 	UINT8 u8Mark = (UINT8)m_pFidGlobal->GetCount();
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(), };
 
 #if 0
 	/* 마크 개수가 부족한지 여부 확인 */
@@ -1442,7 +1442,7 @@ DOUBLE CJobSelectXml::GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 {
 	UINT8 u8CamX1 = 0x00, u8CamX2 = 0x00;
 	DOUBLE dbDiff = 0.0f;
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(), };
 
 	//if (scan > 1)	return 0; 이제 스캔제한이 없어야함.
 
@@ -1540,7 +1540,7 @@ DOUBLE CJobSelectXml::GetLocalMarkACam12DistX(UINT8 mode, UINT8 scan)
 */
 DOUBLE CJobSelectXml::GetLocalMarkDiffY(UINT8 mark_y1, UINT8 mark_y2)
 {
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(), };
 
 	if (m_pFidLocal->GetCount() <= mark_y1 ||
 		m_pFidLocal->GetCount() <= mark_y2)	return 0;
@@ -1565,7 +1565,7 @@ UINT32 CJobSelectXml::GetLocalMarkDiffVertX(UINT8 scan,
 	CAtlList <DOUBLE>& cam1, CAtlList <DOUBLE>& cam2)
 {
 	UINT8 i, u8Count = 0x00, u8CamX1 = 0x00, u8CamX2 = 0x00;
-	STG_XMXY stTgt[2] = { NULL }, stOrg[2] = { NULL };
+	STG_XMXY stTgt[2] = { STG_XMXY(), }, stOrg[2] = { STG_XMXY(), };
 
 	//if (scan > 1)	return 0; //이젠 스캔제한 없어야한다. 
 
@@ -1703,7 +1703,7 @@ UINT32 CJobSelectXml::GetLocalMarkDiffVertX(UINT8 scan,
 DOUBLE CJobSelectXml::GetGlobalLeftRightBottomDiffY()
 {
 	UINT16 u16Index[2] = { 1, 3 };	/* 기본 Global Mark가 4개인 경우 */
-	STG_XMXY stData[2] = { NULL };
+	STG_XMXY stData[2] = { STG_XMXY(), };
 
 	if (!m_pFidGlobal)	return 0;
 	/* Global Mark가 2 or 4개인 여부에 따라 */
@@ -1728,7 +1728,7 @@ DOUBLE CJobSelectXml::GetGlobalLeftRightBottomDiffY()
 DOUBLE CJobSelectXml::GetGlobalBaseMarkLocalDiffY(UINT8 direct, UINT8 index)
 {
 	BOOL bSucc = FALSE;
-	STG_XMXY stGlobal = { NULL }, stLocal = { NULL };;
+	STG_XMXY stGlobal = { STG_XMXY(), }, stLocal = { STG_XMXY(), };;
 	double absTolerance = 1;
 
 

@@ -278,89 +278,85 @@ void CWorkMarkTest::DoAlignStaticCam()
 			const int STABLE_TIME = 1000;
 			bool complete = false;
 
-				complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				try
 				{
-					try
+					if (motions.NowOnMoving() == true)
 					{
-						if (motions.NowOnMoving() == true)
+						return false;
+					}
+					else
+					{
+							
+						auto currPath = grabMarkPath.begin(); 
+						bool refind = refindMotion.IsUseRefind();
+						bool arrival = false;
+						double grabOffsetX=0, grabOffsetY = 0;
+						double estimatedX = 0, estimatedY = 0;
+						STG_XMXY estimatedXMXY = STG_XMXY(currPath->mark_x, currPath->mark_y, currPath->org_id);
+
+						if (refind)
+							refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
+						
+						arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
+
+
+						if (arrival == false) return false;
+
+						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+						motions.Refresh();
+
+						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+							throw exception();
+
+						auto found = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(CENTER_CAM, &grabOffsetX, &grabOffsetY);
+
+						if (found == false)
 						{
-							return false;
+							if (refind)
+							{
+
+							}
 						}
 						else
 						{
-							
-							auto currPath = grabMarkPath.begin(); 
-							bool refind = refindMotion.IsUseRefind();
-							bool arrival = false;
-							double grabOffsetX=0, grabOffsetY = 0;
-							double estimatedX = 0, estimatedY = 0;
-							STG_XMXY estimatedXMXY = STG_XMXY(currPath->mark_x, currPath->mark_y, currPath->org_id);
 
-							if (refind)
+							CaliPoint alignOffset, expoOffset;
+
+							STG_XMXY combineAddGrabOffset = STG_XMXY(currPath->mark_x + (estimatedXMXY.mark_x - currPath->mark_x) + grabOffsetX,
+														currPath->mark_y + (estimatedXMXY.mark_y - currPath->mark_y) + grabOffsetY,
+														currPath->org_id);
+
+							CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
+							offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x - currPath->mark_x,estimatedXMXY.mark_y - currPath->mark_y));
+							offsetPool[OffsetType::align].push_back(alignOffset);
+							offsetPool[OffsetType::expo].push_back(expoOffset);
+
+							if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 							{
-								
-								refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
-								arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
+								TCHAR tzMsg[255] = { NULL };
+								uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+								swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
+								LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+								swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
+								LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+								swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
+								LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 							}
-							else
-							{
-								arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
-							}
-
-							if (arrival == false) return false;
-
-							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-							motions.Refresh();
-
-							if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
-								throw exception();
-
-							auto found = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(CENTER_CAM, &grabOffsetX, &grabOffsetY);
-
-							if (found == false)
-							{
-								
-							}
-							else
-							{
-
-								CaliPoint alignOffset, expoOffset;
-
-								STG_XMXY combineAddGrabOffset = STG_XMXY(currPath->mark_x + (estimatedXMXY.mark_x - currPath->mark_x) + grabOffsetX,
-															currPath->mark_y + (estimatedXMXY.mark_y - currPath->mark_y) + grabOffsetY,
-															currPath->org_id);
-
-								
-
-								CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
-								offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x - currPath->mark_x,estimatedXMXY.mark_y - currPath->mark_y));
-								offsetPool[OffsetType::align].push_back(alignOffset);
-								offsetPool[OffsetType::expo].push_back(expoOffset);
-
-								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
-								{
-									TCHAR tzMsg[255] = { NULL };
-									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-									swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
-									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-									swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
-									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-									swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
-									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-								}
-							}
-
-							grabMarkPath.erase(currPath);
-
-							if (grabMarkPath.empty())
-								return true;
 						}
+
+						grabMarkPath.erase(currPath);
+
+						if (grabMarkPath.empty())
+							return true;
 					}
-					catch (...)
-					{
-						m_enWorkState = ENG_JWNS::en_error;
-						return true;
-					}}, (60 * 1000) * grabMarkPath.size());
+				}
+				catch (...)
+				{
+					m_enWorkState = ENG_JWNS::en_error;
+					return true;
+				}}, (60 * 1000) * grabMarkPath.size());
 
 			//complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 			//{

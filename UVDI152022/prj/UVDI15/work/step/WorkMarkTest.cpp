@@ -336,8 +336,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 									//Ã£À½.
 									STG_XMXY temp = STG_XMXY(currPath->mark_x + (std::get<0>(refindOffset) + std::get<0>(grabOffset)),
 															 currPath->mark_y + (std::get<1>(refindOffset) + std::get<1>(grabOffset)));
+
 									CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, temp, alignOffset, expoOffset);
-									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset));
+									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset)));
 								}
 							}
 							else

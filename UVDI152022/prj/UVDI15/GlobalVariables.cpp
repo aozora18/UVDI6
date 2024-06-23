@@ -382,8 +382,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 				for (int i = 0; i < posList.size(); i++)
 				{
-					int dx = posList[i].mark_x - pos.mark_x;
-					int dy = posList[i].mark_y - pos.mark_y;
+					double dx = posList[i].mark_x - pos.mark_x;
+					double dy = posList[i].mark_y - pos.mark_y;
 
 					double dist = std::sqrt(dx * dx + dy * dy);
 					if (dist < minDist)
@@ -958,14 +958,14 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 			
 			double grabOffsetX = 0, grabOffsetY = 0;
-			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY));
+			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
 				refindOffsetPoints.push_back(STG_XMXY(currPath->mark_x, currPath->mark_y, grabOffsetX, grabOffsetY, currPath->org_id));
 				return true;
 			}
 
-			tuple<double, double> refindOffset;
-			auto findRes = ProcessRefind(centerCam, diffOffset);
+			tuple<double, double> refindOffset = make_tuple(0,0);
+			auto findRes = ProcessRefind(centerCam, &diffOffset);
 
 			if (findRes == false)
 				throw exception();

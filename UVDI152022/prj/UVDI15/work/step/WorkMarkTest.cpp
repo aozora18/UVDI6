@@ -238,7 +238,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						throw exception();
 
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(), 
-												[](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+												[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
 					
 					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]), [&](STG_XMXY v)->CaliPoint 
 					{

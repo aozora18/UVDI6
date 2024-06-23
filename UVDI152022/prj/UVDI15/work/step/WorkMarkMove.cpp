@@ -116,7 +116,7 @@ void CWorkMarkMove::DoMovingStatic2cam()
 
 }
 
-STG_XMXY markPos = { 0 };
+STG_XMXY markPos = { STG_XMXY(), };
 
 void CWorkMarkMove::DoMovingStatic3cam()
 {

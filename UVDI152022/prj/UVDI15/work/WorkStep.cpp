@@ -1167,7 +1167,7 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 
 	DOUBLE dbACamDistXY[2], dbAlignStageY;
 	DOUBLE dbMarkDist, dbDiffMarkX, dbStageVelo, dbACamVelo;
-	STG_XMXY stPoint		= {NULL};
+	STG_XMXY stPoint		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	LPG_CMSI pstMC2Svc		= &uvEng_GetConfig()->mc2_svc;
 	LPG_RJAF pstRecipe		= uvEng_JobRecipe_GetSelectRecipe();
@@ -1874,7 +1874,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	BOOL bSucc = TRUE;
 	CAtlList <STG_XMXY> lsOrgMarks;
 	const int CrossLengthCount = 6;
-	STG_XMXY stMarkPos1 = { NULL }, stMarkPos2 = { NULL };
+	STG_XMXY stMarkPos1 = { STG_XMXY(), }, stMarkPos2 = { STG_XMXY(), };
 	UINT8 u8Reg1[6] = { 0, 1, 0, 2, 0, 1 }, u8Reg2[6] = { 2, 3, 1, 3, 3, 2 };
 	INT32 i32Inverse = 1, i32DistS[6] = { NULL }, i32DistT[6] = { NULL };
 	for (i = 0; i < status.globalMarkCnt; i++)
@@ -1996,7 +1996,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	BOOL bSucc = TRUE;
 	INT32 i32Inverse = 1, i32DistS[6] = { NULL }, i32DistT[6] = { NULL };
 	UINT32 u32MarkDist = 0;
-	STG_XMXY stMarkPos1 = { NULL }, stMarkPos2 = { NULL };
+	STG_XMXY stMarkPos1 = { STG_XMXY(), }, stMarkPos2 = { STG_XMXY(), };
 	CAtlList <STG_XMXY> lstMarks;
 	LPG_I32XY pstMarks = NULL;
 	LPG_ACGR pstGrab = NULL;

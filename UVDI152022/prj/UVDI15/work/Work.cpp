@@ -340,8 +340,8 @@ BOOL CWork::IsValidMarkCount()
 BOOL CWork::IsGerberMarkValidCheck()
 {
 	BOOL bSucc			= TRUE;
-	STG_XMXY stPosX[2]	= {NULL};
-	STG_XMXY stPosY[2]	= {NULL};
+	STG_XMXY stPosX[2]	= { STG_XMXY(), };
+	STG_XMXY stPosY[2]	= { STG_XMXY(), };
 	LPG_CASI pstSpec	= &uvEng_GetConfig()->acam_spec;
 
 	/* ------------------------------------------------- */
@@ -699,7 +699,7 @@ INT32 CWork::GetLeftRightBottomMarkPosY(ENG_AMTF mark, UINT8 scan, UINT8 direct)
 {
 	UINT8 u8Left, u8Right;
 	DOUBLE dbDiffMarkY		= 0, dbMark2StageY	= 0;
-	STG_XMXY stMarkPos		= {NULL};
+	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
 	LPG_RJAF pstRecipe		= uvEng_JobRecipe_GetSelectRecipe();
@@ -768,7 +768,7 @@ INT32 CWork::GetLeftRightBottomMarkPosY(ENG_AMTF mark, UINT8 scan, UINT8 direct)
 INT32 CWork::GetGlobalMarkMotionPosY(UINT8 mark_no)
 {
 	DOUBLE dbDiffMarkY		= 0, dbMark2StageY	= 0;
-	STG_XMXY stMarkPos		= {NULL};
+	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
@@ -807,7 +807,7 @@ INT32 CWork::GetGlobalMarkMotionPosY(UINT8 mark_no)
 INT32 CWork::GetLocalMarkMotionPosY(UINT8 index)
 {
 	DOUBLE dbDiffMarkY		= 0, dbMark2StageY	= 0;
-	STG_XMXY stMarkPos		= {NULL};
+	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
@@ -1221,7 +1221,7 @@ VOID CWork::GetACamCentDistXY(DOUBLE &dist_x, DOUBLE &dist_y)
 INT32 CWork::GetACam1Mark2MotionX(UINT8 mark_no)
 {
 	INT32 i32Mark2ACamX		= 0;
-	STG_XMXY stMarkPos		= {NULL};
+	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
@@ -1589,7 +1589,7 @@ DOUBLE CWork::GetACamMark2MotionX(UINT16 mark_no)
 	UINT8 u8MarkCount	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);	/* Global Mark 개수 */
 	INT32 i32Mark2ACamX	= 0;
 	DOUBLE dbMark2ACamX	= 0.0f;
-	STG_XMXY stMarkPos	= {NULL};
+	STG_XMXY stMarkPos	= { STG_XMXY(), };
 	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	//LPG_RAAF pstRecipe	= uvEng_Mark_GetSelectAlignRecipe();	/* 현재 선택된 거버 레시피 */
@@ -1633,7 +1633,7 @@ BOOL CWork::GetGlobalMarkMoveXY(UINT16 mark_no, DOUBLE &acam_x, DOUBLE &stage_y)
 {
 	UINT8 u8Mark		= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
 	DOUBLE dbACamDistX	= 0.0f, dbACamDistY = 0.0f;	/* 2 대 이상의 Align Camera 일 경우, 각 Camera 간의 설치 오차 값 (단위: mm) */
-	STG_XMXY stMarkPos	= {NULL};	/* mark_no에 대한 좌표 위치 얻기 */
+	STG_XMXY stMarkPos	= { STG_XMXY(), };	/* mark_no에 대한 좌표 위치 얻기 */
 	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
 	LPG_RJAF pstRecipe	= NULL;
 	LPG_MACP pstThick	= NULL;

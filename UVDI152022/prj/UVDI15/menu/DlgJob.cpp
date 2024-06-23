@@ -2384,7 +2384,7 @@ VOID CDlgJob::MarkRateMarkDist()
 	BOOL bSucc = TRUE;
 	UINT8 i, u8MarkG = 0x00;
 	//INT32 i32DistS[6] = { NULL };
-	STG_XMXY stMarkPos1 = { NULL }, stMarkPos2 = { NULL };
+	STG_XMXY stMarkPos1 = { STG_XMXY(), }, stMarkPos2 = { STG_XMXY(), };
 	UINT8 u8Reg1[6] = { 0, 1, 0, 2, 0, 1 }, u8Reg2[6] = { 2, 3, 1, 3, 3, 2 };
 	CAtlList <STG_XMXY> lstMarks;
 	CUniToChar csCnv;

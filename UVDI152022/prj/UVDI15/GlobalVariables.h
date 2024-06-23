@@ -556,7 +556,7 @@ public:
 
 	RefindMotion();
 
-	bool ProcessRefind(int centerCam);
+	bool ProcessRefind(int centerCam, std::tuple<double, double>& refindOffset);
 	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag, std::vector<STG_XMXY>& refindOffsetPoints);//ROTATE, SCALE, TRANSFORM
 	bool GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
 	

@@ -278,6 +278,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 			const int STABLE_TIME = 1000;
 			bool complete = false;
 
+			 
+
 			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 			{
 				try
@@ -299,10 +301,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 						if (refind)
 							refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
 						
-						arrival = motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY);
-
-
-						if (arrival == false) return false;
+						if (motions.MovetoGerberPos(CENTER_CAM, estimatedXMXY) == false)
+							throw exception();
 
 						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 						motions.Refresh();
@@ -316,7 +316,25 @@ void CWorkMarkTest::DoAlignStaticCam()
 						{
 							if (refind)
 							{
+								if (motions.MovetoGerberPos(CENTER_CAM, *currPath) == false)//오리지널 포지션으로 이동.
+									throw exception();
 
+								if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+									throw exception();
+
+								tuple<double, double> refindOffset;
+								auto found = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(CENTER_CAM, &grabOffsetX, &grabOffsetY);
+								if (found == true) //원래좌표에선 존재함
+								{
+									여기작업중.
+								}
+								else
+								{
+									if(refindMotion.ProcessRefind(CENTER_CAM, refindOffset) == false) //원좌표 회귀 후에 refind후 못찾았을때
+										throw exception();
+								
+									//찾음.
+								}
 							}
 						}
 						else

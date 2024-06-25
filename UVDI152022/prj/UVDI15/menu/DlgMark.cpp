@@ -2057,7 +2057,7 @@ VOID CDlgMark::SetMatchModel()
 
 		auto triggerMode = uvEng_Camera_GetTriggerMode(u8ACamID);
 
-		static vector<function<bool()>> trigAction =
+		vector<function<bool()>> trigAction =
 		{
 			[&]() {return uvEng_Camera_SWGrab(u8ACamID); },
 			[&]() 

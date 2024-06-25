@@ -874,6 +874,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 RefindMotion::RefindMotion()
 {
 	rstValue = RSTValue();
+	useRefind = true;
+	stepSizeX = 1;
+	stepSizeY = 1;
 }
 
 bool RefindMotion::RSTValue::GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY)
@@ -937,14 +940,20 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	vector<tuple<STG_XMXY, double, double>> findOffsets; //원래 좌표 구조 , 절대좌표 차이값
 
+	
+	 
+	if (representPoints.size() != PAIR)
+	{
+		errFlag = true;
+		return true;
+	}
+
+
 	auto res =  GlobalVariables::GetInstance()->Waiter([&]()->bool
 	{
 		try
 		{
-			if (representPoints.size() != PAIR)
-				throw exception();
-
-//			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
+			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 			auto currPath = representPoints.begin();
 			motions.MovetoGerberPos(centerCam, *currPath);
 			sleep(100);
@@ -958,38 +967,32 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 			
 			double grabOffsetX = 0, grabOffsetY = 0;
+			diffOffset = make_tuple(0, 0);
+
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
-				refindOffsetPoints.push_back(STG_XMXY(currPath->mark_x, currPath->mark_y, grabOffsetX, grabOffsetY, currPath->org_id));
-				return true;
+				refindOffsetPoints.push_back(STG_XMXY(0, 0, grabOffsetX, grabOffsetY, currPath->org_id));
+			}
+			else
+			{
+				tuple<double, double> refindOffset = make_tuple(0, 0);
+				auto findRes = ProcessRefind(centerCam, &diffOffset);
+
+				if (findRes == false)
+					throw exception();
+
+				refindOffsetPoints.push_back(STG_XMXY(std::get<0>(diffOffset), std::get<1>(diffOffset), grabOffsetX, grabOffsetX, currPath->org_id));
 			}
 
-			tuple<double, double> refindOffset = make_tuple(0,0);
-			auto findRes = ProcessRefind(centerCam, &diffOffset);
-
-			if (findRes == false)
-				throw exception();
-
-			//auto currPosAfterRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
-
-			/*diffOffset = make_tuple(std::get<0>(currPosAfterRefind) - std::get<0>(currPosBeforeRefind),
-									std::get<1>(currPosAfterRefind) - std::get<1>(currPosBeforeRefind));*/
 			
-			refindOffsetPoints.push_back(STG_XMXY(std::get<0>(diffOffset), std::get<1>(diffOffset), grabOffsetX, grabOffsetX, currPath->org_id));
-			//if (&offsetPool != nullptr) //옵셋풀이 주어졌을땐 추가해야함. //여기다 이거 넣는게 맘안들어죽것네 ㅡㅡ;
-			//{
-			//	CaliPoint expo, align, refind;
-			//	CommonMotionStuffs::GetInstance().GetCurrentOffsets(centerCam, &*currPath, align, expo);
-			//	offsetPool[OffsetType::align].push_back(align);
-			//	offsetPool[OffsetType::expo].push_back(expo);
-			//	offsetPool[OffsetType::refind].push_back(CaliPoint(0,0, std::get<0>(diffOffset), std::get<1>(diffOffset),*currPath));
-			//}
-			//
 			findOffsets.push_back(make_tuple(*currPath, std::get<0>(diffOffset), std::get<1>(diffOffset)));
+
 			representPoints.erase(currPath);
 
 			if (representPoints.empty()) 
 				return true; //정상완료
+
+			return false;
 		}
 		catch (...)
 		{
@@ -998,7 +1001,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 		}
 	}, 60 * 1000 * 2);
 
-	if (res == false)
+	if (res == false || errFlag == true)
 		return res;
 
 	//여기서 rst 계산.
@@ -1075,13 +1078,25 @@ tuple<double, double> CommonMotionStuffs::GetCurrStagePos()
 bool CommonMotionStuffs::SingleGrab(int camIndex)
 {
 	auto triggerMode = uvEng_Camera_GetTriggerMode(camIndex);
-	static vector<function<bool()>> trigAction =
+	vector<function<bool()>> trigAction =
 	{
 		[&]() {return uvEng_Camera_SWGrab(camIndex); },
 		[&]() {return uvEng_Mvenc_ReqTrigOutOne(camIndex); },
 	};
+	auto res = trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1]();
+	
+	if (res)
+	{
+		int cnt = GetGrabCnt(camIndex);
 
-	return trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1]();
+		res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return cnt != GetGrabCnt(camIndex);
+		}, 3000);
+
+	}
+
+	return res;
 }
 
 bool CommonMotionStuffs::IsMarkFindInLastGrab()
@@ -1093,6 +1108,27 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab()
 	if (lastGrab->score_rate > 0 || lastGrab->scale_rate > 0) return true; //이게 좀 그런데 이건 찾긴했으나 조건이 좀 안좋은상태, 여기서 최적조건 찾는 로직으로 또 빠질수가 있다. 
 }
 
+int CommonMotionStuffs::GetGrabCnt(int camIdx)
+{
+	CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
+
+	
+	if (grabs->GetCount() == 0) return 0;
+	int cnt = 0;
+
+	LPG_ACGR lastGrab = nullptr;
+	uvEng_Camera_TryEnterCS();
+	for (int i = 0; i < grabs->GetCount(); i++)
+	{
+		auto grab = grabs->GetAt(grabs->FindIndex(i));
+		if (grab->cam_id != camIdx) continue;
+		cnt++;
+		
+	}
+	uvEng_Camera_ExitCS();
+	return cnt;
+}
+
 bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, double* grabOffsetY)
 {
 	CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
@@ -1101,13 +1137,13 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, do
 	if (cnt == 0) return false;
 
 	LPG_ACGR lastGrab = nullptr;
-
+	uvEng_Camera_TryEnterCS();
 	for (int i = 0; i < grabs->GetCount(); i++)
 	{
 		auto grab = grabs->GetAt(grabs->FindIndex(i));
 		if (grab->cam_id != camIdx) continue;
-		if (grab->IsMarkValid()) continue;
-		if (lastGrab->score_rate == 0 || lastGrab->scale_rate == 0) continue;
+		if (grab->IsMarkValid() == false) continue;
+		if (grab->score_rate <= 0 && grab->scale_rate == 0) continue;
 
 		if(grabOffsetX != nullptr)
 			*grabOffsetX = grab->move_mm_x;
@@ -1115,7 +1151,7 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, do
 			*grabOffsetY = grab->move_mm_y;
 		lastGrab = grab;
 	}
-
+	uvEng_Camera_ExitCS();
 	return lastGrab == nullptr ? false : true;
 }
 

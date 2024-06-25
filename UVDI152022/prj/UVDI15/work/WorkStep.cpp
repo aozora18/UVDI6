@@ -1742,6 +1742,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
 
 						LPG_ACGR find = nullptr;
+						uvEng_Camera_TryEnterCS();
 						for (int i = 0; i < grabs->GetCount(); i++)
 						{
 							auto grab = grabs->GetAt(grabs->FindIndex(i));
@@ -1758,6 +1759,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 								break;
 							}
 						}
+						uvEng_Camera_ExitCS();
 						return find;
 					};
 

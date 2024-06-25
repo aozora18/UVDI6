@@ -48,7 +48,7 @@ typedef enum class __en_vision_cam_capture_mode__ : UINT8
 
 typedef enum class __en_vision_cam_trigger_mode__ : UINT8
 {
-	en_line_none = 0x00,
+	en_mode_none = 0x00,
 	en_line_mode = 0x01,
 	en_Sw_mode = 0x02,
 

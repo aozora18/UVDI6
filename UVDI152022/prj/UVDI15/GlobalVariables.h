@@ -507,6 +507,7 @@ public:
 	bool SingleGrab(int camIndex);
 
 	bool IsMarkFindInLastGrab();
+	int GetGrabCnt(int camIdx);
 
 	bool IsMarkFindInLastGrab(int camIdx, double* grabOffsetX = nullptr, double* grabOffsetY = nullptr);
 
@@ -555,6 +556,7 @@ public:
 	bool IsUseRefind() { return useRefind; }
 
 	RefindMotion();
+	
 
 	bool ProcessRefind(int centerCam, std::tuple<double, double>* refindOffset = nullptr, std::tuple<double, double>* grabOffset = nullptr);
 	bool ProcessEstimateRST(int centerCam , std::vector<STG_XMXY> representPoints, bool& errFlag, std::vector<STG_XMXY>& refindOffsetPoints);//ROTATE, SCALE, TRANSFORM

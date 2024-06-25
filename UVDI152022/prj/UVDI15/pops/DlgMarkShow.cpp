@@ -254,7 +254,7 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 	});
 
 	auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
-	
+	uvEng_Camera_TryEnterCS();
 	if (find != pool.end())
 	{	
 		int min = bIsLocal ? status.globalMarkCnt : 0;
@@ -269,7 +269,7 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 			}
 		}
 	}
-
+	uvEng_Camera_ExitCS();
 	return nImgID;
 }
 

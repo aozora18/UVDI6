@@ -161,8 +161,12 @@ void CWorkMarkTest::DoAlignStaticCam()
 	int CENTER_CAM = motions.markParams.centerCamIdx;
 
 	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
-	static vector<function<void()>> stepWork =
+	vector<function<void()>> stepWork =
 	{
+		[&]()
+		{
+			m_enWorkState = ENG_JWNS::en_next;
+		},
 		[&]() 
 		{
 			if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
@@ -220,7 +224,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			else
 			{
 				const int PAIR = 2;
-				const int MARK1 = 1, MARK2 = 2;
+				const int MARK1 = 0, MARK2 = 1;
 				bool errFlag = false;
 
 				try
@@ -256,8 +260,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 					for (int i = 0; i < PAIR; i++)
 					{
 						auto combine = filteredPath[i] + offsetBuff[i];
-						combine.mark_x += filteredPath[i].offsetX; //그랩에러옵셋까지 포함한거.
-						combine.mark_y += filteredPath[i].offsetY; //그랩에러옵셋까지 포함한거.
+						combine.mark_x += offsetBuff[i].offsetX; //그랩에러옵셋까지 포함한거.
+						combine.mark_y += offsetBuff[i].offsetY; //그랩에러옵셋까지 포함한거.
 						CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combine, align, expo);
 					
 						offsetPool[OffsetType::align].push_back(align);
@@ -366,7 +370,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 						if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 						{
-							TCHAR tzMsg[255] = { NULL };
+							TCHAR tzMsg[256] = { NULL };
 							uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
 							swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
 							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
@@ -380,6 +384,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 						if (grabMarkPath.empty())
 							return true;
+
+						return false;
 					}
 				}
 				catch (...)
@@ -388,88 +394,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 					return true;
 				}}, (60 * 1000) * grabMarkPath.size());
 
-			//complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
-			//{
-			//	if (motions.NowOnMoving() == true)
-			//	{
-			//		this_thread::sleep_for(chrono::milliseconds(100));
-			//	}
-			//	else
-			//	{
-			//		auto currPath = grabMarkPath.begin();
-			//		auto arrival = motions.MovetoGerberPos(CENTER_CAM, *currPath);
-			//		
-			//		if (arrival == false) return false;
-			//		
-			//		this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-			//		motions.Refresh();
-
-			//		if (refindMotion.IsUseRefind() == true)
-			//		{
-
-			//			std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
-			//				[](const STG_XMXY& v) { return v.tgt_id == 1 || v.tgt_id == 2; });
-
-
-			//			refindMotion.ProcessEstimateRST()
-			//		}
-			//		else
-			//		{
-
-			//		}
-
-			//		if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
-			//		{
-			//			m_enWorkState = ENG_JWNS::en_error;
-			//			return true;
-			//		}
-
-			//		//여기서 현재 위치기반 보정정보 갖고오기.
-			//		CaliPoint alignOffset, expoOffset;// , refindOffset;
-			//		
-			//		if (refindMotion.IsUseRefind() == true) 
-			//		{
-			//			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
-			//			auto findRes = refindMotion.ProcessRefind(CENTER_CAM);
-			//			m_enWorkState = findRes == false ? ENG_JWNS::en_next : ENG_JWNS::en_error;
-			//		
-			//			if (m_enWorkState == ENG_JWNS::en_error) return true; //최종마크찾기 실패.
-
-			//			//차이가 얼마나 나는지 확인해야한다.
-
-			//			auto currPosAfterRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
-			//			const int x = 0, y = 1;
-			//			auto posGab = make_tuple(std::get<x>(currPosAfterRefind) - std::get<x>(currPosBeforeRefind) ,
-			//									 std::get<y>(currPosAfterRefind) - std::get<y>(currPosBeforeRefind));
-
-			//			motions.status.offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x,currPath->mark_y, std::get<x>(posGab), std::get<y>(posGab),*currPath));
-			//		}
-			//		
-			//		SetCurrentOffsets(&(*currPath), alignOffset, expoOffset);
-
-			//		offsetPool[OffsetType::align].push_back(alignOffset);
-			//		offsetPool[OffsetType::expo].push_back(expoOffset);
-
-			//		if (uvEng_GetConfig()->set_align.use_2d_cali_data)
-			//		{
-			//			TCHAR tzMsg[255] = { NULL };
-			//			uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-			//			swprintf_s(tzMsg, 256, L"%s", currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");
-			//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-			//			swprintf_s(tzMsg, 256, L"align%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, alignOffset.offsetX, alignOffset.offsetY);
-			//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-			//			swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
-			//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-			//		}
-			//		
-			//		grabMarkPath.erase(currPath);
-
-			//		if (grabMarkPath.empty())
-			//			return true; //정상완료
-			//	}
-			//	return false;
-			//}, (60 * 1000) * grabMarkPath.size());
-			
 			m_enWorkState = complete == true && m_enWorkState != ENG_JWNS::en_error ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		},
 		[&]()

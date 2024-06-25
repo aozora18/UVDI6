@@ -609,7 +609,7 @@ API_EXPORT bool uvBasler_Camera_SWGrab(int camIdx)
 
 API_EXPORT ENG_TRGM uvBasler_GetTriggerMode(int camIdx)
 {
-	if (!g_pCamThread)	return ENG_TRGM::en_line_none;
+	if (!g_pCamThread)	return ENG_TRGM::en_mode_none;
 		return g_pCamThread->GetTriggerMode(camIdx);
 }
 

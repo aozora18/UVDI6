@@ -2957,7 +2957,7 @@ ENG_JWNS CWorkStep::IsStepDutyFrame()
  parm : None
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkStep::SetExposeStartXY(double* startX, double* startY)
+ENG_JWNS CWorkStep::SetExposeStartXY(double* startXoffset, double* startYoffset)
 {
 	DOUBLE *pStartXY	= uvEng_GetConfig()->luria_svc.table_expo_start_xy[0];
 	LPG_LDMC pstMachine	= &uvEng_ShMem_GetLuria()->machine;
@@ -2980,8 +2980,8 @@ ENG_JWNS CWorkStep::SetExposeStartXY(double* startX, double* startY)
 	/* 송신 설정 */
 	/* Led Duty Cycle & Frame Rate 설치 */
 	if (!uvEng_Luria_ReqSetTableExposureStartPos(0x01, 
-												startX != nullptr ? *startX : pStartXY[0], 
-												startY != nullptr ? *startY : pStartXY[1]))	/* table number is fixed */
+		startXoffset != nullptr ? pStartXY[0]  + *startXoffset : pStartXY[0],
+		startYoffset != nullptr ? pStartXY[1]  + *startYoffset : pStartXY[1]))	/* table number is fixed */
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposeStartXY)");
 		return ENG_JWNS::en_error;

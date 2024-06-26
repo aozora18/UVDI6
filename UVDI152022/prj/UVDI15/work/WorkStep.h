@@ -118,7 +118,7 @@ protected:
 	ENG_JWNS			SetStepDutyFrame();
 	ENG_JWNS			IsStepDutyFrame();
 
-	ENG_JWNS			SetExposeStartXY(double* startX = nullptr, double* startY = nullptr);
+	ENG_JWNS			SetExposeStartXY(double* startXoffset, double* startYoffset);
 	ENG_JWNS			IsExposeStartXY();
 
 	ENG_JWNS			SetLedAmplitude();

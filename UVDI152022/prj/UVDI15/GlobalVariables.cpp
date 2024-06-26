@@ -989,8 +989,53 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 			representPoints.erase(currPath);
 
-			if (representPoints.empty()) 
+			if (representPoints.empty())
+			{
+				const double THREADSHOLD_VALUE = 1.3f;
+				//문제가 발생했다.
+				/*
+				예를들어 refind offset 은 0인데 (즉 화면 안에 존재하는경우) 문제는 너무 주변에 존재해서 최대 입력가능한
+				옵셋값인 원점대비 1.3f이상 벗어난경우이다. (ex 1.6f)
+
+				이 경우는 refind offset + error offset 해봐야 1.6f이니 convert error가 나게된다.
+				즉 refind전 화면에 존재하는경우이나 error offset이 큰 경우는 error offset을 refind offset쪽으로 빼줘서
+				다음 마크부터는 비교적 센터에 근접하게 맞춰줘야한다.
+				*/
+
+
+				//refindOffsetPoints[0].mark_x <- refind offset X값 
+				 //refindOffsetPoints[0].offsetX <- grab error offset x값
+				 
+				//refindOffsetPoints[0].mark_y <- refind offset Y값 
+				//refindOffsetPoints[0].offsetY <- grab error offset y값
+
+
+				/*
+				1.자 일단 그랩옵셋을 보자.
+				그랩옵셋 단독으로 threshold값을 넘어가는게 있나?
+				*/
+				
+				if (refindOffsetPoints.front().offsetX > THREADSHOLD_VALUE ||
+					refindOffsetPoints.back().offsetX > THREADSHOLD_VALUE) //넘어가는게 있다면. 
+				{
+
+				}
+
+
+												
+
+
+
+				double mark1CombineOffsetX = refindOffsetPoints.front().mark_x + refindOffsetPoints.front().offsetX;
+				double mark1CombineOffsetY = refindOffsetPoints.front().mark_y + refindOffsetPoints.front().offsetY;
+
+				double mark2CombineOffsetX = refindOffsetPoints.back().mark_x + refindOffsetPoints.back().offsetX;
+				double mark2CombineOffsetY = refindOffsetPoints.back().mark_y + refindOffsetPoints.back().offsetY;
+
+
 				return true; //정상완료
+			}
+				
 
 			return false;
 		}
@@ -1021,7 +1066,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 	UINT8 XAXIS = 0b00010000, YAXIS = 0b00100000;
 	UINT8 MLEFT = 0b00010001, MRIGHT = 0b00010010, MUP = 0b00100100, MDOWN = 0b00101000;
 	
-	double grabOffsetX = 0, grabOffsetY;
+	double grabOffsetX = 0, grabOffsetY=0;
 	const int STABLE_TIME = 1000;
 	
 	if(refindOffset != nullptr)
@@ -1034,36 +1079,53 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 	auto step = searchMap.begin();
 	while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
 	{
-		auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
-		auto modeDelta = (*step & MLEFT) != 0 || (*step & MRIGHT) != 0 ? stepSizeX : stepSizeY;
-		modeDelta = ((*step & MLEFT) != 0 || (*step & MUP) != 0) ? modeDelta * -1 : modeDelta;
+		try
+		{
+			auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
+			auto modeDelta = (*step & MLEFT) != 0 || (*step & MRIGHT) != 0 ? stepSizeX : stepSizeY;
+			modeDelta = ((*step & MLEFT) != 0 || (*step & MUP) != 0) ? modeDelta : modeDelta - 1;
 
-		if (sutable = CommonMotionStuffs::GetInstance().MoveAxis(targetAxis, false, modeDelta, true) && sutable == false)
-			break;  //이동실패
+			sutable = CommonMotionStuffs::GetInstance().MoveAxis(targetAxis, false, modeDelta, true);
 
-		this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+			if (sutable == false) //그랩실패
+				break;
 
-		sutable = CommonMotionStuffs::GetInstance().SingleGrab(centerCam);
+			this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
+
+			sutable = CommonMotionStuffs::GetInstance().SingleGrab(centerCam);
+
+			if (sutable == false) //그랩실패
+				break;
+
+			sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam,&grabOffsetX,&grabOffsetY);
+			if (sutable == true) //마크찾기 성공.
+				break;
+
+			sutable = uvEng_Camera_RemoveLastGrab(centerCam);
+			if (sutable == false) //막장빼야함.
+				break;
+
+			step++;
+		}
+		catch (...)
+		{
+
+		}
 		
-		if (sutable == false) //그랩실패
-			break;
-
-		sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam);
-		if (sutable == true) //마크찾기 성공.
-			break;
-
-		sutable = uvEng_Camera_RemoveLastGrab(centerCam);
-		if (sutable == false) //막장빼야함.
-			break;
-
-		step++;
 	}
+	if (sutable == false)
+		return sutable;
 
-	if (sutable && refindOffset != nullptr)
+	if (refindOffset != nullptr)
 	{
 		auto currStagePos = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 		*refindOffset = make_tuple(std::get<0>(currStagePos) - std::get<0>(prevStagePos) ,
 								  std::get<1>(currStagePos) - std::get<1>(prevStagePos));
+	}
+
+	if (grabOffset != nullptr)
+	{
+		*grabOffset = make_tuple(grabOffsetX, grabOffsetY);
 	}
 	return sutable;
 }

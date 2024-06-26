@@ -165,7 +165,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 	{
 		[&]()
 		{
-			m_enWorkState = ENG_JWNS::en_next;
+			m_enWorkState = SetExposeStartXY() == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ? 
+							ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
 		},
 		[&]() 
 		{
@@ -409,6 +410,14 @@ void CWorkMarkTest::DoAlignStaticCam()
 		{
 			motions.SetAlignOffsetPool(offsetPool);
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
+		},
+		[&]()
+		{
+			auto& pool = offsetPool[OffsetType::refind];
+
+			m_enWorkState = SetExposeStartXY() == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ?
+													ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
+				
 		},
 		[&]()
 		{

@@ -240,15 +240,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag, offsetBuff);
 
 
-					//문제가 발생했다.
-					/*
-					예를들어 refind offset 은 0인데 (즉 화면 안에 존재하는경우) 문제는 너무 주변에 존재해서 최대 입력가능한
-					옵셋값인 원점대비 1.3f이상 벗어난경우이다. (ex 1.6f)
-
-					이 경우는 refind offset + error offset 해봐야 1.6f이니 convert error가 나게된다.
-					즉 refind전 화면에 존재하는경우이나 error offset이 큰 경우는 error offset을 refind offset쪽으로 빼줘서
-					다음 마크부터는 비교적 센터에 근접하게 맞춰줘야한다.
-					*/
+				
 
 
 
@@ -435,36 +427,36 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
-			const double THREADHOLD_VALUE = 1.3f;
-			double mostSmallXOffset = 0, mostBigXOffset = 0, mostSmallYOffset = 0,mostBigYOffset = 0;
+			//const double THREADHOLD_VALUE = 1.3f;
+			//double mostSmallXOffset = 0, mostBigXOffset = 0, mostSmallYOffset = 0,mostBigYOffset = 0;
 
-			auto pool = offsetPool[OffsetType::refind]; //순서바뀌면 안됨 복사 사용해야함.
+			//auto pool = offsetPool[OffsetType::refind]; //순서바뀌면 안됨 복사 사용해야함.
 
-			std::sort(pool.begin(), pool.end(), [&](CaliPoint& v1, CaliPoint& v2) {return v1.x < v2.x; });
-				
-				mostSmallXOffset =  pool.front().x; //x옵셋이 가장 작은거 .
-				mostBigXOffset = pool.back().x; //x옵셋이 가장 큰거.
+			//std::sort(pool.begin(), pool.end(), [&](CaliPoint& v1, CaliPoint& v2) {return v1.x < v2.x; });
+			//	
+			//	mostSmallXOffset =  pool.front().x; //x옵셋이 가장 작은거 .
+			//	mostBigXOffset = pool.back().x; //x옵셋이 가장 큰거.
 
-			std::sort(pool.begin(), pool.end(), [&](CaliPoint& v1, CaliPoint& v2) {return v1.y < v2.y; });
-				mostSmallYOffset = pool.front().y; //y옵셋이 가장 작은거 .
-				mostBigYOffset = pool.back().y; //y옵셋이 가장 큰거.
+			//std::sort(pool.begin(), pool.end(), [&](CaliPoint& v1, CaliPoint& v2) {return v1.y < v2.y; });
+			//	mostSmallYOffset = pool.front().y; //y옵셋이 가장 작은거 .
+			//	mostBigYOffset = pool.back().y; //y옵셋이 가장 큰거.
 
-				if(fabs(mostSmallXOffset) > THREADHOLD_VALUE || fabs(mostSmallYOffset) > THREADHOLD_VALUE)
+			//	if(fabs(mostSmallXOffset) > THREADHOLD_VALUE || fabs(mostSmallYOffset) > THREADHOLD_VALUE)
 
-				auto xDiff = mostBigXOffset - mostSmallXOffset;
-				auto yDiff = mostBigYOffset - mostSmallYOffset;
+			//	auto xDiff = mostBigXOffset - mostSmallXOffset;
+			//	auto yDiff = mostBigYOffset - mostSmallYOffset;
 
-				if (fabs(xDiff) > THREADHOLD_VALUE || fabs(yDiff) > THREADHOLD_VALUE)
-				{
-					m_enWorkState = ENG_JWNS::en_error
-					return true;
-				}
-				else
-				{
+			//	if (fabs(xDiff) > THREADHOLD_VALUE || fabs(yDiff) > THREADHOLD_VALUE))
+			//	{
+			//		m_enWorkState = ENG_JWNS::en_error;
+			//		return true;
+			//	}
+			//	else
+			//	{
 
-				}
-			m_enWorkState = SetExposeStartXY() == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ?
-													ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
+			//	}
+			double expoOffsetX = 0, expoOffsetY = 0;
+			m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY) == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ? ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
 				
 		},
 		[&]()

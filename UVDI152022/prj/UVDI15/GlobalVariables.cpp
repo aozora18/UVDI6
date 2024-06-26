@@ -933,9 +933,11 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 {
 	const int STABLE_TIME = 1000;
 	const int PAIR = 2;
+	const int MARK1 = 0;
+	const int MARK2 = 1;
 	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
 	errFlag = false;
-	tuple<double, double> diffOffset; //절대좌표 차이값
+	tuple<double, double> refindOffset, grabErrOffset; //절대좌표 차이값
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	vector<tuple<STG_XMXY, double, double>> findOffsets; //원래 좌표 구조 , 절대좌표 차이값
@@ -947,6 +949,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 		errFlag = true;
 		return true;
 	}
+
 
 
 	auto res =  GlobalVariables::GetInstance()->Waiter([&]()->bool
@@ -967,25 +970,26 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 			
 			double grabOffsetX = 0, grabOffsetY = 0;
-			diffOffset = make_tuple(0, 0);
-
+			
+			refindOffset = make_tuple(0, 0); grabErrOffset = make_tuple(0, 0);
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
 				refindOffsetPoints.push_back(STG_XMXY(0, 0, grabOffsetX, grabOffsetY, currPath->org_id));
 			}
 			else
 			{
-				tuple<double, double> refindOffset = make_tuple(0, 0);
-				auto findRes = ProcessRefind(centerCam, &diffOffset);
+				
+				auto findRes = ProcessRefind(centerCam, &refindOffset,&grabErrOffset);
 
 				if (findRes == false)
 					throw exception();
 
-				refindOffsetPoints.push_back(STG_XMXY(std::get<0>(diffOffset), std::get<1>(diffOffset), grabOffsetX, grabOffsetX, currPath->org_id));
+				refindOffsetPoints.push_back(STG_XMXY(std::get<0>(refindOffset), std::get<1>(refindOffset), 
+													  std::get<0>(grabErrOffset), std::get<1>(grabErrOffset), currPath->org_id));
 			}
 
 			
-			findOffsets.push_back(make_tuple(*currPath, std::get<0>(diffOffset), std::get<1>(diffOffset)));
+			findOffsets.push_back(make_tuple(*currPath, std::get<0>(refindOffset), std::get<1>(refindOffset)));
 
 			representPoints.erase(currPath);
 
@@ -1015,22 +1019,33 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 				그랩옵셋 단독으로 threshold값을 넘어가는게 있나?
 				*/
 				
-				if (refindOffsetPoints.front().offsetX > THREADSHOLD_VALUE ||
-					refindOffsetPoints.back().offsetX > THREADSHOLD_VALUE) //넘어가는게 있다면. 
+				bool ableToFixX = false,ableToFixY = false;
+				if (refindOffsetPoints.front().mark_x + refindOffsetPoints.front().offsetX > THREADSHOLD_VALUE ||
+					refindOffsetPoints.back().mark_x + refindOffsetPoints.back().offsetX > THREADSHOLD_VALUE)
 				{
-
+					double mark1CombineOffsetX = refindOffsetPoints.front().mark_x + refindOffsetPoints.front().offsetX;
+					double mark2CombineOffsetX = refindOffsetPoints.back().mark_x + refindOffsetPoints.back().offsetX;
+					if (fabs(mark2CombineOffsetX - mark1CombineOffsetX) > THREADSHOLD_VALUE)
+					{
+						throw exception();
+					}
+					//x보정
+					ableToFixX = true;
 				}
+				
+				if(refindOffsetPoints.front().mark_y + refindOffsetPoints.front().offsetY > THREADSHOLD_VALUE || 
+					refindOffsetPoints.front().mark_y + refindOffsetPoints.front().offsetY > THREADSHOLD_VALUE) //넘어가는게 있다면. 
+				{
+				
+					double mark1CombineOffsetY = refindOffsetPoints.front().mark_y + refindOffsetPoints.front().offsetY;
+					double mark2CombineOffsetY = refindOffsetPoints.back().mark_y + refindOffsetPoints.back().offsetY;
 
-
-												
-
-
-
-				double mark1CombineOffsetX = refindOffsetPoints.front().mark_x + refindOffsetPoints.front().offsetX;
-				double mark1CombineOffsetY = refindOffsetPoints.front().mark_y + refindOffsetPoints.front().offsetY;
-
-				double mark2CombineOffsetX = refindOffsetPoints.back().mark_x + refindOffsetPoints.back().offsetX;
-				double mark2CombineOffsetY = refindOffsetPoints.back().mark_y + refindOffsetPoints.back().offsetY;
+					if(fabs(mark2CombineOffsetY - mark1CombineOffsetY) > THREADSHOLD_VALUE)
+					{
+						throw exception();
+					}
+					ableToFixY = true;
+				}
 
 
 				return true; //정상완료
@@ -1051,11 +1066,15 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 	//여기서 rst 계산.
 
+	//vector<tuple<STG_XMXY, double, double>>
 	
-	rstValue = RSTValue(std::get<0>(findOffsets[0]).mark_x, std::get<0>(findOffsets[0]).mark_y,
-						std::get<0>(findOffsets[1]).mark_x, std::get<0>(findOffsets[1]).mark_y,
-						std::get<0>(findOffsets[0]).mark_x + std::get<1>(findOffsets[0]), std::get<0>(findOffsets[0]).mark_y + std::get<2>(findOffsets[0]),
-						std::get<0>(findOffsets[1]).mark_x + std::get<1>(findOffsets[1]), std::get<0>(findOffsets[1]).mark_y + std::get<2>(findOffsets[1]));
+	const int STG_XMXY_IDX = 0, REFIND_OFFSET_X = 1, REFIND_OFFSET_Y = 2;
+	rstValue = RSTValue(std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_x, std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_y,
+						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_x, std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_y,
+						std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_x + std::get<REFIND_OFFSET_X>(findOffsets[MARK1]),
+						std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_y + std::get<REFIND_OFFSET_Y>(findOffsets[MARK1]),
+						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_x + std::get<REFIND_OFFSET_X>(findOffsets[MARK2]),
+						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_y + std::get<REFIND_OFFSET_Y>(findOffsets[MARK2]));
 						
 	return true;
 

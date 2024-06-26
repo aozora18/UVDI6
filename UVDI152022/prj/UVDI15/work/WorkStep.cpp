@@ -1726,7 +1726,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	auto GetOffset = [&](OffsetType type, int tgtMarkIdx, CaliPoint& temp)->bool
 		{
 			auto offsetPool = motions.status.offsetPool[type];
-			auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
+			
+			//p.srcFid.tgt_id == tgtMarkIdx <-이거 확인해야함. tgt가 아니라 넣는곳에서 org넣는것같음.
+
+			auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; }); 
 			if (find == offsetPool.end())
 			{
 				temp = CaliPoint();

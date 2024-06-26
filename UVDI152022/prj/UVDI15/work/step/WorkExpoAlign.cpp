@@ -603,11 +603,9 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 							auto markPos = first->GetMarkPos();
 							auto expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
-
-							alignOffset.srcFid = *first;
-							
 							auto diff = expoOffset;
 
+							alignOffset.srcFid = *first;
 							diff.srcFid = *first;
 
 							offsetPool[OffsetType::align].push_back(alignOffset);

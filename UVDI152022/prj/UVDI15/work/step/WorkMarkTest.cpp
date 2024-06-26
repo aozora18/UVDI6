@@ -263,7 +263,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						combine.mark_x += offsetBuff[i].offsetX; //그랩에러옵셋까지 포함한거.
 						combine.mark_y += offsetBuff[i].offsetY; //그랩에러옵셋까지 포함한거.
 						CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combine, align, expo);
-					
+						
 						offsetPool[OffsetType::align].push_back(align);
 						offsetPool[OffsetType::expo].push_back(expo);
 					}
@@ -355,7 +355,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 							STG_XMXY combineAddGrabOffset = STG_XMXY(currPath->mark_x + (estimatedXMXY.mark_x - currPath->mark_x) + grabOffsetX,
 														currPath->mark_y + (estimatedXMXY.mark_y - currPath->mark_y) + grabOffsetY,
-														currPath->org_id);
+														currPath->tgt_id);
 
 							CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
 							offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 

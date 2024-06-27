@@ -934,17 +934,17 @@ bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
 */
 ENG_JWNS CWorkStep::SetAlignMovingInit()
 {
-	UINT8 u8BaseXY		= 0x00, u8Mark = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	UINT16 u16MarkType	= 0x0000;
+	UINT8 u8BaseXY = 0x00, u8Mark = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
+	UINT16 u16MarkType = 0x0000;
 	DOUBLE /*dbACamDistX, dbACamDistY, dbDiffMark, */dbACamVeloX, dbStageVeloY;
-	DOUBLE dbStagePosX, dbStagePosY;
-	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
+	DOUBLE dbStagePosX, dbStagePosY, dbACam1PosX;
+	LPG_CSAI pstAlign = &uvEng_GetConfig()->set_align;
 
 	SetStepName(L"Set.Align.Moving.Init (Global)");
 
 	/* Stage X, Y, Camera 1 & 2 X 이동 좌표 얻기 */
-	dbStagePosX	= pstAlign->mark2_stage_x;				/* Calibration 거버의 Mark 2 기준 위치 */
-	dbStagePosY	= pstAlign->table_unloader_xy[0][1];	/* Stage Unloader 위치 */
+	dbStagePosX = pstAlign->mark2_stage_x;				/* Calibration 거버의 Mark 2 기준 위치 */
+	dbStagePosY = pstAlign->table_unloader_xy[0][1];	/* Stage Unloader 위치 */
 
 	/* Mark 4 개가 아닌 경우, 지원하지 않음 */
 	if (u8Mark != 4)
@@ -956,12 +956,13 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 	/* -------------------------------------------------- */
 	/* 마크 2개 혹은 4개 일 경우, 고려해서 위치 정보 계산 */
 	/* -------------------------------------------------- */
-	m_dbPosACam[0]	= GetACamMark2MotionX(2);	/* 얼라인 Mark 2 (Left/Bottom)번에 해당되는 카메라 1번의 X 축 실제 모션 위치 */
-	m_dbPosACam[1]	= GetACamMark2MotionX(4);	/* Camera 1대비 Camera2 값을 벌리려는 간격 */
+	m_dbPosACam[0] = GetACamMark2MotionX(2);	/* 얼라인 Mark 2 (Left/Bottom)번에 해당되는 카메라 1번의 X 축 실제 모션 위치 */
+	m_dbPosACam[1] = GetACamMark2MotionX(4);	/* Camera 1대비 Camera2 값을 벌리려는 간격 */
 
-
+	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
 	dbStageVeloY = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
-	
+	dbACamVeloX = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_align_cam1];
+
 	/* 모든 Motor Drive의 토글 값 저장 */
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
@@ -980,12 +981,33 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 
 	/* Stage Moving (Vector) (Vector Moving하는 기본 축 정보 저장) */
 	if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
-									   dbStagePosX, dbStagePosY, dbStageVeloY, m_enVectMoveDrv))
+		dbStagePosX, dbStagePosY, dbStageVeloY, m_enVectMoveDrv))
 		return ENG_JWNS::en_error;
+	/* 현재 카메라 1 번의 절대 위치 기준 대비, 이동하고자 하는 절대 위치 값이 큰 값인지 혹은 */
+	/* 작은 값인지 여부에 따라, Align Camera 1 혹은 2 번 중 어느 것을 먼저 이동해야 할지 결정*/
+	dbACam1PosX = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam1);
+	if (m_dbPosACam[0] > dbACam1PosX)
+	{
+		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2, m_dbPosACam[1], dbACamVeloX))
+			return ENG_JWNS::en_error;
+		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, m_dbPosACam[0], dbACamVeloX))
+			return ENG_JWNS::en_error;
+	}
+	else
+	{
+		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, m_dbPosACam[0], dbACamVeloX))
+			return ENG_JWNS::en_error;
+		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2, m_dbPosACam[1], dbACamVeloX))
+			return ENG_JWNS::en_error;
+	}
 
-	auto res = MoveCamToSafetypos();
+	TCHAR tzMsg[256] = { NULL };
+	swprintf_s(tzMsg, 256, L"SetAlignMovingInit : StageX = %.4f StageY = %.4f Cam1X = %.4f Cam2X = %.4f", dbStagePosX, dbStagePosY, m_dbPosACam[0], m_dbPosACam[1]);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-	return res == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+
+
+	return ENG_JWNS::en_next;
 }
 
 /*
@@ -1709,7 +1731,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	if (status.globalMarkCnt != 4)
 		return ENG_JWNS::en_next;
 
-	auto grabFindFunc = [&](int startIdx, int markTgt, CAtlList <LPG_ACGR>* grabPtr) -> LPG_ACGR
+	/*auto grabFindFunc = [&](int startIdx, int markTgt, CAtlList <LPG_ACGR>* grabPtr) -> LPG_ACGR
 	{
 		if (grabPtr == NULL)
 			return nullptr;
@@ -1721,25 +1743,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 				return grab;
 		}
 		return nullptr;
-	};
+	};*/
 
-	auto GetOffset = [&](OffsetType type, int tgtMarkIdx, CaliPoint& temp)->bool
-		{
-			auto offsetPool = motions.status.offsetPool[type];
-			
-			//p.srcFid.tgt_id == tgtMarkIdx <-이거 확인해야함. tgt가 아니라 넣는곳에서 org넣는것같음.
 
-			auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; }); 
-			if (find == offsetPool.end())
-			{
-				temp = CaliPoint();
-				return false;
-			}
-			temp = (*find);
-			return true;
-		};
-
-	
+	/*
 	auto GetGrab = [&](int camIdx, int tgtMarkIdx , ENG_AMTF markType)->LPG_ACGR
 					{
 						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
@@ -1764,7 +1771,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 						}
 						uvEng_Camera_ExitCS();
 						return find;
-					};
+					};*/
 
 
 	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
@@ -1802,7 +1809,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		}
 		
 		/* Grabbed Mark images의 결과 값 가져오기 */
-		auto grab = GetGrab(CENTERCAM, temp.tgt_id, isGlobal ? ENG_AMTF::en_global : ENG_AMTF::en_local);
+		auto grab = CommonMotionStuffs::GetInstance().GetGrabPtr(CENTERCAM, temp.tgt_id, isGlobal ? ENG_AMTF::en_global : ENG_AMTF::en_local);
 
 		if (grab == nullptr)
 			return ENG_JWNS::en_error;
@@ -1823,27 +1830,22 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		
 		temp.reserve = grab->reserve;
 
-
-		GetOffset(OffsetType::refind, temp.tgt_id, refindOffset);
+		
+		//이부분이 중요하다  여기서 
+		motions.GetOffset(OffsetType::refind, temp.tgt_id, refindOffset);
 		temp.mark_x += refindOffset.offsetX; //<내 생각엔 +가 맞는데 잘 모르겠다.  일단 모션만보자. 
 		temp.mark_y += refindOffset.offsetY;
 
-		//map<int, tuple<double, double>> manualOffsetMap =
-		//{
-		//	{0,make_tuple(0.0028,-0.0041)},
-		//	{1,make_tuple(0.0002,-0.0062)},
-		//	{2,make_tuple(-0.0065,-0.0067)},
-		//	{3,make_tuple(-0.0157,-0.007)}
-		//};
-
+		//offsetPool[OffsetType::align].push_back(alignOffset);
+		//offsetPool[OffsetType::expo].push_back(diff);
 
 
 		if (pstSetAlign->use_mark_offset)// && useManual == false
 		{
-			if (GetOffset(OffsetType::expo, temp.tgt_id, expoOffset) == false)
+			if (motions.GetOffset(OffsetType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
 
-			if (GetOffset(OffsetType::align, temp.tgt_id, alignOffset) == false)
+			if (motions.GetOffset(OffsetType::align, temp.tgt_id, alignOffset) == false)
 				return ENG_JWNS::en_error;
 
 			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);

@@ -585,37 +585,37 @@ void CWorkExpoAlign::DoAlignStaticCam()
 							const int STABLE_TIME = 1000;
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 							
-							string temp = "x" + std::to_string(CENTER_CAM);
+							//string temp = "x" + std::to_string(CENTER_CAM);
 							
-							motions.Refresh();
+							//motions.Refresh();
 							
-							auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
-								motions.GetAxises()["stage"]["x"].currPos,
-								motions.GetAxises()["stage"]["y"].currPos,
-								CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+							//auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
+							//	motions.GetAxises()["stage"]["x"].currPos,
+							//	motions.GetAxises()["stage"]["y"].currPos,
+							//	CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 							
 
-							auto markPos = first->GetMarkPos();
+							/*auto markPos = first->GetMarkPos();
 							auto expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
 							auto diff = expoOffset;
 
 							alignOffset.srcFid = *first;
-							diff.srcFid = *first;
+							diff.srcFid = *first;*/
 
-							offsetPool[OffsetType::align].push_back(alignOffset);
-							offsetPool[OffsetType::expo].push_back(diff);
+							//offsetPool[OffsetType::align].push_back(alignOffset);
+							//offsetPool[OffsetType::expo].push_back(diff);
 
 
 							TCHAR tzMsg[256] = { NULL }; int lastGrabCnt = 0;
 							if (SingleGrab(CENTER_CAM,lastGrabCnt))
 							{
-								if (uvEng_GetConfig()->set_align.use_2d_cali_data)
-								{
-									uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-								
-									swprintf_s(tzMsg, 256, L"align_offset_x = %.4f mark_offset_y =%.4f", alignOffset.offsetX, alignOffset.offsetY);
-									LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-								}
+								//if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+								//{
+								//	uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+								//
+								//	swprintf_s(tzMsg, 256, L"align_offset_x = %.4f mark_offset_y =%.4f", alignOffset.offsetX, alignOffset.offsetY);
+								//	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+								//}
 
 								grabMarkPath.erase(first);
 

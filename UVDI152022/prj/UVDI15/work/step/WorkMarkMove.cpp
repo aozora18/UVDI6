@@ -152,14 +152,14 @@ void CWorkMarkMove::DoMovingStatic3cam()
 	break;
 
 	case 0x07:
-		string temp = "x" + std::to_string(CENTERCAM);
-		motions.Refresh();
-		auto alignOffset = motions.EstimateAlignOffset(CENTERCAM,
-			motions.GetAxises()["stage"]["x"].currPos,
-			motions.GetAxises()["stage"]["y"].currPos,
-			CENTERCAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+		//string temp = "x" + std::to_string(CENTERCAM);
+		//motions.Refresh();
+		//auto alignOffset = motions.EstimateAlignOffset(CENTERCAM,
+		//	motions.GetAxises()["stage"]["x"].currPos,
+		//	motions.GetAxises()["stage"]["y"].currPos,
+		//	CENTERCAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 
-		auto expoOffset = motions.EstimateExpoOffset(markPos.mark_x, markPos.mark_y);
+		//auto expoOffset = motions.EstimateExpoOffset(markPos.mark_x, markPos.mark_y);
 
 
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_none);/* Grab Mode ¼³Á¤ */

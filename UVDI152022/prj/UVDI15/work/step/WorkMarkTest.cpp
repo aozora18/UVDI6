@@ -257,17 +257,17 @@ void CWorkMarkTest::DoAlignStaticCam()
 					//*****************************************************************************//
 					CaliPoint expo, align;
 			
-					for (int i = 0; i < PAIR; i++)
-					{
-						auto combine = filteredPath[i] + offsetBuff[i];
-						combine.mark_x += offsetBuff[i].offsetX; //그랩에러옵셋까지 포함한거.
-						combine.mark_y += offsetBuff[i].offsetY; //그랩에러옵셋까지 포함한거.
-						CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combine, align, expo);
-						
-						offsetPool[OffsetType::align].push_back(align);
-						offsetPool[OffsetType::expo].push_back(expo);
-					}
-
+					//for (int i = 0; i < PAIR; i++)
+					//{
+					//	auto combine = filteredPath[i] + offsetBuff[i];
+					//	combine.mark_x += offsetBuff[i].offsetX; //그랩에러옵셋까지 포함한거.
+					//	combine.mark_y += offsetBuff[i].offsetY; //그랩에러옵셋까지 포함한거.
+					//	CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combine, align, expo);
+					//	
+					//	offsetPool[OffsetType::align].push_back(align);
+					//	offsetPool[OffsetType::expo].push_back(expo);
+					//}
+					SetUIRefresh(true);
 					m_enWorkState = ENG_JWNS::en_next;
 				}
 				catch (...)
@@ -298,7 +298,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						double grabOffsetX=0, grabOffsetY = 0;
 						double estimatedX = 0, estimatedY = 0;
 						STG_XMXY estimatedXMXY = STG_XMXY(currPath->mark_x, currPath->mark_y, currPath->org_id);
-						CaliPoint alignOffset, expoOffset, refindOffset;
+						//CaliPoint alignOffset, expoOffset, refindOffset;
 
 						if (refind)
 							refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
@@ -329,7 +329,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 								if (found == true) //원래좌표에선 존재함
 								{
 									STG_XMXY temp = STG_XMXY(currPath->mark_x + grabOffsetX, currPath->mark_y + grabOffsetY);
-									CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, temp, alignOffset, expoOffset);
+									//CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, temp, alignOffset, expoOffset);
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 0, 0));
 								}
 								else
@@ -341,7 +341,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 									STG_XMXY temp = STG_XMXY(currPath->mark_x + (std::get<0>(refindOffset) + std::get<0>(grabOffset)),
 															 currPath->mark_y + (std::get<1>(refindOffset) + std::get<1>(grabOffset)));
 
-									CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, temp, alignOffset, expoOffset);
+									//CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, temp, alignOffset, expoOffset);
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset)));
 								}
 							}
@@ -357,7 +357,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 														currPath->mark_y + (estimatedXMXY.mark_y - currPath->mark_y) + grabOffsetY,
 														currPath->tgt_id);
 
-							CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
+							//CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
 							offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 
 																				estimatedXMXY.mark_x - currPath->mark_x,
 																				estimatedXMXY.mark_y - currPath->mark_y));
@@ -365,10 +365,10 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 						}
 
-						offsetPool[OffsetType::align].push_back(alignOffset);
-						offsetPool[OffsetType::expo].push_back(expoOffset);
+						/*offsetPool[OffsetType::align].push_back(alignOffset);
+						offsetPool[OffsetType::expo].push_back(expoOffset);*/
 
-						if (uvEng_GetConfig()->set_align.use_2d_cali_data)
+						/*if (uvEng_GetConfig()->set_align.use_2d_cali_data)
 						{
 							TCHAR tzMsg[256] = { NULL };
 							uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
@@ -378,7 +378,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 							swprintf_s(tzMsg, 256, L"expo%d_offset_x = %.4f mark_offset_y =%.4f", currPath->org_id, expoOffset.offsetX, expoOffset.offsetY);
 							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-						}
+						}*/
 
 						grabMarkPath.erase(currPath);
 
@@ -440,8 +440,24 @@ void CWorkMarkTest::DoAlignStaticCam()
 			//	{
 
 			//	}
+
+			
+			//옵셋 전부 한번에 쳐넣어야함 ㅡㅡ;;;;
+
+			
+
+
+
+			//auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
+			//				   motions.GetAxises()["stage"]["x"].currPos,
+			//				   motions.GetAxises()["stage"]["y"].currPos,
+			//					CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+
+
 			double expoOffsetX = 0, expoOffsetY = 0;
-			m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY) == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ? ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
+			m_enWorkState = (SetExposeStartXY(&expoOffsetX, &expoOffsetY) == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next) ? 
+				ENG_JWNS::en_next : 
+				ENG_JWNS::en_error; //expo영역 초기화 
 				
 		},
 		[&]()

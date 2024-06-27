@@ -515,7 +515,7 @@ public:
 
 	void GetCurrentOffsets(int centerCam, STG_XMXY mark, CaliPoint& alignOffset, CaliPoint& expoOffset);
 	
-
+	LPG_ACGR GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType);
 };
 
 class RefindMotion
@@ -595,6 +595,7 @@ public:
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
 	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
+	bool GetOffset(OffsetType type, int tgtMarkIdx, CaliPoint& temp);
 	void Destroy();
 
 protected:
@@ -622,8 +623,8 @@ public:
 	bool MovetoGerberPos(int camNum, STG_XMXY tgtPos);
 
 	bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point);
-
-	bool GetCamPosUseGerberPos(STG_XMXY gerberPos, int baseCamNum, double& camAxis, double& stageX, double& stageY);
+	void GetStagePosUseGerberPos(int camNum, STG_XMXY gbrPos, STG_XMXY& stagePos);
+	
 
 	void GetFiducialDimension(ENG_AMTF types, int& x, int& y);
 	bool CheckAlignScanFinished(int scanCount);

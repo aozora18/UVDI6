@@ -308,6 +308,19 @@ void AlignMotion::Destroy()
 	axises.clear();
 }
 
+bool AlignMotion::GetOffset(OffsetType type, int tgtMarkIdx, CaliPoint& temp)
+{
+	auto offsetPool = status.offsetPool[type];
+
+	auto find = std::find_if(offsetPool.begin(), offsetPool.end(), [&](const CaliPoint p) {return p.srcFid.tgt_id == tgtMarkIdx; });
+	if (find == offsetPool.end())
+	{
+		temp = CaliPoint();
+		return false;
+	}
+	temp = (*find);
+	return true;
+}
 
 CaliPoint AlignMotion::EstimateExpoOffset(double gbrX, double gbrY)
 {
@@ -428,6 +441,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return false;
 	}
 
+	
+
 	bool AlignMotion::MovetoGerberPos(int camNum, STG_XMXY tgtPos)
 	{
 		if (NowOnMoving())
@@ -438,7 +453,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		//캠3은 스테이지만 
 		//자. 단순하다. 
 		//현재 캠이 보고있는 거버내 좌표위치와 가야할 거버위치의 차를 이용해 이동해야할 총량을 구한다. 
-		STG_XMXY gbrPos;
+		STG_XMXY gbrPos = STG_XMXY();
+		STG_XMXY stgPos = STG_XMXY();
+		GetStagePosUseGerberPos(camNum, tgtPos, stgPos);
 
 		if (GetGerberPosUseCamPos(camNum, gbrPos) == false)return false;
 
@@ -481,30 +498,20 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		//스테이지를 움직일수가 없다면 카메라축을 움직인다. 
 		return arrived;
 	}
-	
-	
-	bool AlignMotion::GetCamPosUseGerberPos(STG_XMXY gerberPos,int baseCamNum, double& camAxis, double& stageX, double& stageY)
+
+	//거버포지션에 대응하는 "얼라인 영역" 스테이지 위치 가져옴.
+	void AlignMotion::GetStagePosUseGerberPos(int camNum, STG_XMXY gbrPos, STG_XMXY& stagePos)
 	{
-		bool res = false;
-		camAxis = 0;
-		stageX = 0;
-		stageY = 0;
-		///
+		STG_XMXY currPos = STG_XMXY();
+		GetGerberPosUseCamPos(camNum, currPos);
 
-		double mark2Xgab = (markParams.caliGerbermark2x - markParams.currGerbermark2x);
-		double mark2Ygab = (markParams.caliGerbermark2y - markParams.currGerbermark2y);
+		STG_XMXY gab = gbrPos - currPos;
 
-		double stageXgab = (axises["stage"]["x"].currPos - markParams.mark2StageX);
-		double stageYgab = (axises["stage"]["y"].currPos - std::get<1>(markParams.mark2CamoffsetXY[1]));
+		stagePos.mark_x = axises["stage"]["x"].currPos + gab.mark_x;
+		stagePos.mark_y = axises["stage"]["y"].currPos + gab.mark_y;;
 
-		double camPos[] = { axises["cam"]["x1"].currPos ,axises["cam"]["x2"].currPos };
-
-		///
-
-		return res;
 	}
 
-	
 	bool AlignMotion::GetGerberPosUseCamPos(int camNum, STG_XMXY& point)
 	{
 		const int _1to3_X_GAB = 0;
@@ -538,8 +545,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;
 		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset;
 
-		point.mark_x = std::round(tempGerberX * std::pow(10, 3)) / std::pow(10, 3);;
-		point.mark_y = std::round(tempGerberY * std::pow(10, 3)) / std::pow(10, 3); ;
+		point.mark_x = std::round(tempGerberX * std::pow(10, 3)) / std::pow(10, 3);
+		point.mark_y = std::round(tempGerberY * std::pow(10, 3)) / std::pow(10, 3);
 		return true;
 
 	}
@@ -875,8 +882,8 @@ RefindMotion::RefindMotion()
 {
 	rstValue = RSTValue();
 	useRefind = true;
-	stepSizeX = 5;
-	stepSizeY = 5;
+	stepSizeX = 2.5;
+	stepSizeY = 1.5;
 }
 
 bool RefindMotion::RSTValue::GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY)
@@ -975,7 +982,8 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
 				refindOffsetPoints.push_back(STG_XMXY(0, 0, grabOffsetX, grabOffsetY, currPath->org_id));
-				refindOffsetPoints.push_back(STG_XMXY(grabOffsetX, grabOffsetY,0,0, currPath->org_id)); //그랩옵셋만큼 리파인드옵셋에서 빼버림
+				grabErrOffset = make_tuple(grabOffsetX, grabOffsetY);
+				//refindOffsetPoints.push_back(STG_XMXY(grabOffsetX, grabOffsetY,0,0, currPath->org_id)); //그랩옵셋만큼 리파인드옵셋에서 빼버림
 			}
 			else
 			{
@@ -989,12 +997,12 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			//										  std::get<1>(refindOffset) + std::get<1>(grabErrOffset),
 			//										  0, 0, currPath->org_id));
 			
-							refindOffsetPoints.push_back(STG_XMXY(std::get<0>(refindOffset), std::get<1>(refindOffset), 
-													  std::get<0>(grabErrOffset), std::get<1>(grabErrOffset), currPath->org_id));
+				refindOffsetPoints.push_back(STG_XMXY(std::get<0>(refindOffset), std::get<1>(refindOffset), 
+											std::get<0>(grabErrOffset), std::get<1>(grabErrOffset), currPath->org_id));
 
 			}
 
-			findOffsets.push_back(make_tuple(*currPath, std::get<0>(refindOffset), std::get<1>(refindOffset)));
+			findOffsets.push_back(make_tuple(*currPath, std::get<0>(refindOffset) - std::get<0>(grabErrOffset), std::get<1>(refindOffset) - std::get<1>(grabErrOffset)));
 			representPoints.erase(currPath);
 
 			if (representPoints.empty())
@@ -1209,6 +1217,31 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, do
 	uvEng_Camera_ExitCS();
 	return lastGrab == nullptr ? false : true;
 }
+
+LPG_ACGR CommonMotionStuffs::GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType)
+{
+	uvEng_Camera_TryEnterCS();
+	CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
+	for (int i = 0; i < grabs->GetCount(); i++)
+	{
+		auto grab = grabs->GetAt(grabs->FindIndex(i));
+		if (grab == nullptr) continue;
+
+		auto typeCorrect = markType == ENG_AMTF::en_global ? (grab->reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) : (grab->reserve & STG_XMXY_RESERVE_FLAG::LOCAL);
+
+		if (grab->cam_id == camIdx &&
+			grab->fiducialMarkIndex == tgtMarkIdx &&
+			typeCorrect != 0)
+		{
+			uvEng_Camera_ExitCS();
+			return grab;
+		}
+	}
+	uvEng_Camera_ExitCS();
+	return nullptr;
+
+}
+
 
 void CommonMotionStuffs::GetCurrentOffsets(int centerCam , STG_XMXY mark, CaliPoint& alignOffset, CaliPoint& expoOffset)
 {

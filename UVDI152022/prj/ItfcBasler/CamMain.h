@@ -71,6 +71,16 @@ public:
 
 	// 반드시 파라미터의 형을 바꾸지 말아야 함
 	virtual VOID		OnImageGrabbed(CInstantCamera& camera, const CGrabResultPtr& grabbed);	
+	void DecreaseGrabCnt() 
+	{
+		if (m_syncGrab.Enter())
+		{
+			m_u8GrabIndex--;
+			m_syncGrab.Leave();
+		}
+		
+
+	}
 
 /* 로컬 변수 */
 protected:

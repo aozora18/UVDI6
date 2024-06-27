@@ -492,9 +492,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				m_enWorkState = ENG_JWNS::en_error;
 				return;
 			}
-
 			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
-
 		}
 		break;	    /* 노광 가능한 상태인지 여부 확인 */
 
@@ -511,12 +509,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		case 0x05:
 		{		
 			uvEng_ACamCali_ResetAllCaliData();
-
 			uvEng_Camera_ResetGrabbedImage();
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
-
-			
-
 		}
 		break;	//3캠 이동위치 경로설정
 
@@ -548,29 +542,29 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				return res;
 			};
 
-			auto RetrySingleGrab = [&](int camIndex) -> bool
-			{
-				int lastGrabCnt = 0; int tryCnt = 0; bool grabResult = false;
-				if (SingleGrab(camIndex, lastGrabCnt))
-				{
-					while (grabResult == false && tryCnt < 3)
-					{
-						grabResult = GlobalVariables::GetInstance()->Waiter([&]()->bool
-							{
-								int grabCnt = uvEng_Camera_GetGrabbedCount(&camIndex);
-								if (grabCnt <= lastGrabCnt) return false;
+			//auto RetrySingleGrab = [&](int camIndex) -> bool
+			//{
+			//	int lastGrabCnt = 0; int tryCnt = 0; bool grabResult = false;
+			//	if (SingleGrab(camIndex, lastGrabCnt))
+			//	{
+			//		while (grabResult == false && tryCnt < 3)
+			//		{
+			//			grabResult = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			//				{
+			//					int grabCnt = uvEng_Camera_GetGrabbedCount(&camIndex);
+			//					if (grabCnt <= lastGrabCnt) return false;
 
-								auto& grab = uvEng_Camera_GetLastGrabbedACam()[camIndex - 1];
-								
-								if (grab.marked == false)
-									uvEng_Camera_ResetGrabbedImage();
+			//					auto& grab = uvEng_Camera_GetLastGrabbedACam()[camIndex - 1];
+			//					
+			//					if (grab.marked == false)
+			//						uvEng_Camera_ResetGrabbedImage();
 
-							}, 3 * 1000);
-						tryCnt += grabResult == false ? 1 : 0;
-					}
-				}
-				else return false;
-			};
+			//				}, 3 * 1000);
+			//			tryCnt += grabResult == false ? 1 : 0;
+			//		}
+			//	}
+			//	else return false;
+			//};
 
 			bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{

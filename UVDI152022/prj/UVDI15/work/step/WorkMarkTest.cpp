@@ -239,13 +239,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 					
 					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag, offsetBuff);
 
-
-				
-
-
-
-
-
 					if(errFlag == true)
 						throw exception();
 
@@ -260,14 +253,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 					}); //리파인드 옵셋에 2개 추가.
 
 					grabMarkPath.erase(match, grabMarkPath.end());//2포인트는 끝났으니 빼주면된다. 
-
-					
-
-
-
-
-
-
 
 					//*****************************************************************************//
 					CaliPoint expo, align;

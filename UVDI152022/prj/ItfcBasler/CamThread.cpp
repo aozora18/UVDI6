@@ -271,6 +271,8 @@ bool CCamThread::RemoveLastGrab(int camIdx)
 		if (lastIdx != nullptr)
 		{
 			m_lstGrab.RemoveAt(lastIdx);
+			
+			m_pCamMain[camIdx - 1]->DecreaseGrabCnt();
 			res = true;
 		}
 

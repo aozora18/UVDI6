@@ -1832,7 +1832,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		
 		//이부분이 중요하다  여기서 
-		motions.GetOffset(OffsetType::refind, temp.tgt_id, refindOffset);
+		motions.GetOffsetFromPool(OffsetType::refind, temp.tgt_id, refindOffset);
 		temp.mark_x += refindOffset.offsetX; //<내 생각엔 +가 맞는데 잘 모르겠다.  일단 모션만보자. 
 		temp.mark_y += refindOffset.offsetY;
 
@@ -1842,10 +1842,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		if (pstSetAlign->use_mark_offset)// && useManual == false
 		{
-			if (motions.GetOffset(OffsetType::expo, temp.tgt_id, expoOffset) == false)
+			if (motions.GetOffsetFromPool(OffsetType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
 
-			if (motions.GetOffset(OffsetType::align, temp.tgt_id, alignOffset) == false)
+			if (motions.GetOffsetFromPool(OffsetType::align, temp.tgt_id, alignOffset) == false)
 				return ENG_JWNS::en_error;
 
 			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);

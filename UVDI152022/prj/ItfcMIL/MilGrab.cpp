@@ -185,6 +185,13 @@ BOOL CMilGrab::PutGrabImage(PUINT8 image)
 	return TRUE;
 }
 
+
+VOID CMilGrab::FixGrabbedMark(int img_id, double offsetX, double offsetY)
+{
+
+}
+
+
 /*
  desc : 모델 검색 후 검색 결과 값 설정
  parm : img_id		- [in]  Camera Grabbed Image Index (0 or Later)
@@ -196,6 +203,8 @@ BOOL CMilGrab::PutGrabImage(PUINT8 image)
 		grab_height	- [in]  검색(Grabbed)된 이미지의 크기 (단위: pixel)
  retn : None
 */
+
+
 VOID CMilGrab::SetGrabbedMark(int img_id,
 							  LPG_GMFR r_data, LPG_GMFR o_data, UINT8 o_count,
 							  UINT32 grab_width, UINT32 grab_height)
@@ -260,32 +269,6 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 			
 			if(idx != -1)
 				pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx];
-
-			////진짜 개 구대기 거지같이 짜놨네.
-			//if (ENG_AOMI::en_each != ENG_AOMI(m_pstConfig->set_align.align_method))
-			//{
-			//	if (img_id < 0x02)
-			//	{
-			//		pstCaliData	= m_pstShMemVisi->cali_global[m_u8ACamID-1][u8MarkSeq];
-			//	}
-			//	else
-			//	{
-			//		u8MarkSeq	-= 0x02;	/* Local Mark Index */
-			//		pstCaliData	= m_pstShMemVisi->cali_local[m_u8ACamID-1][u8MarkSeq];
-			//	}
-			//}
-			//else
-			//{
-			//	if (img_id < 0x04)
-			//	{
-			//		pstCaliData	= m_pstShMemVisi->cali_global[m_u8ACamID-1][u8MarkSeq];
-			//	}
-			//	else
-			//	{
-			//		u8MarkSeq	-= 0x04;	/* Local Mark Index */
-			//		pstCaliData	= m_pstShMemVisi->cali_local[m_u8ACamID-1][u8MarkSeq];
-			//	}
-			//}
 
 			try
 			{
@@ -372,17 +355,18 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 			{
 				m_pstGrabResult->move_px_x += (dbVertX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 				m_pstGrabResult->move_mm_x += dbVertX;
+
 				m_pstGrabResult->move_px_x -= (dbCaliX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 				m_pstGrabResult->move_mm_x -= dbCaliX;
 				m_pstGrabResult->move_px_y -= (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 				m_pstGrabResult->move_mm_y -= dbCaliY;
-				//m_pstGrabResult->move_px_y += (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1));
-				//m_pstGrabResult->move_mm_y += dbCaliY;
+
+				
 				for (i=0; i<o_count && o_data; i++)
 				{
 					m_pstResultAll[i].cent_x += (dbVertX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 					m_pstResultAll[i].cent_x -= (dbCaliX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
-					//m_pstResultAll[i].cent_y -= (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
+					
 					m_pstResultAll[i].cent_y += (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 				}
 			}

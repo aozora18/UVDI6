@@ -521,13 +521,13 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
 			m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
 
-			//string temp = "x" + std::to_string(CENTER_CAM);
-			//if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
-				/*for (int i = 0; i < grabMarkPath.size(); i++)
-				{
-					auto stageAlignOffset = motions.EstimateOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y, CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-					uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, stageAlignOffset.offsetX, stageAlignOffset.offsetY);
-				}*/
+			string temp = "x" + std::to_string(CENTER_CAM);
+			if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
+			for (int i = 0; i < grabMarkPath.size(); i++)
+			{
+				auto stageAlignOffset = motions.EstimateAlignOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y, CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+				uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, stageAlignOffset.offsetX, stageAlignOffset.offsetY);
+			}
 
 			//여기서 등록하자. 	
 		}

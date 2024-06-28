@@ -7,6 +7,7 @@
 
 #include "../conf/global.h"
 #include "../conf/define.h"
+#include "../conf/luria.h"
 #if (CUSTOM_CODE_UVDI15_LLS10 == DELIVERY_PRODUCT_ID || \
 	 CUSTOM_CODE_UVDI15_LLS06 == DELIVERY_PRODUCT_ID)
 #include "../../inc/conf/vision_uvdi15.h"
@@ -123,6 +124,11 @@ API_IMPORT VOID uvEng_Camera_ResetGrabbedMark();
 API_IMPORT VOID uvEng_Camera_TriggerMode(int camIdx, ENG_TRGM mode);
 API_IMPORT VOID uvEng_Camera_ResetGrabbedImage();
 API_IMPORT bool uvEng_Camera_RemoveLastGrab(int camIdx);
+
+API_IMPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY);
+API_IMPORT bool uvEng_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY);
+
+
 API_IMPORT bool  uvEng_Camera_SWGrab(int camIdx);
 API_IMPORT ENG_TRGM uvEng_Camera_GetTriggerMode(int camIdx);
 /*

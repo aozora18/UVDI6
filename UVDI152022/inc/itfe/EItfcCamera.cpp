@@ -199,12 +199,22 @@ API_EXPORT VOID uvEng_Camera_ResetGrabbedImage()
 	uvBasler_ResetGrabbedImage();
 }
 
-
 API_EXPORT bool uvEng_Camera_RemoveLastGrab(int camIdx)
 {
 	return uvBasler_RemoveLastGrab(camIdx);
 }
 
+
+API_EXPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
+{
+	return uvBasler_FixMoveOffsetUseImgID( camNum,  imgID,  offsetX,  offsetY);
+}
+
+
+API_EXPORT bool uvEng_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
+{
+	return uvBasler_FixMoveOffsetUseMark(camNum, mark, offsetX, offsetY);
+}
 
 API_EXPORT bool  uvEng_Camera_SWGrab(int camIdx)
 {

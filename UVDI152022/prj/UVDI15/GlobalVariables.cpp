@@ -308,7 +308,7 @@ void AlignMotion::Destroy()
 	axises.clear();
 }
 
-bool AlignMotion::GetOffset(OffsetType type, int tgtMarkIdx, CaliPoint& temp)
+bool AlignMotion::GetOffsetFromPool(OffsetType type, int tgtMarkIdx, CaliPoint& temp)
 {
 	auto offsetPool = status.offsetPool[type];
 
@@ -1243,21 +1243,63 @@ LPG_ACGR CommonMotionStuffs::GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF mar
 }
 
 
-void CommonMotionStuffs::GetCurrentOffsets(int centerCam , STG_XMXY mark, CaliPoint& alignOffset, CaliPoint& expoOffset)
+
+
+void CommonMotionStuffs::GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset, CaliPoint* expoOffset,double posOffsetX, double posOffsetY )
 {
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	string temp = "x" + std::to_string(centerCam);
 
 	auto markPos = mark.GetMarkPos();
 
-	alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos,
-		motions.GetAxises()["stage"]["y"].currPos,
-		centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+	if (alignOffset != nullptr)
+	{
+		motions.Refresh();
+		//실시간 좌표로 따지면 나중에 한번에 계산할수가 없다. 마크좌표 기준으로 스테이지 좌표를 역산하게해야한다. 
+		*alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos + posOffsetX,
+			motions.GetAxises()["stage"]["y"].currPos + posOffsetY,
+			centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+		
+		alignOffset->srcFid = mark;
+	}
 
-	expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+	if (expoOffset != NULL)
+	{
+		*expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+		expoOffset->srcFid = mark;
+	}
+}
 
-	alignOffset.srcFid = mark;
-	expoOffset.srcFid = mark;
+
+void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, CaliPoint* alignOffset , CaliPoint* expoOffset)
+{
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	string temp = "x" + std::to_string(centerCam);
+
+	auto markPos = mark.GetMarkPos();
+
+	if (alignOffset != nullptr)
+	{
+
+		//실시간 좌표로 따지면 나중에 한번에 계산할수가 없다. 마크좌표 기준으로 스테이지 좌표를 역산하게해야한다. 
+		/**alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos,
+			motions.GetAxises()["stage"]["y"].currPos,
+			centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);*/
+		STG_XMXY stagePos;
+		motions.GetStagePosUseGerberPos(centerCam, mark, stagePos);
+
+			*alignOffset = motions.EstimateAlignOffset(centerCam, stagePos.mark_x,stagePos.mark_y,
+				centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+
+
+		alignOffset->srcFid = mark;
+	}
+
+	if (expoOffset != NULL)
+	{
+		*expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+		expoOffset->srcFid = mark;
+	}
 }
 
 bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout)

@@ -7,8 +7,12 @@
 
 #include "../conf/global.h"
 #include "../conf/vision_uvdi15.h"
+#include "../conf/luria.h"
+
+
 
 class AlignMotion;
+
 
 #ifdef __cplusplus
 extern "C"
@@ -125,6 +129,8 @@ API_IMPORT BOOL uvBasler_IsConnected(UINT8 cam_id);
 */
 API_IMPORT BOOL uvBasler_IsConnectedAll();
 
+API_IMPORT bool uvBasler_FixMoveOffsetUseImgID(int camNum,int imgID, double offsetX, double offsetY);
+API_IMPORT bool uvBasler_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY);
 
 API_IMPORT bool uvBasler_RemoveLastGrab(int camNum);
 

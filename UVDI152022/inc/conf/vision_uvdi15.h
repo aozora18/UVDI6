@@ -199,6 +199,12 @@ typedef struct __st_align_camera_grab_result__
 		grab_data = nullptr;
 	}
 
+	void FixOffsets(double offsetX, double offsetY,bool overWrite = false)
+	{
+		this->move_mm_x = overWrite ? offsetX : this->move_mm_x + offsetX;
+		this->move_mm_y = overWrite ? offsetY : this->move_mm_y + offsetY;
+	}
+
 	/* »ý¼ºÀÚ */
 	__st_align_camera_grab_result__()
 	{

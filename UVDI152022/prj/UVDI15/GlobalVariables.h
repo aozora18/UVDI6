@@ -513,7 +513,8 @@ public:
 
 	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000);
 
-	void GetCurrentOffsets(int centerCam, STG_XMXY mark, CaliPoint& alignOffset, CaliPoint& expoOffset);
+	void GetOffsetsUseMarkPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr);
+	void GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
 	
 	LPG_ACGR GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType);
 };
@@ -595,7 +596,7 @@ public:
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
 	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
-	bool GetOffset(OffsetType type, int tgtMarkIdx, CaliPoint& temp);
+	bool GetOffsetFromPool(OffsetType type, int tgtMarkIdx, CaliPoint& temp);
 	void Destroy();
 
 protected:

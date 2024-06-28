@@ -9,7 +9,7 @@
 #include "CamThread.h"
 #include "CamMain.h"
 #include "DrawMark.h"
-
+#include "..\..\inc\conf\luria.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -50,6 +50,29 @@ VOID ResetGrabbedMark()
 	if (!g_pCamMain)	return;
 	for (; i<g_pstConfig->set_cams.acam_count; i++)	g_pCamMain[i]->ResetGrabbedMark();
 }
+
+
+
+bool FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
+{
+	auto grab = g_pCamThread->GetGrabbedMark(camNum, imgID);
+
+	if (grab == nullptr) return false;
+	
+	grab->FixOffsets(offsetX, offsetY);
+
+	return true;
+}
+
+bool FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
+{
+	auto grab = g_pCamThread->GetGrabbedMark(camNum, mark);
+	if (grab == nullptr) return false;
+	grab->FixOffsets(offsetX, offsetY);
+	return true;
+}
+
+
 
 /*
  desc : 기존 Grabbed 이미지 모두 제거
@@ -591,6 +614,20 @@ API_EXPORT VOID uvBasler_ResetGrabbedImage()
 	if (!g_pCamThread)	return;
 	ResetGrabbedImage();
 }
+
+API_EXPORT bool uvBasler_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
+{
+	FixMoveOffsetUseImgID(camNum, imgID, offsetX, offsetY);
+	return true;
+}
+
+API_EXPORT bool uvBasler_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
+{
+	FixMoveOffsetUseMark(camNum, mark, offsetX, offsetY);
+	return true;
+}
+
+
 
 API_EXPORT bool uvBasler_RemoveLastGrab(int camNum)
 {

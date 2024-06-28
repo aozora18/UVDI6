@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../../inc/comn/ThinThread.h"
+#include "../../inc/conf/luria.h"
 
 
 class CCamMain;
@@ -84,7 +85,8 @@ public:
 	UINT16				GetGrabbedCount(int* camNum=nullptr);
 	bool				RemoveLastGrab(int camIdx);
 	BOOL				IsScoreValidAll(DOUBLE set_score);
-	LPG_ACGR			GetGrabbedMark(UINT8 cam_id, UINT8 img_id);
+	LPG_ACGR GetGrabbedMark(UINT8 cam_id, UINT8 img_id);
+	LPG_ACGR GetGrabbedMark(UINT8 cam_id, STG_XMXY mark);
 	BOOL				SetGrabbedMark(LPG_ACGR grab);
 	LPG_ACGR			GetGrabbedMarkIndex(UINT8 index);
 	BOOL				SetGrabbedMarkIndex(UINT8 index, LPG_ACGR data);

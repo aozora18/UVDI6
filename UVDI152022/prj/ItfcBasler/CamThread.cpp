@@ -517,6 +517,34 @@ LPG_ACGR CCamThread::GetGrabbedMark(UINT8 cam_id, UINT8 img_id)
 	return pstGrab;
 }
 
+
+LPG_ACGR CCamThread::GetGrabbedMark(UINT8 cam_id, STG_XMXY mark) //tgt가 들어있음.
+{
+	POSITION pPos = NULL;
+	LPG_ACGR pstGrab = NULL;
+
+	/* 동기 진입 */
+	if (m_syncGrab.Enter())
+	{
+		pPos = m_lstGrab.GetHeadPosition();
+		while (pPos)
+		{
+			pstGrab = m_lstGrab.GetNext(pPos);
+			if (pstGrab->cam_id == cam_id && 
+				pstGrab->fiducialMarkIndex == mark.tgt_id && 
+				 mark.GetFlag((STG_XMXY_RESERVE_FLAG)pstGrab->reserve))	break;
+			/* 찾지 못했으므로, 반드시 NULL 시켜야 됨 */
+			pstGrab = NULL;
+		}
+		/* 동기 해제 */
+		m_syncGrab.Leave();
+	}
+
+	return pstGrab;
+}
+
+
+
 /*
  desc : Grabbed Image의 데이터 반환
  parm : cam_id	- [in]  카메라 번호 (1 or 2)

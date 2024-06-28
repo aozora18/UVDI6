@@ -708,6 +708,10 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	UINT16 tempCommand = pstPhil->st_header.nCommand;
 	TCHAR szTemp[512] = { NULL };
 
+	swprintf_s(szTemp, 512, L"nCommand = %d  ulUniqueID = %d",
+		pstPhil->st_header.nCommand, pstPhil->st_header.ulUniqueID);
+	LOG_SAVED(ENG_EDIC::en_philhmi, ENG_LNWE::en_job_work, szTemp);
+
 	switch (pstPhil->st_header.nCommand)
 	{
 	/// <summary>

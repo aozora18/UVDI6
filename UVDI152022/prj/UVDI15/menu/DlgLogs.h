@@ -194,6 +194,7 @@ protected:
 public:
 	void				StartLogThread();
 	void				StopLogThread();
+	EN_LOG_STEP			GetLogStep();
 
 	
 

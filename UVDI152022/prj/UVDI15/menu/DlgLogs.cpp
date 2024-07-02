@@ -745,6 +745,11 @@ void CDlgLogs::StopLogThread()
 	}
 }
 
+EN_LOG_STEP CDlgLogs::GetLogStep()
+{
+	return m_eSTEP;
+}
+
 LRESULT CDlgLogs::OnSyncScroll(WPARAM wParam, LPARAM lParam)
 {
 	if (m_chk_vop[eLOGS_VOP_SYNC_SCROLL].GetCheck())

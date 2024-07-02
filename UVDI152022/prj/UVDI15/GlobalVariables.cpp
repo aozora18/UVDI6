@@ -969,15 +969,17 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	{
 		try
 		{
+			/*현재 위치 확인*/
 			auto currPosBeforeRefind = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 			auto currPath = representPoints.begin();
+			/*현재 위치기반으로 마크 위치로 이동*/
 			motions.MovetoGerberPos(centerCam, *currPath);
 			sleep(100);
 
 			motions.Refresh();
 			if (motions.NowOnMoving() == true)
 				return false;
-
+			/*Align Camera Grab 동작 실행 및 실패시 종료*/
 			if (CommonMotionStuffs::GetInstance().SingleGrab(centerCam) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 				throw exception();
 
@@ -1074,6 +1076,9 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 }
 
+//최초 마크 인식 실패시 Refind 동작 
+//refindOffset	= Mark Grab 성공한 위치 - 최초 Mark Grab 위치
+//grabOffset	= move_mm_x, move_mm_y
 bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refindOffset, std::tuple<double, double>* grabOffset) //패턴기반.
 {
 	UINT8 XAXIS  = 0b00010000,
@@ -1092,6 +1097,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 
 	auto prevStagePos = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 	bool sutable = false;
+	/*							    Y축 위,		X축 오른쪽,		Y축 아래,	Y축 아래,		X축 왼쪽,	X축 왼쪽,		Y축 위,		Y축 위*/
 	vector<int> searchMap = { MUP | YAXIS ,MRIGHT | XAXIS ,MDOWN | YAXIS,MDOWN | YAXIS,MLEFT | XAXIS,MLEFT | XAXIS,MUP | YAXIS,MUP | YAXIS };
 
 	auto step = searchMap.begin();
@@ -1102,10 +1108,10 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 			auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
 			auto modeDelta = (*step & MLEFT) != 0 || (*step & MRIGHT) != 0 ? stepSizeX : stepSizeY;
 			modeDelta *= ((*step & MLEFT) != 0 || (*step & MDOWN) != 0) ? -1 : 1;
-
+			/*현재 위치에서 상대값 이동*/
 			sutable = CommonMotionStuffs::GetInstance().MoveAxis(targetAxis, false, modeDelta, true);
 
-			if (sutable == false) //그랩실패
+			if (sutable == false) //이동실패
 				break;
 
 			this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
@@ -1115,6 +1121,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 			if (sutable == false) //그랩실패
 				break;
 
+			/*Grab Image에서 Mark Mvoe 산출*/
 			sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam,&grabOffsetX,&grabOffsetY);
 			
 			if (sutable == true) //마크찾기 성공.
@@ -1136,6 +1143,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 	if (refindOffset != nullptr)
 	{
 		auto currStagePos = CommonMotionStuffs::GetInstance().GetCurrStagePos();
+		/*Refind에서 Mark Grab 성공한 위치 - 최초 Mark Grab 위치*/
 		*refindOffset = make_tuple(std::get<0>(currStagePos) - std::get<0>(prevStagePos) ,
 								  std::get<1>(currStagePos) - std::get<1>(prevStagePos));
 	}

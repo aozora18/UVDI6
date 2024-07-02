@@ -81,7 +81,7 @@ VOID CWorkInited::DoWork()
 	/* Stage X / Y / ACam1/2 and PH1/2 Drive에 대해서 Homing 수행 */
 	case 0x07 : m_enWorkState = DoDriveHomingAll();						break;
 	/* Stage X / Y / ACam1/2 and PH1/2 Drive의 Homing 하는데 최소 대기 (굳이 할 필요 없지만...) */
-	case 0x08 : m_enWorkState = SetWorkWaitTime(2000);					break;
+	case 0x08 : m_enWorkState = SetWorkWaitTime(4000);					break;
 	case 0x09 : m_enWorkState = IsWorkWaitTime();						break;
 	/* 모든 드라이브가 Homing 되었는지를 확인 (ACam2가 제일 늦음) */
 	case 0x0a : m_enWorkState = IsDrivedHomedAll();						break;

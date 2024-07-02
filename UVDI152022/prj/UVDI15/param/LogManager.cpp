@@ -177,7 +177,9 @@ void CLogManager::LoadFileContent(EN_LOG_TYPE type, CString strFileName)
 	CString strLine;
 	CFileException e;
 
-	strFile.Format(_T("%s\\logs\\%s\\%s"), g_tzWorkDir, m_tzType[type], strFileName);
+	//strFile.Format(_T("%s\\logs\\%s\\%s"), g_tzWorkDir, m_tzType[type], strFileName);
+	strFile.Format(_T("%s\\logs\\DlgFile\\%s\\%s"), g_tzWorkDir, m_tzType[type], strFileName);
+
 
 	if (file.Open(strFile, CFile::modeRead | CFile::typeUnicode, &e))
 	{
@@ -232,7 +234,8 @@ void CLogManager::LoadFiles(EN_LOG_TYPE type, COleDateTime timeStart, COleDateTi
 	GetArrDates(timeStart, timeEnd, arrDates);
 
 	/* 경로의 파일 리스트 얻기 */
-	swprintf_s(tzDir, MAX_PATH_LEN, L"%s\\logs\\%s", g_tzWorkDir, m_tzType[type]);
+	//swprintf_s(tzDir, MAX_PATH_LEN, L"%s\\logs\\%s", g_tzWorkDir, m_tzType[type]);
+	swprintf_s(tzDir, MAX_PATH_LEN, L"%s\\logs\\DlgFile\\%s", g_tzWorkDir, m_tzType[type]);
 	uvCmn_SearchFile(tzDir, L"*.log", arrFiles);
 
 	/* 로그 데이터 초기화 */

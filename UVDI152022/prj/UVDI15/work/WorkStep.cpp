@@ -2774,6 +2774,29 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, int* camNum)
 	swprintf_s(tzTitle, 128, L"Mark.Grabbed (%u / %u)", uvEng_Camera_GetGrabbedCount(camNum), u8Total);
 	SetStepName(tzTitle);
 
+	/*Mark Align 결과 Log 출력*/
+	UINT8 u8Img, u8Cam;
+	TCHAR tzMsg[256] = { NULL };
+	LPG_ACGR pstMark = NULL;
+	if (bSucc)
+	{
+		for (int i = 0; i < u8Global; i++)
+		{
+			/* Global Mark < 4 > Points */
+			GetGlobalMarkIndex(i, u8Cam, u8Img);
+
+			pstMark = uvEng_Camera_GetGrabbedMark(u8Cam, u8Img);
+			if (pstMark)
+			{
+				swprintf_s(tzMsg, 256, L"Cam%d-Img%d, %.3f,%.3f,%.4f,%.4f,",
+					u8Cam, u8Img,
+					pstMark->score_rate, pstMark->scale_rate,
+					pstMark->move_mm_x, pstMark->move_mm_y);
+				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+			}
+		}
+	}
+
 	return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
 }
 
@@ -2930,7 +2953,8 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 	}
 
 	TCHAR tzMsg[256] = { NULL };
-	swprintf_s(tzMsg, 256, L"Step Size = %d Led Duty Cycle = %d, Frame Rate = %d", pstJobRecipe->step_size, pstExpoRecipe->led_duty_cycle, pstJobRecipe->frame_rate);
+	swprintf_s(tzMsg, 256, L"Step Size = %d Led Duty Cycle = %d, Frame Rate = %d",
+		pstJobRecipe->step_size, pstExpoRecipe->led_duty_cycle, pstJobRecipe->frame_rate);
 	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 
@@ -4098,6 +4122,11 @@ ENG_JWNS CWorkStep::CheckValidRecipe()
 	//	LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 	//	return ENG_JWNS::en_error;
 	//}
+
+	TCHAR tzMsg[256] = { NULL };
+	swprintf_s(tzMsg, 256, L"Expo Energy = %.4f mj Expo Speed = %.3f, Thick = %d um",
+		pstRecipe->expo_energy, pstRecipe->frame_rate / 1000.0f, pstRecipe->material_thick);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 	return ENG_JWNS::en_next;
 }

@@ -566,7 +566,9 @@ API_EXPORT DOUBLE uvLuria_GetExposeEnergy(UINT8 step_size, UINT8 duty_cycle,
 	dbDMDAreaMM		= (pstLuria->mirror_count_xy[0] * dbPixelSizeMM) *
 					  (pstLuria->mirror_count_xy[1] * dbPixelSizeMM);
 	/* 최대 노광 속도 (mm/sec) */
-	dbMaxSpeed		= dbScrollRate * (dbPixelSizeMM + 0.062068 / 1000.0f) * step_size;
+	//dbMaxSpeed		= dbScrollRate * (dbPixelSizeMM + 0.062068 / 1000.0f) * step_size;
+	dbMaxSpeed = g_pstShMemLuria->machine.scroll_rate *
+		(GetConfig()->luria_svc.pixel_size /*+ MIRROR_PERIOD_UM*/) / 1000.0f * DOUBLE(step_size);
 	/* 현재 노광 속도 (mm/sec) */
 	dbExpoSpeed		= dbMaxSpeed * (frame_rate / 1000.0f);
 	/* DMD 영역만큼 한번 노광하는데 소요되는 시간 */

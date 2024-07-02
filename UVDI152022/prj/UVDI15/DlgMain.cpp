@@ -1478,6 +1478,17 @@ BOOL CDlgMain::CreateMenu(UINT32 id)
 {
 	UINT32 u32DlgID	= 0;
 
+	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_logs)
+	{
+		//((CDlgLogs*)m_pDlgMenu)->SetStop();
+
+		if (eLOGS_STEP_INIT != ((CDlgLogs*)m_pDlgMenu)->GetLogStep())
+		{
+			AfxMessageBox(L"파일에서 내용을 불러오는 중입니다.");
+			return FALSE;
+		}
+	}
+
 	/* 기존 실행된 자식 윈도가 있다면 메모리 해제 */
 	DeleteMenu();
 

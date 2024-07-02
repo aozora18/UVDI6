@@ -516,44 +516,14 @@ void CWorkMarkTest::DoAlignStaticCam()
 			mark1SumY = mark1RefindY + mark1GrabY;
 			mark2SumX = mark2RefindX + mark2GrabX;
 			mark2SumY = mark2RefindY + mark2GrabY;
-
-			//x보정
-			if (fabs(mark1RefindX) > fabs(mark2RefindX))
-			{
-
-				auto xShiftGab = motions.markParams.convertThreshold - fabs(mark1RefindX);
-
-			}
-			else //MARK2쪽이 큰 경우
-			{
-				auto gab = mark1SumX - mark2SumX; //두 원점간 거리 .
-
-				bool good = false;
-				while (good = false)
-				{
-
-				}
-			}
-
-			//y보정
-			if (fabs(mark1SumY) > fabs(mark2SumY)) //MARK1쪽이 큰 경우 
-			{
-				int debug = 0;
-			}
-			else //MARK2쪽이 큰 경우.
-			{
-				int debug = 0;
-			}
-
-
-			//여기까지 왔으면 일단 마크1,2가 보정가능한 1.3MM 이내로 들어왔다는것을 의미한다.
-			//보통은 한방향으로 쉬프트된 좌표에서 약간의 회전이 있는경우이다. 
-
-			//둘중 리파인트 + 에러옵셋의 합이 큰쪽을 움직이는 기준으로 잡는다. 
-			//왜냐면 특정점을 기준으로 회전한경우엔 MARK1,MARK2중 어느 한점은 움직임이 거의 없을수가 있다. 
-
 			
+			auto xBase = fabs(mark1SumX) > fabs(mark2SumX) ? mark1SumX : mark2SumX;
+			auto yBase = fabs(mark1SumY) > fabs(mark2SumY) ? mark1SumY : mark2SumY;
 
+			auto xShiftGab = (motions.markParams.convertThreshold - fabs(xBase)) * (xBase > 0 ? 1 : -1);
+			auto yShiftGab = (motions.markParams.convertThreshold - fabs(yBase)) * (yBase > 0 ? 1 : -1);
+
+			//대충 적용값 나온듯.
 
 			offsetPool[OffsetType::refind];
 

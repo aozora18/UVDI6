@@ -253,8 +253,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 					
 					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag, offsetBuff);
 
-					if(errFlag == true)
-						throw exception();
 
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(), 
 												[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
@@ -285,6 +283,24 @@ void CWorkMarkTest::DoAlignStaticCam()
 						offsetPool[OffsetType::align].push_back(align);
 						
 					}
+
+					if (errFlag == true)
+					{
+						for each (auto v in offsetPool[OffsetType::refind])
+						{
+							auto refind = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
+							uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, -v.offsetX + (v.suboffsetX), -v.offsetY + (v.suboffsetY),true);
+						}
+
+						for each (auto v in offsetPool[OffsetType::align])
+						{
+							auto grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
+							uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, v.offsetX, v.offsetY);
+						}
+
+						throw exception();
+					}
+
 					SetUIRefresh(true);
 					m_enWorkState = ENG_JWNS::en_next;
 				}
@@ -427,6 +443,14 @@ void CWorkMarkTest::DoAlignStaticCam()
 			{
 				TCHAR tzMsg[256] = { NULL };
 				
+
+				for each (auto v in offsetPool[OffsetType::refind])
+				{
+					auto refind = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
+
+					uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, -v.offsetX + (v.suboffsetX), -v.offsetY + (v.suboffsetY),true);
+				}
+
 				for each (auto v in offsetPool[OffsetType::align])
 				{
 					
@@ -441,7 +465,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", v.srcFid.org_id, v.srcFid.tgt_id, v.offsetX, v.offsetY));
 
 					
-					uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, v.offsetX, v.offsetY);
+					uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, v.offsetX , v.offsetY );
 					
 					grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
 					

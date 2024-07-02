@@ -209,15 +209,15 @@ API_EXPORT LPG_ACGR uvEng_GetGrabUseMark(int camNum, STG_XMXY mark)
 	return uvBasler_GetGrabUseMark(camNum, mark);
 }
 
-API_EXPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
+API_EXPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY,bool set)
 {
-	return uvBasler_FixMoveOffsetUseImgID( camNum,  imgID,  offsetX,  offsetY);
+	return uvBasler_FixMoveOffsetUseImgID( camNum,  imgID,  offsetX,  offsetY,set);
 }
 
 
-API_EXPORT bool uvEng_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
+API_EXPORT bool uvEng_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY,bool set)
 {
-	return uvBasler_FixMoveOffsetUseMark(camNum, mark, offsetX, offsetY);
+	return uvBasler_FixMoveOffsetUseMark(camNum, mark, offsetX, offsetY, set);
 }
 
 API_EXPORT bool  uvEng_Camera_SWGrab(int camIdx)

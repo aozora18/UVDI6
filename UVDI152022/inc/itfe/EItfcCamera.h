@@ -127,8 +127,8 @@ API_IMPORT bool uvEng_Camera_RemoveLastGrab(int camIdx);
 
 API_EXPORT LPG_ACGR uvEng_GetGrabUseMark(int camNum, STG_XMXY mark);
 
-API_IMPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY);
-API_IMPORT bool uvEng_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY);
+API_IMPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY, bool set = false);
+API_IMPORT bool uvEng_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY,bool set = false);
 
 
 API_IMPORT bool  uvEng_Camera_SWGrab(int camIdx);

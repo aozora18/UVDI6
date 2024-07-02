@@ -53,22 +53,22 @@ VOID ResetGrabbedMark()
 
 
 
-bool FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
+bool FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY,bool set)
 {
 	auto grab = g_pCamThread->GetGrabbedMark(camNum, imgID);
 
 	if (grab == nullptr) return false;
 	
-	grab->FixOffsets(offsetX, offsetY);
+	grab->FixOffsets(offsetX, offsetY,set);
 
 	return true;
 }
 
-bool FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
+bool FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY,bool set)
 {
 	auto grab = g_pCamThread->GetGrabbedMark(camNum, mark);
 	if (grab == nullptr) return false;
-	grab->FixOffsets(offsetX, offsetY);
+	grab->FixOffsets(offsetX, offsetY,set);
 	return true;
 }
 
@@ -623,11 +623,6 @@ API_EXPORT VOID uvBasler_ResetGrabbedImage()
 	ResetGrabbedImage();
 }
 
-API_EXPORT bool uvBasler_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
-{
-	FixMoveOffsetUseImgID(camNum, imgID, offsetX, offsetY);
-	return true;
-}
 
 API_EXPORT LPG_ACGR uvBasler_GetGrabUseMark(int camNum, STG_XMXY mark)
 {
@@ -635,9 +630,15 @@ API_EXPORT LPG_ACGR uvBasler_GetGrabUseMark(int camNum, STG_XMXY mark)
 }
 
 
-API_EXPORT bool uvBasler_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
+API_EXPORT bool uvBasler_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY,bool set)
 {
-	FixMoveOffsetUseMark(camNum, mark, offsetX, offsetY);
+	FixMoveOffsetUseMark(camNum, mark, offsetX, offsetY,set);
+	return true;
+}
+
+API_EXPORT bool uvBasler_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY, bool set)
+{
+	FixMoveOffsetUseImgID(camNum, imgID, offsetX, offsetY,set);
 	return true;
 }
 

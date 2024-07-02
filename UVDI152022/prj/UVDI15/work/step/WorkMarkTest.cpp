@@ -497,33 +497,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 		[&]()
 		{
 
-			/*
-			최종옵셋만보자.
-			refind offset은 그냥 빼주는 default값이고
-
-			graboffset이 1.3이 넘어가면 안되는것이다.
-
-			하지만 expostart xy는 모든점에 적용되는 값이기때문에 여러개를 넣어줄수 없고.
-
-			대표 mark 1,2를 이용해서 적용한다.
-
-
-			<상황1>
-			mark1은 원위치 탐지 erroffsetx + 1.5f ,
-								erroffsety + 0.3f ,
-
-			mark2는 refind 탐지 (x+1, y+1)
-								erroffsetx - 1.3f;
-								erroffsety - 0.5f;
-
-			그렇다면 사실상 반시계 방향으로 회전된 상태라는것이다.
-
-			문제는 mark2옵셋이
-
-
-
-			*/
-
+			
 			double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
 			double mark1GrabX, mark1GrabY, mark2GrabX, mark2GrabY;
 			double mark1SumX, mark1SumY, mark2SumX, mark2SumY;
@@ -544,9 +518,11 @@ void CWorkMarkTest::DoAlignStaticCam()
 			mark2SumY = mark2RefindY + mark2GrabY;
 
 			//x보정
-			if (fabs(mark1RefindX) > fabs(mark2RefindX)) //MARK1쪽이 큰 경우 , 0에서 먼쪽이 길지 뭐.
+			if (fabs(mark1RefindX) > fabs(mark2RefindX))
 			{
-				int debug = 0;
+
+				auto xShiftGab = motions.markParams.convertThreshold - fabs(mark1RefindX);
+
 			}
 			else //MARK2쪽이 큰 경우
 			{

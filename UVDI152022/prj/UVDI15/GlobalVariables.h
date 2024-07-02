@@ -356,10 +356,12 @@ struct Params
 {
 	double currGerbermark2x = 0, currGerbermark2y = 0;
 	double caliGerbermark2x = 0, caliGerbermark2y = 0;
-	int threshold = 10;
+	//int threshold = 10;
 	double mark2StageX = 0;
 
 	map<int, tuple<double, double>> mark2CamoffsetXY;
+
+	double convertThreshold = 1.3f;
 
 	double distCam2cam[4] = { 0, };
 	int centerCamIdx = 3;

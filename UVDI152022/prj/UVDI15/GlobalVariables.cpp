@@ -943,7 +943,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	const int PAIR = 2;
 	const int MARK1 = 0;
 	const int MARK2 = 1;
-	const double CONVERT_THRESHOLD = 1.3f; //원좌표 대비 이 크기만큼을 벗어나면 보정불가다.
+	
 
 	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
 	errFlag = false;
@@ -1045,7 +1045,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	double diffX = fabs(std::get<REFIND_OFFSET_X>(findOffsets[MARK1]) - std::get<REFIND_OFFSET_X>(findOffsets[MARK2]));
 	double diffY = fabs(std::get<REFIND_OFFSET_Y>(findOffsets[MARK1]) - std::get<REFIND_OFFSET_Y>(findOffsets[MARK2]));
 
-	if (diffX > CONVERT_THRESHOLD || diffX > CONVERT_THRESHOLD)
+	if (diffX > motions.markParams.convertThreshold || diffX > motions.markParams.convertThreshold)
 	{
 		errFlag = true;
 		return true;

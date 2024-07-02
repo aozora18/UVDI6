@@ -119,8 +119,13 @@ private:
 
 
 
+struct subOffset //참조용.
+{
+	double suboffsetX;
+	double suboffsetY;
+};
 
-struct CaliPoint
+struct CaliPoint : subOffset
 {
 	CaliPoint(double x,
 		double y,
@@ -131,6 +136,23 @@ struct CaliPoint
 		this->y = y;
 		this->offsetX = offsetX;
 		this->offsetY = offsetY;
+	}
+
+	CaliPoint(double x,
+		double y,
+		double offsetX,
+		double offsetY,
+		double subOffsetX,
+		double subOffsetY,
+		STG_XMXY srcFid)
+	{
+		this->x = x;
+		this->y = y;
+		this->offsetX = offsetX;
+		this->offsetY = offsetY;
+		this->suboffsetX = subOffsetX;
+		this->suboffsetY = subOffsetY;
+		this->srcFid = srcFid;
 	}
 
 	CaliPoint(double x,

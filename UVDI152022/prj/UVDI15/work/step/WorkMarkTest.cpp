@@ -164,6 +164,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 	int CENTER_CAM = motions.markParams.centerCamIdx;
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
+	const int PAIR = 2;
+	const int MARK1 = 0, MARK2 = 1;
 
 	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
 	vector<function<void()>> stepWork =
@@ -237,8 +239,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			}
 			else
 			{
-				const int PAIR = 2;
-				const int MARK1 = 0, MARK2 = 1;
+				
 				bool errFlag = false;
 
 				try
@@ -262,7 +263,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 					[&](STG_XMXY v)->CaliPoint 
 					{
 						auto find = std::find_if(filteredPath.begin(), filteredPath.end(), [&](STG_XMXY sv) {return sv.org_id == v.org_id; });
-						return CaliPoint(find->mark_x,find->mark_y, v.mark_x,v.mark_y,*find); 
+						return CaliPoint(find->mark_x,find->mark_y, v.mark_x,v.mark_y,v.offsetX,v.offsetY, *find);
 					}); //리파인드 옵셋에 2개 추가.
 
 					grabMarkPath.erase(match, grabMarkPath.end());//2포인트는 끝났으니 빼주면된다. 
@@ -348,7 +349,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 									
 									STG_XMXY temp = STG_XMXY(currPath->mark_x + grabOffsetX, currPath->mark_y + grabOffsetY);
 									CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset,nullptr, grabOffsetX, grabOffsetY); //<-에러옵셋 더해줘야함
-									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 0, 0, *currPath));
+
+									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 0, 0, std::get<0>(grabOffset), std::get<1>(grabOffset) ,*currPath));
 
 									webMonitor.AddLog(fmt::format("<{}>refind 실패했고 원래좌표에서 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
 													currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x,currPath->mark_y, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY));
@@ -364,7 +366,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 															 currPath->mark_y + std::get<1>(refindOffset) + std::get<1>(grabOffset));
 
 									CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset, nullptr, std::get<0>(grabOffset), std::get<1>(grabOffset)); //<-에러옵셋 더해줘야함
-									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), *currPath));
+									
+									
+									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset) , *currPath));
 
 									webMonitor.AddLog(fmt::format("<{}>refind로 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
 										currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset), alignOffset.offsetX, alignOffset.offsetY));
@@ -385,7 +389,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 							//CommonMotionStuffs::GetInstance().GetCurrentOffsets(CENTER_CAM, combineAddGrabOffset, alignOffset, expoOffset);
 							offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 
 																				estimatedXMXY.mark_x - currPath->mark_x,
-																				estimatedXMXY.mark_y - currPath->mark_y));
+																				estimatedXMXY.mark_y - currPath->mark_y, grabOffsetX, grabOffsetY,*currPath));
 							
 							CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset,nullptr, grabOffsetX, grabOffsetY); //<-에러옵셋 더해줘야함
 
@@ -468,8 +472,89 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
+
+			/*
+			최종옵셋만보자.
+			refind offset은 그냥 빼주는 default값이고
+
+			graboffset이 1.3이 넘어가면 안되는것이다.
+
+			하지만 expostart xy는 모든점에 적용되는 값이기때문에 여러개를 넣어줄수 없고.
+
+			대표 mark 1,2를 이용해서 적용한다.
+
+
+			<상황1>
+			mark1은 원위치 탐지 erroffsetx + 1.5f ,
+								erroffsety + 0.3f ,
+
+			mark2는 refind 탐지 (x+1, y+1)
+								erroffsetx - 1.3f;
+								erroffsety - 0.5f;
+
+			그렇다면 사실상 반시계 방향으로 회전된 상태라는것이다.
+
+			문제는 mark2옵셋이
+
+
+
+			*/
+
 			double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
+			double mark1GrabX, mark1GrabY, mark2GrabX, mark2GrabY;
+			double mark1SumX, mark1SumY, mark2SumX, mark2SumY;
+
+			mark1RefindX = offsetPool[OffsetType::refind][MARK1].offsetX;
+			mark1RefindY = offsetPool[OffsetType::refind][MARK1].offsetY;
+			mark2RefindX = offsetPool[OffsetType::refind][MARK2].offsetX;
+			mark2RefindY = offsetPool[OffsetType::refind][MARK2].offsetY;
+
+			mark1GrabX = offsetPool[OffsetType::refind][MARK1].suboffsetX;
+			mark1GrabY = offsetPool[OffsetType::refind][MARK1].suboffsetY;
+			mark2GrabX = offsetPool[OffsetType::refind][MARK2].suboffsetX;
+			mark2GrabY = offsetPool[OffsetType::refind][MARK2].suboffsetY;
+
+			mark1SumX = mark1RefindX + mark1GrabX;
+			mark1SumY = mark1RefindY + mark1GrabY;
+			mark2SumX = mark2RefindX + mark2GrabX;
+			mark2SumY = mark2RefindY + mark2GrabY;
+
+			//x보정
+			if (fabs(mark1RefindX) > fabs(mark2RefindX)) //MARK1쪽이 큰 경우 , 0에서 먼쪽이 길지 뭐.
+			{
+				int debug = 0;
+			}
+			else //MARK2쪽이 큰 경우
+			{
+				auto gab = mark1SumX - mark2SumX; //두 원점간 거리 .
+
+				bool good = false;
+				while (good = false)
+				{
+
+				}
+			}
+
+			//y보정
+			if (fabs(mark1SumY) > fabs(mark2SumY)) //MARK1쪽이 큰 경우 
+			{
+				int debug = 0;
+			}
+			else //MARK2쪽이 큰 경우.
+			{
+				int debug = 0;
+			}
+
+
+			//여기까지 왔으면 일단 마크1,2가 보정가능한 1.3MM 이내로 들어왔다는것을 의미한다.
+			//보통은 한방향으로 쉬프트된 좌표에서 약간의 회전이 있는경우이다. 
+
+			//둘중 리파인트 + 에러옵셋의 합이 큰쪽을 움직이는 기준으로 잡는다. 
+			//왜냐면 특정점을 기준으로 회전한경우엔 MARK1,MARK2중 어느 한점은 움직임이 거의 없을수가 있다. 
+
 			
+
+
 			offsetPool[OffsetType::refind];
 
 			m_enWorkState = ENG_JWNS::en_next;
@@ -481,44 +566,15 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
-
-			/*
-			최종옵셋만보자.
-			refind offset은 그냥 빼주는 default값이고
-
-			graboffset이 1.3이 넘어가면 안되는것이다. 
-
-			하지만 expostart xy는 모든점에 적용되는 값이기때문에 여러개를 넣어줄수 없고. 
-
-			대표 mark 1,2를 이용해서 적용한다. 
-
-
-			<상황1>
-			mark1은 원위치 탐지 erroffsetx + 1.5f , 
-								erroffsety + 0.3f ,
-
-			mark2는 refind 탐지 (x+1, y+1) 
-								erroffsetx - 1.3f;
-								erroffsety - 0.5f;
-
-			그렇다면 사실상 반시계 방향으로 회전된 상태라는것이다. 
-
-			문제는 mark2옵셋이 
-
-
-
-			*/
-			
-			
-
-
-			
-
-
 			double expoOffsetX = 0, expoOffsetY = 0;
-			m_enWorkState = (SetExposeStartXY(&expoOffsetX, &expoOffsetY) == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next) ? 
-				ENG_JWNS::en_next : 
-				ENG_JWNS::en_error; //expo영역 초기화 
+			m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY);
+			
+		},
+
+		[&]()
+		{
+			
+			m_enWorkState = IsExposeStartXY();
 				
 		},
 		[&]()

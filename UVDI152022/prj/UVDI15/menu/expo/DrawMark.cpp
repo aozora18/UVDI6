@@ -150,7 +150,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 				
 				swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
 					u8ACams, u8ImgId + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-					pstMark->move_mm_x * 1000.0f, pstMark->move_mm_y * 1000.0f);
+					pstMark->move_mm_x , pstMark->move_mm_y );
 				
 				u8Mark = pstMark->IsMarkValid() ? 0x01 : 0x00;
 				if (u8Mark && pstRecipe)
@@ -189,7 +189,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 					/* Output the grabbed images on screen */
 					uvEng_Camera_DrawMarkMBufID(m_hDraw[u8Index], m_rDraw[u8Index], k, (j * u8ACams) + i, pstMark->img_id);
 					/* Update the grabbed results to the text buffer */
-					swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
+					swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.3f] [Y %+4.3f] [um]",
 						k, u8ImgId + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
 						pstMark->move_mm_x * 1000.0f, pstMark->move_mm_y * 1000.0f);
 					/* Check if it is higher than the mark valid score of the registered recipe */

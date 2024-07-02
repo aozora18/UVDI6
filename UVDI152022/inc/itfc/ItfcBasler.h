@@ -132,6 +132,11 @@ API_IMPORT BOOL uvBasler_IsConnectedAll();
 API_IMPORT bool uvBasler_FixMoveOffsetUseImgID(int camNum,int imgID, double offsetX, double offsetY);
 API_IMPORT bool uvBasler_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY);
 
+
+API_IMPORT LPG_ACGR uvBasler_GetGrabUseMark(int camNum, STG_XMXY mark);
+
+
+
 API_IMPORT bool uvBasler_RemoveLastGrab(int camNum);
 
 /*

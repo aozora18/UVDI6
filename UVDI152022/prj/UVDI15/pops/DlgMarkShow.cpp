@@ -334,9 +334,9 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
 	::ReleaseDC(m_hPicMark,hcd);
 	/* Update the grabbed results to the text buffer */
-	swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.2f] [Y %+4.2f] [um]",
+	swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.3f] [Y %+4.3f] [um]",
 		pstMark->cam_id, pstMark->img_id + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-		pstMark->move_mm_x * 1000.0f, pstMark->move_mm_y * 1000.0f);
+		pstMark->move_mm_x, pstMark->move_mm_y);
 
 	/* Check if it is higher than the mark valid score of the registered recipe */
 	UINT8 u8Mark = pstMark->IsMarkValid() ? 0x01 : 0x00;

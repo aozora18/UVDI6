@@ -204,6 +204,10 @@ API_EXPORT bool uvEng_Camera_RemoveLastGrab(int camIdx)
 	return uvBasler_RemoveLastGrab(camIdx);
 }
 
+API_EXPORT LPG_ACGR uvEng_GetGrabUseMark(int camNum, STG_XMXY mark)
+{
+	return uvBasler_GetGrabUseMark(camNum, mark);
+}
 
 API_EXPORT bool uvEng_FixMoveOffsetUseImgID(int camNum, int imgID, double offsetX, double offsetY)
 {

@@ -924,6 +924,7 @@
     <None Include="res\UVDI15.rc2">
       <Filter>21.자원 파일</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\UVDI15.ico">

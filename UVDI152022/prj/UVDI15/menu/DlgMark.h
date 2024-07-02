@@ -325,8 +325,7 @@ public:
 	CRect	um_rectArea; // Mark ROI Size
 	bool	um_bMoveFlag;
 	int		menuPart; // menu 선택, 0:imageload, 1:markroi, 2:searchroi, 3:measure, 4:zoom, 99 : 아무것도 선택안된 상태
-	BOOL *searchROI_CAM;
-	BOOL* ZoomFlag;
+	
 	
 	BOOL searchROI_ALL; // 전체 영역 : true, 일부 영역 : false
 	int calib_row;
@@ -335,6 +334,9 @@ public:
 	int* CalibROI_right; // 동적할당
 	int* CalibROI_top; // 동적할당
 	int* CalibROI_bottom; // 동적할당
+
+	BOOL* searchROI_CAM;
+	BOOL* ZoomFlag;
 /* 메시지 맵 */
 protected:
 	DECLARE_MESSAGE_MAP()

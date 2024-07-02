@@ -829,6 +829,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				const int updateDelay = 1;
 				while (cancelFlag.load() == false)
 				{
+					gv->GetWebMonitor().Update();
 					gv->GetWebMonitor().RefreshWebPage();
 					this_thread::sleep_for(chrono::seconds(updateDelay));
 				}
@@ -948,12 +949,19 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	vector<tuple<STG_XMXY, double, double>> findOffsets; //원래 좌표 구조 , 절대좌표 차이값
- 
+	vector<bool> findAtFirstTime = { false,false };
 	if (representPoints.size() != PAIR)
 	{
 		errFlag = true;
 		return true;
 	}
+
+	/*
+	주 변경포인트. 
+	rst 생성시 두 점중 하나라도 못찾았을경우에만 rst 데이터가 생성되고 그렇지 않다면 
+	기존의 방법대로 처리된다. 
+
+	*/
 
 	auto res =  GlobalVariables::GetInstance()->Waiter([&]()->bool
 	{
@@ -979,27 +987,26 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			//!!!
 			
 			refindOffset = make_tuple(0, 0); grabErrOffset = make_tuple(0, 0);
+
+			auto idx = std::distance(representPoints.begin(), std::find(representPoints.begin(), representPoints.end(), *currPath));
+			
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
+				findAtFirstTime[idx] = true;
 				refindOffsetPoints.push_back(STG_XMXY(0, 0, grabOffsetX, grabOffsetY, currPath->org_id));
 				grabErrOffset = make_tuple(grabOffsetX, grabOffsetY);
-				//refindOffsetPoints.push_back(STG_XMXY(grabOffsetX, grabOffsetY,0,0, currPath->org_id)); //그랩옵셋만큼 리파인드옵셋에서 빼버림
 			}
 			else
 			{
+
 				uvEng_Camera_RemoveLastGrab(centerCam); //위에서 이미 한번 실패했으므로.
 				auto findRes = ProcessRefind(centerCam, &refindOffset,&grabErrOffset);
 
 				if (findRes == false)
 					throw exception();
 
-			//	refindOffsetPoints.push_back(STG_XMXY(std::get<0>(refindOffset) + std::get<0>(grabErrOffset), 
-			//										  std::get<1>(refindOffset) + std::get<1>(grabErrOffset),
-			//										  0, 0, currPath->org_id));
-			
 				refindOffsetPoints.push_back(STG_XMXY(std::get<0>(refindOffset), std::get<1>(refindOffset), 
 											std::get<0>(grabErrOffset), std::get<1>(grabErrOffset), currPath->org_id));
-
 			}
 
 			findOffsets.push_back(make_tuple(*currPath, std::get<0>(refindOffset) - std::get<0>(grabErrOffset), std::get<1>(refindOffset) - std::get<1>(grabErrOffset)));
@@ -1010,7 +1017,6 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 				return true; //정상완료
 			}
 				
-
 			return false;
 		}
 		catch (...)
@@ -1018,33 +1024,27 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			errFlag = true;
 			return true;
 		}
-	}, 60 * 1000 * 2);
+	}, 60 * 1000 * PAIR);
 
 	if (res == false || errFlag == true)
 		return res;
 
 	//여기서 rst 계산.
 
-	//vector<tuple<STG_XMXY, double, double>>
-	
-	const int STG_XMXY_IDX = 0, REFIND_OFFSET_X = 1, REFIND_OFFSET_Y = 2;
+	const int STG_XMXY_VAL = 0, REFIND_OFFSET_X = 1, REFIND_OFFSET_Y = 2;
 
-	
-//	rstValue = RSTValue(std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_x, //orgStartX
-//						std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_y, //orgStartY
-//						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_x, //orgEndX
-//						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_y, //orgEndY
-//		std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_x,  //obsStartX
-//		std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_y,  //obsStartY
-//		std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_x,  //obsEndX
-//		std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_y); //obsEndY
+	if (findAtFirstTime[MARK1] == findAtFirstTime[MARK2] && findAtFirstTime[MARK2] == true) //전부다 원래 예상위치에서 찾은경우. 즉 벗어남이 없는경우.
+	{
+		findOffsets[MARK1] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0); //원래 포지션값은 유지하고 옵셋만 초기화 .
+		findOffsets[MARK2] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0);
+	}
 
-    rstValue = RSTValue(std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_x, std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_y,
-						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_x, std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_y,
-						std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_x + std::get<REFIND_OFFSET_X>(findOffsets[MARK1]),
-						std::get<STG_XMXY_IDX>(findOffsets[MARK1]).mark_y + std::get<REFIND_OFFSET_Y>(findOffsets[MARK1]),
-						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_x + std::get<REFIND_OFFSET_X>(findOffsets[MARK2]),
-						std::get<STG_XMXY_IDX>(findOffsets[MARK2]).mark_y + std::get<REFIND_OFFSET_Y>(findOffsets[MARK2]));
+    rstValue = RSTValue(std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_x, std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_y,
+						std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_x, std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_y,
+						std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_x + std::get<REFIND_OFFSET_X>(findOffsets[MARK1]),
+						std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_y + std::get<REFIND_OFFSET_Y>(findOffsets[MARK1]),
+						std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_x + std::get<REFIND_OFFSET_X>(findOffsets[MARK2]),
+						std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_y + std::get<REFIND_OFFSET_Y>(findOffsets[MARK2]));
 						
 	return true;
 
@@ -1052,10 +1052,13 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refindOffset, std::tuple<double, double>* grabOffset) //패턴기반.
 {
-	UINT8 XAXIS = 0b00010000,					 YAXIS = 0b00100000;
-	UINT8 MLEFT = 0b00000001, 
-		 MRIGHT = 0b00000010, MUP = 0b00000100, 
-												 MDOWN = 0b00001000;
+	UINT8 XAXIS  = 0b00010000,
+		  YAXIS  = 0b00100000;
+
+	UINT8 MLEFT  = 0b00000001, 
+		  MRIGHT = 0b00000010, 
+		  MUP    = 0b00000100, 
+		  MDOWN  = 0b00001000;
 	
 	double grabOffsetX = 0, grabOffsetY=0;
 	const int STABLE_TIME = 1000;
@@ -1090,7 +1093,6 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 
 			sutable = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam,&grabOffsetX,&grabOffsetY);
 			
-
 			if (sutable == true) //마크찾기 성공.
 				break;
 

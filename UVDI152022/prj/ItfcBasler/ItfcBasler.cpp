@@ -74,6 +74,14 @@ bool FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offs
 
 
 
+LPG_ACGR GetGrabUseMark(int camNum, STG_XMXY mark)
+{
+	return g_pCamThread->GetGrabbedMark(camNum, mark);
+}
+
+
+
+
 /*
  desc : 기존 Grabbed 이미지 모두 제거
  parm : None
@@ -620,6 +628,12 @@ API_EXPORT bool uvBasler_FixMoveOffsetUseImgID(int camNum, int imgID, double off
 	FixMoveOffsetUseImgID(camNum, imgID, offsetX, offsetY);
 	return true;
 }
+
+API_EXPORT LPG_ACGR uvBasler_GetGrabUseMark(int camNum, STG_XMXY mark)
+{
+	return GetGrabUseMark(camNum, mark);
+}
+
 
 API_EXPORT bool uvBasler_FixMoveOffsetUseMark(int camNum, STG_XMXY mark, double offsetX, double offsetY)
 {

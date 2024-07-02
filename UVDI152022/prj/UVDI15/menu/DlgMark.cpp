@@ -171,8 +171,7 @@ BOOL CDlgMark::OnInitDlg()
 	m_edt_out[eMARK_EDT_GAIN_LEVEL2].SetTextToNum(uvEng_GetConfig()->set_basler.cam_gain_level[1], 1);
 	m_edt_out[eMARK_EDT_GAIN_LEVEL3].SetTextToNum(uvEng_GetConfig()->set_basler.cam_gain_level[2], 1);
 
-	ZoomFlag = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
-	searchROI_CAM = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
+
 
 	menuPart = 99;
 
@@ -189,6 +188,9 @@ BOOL CDlgMark::OnInitDlg()
 	memset(CalibROI_top, 0, sizeof(int) * (calib_row * calib_col));
 	memset(CalibROI_bottom, 0, sizeof(int) * (calib_row * calib_col));
 
+
+	ZoomFlag = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
+	searchROI_CAM = new BOOL[uvEng_GetConfig()->set_cams.acam_count];
 	
 
 	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {

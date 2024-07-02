@@ -2911,6 +2911,13 @@ typedef struct __st_xml_mark_x_y__ : __st_xml_mark_x_y__extensions
 		return result;
 	}
 
+
+	bool operator==(const __st_xml_mark_x_y__& other) const
+	{
+		double threshold = 0.0009; //<0.1 마이크로 이하
+		return fabs(this->mark_x - other.mark_x) < threshold && fabs(this->mark_y - other.mark_y) < threshold;
+	}
+
 	__st_xml_mark_x_y__ operator-(const __st_xml_mark_x_y__& other) const
 	{
 		__st_xml_mark_x_y__ result;

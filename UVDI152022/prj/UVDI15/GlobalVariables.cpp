@@ -943,12 +943,14 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	const int PAIR = 2;
 	const int MARK1 = 0;
 	const int MARK2 = 1;
+	const double CONVERT_THRESHOLD = 1.3f; //원좌표 대비 이 크기만큼을 벗어나면 보정불가다.
+
 	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
 	errFlag = false;
 	tuple<double, double> refindOffset, grabErrOffset; //절대좌표 차이값
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	vector<tuple<STG_XMXY, double, double>> findOffsets; //원래 좌표 구조 , 절대좌표 차이값
+	vector<tuple<STG_XMXY, double, double >> findOffsets; //원래 좌표 구조 , 절대좌표 차이값 x, 절대좌표 차이값y,  
 	vector<bool> findAtFirstTime = { false,false };
 	if (representPoints.size() != PAIR)
 	{
@@ -1038,6 +1040,28 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 		findOffsets[MARK1] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0); //원래 포지션값은 유지하고 옵셋만 초기화 .
 		findOffsets[MARK2] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0);
 	}
+
+
+	double diffX = fabs(std::get<REFIND_OFFSET_X>(findOffsets[MARK1]) - std::get<REFIND_OFFSET_X>(findOffsets[MARK2]));
+	double diffY = fabs(std::get<REFIND_OFFSET_Y>(findOffsets[MARK1]) - std::get<REFIND_OFFSET_Y>(findOffsets[MARK2]));
+
+	if (diffX > CONVERT_THRESHOLD || diffX > CONVERT_THRESHOLD)
+	{
+		errFlag = true;
+		return true;
+	}
+
+	//여기서 중요한게 "보정가능성" 이다. 
+
+	/*
+	mark1와 mark2의  refind offset + graberr 의 차이가 1.3이상 나게되면 아에 이건 보정 자체가 불가능하다. 
+	한쪽을 맞추면 한쪽은 반드시 화면에서 벗어나거나 1.3이상이하로 좁힐수가 없기때문이다. 
+	이 경우엔 반드시 종료시켜준다. 
+
+
+
+
+	*/
 
     rstValue = RSTValue(std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_x, std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_y,
 						std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_x, std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_y,

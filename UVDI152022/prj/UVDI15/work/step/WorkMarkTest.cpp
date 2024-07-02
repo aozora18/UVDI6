@@ -468,51 +468,51 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
+			double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
+			
+			offsetPool[OffsetType::refind];
+
+			m_enWorkState = ENG_JWNS::en_next;
+		},
+		[&]()
+		{
 			motions.SetAlignOffsetPool(offsetPool);
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
 		},
 		[&]()
 		{
-			//const double THREADHOLD_VALUE = 1.3f;
-			//double mostSmallXOffset = 0, mostBigXOffset = 0, mostSmallYOffset = 0,mostBigYOffset = 0;
 
-			//auto pool = offsetPool[OffsetType::refind]; //순서바뀌면 안됨 복사 사용해야함.
+			/*
+			최종옵셋만보자.
+			refind offset은 그냥 빼주는 default값이고
 
-			//std::sort(pool.begin(), pool.end(), [&](CaliPoint& v1, CaliPoint& v2) {return v1.x < v2.x; });
-			//	
-			//	mostSmallXOffset =  pool.front().x; //x옵셋이 가장 작은거 .
-			//	mostBigXOffset = pool.back().x; //x옵셋이 가장 큰거.
+			graboffset이 1.3이 넘어가면 안되는것이다. 
 
-			//std::sort(pool.begin(), pool.end(), [&](CaliPoint& v1, CaliPoint& v2) {return v1.y < v2.y; });
-			//	mostSmallYOffset = pool.front().y; //y옵셋이 가장 작은거 .
-			//	mostBigYOffset = pool.back().y; //y옵셋이 가장 큰거.
+			하지만 expostart xy는 모든점에 적용되는 값이기때문에 여러개를 넣어줄수 없고. 
 
-			//	if(fabs(mostSmallXOffset) > THREADHOLD_VALUE || fabs(mostSmallYOffset) > THREADHOLD_VALUE)
+			대표 mark 1,2를 이용해서 적용한다. 
 
-			//	auto xDiff = mostBigXOffset - mostSmallXOffset;
-			//	auto yDiff = mostBigYOffset - mostSmallYOffset;
 
-			//	if (fabs(xDiff) > THREADHOLD_VALUE || fabs(yDiff) > THREADHOLD_VALUE))
-			//	{
-			//		m_enWorkState = ENG_JWNS::en_error;
-			//		return true;
-			//	}
-			//	else
-			//	{
+			<상황1>
+			mark1은 원위치 탐지 erroffsetx + 1.5f , 
+								erroffsety + 0.3f ,
 
-			//	}
+			mark2는 refind 탐지 (x+1, y+1) 
+								erroffsetx - 1.3f;
+								erroffsety - 0.5f;
 
+			그렇다면 사실상 반시계 방향으로 회전된 상태라는것이다. 
+
+			문제는 mark2옵셋이 
+
+
+
+			*/
 			
-			//옵셋 전부 한번에 쳐넣어야함 ㅡㅡ;;;;
-
 			
 
 
-
-			//auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
-			//				   motions.GetAxises()["stage"]["x"].currPos,
-			//				   motions.GetAxises()["stage"]["y"].currPos,
-			//					CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+			
 
 
 			double expoOffsetX = 0, expoOffsetY = 0;

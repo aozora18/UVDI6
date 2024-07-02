@@ -334,7 +334,7 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
 	::ReleaseDC(m_hPicMark,hcd);
 	/* Update the grabbed results to the text buffer */
-	swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.3f] [Y %+4.3f] [um]",
+	swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.4f] [Y %+4.4f] [um]",
 		pstMark->cam_id, pstMark->img_id + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
 		pstMark->move_mm_x, pstMark->move_mm_y);
 

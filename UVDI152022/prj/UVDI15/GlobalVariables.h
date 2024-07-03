@@ -171,13 +171,16 @@ struct CaliPoint : subOffset
 
 	CaliPoint()
 	{
-		this->x = 0;
-		this->y = 0;
-		this->offsetX = 0;
-		this->offsetY = 0;
+		this->x = -1;
+		this->y = -1;
+		this->offsetX = -1;
+		this->offsetY = -1;
 	}
 
-
+	bool isNothing()
+	{
+		return this->x == -1 && this->y == -1 && this->offsetX == -1 && this->offsetY == -1;
+	}
 
 	CaliPoint operator+(const CaliPoint& other) const
 	{
@@ -356,19 +359,33 @@ struct Params
 {
 	double currGerbermark2x = 0, currGerbermark2y = 0;
 	double caliGerbermark2x = 0, caliGerbermark2y = 0;
-	//int threshold = 10;
 	double mark2StageX = 0;
 
 	map<int, tuple<double, double>> mark2CamoffsetXY;
 
 	double convertThreshold = 1.3f;
-
+	
 	double distCam2cam[4] = { 0, };
 	int centerCamIdx = 3;
 	ENG_AMOS alignMotion;
 	ENG_ATGL alignType;
 	vector<tuple<ENG_MMDI, double, double>> axisLimit;
+	
+	void SetExpoShiftValue(double x, double y)
+	{
+		this->expoShiftX = x;
+		this->expoShiftY = y;
+	}
 
+	void GetExpoShiftValue(double& x, double& y)
+	{
+		x = this->expoShiftX;
+		y = this->expoShiftY;
+	}
+
+private:
+	double expoShiftX = 0;
+	double expoShiftY = 0;
 };
 
 

@@ -1685,8 +1685,8 @@ VOID CDlgMain::UpdateLDSMeasure()
 
 	uvEng_GetConfig()->measure_flat.SetThickMeasureResult(((dValue * 10000) / 10000));
 
-	//swprintf_s(tzMsg, 256, L"Stage_y=%.4ff LDS=%.4f", dCurY, dValue);
-	//LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+	swprintf_s(tzMsg, 256, L"Stage_y=%.4ff LDS=%.4f", dCurY, dValue);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 	/*Log ±â·Ï*/
 	m_strLog.Format(tzMsg);

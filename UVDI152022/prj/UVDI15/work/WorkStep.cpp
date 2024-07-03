@@ -1732,49 +1732,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	if (status.globalMarkCnt != 4)
 		return ENG_JWNS::en_next;
 
-	/*auto grabFindFunc = [&](int startIdx, int markTgt, CAtlList <LPG_ACGR>* grabPtr) -> LPG_ACGR
-	{
-		if (grabPtr == NULL)
-			return nullptr;
-
-		for (int i = startIdx; i < grabPtr->GetCount(); i++)
-		{
-			auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
-			if (grab != nullptr && grab->fiducialMarkIndex == markTgt)
-				return grab;
-		}
-		return nullptr;
-	};*/
-
-
-	/*
-	auto GetGrab = [&](int camIdx, int tgtMarkIdx , ENG_AMTF markType)->LPG_ACGR
-					{
-						CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
-
-						LPG_ACGR find = nullptr;
-						uvEng_Camera_TryEnterCS();
-						for (int i = 0; i < grabs->GetCount(); i++)
-						{
-							auto grab = grabs->GetAt(grabs->FindIndex(i));
-							if (grab == nullptr) continue;
-				
-							
-							auto typeCorrect = markType == ENG_AMTF::en_global ? (grab->reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) : (grab->reserve & STG_XMXY_RESERVE_FLAG::LOCAL);
-
-							if (grab->cam_id == camIdx && 
-								grab->fiducialMarkIndex == tgtMarkIdx &&
-								typeCorrect != 0)
-							{
-								find = grab;
-								break;
-							}
-						}
-						uvEng_Camera_ExitCS();
-						return find;
-					};*/
-
-
 	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
 	{
 		bool isGlobal = i < status.globalMarkCnt ? true : false;
@@ -1821,25 +1778,15 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f",(isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-		CaliPoint expoOffset, alignOffset,refindOffset;
-		
-		/*if (GetOffset(OffsetType::align, temp.tgt_id, offset) == false)
-			return ENG_JWNS::en_error;*/
 
-		temp.mark_x -= grab->move_mm_x; 
-		temp.mark_y -= grab->move_mm_y;
+		CaliPoint expoOffset, alignOffset,grabOffset;
+		
+		bool findGrabOffset = motions.GetOffsetFromPool(OffsetType::grab, temp.tgt_id, expoOffset);
+
+		temp.mark_x -= findGrabOffset ? expoOffset.offsetX : grab->move_mm_x;
+		temp.mark_y -= findGrabOffset ? expoOffset.offsetY : grab->move_mm_y;
 		
 		temp.reserve = grab->reserve;
-
-		
-		//이부분이 중요하다  여기서 
-		motions.GetOffsetFromPool(OffsetType::refind, temp.tgt_id, refindOffset);
-		temp.mark_x += refindOffset.offsetX; //<내 생각엔 +가 맞는데 잘 모르겠다.  일단 모션만보자. 
-		temp.mark_y += refindOffset.offsetY;
-
-		//offsetPool[OffsetType::align].push_back(alignOffset);
-		//offsetPool[OffsetType::expo].push_back(diff);
-
 
 		if (pstSetAlign->use_mark_offset)// && useManual == false
 		{
@@ -1858,19 +1805,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			temp.mark_y -= foffsetY;
 		}
 		
-		
-		
-
-
-		/*else
-		{
-			auto foffsetX = std::get<0>(manualOffsetMap[temp.tgt_id]);
-			auto foffsetY = std::get<1>(manualOffsetMap[temp.tgt_id]);
-
-			temp.mark_x += foffsetX;
-			temp.mark_y += foffsetY;
-
-		}*/
 		lstMarks.AddTail(temp);
 	}
 

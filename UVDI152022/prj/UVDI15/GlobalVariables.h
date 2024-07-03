@@ -67,6 +67,8 @@ enum OffsetType
 	expo,
 	align,
 	refind,
+	enviromental,
+	grab,
 };
 
 
@@ -181,6 +183,7 @@ struct CaliPoint : subOffset
 	{
 		return this->x == -1 && this->y == -1 && this->offsetX == -1 && this->offsetY == -1;
 	}
+
 
 	CaliPoint operator+(const CaliPoint& other) const
 	{
@@ -554,7 +557,7 @@ public:
 
 	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000);
 
-	void GetOffsetsUseMarkPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr);
+	void GetOffsetsUseMarkPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
 	void GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
 	
 	LPG_ACGR GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType);

@@ -1305,12 +1305,14 @@ void CommonMotionStuffs::GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoi
 }
 
 
-void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, CaliPoint* alignOffset , CaliPoint* expoOffset)
+void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, CaliPoint* alignOffset , CaliPoint* expoOffset, double posOffsetX, double posOffsetY)
 {
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	string temp = "x" + std::to_string(centerCam);
 
 	auto markPos = mark.GetMarkPos();
+
+	markPos = make_tuple(std::get<0>(markPos) + posOffsetX, std::get<1>(markPos) + posOffsetY);
 
 	if (alignOffset != nullptr)
 	{

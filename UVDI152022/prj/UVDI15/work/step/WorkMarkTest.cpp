@@ -512,18 +512,20 @@ void CWorkMarkTest::DoAlignStaticCam()
 			mark2GrabX = offsetPool[OffsetType::refind][MARK2].suboffsetX;
 			mark2GrabY = offsetPool[OffsetType::refind][MARK2].suboffsetY;
 
-			mark1SumX = mark1RefindX + mark1GrabX;
-			mark1SumY = mark1RefindY + mark1GrabY;
-			mark2SumX = mark2RefindX + mark2GrabX;
-			mark2SumY = mark2RefindY + mark2GrabY;
+			mark1SumX = mark1RefindX - mark1GrabX;
+			mark1SumY = mark1RefindY - mark1GrabY;
+			mark2SumX = mark2RefindX - mark2GrabX;
+			mark2SumY = mark2RefindY - mark2GrabY;
 			
-			auto xBase = fabs(mark1SumX) > fabs(mark2SumX) ? mark1SumX : mark2SumX;
-			auto yBase = fabs(mark1SumY) > fabs(mark2SumY) ? mark1SumY : mark2SumY;
 
-			auto xShiftGab = (motions.markParams.convertThreshold - fabs(xBase)) * (xBase > 0 ? 1 : -1);
-			auto yShiftGab = (motions.markParams.convertThreshold - fabs(yBase)) * (yBase > 0 ? 1 : -1);
+			auto xShiftGab = (mark1SumX + mark2SumX) / 2.0f;
+			auto yShiftGab = (mark1SumY + mark2SumY) / 2.0f;
 
-			motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab); 
+			motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab);
+
+			//자 이제 expo err 값 산출. 
+
+
 
 			//이 값을 이용해서 전체적으로 데이터 변경해줘야한다. 
 
@@ -535,7 +537,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			*/
 
 			int representCount = offsetPool[OffsetType::refind].size();
-			CaliPoint expoCali;
+			CaliPoint expoCali,grabCali;
 
 			try
 			{
@@ -547,8 +549,21 @@ void CWorkMarkTest::DoAlignStaticCam()
 					if (align == offsetPool[OffsetType::align].end()) 
 						throw exception();
 
-					double refindGabX = refind.offsetX - xShiftGab;
-					//double refindGabY = 
+					CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, refind.srcFid, nullptr,&expoCali, xShiftGab, yShiftGab);
+
+					offsetPool[OffsetType::expo].push_back(expoCali);
+
+					//auto tempSumX = ((refind.offsetX - refind.suboffsetX) - xShiftGab) + align->offsetX + expoCali.offsetX; //<-합산 
+					//auto tempSumY = ((refind.offsetY - refind.suboffsetY) - yShiftGab) + align->offsetY + expoCali.offsetY; //<-합산 
+
+					auto tempGraboffsetX = ((refind.offsetX - refind.suboffsetX) - xShiftGab); //최종 그랩옵셋 
+					auto tempGraboffsetY = ((refind.offsetY - refind.suboffsetY) - yShiftGab); //최종 그랩옵셋
+
+					grabCali = refind;
+					grabCali.offsetX = tempGraboffsetX;
+					grabCali.offsetY = tempGraboffsetY;
+
+					offsetPool[OffsetType::grab].push_back(grabCali);
 				}
 			}
 			catch (...)
@@ -568,14 +583,11 @@ void CWorkMarkTest::DoAlignStaticCam()
 			double expoOffsetX = 0, expoOffsetY = 0;
 			motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
 			m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY);
-			
 		},
 
 		[&]()
 		{
-			
-			m_enWorkState = IsExposeStartXY();
-				
+			m_enWorkState = IsExposeStartXY();	
 		},
 		[&]()
 		{

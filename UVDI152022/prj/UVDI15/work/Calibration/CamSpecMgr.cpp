@@ -149,19 +149,25 @@ BOOL CCamSpecMgr::ACamMovingSide(int nTimeOut, double dDiffDistance)
 		}
 		else
 		{
-			enACamDrv = ENG_MMDI::en_align_cam2;
-			dPos = pstCfgMC2->max_dist[(UINT8)enACamDrv];
+			enACamDrv = ENG_MMDI::en_axis_none;
+			dPos = 0;
 		}
 
-		/* 현재 이동하고자 하는 모션의 Toggled 값 얻기 */
-		uvCmn_MC2_GetDrvDoneToggled(enACamDrv);
-
-		/* 맨 우측 혹은 맨 좌측으로 측정 대상이 아닌 카메라 이동 시키기 */
-		if (FALSE == uvEng_MC2_SendDevAbsMove(enACamDrv, dPos, pstCfgMC2->max_velo[(UINT8)enACamDrv]))
+		if (enACamDrv != ENG_MMDI::en_axis_none)
 		{
-			return FALSE;
-		}
+			/* 현재 이동하고자 하는 모션의 Toggled 값 얻기 */
+			uvCmn_MC2_GetDrvDoneToggled(enACamDrv);
 
+			/* 맨 우측 혹은 맨 좌측으로 측정 대상이 아닌 카메라 이동 시키기 */
+			if (FALSE == uvEng_MC2_SendDevAbsMove(enACamDrv, dPos, pstCfgMC2->max_velo[(UINT8)enACamDrv]))
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			return true;
+		}
 #ifdef CAM_SPEC_SIMUL
 		return TRUE;
 #endif // CAM_SPEC_SIMUL

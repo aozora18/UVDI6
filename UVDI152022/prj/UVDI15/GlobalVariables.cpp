@@ -850,8 +850,6 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		현재 모션이 사용중인지
 		혹시 메인스레드에 뭔가 작업중인지?
 		
-		
-
 		카메라는 일단 충돌방지를 위해 각자 safety위치로.
 
 		스테이지 이동

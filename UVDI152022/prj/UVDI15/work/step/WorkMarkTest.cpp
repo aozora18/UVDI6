@@ -239,9 +239,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			}
 			else
 			{
-				
 				bool errFlag = false;
-
 				try
 				{
 					std::vector<STG_XMXY> filteredPath, offsetBuff;
@@ -394,6 +392,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 							else
 							{
 								//!!!!!!!!!!!!!차후 엣지디텍션을 이용해야할경우 여기에서 처리하면 됨.!!!!!!!!!!!!!!
+								//일단 못찾았으면 바로 캔슬. 
+								throw exception(); 여기작성하다가말았음.
 							}
 						}
 						else
@@ -524,9 +524,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 			motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab);
 
 			//자 이제 expo err 값 산출. 
-
-
-
 			//이 값을 이용해서 전체적으로 데이터 변경해줘야한다. 
 
 			/*

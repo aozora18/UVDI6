@@ -262,13 +262,15 @@ CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
 
 
 
-CaliPoint CaliCalc::EstimateExpoOffset(double gbrX, double gbrY)
+CaliPoint CaliCalc::EstimateExpoOffset(int camIdx, double gbrX, double gbrY)
 {
 	TCHAR tzMsg[256] = { NULL };
 	
+	if (calidataFeature[OffsetType::expo].caliCamIdx != camIdx)
+		throw exception();
 
-	
 	auto& expoData = caliDataMap[OffsetType::expo];
+	
 	CaliPoint weightedAverageOffset = Estimate(expoData, gbrX, gbrY);
 
 	swprintf_s(tzMsg, 256, L"EstimateExpoOffset : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f", gbrX, gbrY, weightedAverageOffset.offsetX, weightedAverageOffset.offsetY);
@@ -281,13 +283,16 @@ CaliCalc::CaliFeature CaliCalc::GetCalifeature(OffsetType type)
 	return calidataFeature.count(type) == 0 ? CaliCalc::CaliFeature() : calidataFeature[type];
 }
 
-CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1)
+CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0)
 {
+
+	if (calidataFeature[OffsetType::align].caliCamIdx != camIdx)
+		throw exception();
 
 	const int STAGE_CALI_INDEX = 3;
 	auto& stageCaliData = caliDataMap[OffsetType::align];
-	auto& camCaliData = caliDataMap[OffsetType::align];
-
+	//auto& camCaliData = caliDataMap[OffsetType::align];
+	
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
 	//CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
 
@@ -322,9 +327,9 @@ bool AlignMotion::GetOffsetFromPool(OffsetType type, int tgtMarkIdx, CaliPoint& 
 	return true;
 }
 
-CaliPoint AlignMotion::EstimateExpoOffset(double gbrX, double gbrY)
+CaliPoint AlignMotion::EstimateExpoOffset(int camIdx,  double gbrX, double gbrY)
 {
-	return caliCalcInst.EstimateExpoOffset(gbrX, gbrY);
+	return caliCalcInst.EstimateExpoOffset(camIdx, gbrX, gbrY);
 }
 
 CaliCalc::CaliFeature AlignMotion::GetCalifeature(OffsetType type)
@@ -332,9 +337,9 @@ CaliCalc::CaliFeature AlignMotion::GetCalifeature(OffsetType type)
 	return caliCalcInst.GetCalifeature(type);
 }
 
-CaliPoint AlignMotion::EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX)
+CaliPoint AlignMotion::EstimateAlignOffset(int camIdx, double stageX, double stageY)
 {
-	return caliCalcInst.EstimateAlignOffset(camIdx, stageX, stageY, camX);
+	return caliCalcInst.EstimateAlignOffset(camIdx, stageX, stageY);
 }
 
  
@@ -812,8 +817,6 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void WebMonitor::StartWebMonitor()
 	{
-		
-	
 		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()
 			{
 				const int SERVER_PORT = 5000;
@@ -1288,16 +1291,16 @@ void CommonMotionStuffs::GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoi
 	{
 		motions.Refresh();
 		//실시간 좌표로 따지면 나중에 한번에 계산할수가 없다. 마크좌표 기준으로 스테이지 좌표를 역산하게해야한다. 
-		*alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos + posOffsetX,
-			motions.GetAxises()["stage"]["y"].currPos + posOffsetY,
-			centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+		*alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos + posOffsetX, motions.GetAxises()["stage"]["y"].currPos + posOffsetY);
+			//motions.GetAxises()["stage"]["y"].currPos + posOffsetY); //,
+			//centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 		
 		alignOffset->srcFid = mark;
 	}
 
 	if (expoOffset != NULL)
 	{
-		*expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+		*expoOffset = motions.EstimateExpoOffset(centerCam,std::get<0>(markPos), std::get<1>(markPos));
 		expoOffset->srcFid = mark;
 	}
 }
@@ -1322,8 +1325,8 @@ void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, Cal
 		STG_XMXY stagePos;
 		motions.GetStagePosUseGerberPos(centerCam, mark, stagePos);
 
-			*alignOffset = motions.EstimateAlignOffset(centerCam, stagePos.mark_x,stagePos.mark_y,
-				centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+		*alignOffset = motions.EstimateAlignOffset(centerCam, stagePos.mark_x, stagePos.mark_y);
+		//,centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
 
 
 		alignOffset->srcFid = mark;
@@ -1331,7 +1334,7 @@ void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, Cal
 
 	if (expoOffset != NULL)
 	{
-		*expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
+		*expoOffset = motions.EstimateExpoOffset(centerCam,std::get<0>(markPos), std::get<1>(markPos));
 		expoOffset->srcFid = mark;
 	}
 }

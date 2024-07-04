@@ -525,7 +525,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
 			for (int i = 0; i < grabMarkPath.size(); i++)
 			{
-				auto stageAlignOffset = motions.EstimateAlignOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y, CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+				//auto stageAlignOffset = motions.EstimateAlignOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y, CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
+				auto stageAlignOffset = motions.EstimateAlignOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y);
 				uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, stageAlignOffset.offsetX, stageAlignOffset.offsetY);
 			}
 
@@ -541,31 +542,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				auto res =  uvEng_Mvenc_ReqTrigOutOne(camIndex);
 				return res;
 			};
-
-			//auto RetrySingleGrab = [&](int camIndex) -> bool
-			//{
-			//	int lastGrabCnt = 0; int tryCnt = 0; bool grabResult = false;
-			//	if (SingleGrab(camIndex, lastGrabCnt))
-			//	{
-			//		while (grabResult == false && tryCnt < 3)
-			//		{
-			//			grabResult = GlobalVariables::GetInstance()->Waiter([&]()->bool
-			//				{
-			//					int grabCnt = uvEng_Camera_GetGrabbedCount(&camIndex);
-			//					if (grabCnt <= lastGrabCnt) return false;
-
-			//					auto& grab = uvEng_Camera_GetLastGrabbedACam()[camIndex - 1];
-			//					
-			//					if (grab.marked == false)
-			//						uvEng_Camera_ResetGrabbedImage();
-
-			//				}, 3 * 1000);
-			//			tryCnt += grabResult == false ? 1 : 0;
-			//		}
-			//	}
-			//	else return false;
-			//};
-
+			
 			bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
 					if (motions.NowOnMoving() == true)
@@ -585,40 +562,10 @@ void CWorkExpoAlign::DoAlignStaticCam()
 							const int STABLE_TIME = 1000;
 							this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 							
-							//string temp = "x" + std::to_string(CENTER_CAM);
-							
-							//motions.Refresh();
-							
-							//auto alignOffset = motions.EstimateAlignOffset(CENTER_CAM,
-							//	motions.GetAxises()["stage"]["x"].currPos,
-							//	motions.GetAxises()["stage"]["y"].currPos,
-							//	CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-							
-
-							/*auto markPos = first->GetMarkPos();
-							auto expoOffset = motions.EstimateExpoOffset(std::get<0>(markPos), std::get<1>(markPos));
-							auto diff = expoOffset;
-
-							alignOffset.srcFid = *first;
-							diff.srcFid = *first;*/
-
-							//offsetPool[OffsetType::align].push_back(alignOffset);
-							//offsetPool[OffsetType::expo].push_back(diff);
-
-
-							TCHAR tzMsg[256] = { NULL }; int lastGrabCnt = 0;
+							int lastGrabCnt = 0;
 							if (SingleGrab(CENTER_CAM,lastGrabCnt))
 							{
-								//if (uvEng_GetConfig()->set_align.use_2d_cali_data)
-								//{
-								//	uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, first->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-								//
-								//	swprintf_s(tzMsg, 256, L"align_offset_x = %.4f mark_offset_y =%.4f", alignOffset.offsetX, alignOffset.offsetY);
-								//	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-								//}
-
 								grabMarkPath.erase(first);
-
 							}
 						}
 					}

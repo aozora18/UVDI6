@@ -351,8 +351,8 @@ protected:
 public:
 
 	void LoadCaliData(LPG_CIEA cfg);
-	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY, double camX);
-	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
+	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
+	CaliPoint EstimateExpoOffset(int camIdx, double gbrX, double gbrY);
 	CaliFeature GetCalifeature(OffsetType type);
 	
 };
@@ -638,8 +638,8 @@ public:
 	};
 
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
-	CaliPoint EstimateAlignOffset(int camIdx, double stageX = 0, double stageY = 0, double camX = -1);
-	CaliPoint EstimateExpoOffset(double gbrX, double gbrY);
+	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
+	CaliPoint EstimateExpoOffset(int camIdx, double gbrX, double gbrY);
 	bool GetOffsetFromPool(OffsetType type, int tgtMarkIdx, CaliPoint& temp);
 	void Destroy();
 

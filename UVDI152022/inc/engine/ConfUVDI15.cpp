@@ -459,6 +459,21 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_VERT_DIFF");
 	m_pstCfg->set_align.mark_vert_diff = GetConfigDouble(tzKey);
 
+	//REFIND ฐüทร 
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"REFIND");
+	swprintf_s(tzKey, MAX_KEY_STRING, L"USE_REFIND");
+	m_pstCfg->set_align.useRefind = GetConfigInt(tzKey) != 0 ? true : false;
+
+	swprintf_s(tzKey, MAX_KEY_STRING, L"RETRY_COUNT");
+	m_pstCfg->set_align.refindCnt = GetConfigInt(tzKey);
+
+	swprintf_s(tzKey, MAX_KEY_STRING, L"MOVE_OFFSET_X");
+	m_pstCfg->set_align.refindOffsetX = GetConfigDouble(tzKey);
+
+	swprintf_s(tzKey, MAX_KEY_STRING, L"MOVE_OFFSET_Y");
+	m_pstCfg->set_align.refindOffsetY = GetConfigDouble(tzKey);
+
+
 	return TRUE;
 }
 BOOL CConfUvdi15::SaveConfigSetupAlign()

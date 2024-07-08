@@ -596,6 +596,7 @@ class RefindMotion
 private:
 	bool useRefind;
 	double stepSizeX, stepSizeY;
+	int refindCnt;
 	RSTValue rstValue;
 public:
 	bool IsUseRefind() { return useRefind; }
@@ -608,6 +609,7 @@ public:
 	bool GetEstimatePos(double estimatedX, double estimatedY, double& correctedX, double& correctedY);
 	
 
+	void UpdateParamValues();
 	
 
 };

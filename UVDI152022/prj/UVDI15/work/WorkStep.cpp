@@ -9,6 +9,7 @@
 #include "../menu/DlgMmpm.h"
 #include "../GlobalVariables.h"
 #include "../mesg/DlgMesg.h"
+#include <fmt/core.h>
 
 namespace fs = std::filesystem;
 
@@ -1724,6 +1725,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	TCHAR tzMsg[256] = { NULL };
 
+	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
 	bool success = true;
@@ -1731,6 +1733,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	if (status.globalMarkCnt != 4)
 		return ENG_JWNS::en_next;
+
+	webMonitor.AddLog("=============================================================================");
 
 	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
 	{
@@ -1781,10 +1785,17 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		CaliPoint expoOffset, alignOffset,grabOffset;
 		
+		
 		bool findGrabOffset = motions.GetOffsetFromPool(OffsetType::grab, temp.tgt_id, expoOffset);
 
-		temp.mark_x -= findGrabOffset ? expoOffset.offsetX : grab->move_mm_x;
-		temp.mark_y -= findGrabOffset ? expoOffset.offsetY : grab->move_mm_y;
+		auto grabOffsetX = findGrabOffset ? expoOffset.offsetX : grab->move_mm_x;
+		auto grabOffsetY = findGrabOffset ? expoOffset.offsetY : grab->move_mm_y;
+
+		auto bkx = temp.mark_x;
+		auto bky = temp.mark_y;
+
+		temp.mark_x -= grabOffsetX;
+		temp.mark_y -= grabOffsetY;
 		
 		temp.reserve = grab->reserve;
 
@@ -1801,8 +1812,13 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 			auto foffsetX = alignOffset.offsetX - (expoOffset.offsetX);
 			auto foffsetY = alignOffset.offsetY - (expoOffset.offsetY);
+		
 			temp.mark_x -= foffsetX;
 			temp.mark_y -= foffsetY;
+
+			webMonitor.AddLog(fmt::format("tgt mark {} - 그랩옵셋X = {:.3f}, 그랩옵셋Y = {:.3f},  얼라인옵셋X = {:.3f} ,얼라인옵셋Y = {:.3f} ,  익스포옵셋X = {:.3f}, 익스포옵셋Y = {:.3f}, 원래X = {:.3f} , 원래 Y = {:.3f}, 적용차이X = {:.3f} , 적용차이Y = {:.3f}",
+				temp.tgt_id, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY, expoOffset.offsetX, expoOffset.offsetX,bkx,bky,bkx - temp.mark_x, bky - temp.mark_y));
+
 		}
 		
 		lstMarks.AddTail(temp);

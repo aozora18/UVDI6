@@ -163,6 +163,10 @@ typedef struct __st_config_setup_align_info__
 	{
 		markOffsetPtr = &ptr;
 	}
+	bool useRefind;
+	double refindOffsetX;
+	double refindOffsetY;
+	int refindCnt;
 
 }	STG_CSAI,	*LPG_CSAI;
 

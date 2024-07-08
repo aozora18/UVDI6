@@ -647,8 +647,14 @@ API_EXPORT BOOL uvMC2_SendDevMoveVectorXY(ENG_MMDI drv_x, ENG_MMDI drv_y,
 	if (!g_pstShMemMC2->act_data[UINT8(drv_x)].IsStopped())	return FALSE;
 	if (!g_pstShMemMC2->act_data[UINT8(drv_y)].IsStopped())	return FALSE;
 
+
 	/* 이동 위치 값 중 하나라도 초과되었는지 확인 */
-	if (i32MaxDistX < pos_x || i32MaxDistY < pos_y)	return FALSE;
+	if (i32MaxDistX < pos_x)
+		pos_x = i32MaxDistX;
+
+	if (i32MaxDistY < pos_y)
+		pos_y = i32MaxDistY;
+
 
 	/* 이동 축이 긴 쪽에 기준 축을 잡아야 한다. */
 	/* 현재 위치에서 이동하는 1, 2 축의 위치 중 가장 멀리 떨어져 있는 곳 판단 */

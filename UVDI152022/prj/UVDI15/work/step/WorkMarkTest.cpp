@@ -155,7 +155,7 @@ void CWorkMarkTest::DoAlignStatic2cam()
 		throw(e);
 	}
 }
-
+bool tempRefind = false;
 //스테틱 3캠
 void CWorkMarkTest::DoAlignStaticCam()
 {
@@ -166,6 +166,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	const int PAIR = 2;
 	const int MARK1 = 0, MARK2 = 1;
+	bool refind = refindMotion.IsUseRefind();
+	
+	refind = tempRefind;
 
 	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
 	vector<function<void()>> stepWork =
@@ -226,7 +229,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
-			if (refindMotion.IsUseRefind() == false && uvEng_GetConfig()->set_align.use_2d_cali_data)
+			if (refind == false && uvEng_GetConfig()->set_align.use_2d_cali_data)
 			{
 
 			}
@@ -262,13 +265,13 @@ void CWorkMarkTest::DoAlignStaticCam()
 			
 					for (int i = 0; i < PAIR; i++)
 					{
-						CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, filteredPath[i], &align, nullptr, offsetBuff[i].mark_x , offsetBuff[i].mark_y ); //<-에러옵셋 더해줘야함
+						CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, filteredPath[i], &align, nullptr, offsetBuff[i].mark_x , offsetBuff[i].mark_y ); //<-에러옵셋 더해줘야함
 
-						webMonitor.AddLog(fmt::format("<{}>RST계산됨  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={} \r\n",
+						/*webMonitor.AddLog(fmt::format("<{}>RST계산됨  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={} \r\n",
 							filteredPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", filteredPath[i].org_id, filteredPath[i].tgt_id, filteredPath[i].mark_x, filteredPath[i].mark_y, offsetBuff[i].mark_x, offsetBuff[i].mark_y, offsetBuff[i].offsetX, offsetBuff[i].offsetY, align.offsetX, align.offsetY));
 
 						webMonitor.AddLog(fmt::format("<{}> align옵셋추가됨  ORG_ID{} , TGT_ID{} , 얼라인옵셋X = {} , 얼라인옵셋y={}\r\n",
-							filteredPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", filteredPath[i].org_id, filteredPath[i].tgt_id, align.offsetX, align.offsetY));
+							filteredPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", filteredPath[i].org_id, filteredPath[i].tgt_id, align.offsetX, align.offsetY));*/
 
 
 						offsetPool[OffsetType::align].push_back(align);
@@ -318,12 +321,12 @@ void CWorkMarkTest::DoAlignStaticCam()
 					else
 					{
 						auto currPath = grabMarkPath.begin(); 
-						bool refind = refindMotion.IsUseRefind();
+						
 						bool arrival = false;
 						double grabOffsetX=0, grabOffsetY = 0;
 						double estimatedX = 0, estimatedY = 0;
 						STG_XMXY estimatedXMXY = *currPath;//STG_XMXY(currPath->mark_x, currPath->mark_y, currPath->org_id);
-						CaliPoint alignOffset, expoOffset;// , refindOffset;
+						CaliPoint alignOffset;// , expoOffset;// , refindOffset;
 
 						if (refind)
 							refindMotion.GetEstimatePos(currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x, estimatedXMXY.mark_y);
@@ -334,12 +337,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 						motions.Refresh();
 
-						if (refind == false)
-						{
-							STG_XMXY stagePos = STG_XMXY();							
-							CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset, nullptr,0,0); //<-에러옵셋 더해줘야함
-							uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);	
-						}
+
 
 						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 							throw exception();
@@ -366,8 +364,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 0, 0, std::get<0>(grabOffset), std::get<1>(grabOffset) ,*currPath));
 
-									webMonitor.AddLog(fmt::format("<{}>refind 실패했고 원래좌표에서 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
-													currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x,currPath->mark_y, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY));
+									/*webMonitor.AddLog(fmt::format("<{}>refind 실패했고 원래좌표에서 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
+													currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x,currPath->mark_y, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY));*/
 								}
 								else
 								{
@@ -383,8 +381,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 									
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset) , *currPath));
 
-									webMonitor.AddLog(fmt::format("<{}>refind로 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
-										currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset), alignOffset.offsetX, alignOffset.offsetY));
+									/*webMonitor.AddLog(fmt::format("<{}>refind로 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
+										currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset), alignOffset.offsetX, alignOffset.offsetY));*/
 
 								}
 							}
@@ -406,24 +404,31 @@ void CWorkMarkTest::DoAlignStaticCam()
 																				estimatedXMXY.mark_x - currPath->mark_x,
 																				estimatedXMXY.mark_y - currPath->mark_y, grabOffsetX, grabOffsetY,*currPath));
 							
-							CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset,nullptr, 0, 0); 
-
-							webMonitor.AddLog(fmt::format("<{}>refind없이 한번에 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
-								currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x - currPath->mark_x, estimatedXMXY.mark_y - currPath->mark_y, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY));
-
+							CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, *currPath, &alignOffset,nullptr, 0, 0);
+							//GetOffsetsCurrPos;
 							if (refind == false)
+							{
+								STG_XMXY stagePos = STG_XMXY();
+								CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, *currPath, &alignOffset, nullptr, 0, 0); //<-에러옵셋 더해줘야함
+								uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+							}
+
+							/*webMonitor.AddLog(fmt::format("<{}>refind없이 한번에 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
+								currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, currPath->mark_x, currPath->mark_y, estimatedXMXY.mark_x - currPath->mark_x, estimatedXMXY.mark_y - currPath->mark_y, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY));*/
+
+							/*if (refind == false)
 							{
 								CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, *currPath, nullptr, &expoOffset, grabOffsetX, grabOffsetY);
 								offsetPool[OffsetType::expo].push_back(expoOffset);
-							}
+							}*/
 						}
 
 						offsetPool[OffsetType::align].push_back(alignOffset);
 						
 
 
-						webMonitor.AddLog(fmt::format("<{}> align옵셋추가됨  ORG_ID{} , TGT_ID{} , 얼라인옵셋X = {} , 얼라인옵셋y={}\r\n",
-							currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, alignOffset.offsetX, alignOffset.offsetY));
+						/*webMonitor.AddLog(fmt::format("<{}> align옵셋추가됨  ORG_ID{} , TGT_ID{} , 얼라인옵셋X = {} , 얼라인옵셋y={}\r\n",
+							currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", currPath->org_id, currPath->tgt_id, alignOffset.offsetX, alignOffset.offsetY));*/
 
 						grabMarkPath.erase(currPath);
 
@@ -458,24 +463,24 @@ void CWorkMarkTest::DoAlignStaticCam()
 				for each (auto v in offsetPool[OffsetType::align])
 				{
 					
-					auto grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
+					//auto grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
 
-					if(grab)
-						webMonitor.AddLog(fmt::format("<{}> align offset grab error 합산전 grabErrX = {} grabErrY = {} \r\n",
-							v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", grab->move_mm_x, grab->move_mm_y));
+					//if(grab)
+					//	webMonitor.AddLog(fmt::format("<{}> align offset grab error 합산전 grabErrX = {} grabErrY = {} \r\n",
+					//		v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", grab->move_mm_x, grab->move_mm_y));
 
 
-					webMonitor.AddLog(fmt::format("<{}> align offset grab error에 합산적용.  ORG_ID{} , TGT_ID{} , 얼라인옵셋X = {} , 얼라인옵셋y={} \r\n",
-						v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", v.srcFid.org_id, v.srcFid.tgt_id, v.offsetX, v.offsetY));
+					/*webMonitor.AddLog(fmt::format("<{}> align offset grab error에 합산적용.  ORG_ID{} , TGT_ID{} , 얼라인옵셋X = {} , 얼라인옵셋y={} \r\n",
+						v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", v.srcFid.org_id, v.srcFid.tgt_id, v.offsetX, v.offsetY));*/
 
 					
 					uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, v.offsetX , v.offsetY );
 					
-					grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
+					/*grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
 					
 					if(grab)
 						webMonitor.AddLog(fmt::format("<{}> align offset grab error 합산완료 grabErrX = {} grabErrY = {} \r\n",
-							v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", grab->move_mm_x, grab->move_mm_y));
+							v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "global" : "local", grab->move_mm_x, grab->move_mm_y));*/
 
 
 					swprintf_s(tzMsg, 256, L"%s", v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? L"global" : L"local");					
@@ -542,30 +547,30 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 				motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab);
 				
-				for (int i = 0; i < representCount; i++)
-				{
-					auto refind = offsetPool[OffsetType::refind][i];
-					
-					auto align = std::find_if(offsetPool[OffsetType::align].begin(), offsetPool[OffsetType::align].end(), [&](const CaliPoint& v) { return v.srcFid.org_id == refind.srcFid.org_id; });
-					if (align == offsetPool[OffsetType::align].end()) 
-						throw exception();
+				//for (int i = 0; i < representCount; i++)
+				//{
+				//	auto refind = offsetPool[OffsetType::refind][i];
+				//	
+				//	auto align = std::find_if(offsetPool[OffsetType::align].begin(), offsetPool[OffsetType::align].end(), [&](const CaliPoint& v) { return v.srcFid.org_id == refind.srcFid.org_id; });
+				//	if (align == offsetPool[OffsetType::align].end()) 
+				//		throw exception();
 
-					CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, refind.srcFid, nullptr,&expoCali, xShiftGab, yShiftGab);
+				//	//CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, refind.srcFid, nullptr,&expoCali, xShiftGab, yShiftGab);
 
-					offsetPool[OffsetType::expo].push_back(expoCali);
+				//	//offsetPool[OffsetType::expo].push_back(expoCali);
 
-					//auto tempSumX = ((refind.offsetX - refind.suboffsetX) - xShiftGab) + align->offsetX + expoCali.offsetX; //<-합산 
-					//auto tempSumY = ((refind.offsetY - refind.suboffsetY) - yShiftGab) + align->offsetY + expoCali.offsetY; //<-합산 
+				//	////auto tempSumX = ((refind.offsetX - refind.suboffsetX) - xShiftGab) + align->offsetX + expoCali.offsetX; //<-합산 
+				//	////auto tempSumY = ((refind.offsetY - refind.suboffsetY) - yShiftGab) + align->offsetY + expoCali.offsetY; //<-합산 
 
-					auto tempGraboffsetX = ((refind.offsetX - refind.suboffsetX) - xShiftGab); //최종 그랩옵셋 
-					auto tempGraboffsetY = ((refind.offsetY - refind.suboffsetY) - yShiftGab); //최종 그랩옵셋
+				//	//auto tempGraboffsetX = ((refind.offsetX - refind.suboffsetX) - xShiftGab); //최종 그랩옵셋 
+				//	//auto tempGraboffsetY = ((refind.offsetY - refind.suboffsetY) - yShiftGab); //최종 그랩옵셋
 
-					grabCali = refind;
-					grabCali.offsetX = tempGraboffsetX;
-					grabCali.offsetY = tempGraboffsetY;
+				//	//grabCali = refind;
+				//	//grabCali.offsetX = tempGraboffsetX;
+				//	//grabCali.offsetY = tempGraboffsetY;
 
-					offsetPool[OffsetType::grab].push_back(grabCali);
-				}
+				//	//offsetPool[OffsetType::grab].push_back(grabCali);
+				//}
 			}
 			catch (...)
 			{
@@ -576,17 +581,36 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
-			motions.SetAlignOffsetPool(offsetPool);
-			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
-		},
-		[&]()
-		{
 
 			double expoOffsetX = 0, expoOffsetY = 0;
 			motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
 			m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY);
 		},
+		[&]()
+		{
+			CaliPoint expoOffset, grabOffset;
+			double expoOffsetX = 0, expoOffsetY = 0;
+			motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
 
+
+			for (auto v : offsetPool[OffsetType::refind])
+			{
+				grabOffset = v;
+				grabOffset.offsetX = (v.offsetX + v.suboffsetX) - expoOffsetX;
+				grabOffset.offsetY = (v.offsetY + v.suboffsetY) - expoOffsetY;
+
+				offsetPool[OffsetType::grab].push_back(grabOffset); //일단 grab옵셋을 추가. 
+
+				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, -grabOffset.offsetX, -grabOffset.offsetY);
+
+				offsetPool[OffsetType::expo].push_back(expoOffset);
+			}
+		},
+		[&]()
+		{
+			motions.SetAlignOffsetPool(offsetPool);
+			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);
+		},
 		[&]()
 		{
 			m_enWorkState = IsExposeStartXY();	

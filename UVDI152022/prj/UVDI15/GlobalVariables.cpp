@@ -634,6 +634,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			markParams.currGerbermark2y = std::round(temp.mark_y * std::pow(10, 3)) / std::pow(10, 3);
 		}
 		markParams.centerCamIdx = pstCfg->set_align.centerCamIdx;
+
 	}
 
 	vector<STG_XMXY> AlignMotion::GetFiducialPool(int camNum)
@@ -949,7 +950,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
 	errFlag = false;
 	tuple<double, double> refindOffset, grabErrOffset; //절대좌표 차이값
-
+	int idx = 0;
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	vector<tuple<STG_XMXY, double, double >> findOffsets; //원래 좌표 구조 , 절대좌표 차이값 x, 절대좌표 차이값y,  
 	vector<bool> findAtFirstTime = { false,false };
@@ -987,17 +988,12 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			
 			double grabOffsetX = 0, grabOffsetY = 0;
 			
-			//!!!
-			//그랩옵셋을 0으로 만들도록 refind offset에 grab error offset을 더해버린다. 
-			//!!!
 			
 			refindOffset = make_tuple(0, 0); grabErrOffset = make_tuple(0, 0);
 
-			auto idx = std::distance(representPoints.begin(), std::find(representPoints.begin(), representPoints.end(), *currPath));
-			
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
-				findAtFirstTime[idx] = true;
+				findAtFirstTime[idx++] = true;
 				refindOffsetPoints.push_back(STG_XMXY(0, 0, grabOffsetX, grabOffsetY, currPath->org_id));
 				grabErrOffset = make_tuple(grabOffsetX, grabOffsetY);
 			}
@@ -1041,7 +1037,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	if (findAtFirstTime[MARK1] == findAtFirstTime[MARK2] && findAtFirstTime[MARK2] == true) //전부다 원래 예상위치에서 찾은경우. 즉 벗어남이 없는경우.
 	{
 		findOffsets[MARK1] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0); //원래 포지션값은 유지하고 옵셋만 초기화 .
-		findOffsets[MARK2] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0);
+		findOffsets[MARK2] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK2]), 0, 0);
 	}
 
 
@@ -1076,6 +1072,18 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	return true;
 
 }
+
+void RefindMotion::UpdateParamValues()
+{
+	auto& align = uvEng_GetConfig()->set_align;
+
+	useRefind = align.useRefind;
+	stepSizeX = align.refindOffsetX;
+	stepSizeY = align.refindOffsetY;
+	refindCnt = align.refindCnt;
+}
+
+
 
 //최초 마크 인식 실패시 Refind 동작 
 //refindOffset	= Mark Grab 성공한 위치 - 최초 Mark Grab 위치

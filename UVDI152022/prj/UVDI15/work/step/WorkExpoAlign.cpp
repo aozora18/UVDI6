@@ -29,7 +29,7 @@ CWorkExpoAlign::CWorkExpoAlign()
 {
 	m_enWorkJobID	= ENG_BWOK::en_expo_align;
 	m_u32ExpoCount = 1;
-
+	m_u8StepIt = 0;
 	m_stExpoLog.Init();
 	//memcpy(&m_stExpoLog, expo, sizeof(STG_CELA));
 }
@@ -338,7 +338,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
 		SaveExpoResult(0x00);
-		m_u8StepIt = 0x01;
+		m_u8StepIt = 0x00;
 
 		/*노광 종료가 되면 Philhmil에 완료보고*/
 		SetPhilProcessCompelet();
@@ -377,7 +377,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 			//if (++m_u32ExpoCount != 10000)
 			if (++m_u32ExpoCount != 2)
 			{
-				m_u8StepIt = 0x01;
+				m_u8StepIt = 0x00;
 
 #ifdef _DEBUG
 				TCHAR szMesg[LOG_MESG_SIZE] = { NULL };
@@ -467,7 +467,8 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 void CWorkExpoAlign::DoInitStaticCam()
 {
 
-	m_u8StepTotal = 0x14;
+	
+	m_u8StepIt = 0;
 
 	
 }
@@ -489,25 +490,13 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		[&]()
 		{
 			webMonitor.Clear(nullptr);
-			m_enWorkState = SetExposeStartXY() == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ?
-							ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
+			m_enWorkState = SetExposeStartXY();
 		},
 		[&]()
 		{
-			if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
-				!(motions.GetCalifeature(OffsetType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
-				{
-					m_enWorkState = ENG_JWNS::en_error;
-				}
-			else
-				m_enWorkState = ENG_JWNS::en_next;
-
+			m_enWorkState = IsExposeStartXY();
 		},
-		[&]()
-		{
-			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
-		},
-
+		
 		[&]()
 		{
 			static map<int, ENG_MMDI> axisMap =
@@ -518,6 +507,10 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			};
 			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(OffsetType::expo).caliCamXPos);
 			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;
+		},
+		[&]()
+		{
+			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		},
 		[&]()
 		{
@@ -833,7 +826,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 				CaliPoint expoCali,grabCali;
 
-				if (representCount < 2)
+				if (representCount > 2)
 				try
 				{
 					double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
@@ -884,8 +877,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				for (auto v : offsetPool[OffsetType::refind])
 				{
 					grabOffset = v;
-					grabOffset.offsetX = (v.offsetX + v.suboffsetX) - expoOffsetX;
-					grabOffset.offsetY = (v.offsetY + v.suboffsetY) - expoOffsetY;
+					grabOffset.offsetX = expoOffsetX - (v.offsetX - v.suboffsetX) ;
+					grabOffset.offsetY = expoOffsetY - (v.offsetY - v.suboffsetY) ;
 
 					offsetPool[OffsetType::grab].push_back(grabOffset); //일단 grab옵셋을 추가. 
 
@@ -893,6 +886,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 					offsetPool[OffsetType::expo].push_back(expoOffset);
 				}
+				m_enWorkState = ENG_JWNS::en_next;
 			},
 			[&]()
 			{
@@ -957,170 +951,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 	{
 
 	}
-
-
-	//try
-	//{
-	//	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
-	//	{
-	//	case 0x01: 
-	//	{
-	//
-	//		if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
-	//			!(motions.GetCalifeature(OffsetType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
-	//		{
-	//			m_enWorkState = ENG_JWNS::en_error;
-	//			return;
-	//		}
-	//		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
-	//	}
-	//	break;	    /* 노광 가능한 상태인지 여부 확인 */
-
-	//	case 0x02: 
-	//	{
-	//		map<int, ENG_MMDI> axisMap = { {1,ENG_MMDI::en_align_cam1}, {2,ENG_MMDI::en_align_cam2}, {3,ENG_MMDI::en_axis_none} };
-	//		auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(OffsetType::expo).caliCamXPos);
-	//		m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;  //IsLoadedGerberCheck(); 불필요.
-	//	}
-	//	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
-
-	//	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
-	//	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
-	//	case 0x05:
-	//	{		
-	//		uvEng_ACamCali_ResetAllCaliData();
-	//		uvEng_Camera_ResetGrabbedImage();
-	//		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
-	//	}
-	//	break;	//3캠 이동위치 경로설정
-
-	//	case 0x06:
-	//	{
-	//		offsetPool.clear();
-	//		motions.SetFiducialPool();
-	//		grabMarkPath = motions.GetFiducialPool(CENTER_CAM);
-	//		m_enWorkState = grabMarkPath.size() == 0 ? ENG_JWNS::en_error : ENG_JWNS::en_next;
-
-	//		string temp = "x" + std::to_string(CENTER_CAM);
-	//		if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.use_2d_cali_data)
-	//		for (int i = 0; i < grabMarkPath.size(); i++)
-	//		{
-	//			//auto stageAlignOffset = motions.EstimateAlignOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y, CENTER_CAM == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-	//			auto stageAlignOffset = motions.EstimateAlignOffset(CENTER_CAM, grabMarkPath[i].mark_x, grabMarkPath[i].mark_y);
-	//			uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, grabMarkPath[i].GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, stageAlignOffset.offsetX, stageAlignOffset.offsetY);
-	//		}
-
-	//		//여기서 등록하자. 	
-	//	}
-	//	break;
-
-	//	case 0x07:
-	//	{
-	//		auto SingleGrab = [&](int camIndex,int& lastGrabCnt) -> bool 
-	//		{
-	//			lastGrabCnt = uvEng_Camera_GetGrabbedCount(&camIndex);
-	//			auto res =  uvEng_Mvenc_ReqTrigOutOne(camIndex);
-	//			return res;
-	//		};
-	//		
-	//		bool complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
-	//			{
-	//				if (motions.NowOnMoving() == true)
-	//				{
-	//					this_thread::sleep_for(chrono::milliseconds(100));
-	//				}
-	//				else
-	//				{
-	//					if (grabMarkPath.size() == 0)
-	//						return true;
-
-	//					auto first = grabMarkPath.begin();
-	//					auto arrival = motions.MovetoGerberPos(CENTER_CAM, *first);
-
-	//					if (arrival == true)
-	//					{
-	//						const int STABLE_TIME = 1000;
-	//						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
-	//						
-	//						int lastGrabCnt = 0;
-	//						if (SingleGrab(CENTER_CAM,lastGrabCnt))
-	//						{
-	//							grabMarkPath.erase(first);
-	//						}
-	//					}
-	//				}
-	//				return false;
-	//			}, 60 * 1000 * 2);
-	//		m_enWorkState = complete == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
-	//	}
-	//	break;
-
-	//	case 0x08:
-	//	{
-	//		SetUIRefresh(true);
-	//		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000, &CENTER_CAM);
-	//	}
-	//	break;
-
-
-	//	case 0x09:
-	//	{
-	//		m_enWorkState = IsSetMarkValidAll(0x01, &CENTER_CAM);
-	//	}
-	//	break;
-	//	
-	//	case 0x0a:
-	//	{
-	//		motions.SetAlignOffsetPool(offsetPool);
-	//		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none); 
-	//	}
-	//	break;
-
-	//	case 0x0b: 
-	//	{
-	//		m_enWorkState = SetAlignMarkRegistforStatic();
-	//	}
-	//	break;
-	//	
-	//	case 0x0c:m_enWorkState = IsAlignMarkRegist(); 
-	//		break;
-	//	
-	//	
-	//	case 0x0d: 
-	//		m_enWorkState = SetPrePrinting();							
-	//		break;
-
-	//	case 0x0e:
-	//		m_enWorkState = IsPrePrinted();
-	//		break;
-
-	//	case 0x0f:
-	//		m_enWorkState = SetPrinting();
-	//		//m_enWorkState = SetPrinting(); 
-	//		break;
-	//	case 0x10:
-	//		m_enWorkState = IsPrinted();								
-	//		break;
-	//	case 0x11:
-	//		m_enWorkState = SetWorkWaitTime(1000);						
-	//		break;	/* 일정 시간 대기 */
-	//	case 0x12:
-	//		m_enWorkState = IsWorkWaitTime();							
-	//		break;	/* 대기 완료 여부 확인 */
-	//	case 0x13: 
-	//		m_enWorkState = SetMovingUnloader();						
-	//		break;	/* Stage Unloader 위치로 이동 */
-	//	case 0x14: 
-	//		m_enWorkState = IsMovedUnloader();							
-	//		break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
-
-
-	//	}
-	//}
-	//catch (const std::exception&)
-	//{
-
-	//}
+	 
 }
 
 void CWorkExpoAlign::SetWorkNextStaticCam()
@@ -1141,7 +972,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 		m_enWorkState = ENG_JWNS::en_comp;
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		SaveExpoResult(0x00);
-		m_u8StepIt = 0x01;
+		m_u8StepIt = 0x00;
 #endif
 		/*노광 종료가 되면 Philhmil에 완료보고*/
 		SetPhilProcessCompelet();
@@ -1153,10 +984,10 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 		if (m_u8StepTotal == m_u8StepIt)
 		{
 			SaveExpoResult(0x01);
-
+			m_u8StepIt = 0x00;
 			if (++m_u32ExpoCount != 2)
 			{
-				m_u8StepIt = 0x01;
+				m_u8StepIt = 0x00;
 
 #ifdef _DEBUG
 				TCHAR szMesg[LOG_MESG_SIZE] = { NULL };

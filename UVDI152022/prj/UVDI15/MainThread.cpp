@@ -19,6 +19,7 @@
 #include "./work/step/WorkMarkTest.h"
 #include "./work/step/WorkOnlyFEM.h"
 #include "./work/step/WorkFEMExpo.h"
+#include "./work/step/WorkEnvironCalib.h"
 
 
 #ifdef _DEBUG
@@ -202,21 +203,22 @@ VOID CMainThread::RunWorkJob()
 		{
 			switch (m_pWorkJob->GetWorkJobID())
 			{
-			case ENG_BWOK::en_work_stop		:
-			case ENG_BWOK::en_work_home		:
-			case ENG_BWOK::en_work_init		:
-
-			case ENG_BWOK::en_gerb_load		:
-			case ENG_BWOK::en_gerb_unload	:
-
-			case ENG_BWOK::en_gerb_onlyfem:
-
-			case ENG_BWOK::en_mark_move		:
-			case ENG_BWOK::en_mark_test		:
-
-			case ENG_BWOK::en_expo_only		:
-			case ENG_BWOK::en_expo_align	:	
-			case ENG_BWOK::en_gerb_expofem	:	m_pWorkJob->DoWork();	break;	/* 현재 작업 및 단계 명칭 갱신 */
+				case ENG_BWOK::en_work_stop		:
+				case ENG_BWOK::en_work_home		:
+				case ENG_BWOK::en_work_init		:
+				case ENG_BWOK::en_gerb_load		:
+				case ENG_BWOK::en_gerb_unload	:
+				case ENG_BWOK::en_gerb_onlyfem:
+				case ENG_BWOK::en_mark_move		:
+				case ENG_BWOK::en_mark_test		:
+				case ENG_BWOK::en_expo_only		:
+				case ENG_BWOK::en_expo_align	:	
+				case ENG_BWOK::en_gerb_expofem	:	
+				case ENG_BWOK::en_env_calib		:
+				{
+					m_pWorkJob->DoWork();
+				}
+				break;	/* 현재 작업 및 단계 명칭 갱신 */
 			}
 		}
 	}
@@ -274,6 +276,8 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 				m_pWorkJob = static_cast<CWorkStep*>(workMarkTest);
 			}
 			break;
+
+			case ENG_BWOK::en_env_calib: m_pWorkJob = new EnvironmentalCalibWork();	break;
 
 			//case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CPHE(data));	break;
 			case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CELA(data));	break;
@@ -382,6 +386,8 @@ VOID CMainThread::UpdateWorkName()
 		case ENG_BWOK::en_expo_align	: wcscpy_s(tzName, 64, L"EXPO (Align)");		break;
 
 		case ENG_BWOK::en_gerb_expofem	: wcscpy_s(tzName, 64, L"EXPO (FEM)");		break;
+
+		case ENG_BWOK::en_env_calib:	wcscpy_s(tzName, 64, L"Environmental calib");		break;
 		}
 	}
 	/* 현재 작업 상태에 따라, 첫 글자 결정 (진행, 타임아웃, 성공, ..) */

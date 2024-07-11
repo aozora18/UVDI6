@@ -253,6 +253,7 @@
     <ClInclude Include="work\Calibration\FlushErrorMgr.h" />
     <ClInclude Include="work\Calibration\PowerMeasureMgr.h" />
     <ClInclude Include="work\step\WorkAbort.h" />
+    <ClInclude Include="work\step\WorkEnvironCalib.h" />
     <ClInclude Include="work\step\WorkExpoOnly.h" />
     <ClInclude Include="work\step\WorkFEMExpo.h" />
     <ClInclude Include="work\step\WorkHoming.h" />
@@ -388,6 +389,7 @@
     <ClCompile Include="work\Calibration\FlushErrorMgr.cpp" />
     <ClCompile Include="work\Calibration\PowerMeasureMgr.cpp" />
     <ClCompile Include="work\step\WorkAbort.cpp" />
+    <ClCompile Include="work\step\WorkEnvironCalib.cpp" />
     <ClCompile Include="work\step\WorkExpoOnly.cpp" />
     <ClCompile Include="work\step\WorkFEMExpo.cpp" />
     <ClCompile Include="work\step\WorkHoming.cpp" />

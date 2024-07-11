@@ -300,6 +300,10 @@ VOID CDlgCalbAccuracyMeasure::InitCtrl()
 	{
 		m_grd_ctl[i].SetParent(this);
 	}
+
+	
+
+	
 }
 
 
@@ -1192,8 +1196,9 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 
 	if (pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES")
 	{
-		auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
-		CAccuracyMgr::GetInstance()->SetCamID(centerCamIdx);
+		//auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
+		UINT8 u8ACamID = GetCheckACam() + 1;
+		CAccuracyMgr::GetInstance()->SetCamID(u8ACamID);
 		CAccuracyMgr::GetInstance()->SetMeasureMode(CAccuracyMgr::MeasureRegion::expo);	
 	}
 

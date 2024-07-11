@@ -296,6 +296,12 @@ CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double st
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
 	//CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
 
+	if (fabs(stageOffset.offsetX) < 0.0009f)
+		stageOffset.offsetX = 0;
+
+	if (fabs(stageOffset.offsetY) < 0.0009f)
+		stageOffset.offsetY = 0;
+
 	CaliPoint finalv = stageOffset;// +camOffset;
 	TCHAR tzMsg[256] = { NULL };
 	swprintf_s(tzMsg, 256, L"EstimateAlignOffset stagePos : X =%.4f Y = %.4f , offset x = %.4f , y = %.4f" , stageX, stageY, finalv.offsetX, finalv.offsetY);
@@ -427,30 +433,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return res;
 	}
 
-	bool AlignMotion::NowOnMoving()
+	bool AlignMotion::MovetoGerberPos(int camNum, STG_XMXY tgtPos, CaliPoint* offsetPos)
 	{
-
-		if (pstCfg->IsRunDemo()) return false;
-
-		LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
-
-		if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
-			pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
-			!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
-			!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
-			!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
-			!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	
-
-	bool AlignMotion::MovetoGerberPos(int camNum, STG_XMXY tgtPos)
-	{
-		if (NowOnMoving())
+		if (CommonMotionStuffs::GetInstance().NowOnMoving())
 			return false;
 
 		Refresh();
@@ -467,9 +452,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		double dx = tgtPos.mark_x - gbrPos.mark_x;
 		double dy = tgtPos.mark_y - gbrPos.mark_y;
 
-		dx = axises["stage"]["x"].currPos + dx;
-		dy = axises["stage"]["y"].currPos + dy;
-
+		dx = axises["stage"]["x"].currPos + dx - (offsetPos != nullptr ? offsetPos->offsetX : 0);
+		dy = axises["stage"]["y"].currPos + dy - (offsetPos != nullptr ? offsetPos->offsetY : 0);
 
 		if (isArrive("stage", "x", dx) == true && isArrive("stage", "y", dy) == true)
 			return true;
@@ -547,8 +531,11 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 							camNum == 2 ? markParams.distCam2cam[_1to2_Y_GAB] : 0;
 
 		//역산시작
-		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset;
+		double tempGerberX = markParams.currGerbermark2x + mark2Xgab + stageXgab + camXOffset ;
 		double tempGerberY = markParams.currGerbermark2y + mark2Ygab + stageYgab + camYOffset;
+
+		tempGerberX += markParams.centerMarkzeroOffsetX;
+		tempGerberY += markParams.centerMarkzeroOffsetY;
 
 		point.mark_x = std::round(tempGerberX * std::pow(10, 3)) / std::pow(10, 3);
 		point.mark_y = std::round(tempGerberY * std::pow(10, 3)) / std::pow(10, 3);
@@ -634,6 +621,11 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			markParams.currGerbermark2y = std::round(temp.mark_y * std::pow(10, 3)) / std::pow(10, 3);
 		}
 		markParams.centerCamIdx = pstCfg->set_align.centerCamIdx;
+
+
+
+		markParams.centerMarkzeroOffsetX = pstCfg->set_align.centerMarkzeroOffsetX;
+		markParams.centerMarkzeroOffsetY = pstCfg->set_align.centerMarkzeroOffsetY;
 
 	}
 
@@ -842,12 +834,22 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 	}
 
 
-	void Environment::WriteCalibResult()
+	void Environmental::GetCalibPositionData(double& stageX, double& stageY, int& calibCamIdx, double& calibCamZPos, double& calibCamXPos)
 	{
-
+		stageX = std::get<0>(calibStagePos);
+		stageY = std::get<1>(calibStagePos);
+		calibCamIdx = std::get<0>(calibCamAxisPos);
+		calibCamXPos = std::get<1>(calibCamAxisPos);
+		calibCamZPos = std::get<2>(calibCamAxisPos);
 	}
 
-	bool Environment::DoCalib()
+	void Environmental::GetCalibOffset(double& offsetX, double& offsetY)
+	{
+		offsetX = std::get<0>(prevCalibOffset) - std::get<0>(latestCalibOffset);
+		offsetY = std::get<1>(prevCalibOffset) - std::get<1>(latestCalibOffset);
+	}
+
+	bool Environmental::DoCalib()
 	{
 		/*
 		드라이버에 에러가있는지
@@ -873,14 +875,42 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return true;
 	}
 
-
-	void Environment::UpdateStateValue()
+	void Environmental::WriteCalibValue()
 	{
-		//info에서 일단 가져옴.
+		auto config = uvEng_GetConfig();
+		auto& environmental = config->environmental;
+
+		environmental = STG_ENVI();
 	}
 
+	void Environmental::ReadCalibValue()
+	{
+		//info에서 일단 가져옴.
+		auto config = uvEng_GetConfig();
+		auto& environmental = config->environmental;
 
-	
+
+		this->reCalibTermMinute = environmental.caliTimeMinuteTerm;
+		this->reCalibGabTemp = environmental.caliTempGab;
+
+		
+		this->lastCalibDate = environmental.lastCalibDate;
+		this->lastCalibTemperature = environmental.lastCalibTemperature;
+
+		this->calibCamAxisPos = make_tuple(environmental.calibCamIdx, environmental.calibCamDriveAxisPos, environmental.calibCamZAxisPos);
+		this->calibStagePos = make_tuple(environmental.calibStageX, environmental.calibStageY);
+
+
+		latestCalibOffset = make_tuple(environmental.indacatorOffsetX, environmental.indacatorOffsetY);
+		//prevCalibOffset
+		//tuple<int, double, double> calibCamAxisPos; //캘리브레이션에 사용할 카메라와  camidx, x축좌표 , z축좌표
+		//tuple<double, double> calibStagePos; // (x,y)
+
+		//tuple<double, double> latestCalibOffset; //<-가장 최근에 캘리브레이션 옵셋
+		//tuple<double, double> prevCalibOffset; //<- 기존의 캘리브레이션 옵셋
+
+
+	}
 RefindMotion::RefindMotion()
 {
 	rstValue = RSTValue();
@@ -979,7 +1009,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			sleep(100);
 
 			motions.Refresh();
-			if (motions.NowOnMoving() == true)
+			if (CommonMotionStuffs::GetInstance().NowOnMoving() == true)
 				return false;
 			/*Align Camera Grab 동작 실행 및 실패시 종료*/
 			if (CommonMotionStuffs::GetInstance().SingleGrab(centerCam) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
@@ -1260,6 +1290,29 @@ bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, do
 	uvEng_Camera_ExitCS();
 	return lastGrab == nullptr ? false : true;
 }
+
+bool CommonMotionStuffs::NowOnMoving()
+{
+	
+	auto config = uvEng_GetConfig();
+
+	if (config->IsRunDemo()) return false;
+
+	LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
+
+	if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
+		pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
+		!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
+		!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
+		!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
+		!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
+	{
+		return true;
+	}
+	return false;
+}
+
+
 
 LPG_ACGR CommonMotionStuffs::GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType)
 {

@@ -143,7 +143,9 @@ void CWorkMarkMove::DoMovingStatic3cam()
 		
 		if (uvEng_Luria_GetGlobalMark(m_u8MarkNo - 1, &markPos))
 		{
-			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos);
+			CaliPoint offsetPos;
+			CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &offsetPos,nullptr);
+			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos, &offsetPos);
 			m_enWorkState = arrival == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		}
 		else

@@ -620,7 +620,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			{
 				try
 				{
-					if (motions.NowOnMoving() == true)
+					if (CommonMotionStuffs::GetInstance().NowOnMoving())
 					{
 						return false;
 					}

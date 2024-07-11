@@ -1734,7 +1734,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	if (status.globalMarkCnt != 4)
 		return ENG_JWNS::en_next;
 
-	webMonitor.AddLog("=============================================================================");
+	//webMonitor.AddLog("=============================================================================");
 
 	for (int i = 0; i < status.globalMarkCnt + status.localMarkCnt; i++)
 	{
@@ -1815,9 +1815,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		
 			temp.mark_x -= foffsetX;
 			temp.mark_y -= foffsetY;
-
-			webMonitor.AddLog(fmt::format("tgt mark {} - 그랩옵셋X = {:.3f}, 그랩옵셋Y = {:.3f},  얼라인옵셋X = {:.3f} ,얼라인옵셋Y = {:.3f} ,  익스포옵셋X = {:.3f}, 익스포옵셋Y = {:.3f}, 원래X = {:.3f} , 원래 Y = {:.3f}, 적용차이X = {:.3f} , 적용차이Y = {:.3f}",
-				temp.tgt_id, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY, expoOffset.offsetX, expoOffset.offsetX,bkx,bky,bkx - temp.mark_x, bky - temp.mark_y));
+			//string fmtFormat = fmt::format("tgt mark {} - 그랩옵셋X = {:.3f}, 그랩옵셋Y = {:.3f},  얼라인옵셋X = {:.3f} ,얼라인옵셋Y = {:.3f} ,  익스포옵셋X = {:.3f}, 익스포옵셋Y = {:.3f}, 원래X = {:.3f} , 원래 Y = {:.3f}, 적용차이X = {:.3f} , 적용차이Y = {:.3f}",
+				//temp.tgt_id, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY, expoOffset.offsetX, expoOffset.offsetX, bkx, bky, bkx - temp.mark_x, bky - temp.mark_y);
+//			webMonitor.AddLog(fmtFormat);
 
 		}
 		

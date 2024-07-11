@@ -158,6 +158,14 @@ typedef struct __st_config_setup_align_info__
 	//DOUBLE				mark_offset_x[4];						/* 각 Global Mark의 offset 설정값(단위: mm) */
 	//DOUBLE				mark_offset_y[4];
 
+	double centerMarkzeroOffsetX;
+	double centerMarkzeroOffsetY;
+
+	int trigOntheflyDelayIncrease[4];
+	int trigOntheflyDelayDecrease[4];
+	int trigOntheflyOffsetIncrease[4];
+	int trigOntheflyOffsetDecrease[4];
+
 	/* 거버에 저장된 Mark 2번 기준 X 축 모션 좌표 (단위: mm) */
 	void SetMarkoffsetPtr(MarkoffsetInfo& ptr)
 	{
@@ -169,6 +177,93 @@ typedef struct __st_config_setup_align_info__
 	int refindCnt;
 
 }	STG_CSAI,	*LPG_CSAI;
+
+
+typedef struct __st_config_environmental_info__
+{
+	bool useEnviroment;
+	double caliTempGab; //해당온도차이시 캘리진행
+	double caliTimeMinuteTerm; //해당 시간 차이시 캘리 진행
+
+	double lastCalibTemperature;  //마지막 캘리 온도
+	double lastCalibDate; //마지막 캘리 시간
+
+	double calibStageX; //캘리 스테이지 x
+	double calibStageY; //캘리 스테이지 y
+
+	int calibCamIdx; //캘리 사용 캠.
+	double calibCamDriveAxisPos; //캘리캠 주행축 포지션
+	double calibCamZAxisPos; //캘리캠 높이축 포지션
+
+	double indacatorOffsetX; //캘리 옵셋 x
+	double indacatorOffsetY; //캘리 옵셋 x
+	CHAR thcLogLocation[MAX_PATH];
+
+	__st_config_environmental_info__& operator=(const __st_config_environmental_info__& rv)
+	{
+		this->useEnviroment = rv.useEnviroment;
+		this->caliTempGab = rv.caliTempGab; //해당온도차이시 캘리진행
+		this->caliTimeMinuteTerm = rv.caliTimeMinuteTerm; //해당 시간 차이시 캘리 진행
+		this->lastCalibTemperature = rv.lastCalibTemperature;
+		this->lastCalibDate = rv.lastCalibDate;
+		this->calibStageX = rv.calibStageX;
+		this->calibStageY = rv.calibStageY;
+		this->calibCamIdx = rv.calibCamIdx;
+		this->calibCamDriveAxisPos = rv.calibCamDriveAxisPos;
+		this->calibCamZAxisPos = rv.calibCamZAxisPos;
+		this->indacatorOffsetX = rv.indacatorOffsetX;
+		this->indacatorOffsetY = rv.indacatorOffsetY;
+		strcpy_s(this->thcLogLocation, MAX_PATH,(const char*)rv.thcLogLocation);
+		
+		return *this;
+	}
+
+	__st_config_environmental_info__()
+	{
+		this->caliTempGab = 0; //해당온도차이시 캘리진행
+		this->caliTimeMinuteTerm = 0; //해당 시간 차이시 캘리 진행
+		this->lastCalibTemperature = 0;
+		this->lastCalibDate = 0;
+		this->calibStageX = 0;
+		this->calibStageY = 0;
+		this->calibCamIdx = 0;
+		this->calibCamDriveAxisPos = 0;
+		this->calibCamZAxisPos = 0;
+		this->indacatorOffsetX = 0;
+		this->indacatorOffsetY = 0;
+	}
+
+	__st_config_environmental_info__
+	(
+		double caliTempGab,
+		double caliTimeMinuteTerm,
+		int lastCalibTemperature,
+		int lastCalibDate,
+		double calibStageX,
+		double calibStageY,
+		int calibCamIdx,
+		double calibCamDriveAxisPos,
+		double calibCamZAxisPos,
+		double indacatorOffsetX,
+		double indacatorOffsetY
+	)
+	{
+		this->caliTempGab = 0; //해당온도차이시 캘리진행
+		this->caliTimeMinuteTerm = 0; //해당 시간 차이시 캘리 진행
+		this->lastCalibTemperature = 0;
+		this->lastCalibDate = 0;
+		this->calibStageX = 0;
+		this->calibStageY = 0;
+		this->calibCamIdx = 0;
+		this->calibCamDriveAxisPos = 0;
+		this->calibCamZAxisPos = 0;
+		this->indacatorOffsetX = 0;
+		this->indacatorOffsetY = 0;
+	}
+
+}	STG_ENVI, * LPG_ENVI;
+
+
 
 /* Vision Camera로부터 Grabbed Image에 대한 전처리 정보 */
 typedef struct __st_config_grab_image_preprocess__
@@ -928,7 +1023,7 @@ typedef struct __st_config_info_engine_all__
 	STG_CSSP			set_strobe_lamp;	// by sysandj : strobe lamp 관련 파라메터
 	STG_KLSP			set_keyence_lds;	// 230919 mhbaek Add keyence lds 관련 파라메터
 	STG_CMAF			measure_flat;		// 230919 mhbaek Add
-
+	STG_ENVI environmental;
 	/*
 	 desc : Align Camera의 Grabbed Image의 넓이 or 높이 반환
 	 parm : flag	- [in]  0x00: Width, 0x01: Height

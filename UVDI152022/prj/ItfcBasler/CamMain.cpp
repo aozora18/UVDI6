@@ -120,6 +120,7 @@ CCamMain::~CCamMain()
 */
 BOOL CCamMain::AttachDevice()
 {
+	
 	UINT32 i	= 0;
 	String_t strCamIPv4;
 	CUniToChar csCnv;

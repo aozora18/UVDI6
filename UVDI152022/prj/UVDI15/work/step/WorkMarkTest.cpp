@@ -29,7 +29,7 @@ CWorkMarkTest::CWorkMarkTest(LPG_CELA expo)
 {
 	m_enWorkJobID = ENG_BWOK::en_mark_test;
 	m_u32ExpoCount = 0;
-
+	m_u8StepIt = 0;
 	m_stExpoLog.Init();
 	memcpy(&m_stExpoLog, expo, sizeof(STG_CELA));
 }
@@ -155,7 +155,7 @@ void CWorkMarkTest::DoAlignStatic2cam()
 		throw(e);
 	}
 }
-bool tempRefind = false;
+
 //스테틱 3캠
 void CWorkMarkTest::DoAlignStaticCam()
 {
@@ -168,7 +168,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 	const int MARK1 = 0, MARK2 = 1;
 	bool refind = refindMotion.IsUseRefind();
 	
-	refind = tempRefind;
+	
 
 	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
 	vector<function<void()>> stepWork =
@@ -176,9 +176,13 @@ void CWorkMarkTest::DoAlignStaticCam()
 		[&]()
 		{
 			webMonitor.Clear(nullptr);
-			m_enWorkState = SetExposeStartXY() == ENG_JWNS::en_next && IsExposeStartXY() == ENG_JWNS::en_next ? 
-							ENG_JWNS::en_next : ENG_JWNS::en_error; //expo영역 초기화 
+			m_enWorkState = SetExposeStartXY();
 		},
+		[&]()
+		{
+			m_enWorkState = IsExposeStartXY();
+		},
+
 		[&]() 
 		{
 			if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
@@ -314,7 +318,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			{
 				try
 				{
-					if (motions.NowOnMoving() == true)
+					if (CommonMotionStuffs::GetInstance().NowOnMoving())
 					{
 						return false;
 					}
@@ -520,7 +524,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			
 			CaliPoint expoCali,grabCali;
 
-			if (representCount < 2)
+			if (representCount > 2)
 			try
 			{
 				double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
@@ -605,6 +609,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 				offsetPool[OffsetType::expo].push_back(expoOffset);
 			}
+			m_enWorkState = ENG_JWNS::en_next;
 		},
 		[&]()
 		{

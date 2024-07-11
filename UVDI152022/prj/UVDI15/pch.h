@@ -117,6 +117,9 @@ typedef enum class __en_base_work_operate_kind__ : UINT8
 	en_expo_spot	= 0x44,		/* Spot Align Mark 후 노광 진행 */
 	en_gerb_expofem = 0x45,		/* FEM(Foucs&Emergy) (recipe) + expo */
 
+	/* environmental works */
+	en_env_calib = 0x51,
+
 	/* App Exit */
 	en_app_exit		= 0xff,		/* 프로그램 종료 메시지 */
 

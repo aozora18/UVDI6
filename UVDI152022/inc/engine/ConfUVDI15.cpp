@@ -79,6 +79,14 @@ BOOL CConfUvdi15::LoadConfig()
 		AfxMessageBox(L"Failed to load the config for SETUP_ALIGN", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
 	}
+
+	if (!LoadConfigEnvirnomental())	/* [SETUP_enviroment] */
+	{
+		AfxMessageBox(L"Failed to load the config for envirimental features", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
+
+
 	if (!LoadConfigACamSpec())		/* [ACAM_SPEC] */
 	{
 		AfxMessageBox(L"Failed to load the config for ACAM_SPEC", MB_ICONSTOP|MB_TOPMOST);
@@ -410,7 +418,22 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	m_pstCfg->set_align.mark2_org_gerb_xy[1]	= GetConfigDouble(L"MARK2_ORG_GERB_Y");
 	m_pstCfg->set_align.mark2_stage_x			= GetConfigDouble(L"MARK2_STAGE_X");
 
+	m_pstCfg->set_align.centerMarkzeroOffsetX = GetConfigDouble(L"CENTERCAM_MARKZERO_OFFSET_X");
+	m_pstCfg->set_align.centerMarkzeroOffsetY = GetConfigDouble(L"CENTERCAM_MARKZERO_OFFSET_Y");
+
 	m_pstCfg->set_align.centerCamIdx = GetConfigUint8(L"CENTER_CAM_INDEX");
+	
+	for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
+	{
+		swprintf_s(tzKey2, MAX_KEY_STRING, L"TRIG_ONTHEFLY_DELAY_CH%d_INCREASE", i+1);
+		m_pstCfg->set_align.trigOntheflyDelayIncrease[i] = GetConfigInt32(tzKey2);
+		swprintf_s(tzKey2, MAX_KEY_STRING, L"TRIG_ONTHEFLY_DELAY_CH%d_DECREASE ", i + 1);
+		m_pstCfg->set_align.trigOntheflyDelayDecrease[i] = GetConfigInt32(tzKey2);
+		swprintf_s(tzKey2, MAX_KEY_STRING, L"TRIG_ONTHEFLY_OFFSET_CH%d_INCREASE", i + 1);
+		m_pstCfg->set_align.trigOntheflyOffsetIncrease[i] = GetConfigInt32(tzKey2);
+		swprintf_s(tzKey2, MAX_KEY_STRING, L"TRIG_ONTHEFLY_OFFSET_CH%d_DECREASE", i + 1);
+		m_pstCfg->set_align.trigOntheflyOffsetDecrease[i] = GetConfigInt32(tzKey2);
+	}
 
 	//m_pstCfg->set_align.use_Localmark_offset = GetConfigDouble(L"USE_LOCAL_MARK_OFFSET");
 
@@ -476,6 +499,50 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 
 	return TRUE;
 }
+
+BOOL CConfUvdi15::LoadConfigEnvirnomental()
+{
+
+	TCHAR tzKey[64] = { NULL };
+
+	/* Subject Name 설정 */
+	swprintf_s(m_tzSubj, MAX_SUBJ_STRING, L"ENVIRONMENT");
+
+	m_pstCfg->environmental.useEnviroment = GetConfigInt(L"USE_ENVIRONMENT") != 0 ? true : false;
+
+	m_pstCfg->environmental.caliTempGab = GetConfigDouble(L"RE_CALIB_GAB_TEMP");
+	m_pstCfg->environmental.caliTimeMinuteTerm = GetConfigDouble(L"RE_CALIB_TERM_MINUTE");
+
+	m_pstCfg->environmental.lastCalibTemperature = GetConfigDouble(L"LAST_CALIB_TEMP");
+	m_pstCfg->environmental.lastCalibDate = GetConfigDouble(L"LAST_CALIB_DATE");
+
+	m_pstCfg->environmental.calibStageX = GetConfigDouble(L"CALIB_STAGE_X");
+	m_pstCfg->environmental.calibStageY = GetConfigDouble(L"CALIB_STAGE_Y");
+
+	m_pstCfg->environmental.calibCamIdx = GetConfigInt(L"CALIB_CAM_IDX");
+	m_pstCfg->environmental.calibCamDriveAxisPos = GetConfigDouble(L"CALIB_CAM_X");
+	m_pstCfg->environmental.calibCamZAxisPos = GetConfigDouble(L"CALIB_CAM_Z");
+
+	m_pstCfg->environmental.indacatorOffsetX = GetConfigDouble(L"INDICATOR_OFFSET_X");
+	m_pstCfg->environmental.indacatorOffsetY = GetConfigDouble(L"INDICATOR_OFFSET_Y");
+ 
+	TCHAR temp[MAX_PATH] = { 0, };
+	GetConfigStr(L"THC_LOG_LOCATION", temp,MAX_PATH,L"");
+	strcpy_s(m_pstCfg->environmental.thcLogLocation, MAX_PATH, CT2A(temp));
+	
+
+	return TRUE;
+}
+
+
+BOOL CConfUvdi15::SaveConfigEnvirnomental()
+{
+	 
+	 
+	return TRUE;
+}
+
+
 BOOL CConfUvdi15::SaveConfigSetupAlign()
 {
 	UINT8 i;
@@ -504,57 +571,6 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 		swprintf_s(tzKey, MAX_KEY_STRING, L"TABLE_UNLOADER_Y_%d", i);
 		SetConfigDouble(tzKey,	m_pstCfg->set_align.table_unloader_xy[i-1][1],	4);
 	}
-
-	
-	/*vector<tuple<double, double>> globalOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(true);
-	vector<tuple<double, double>> localOffsets = m_pstCfg->set_align.markOffsetPtr->GetGroup(false);*/
-	
-	//std::string tempStr = string("");
-	
-	//swprintf_s(tzIPv4, IPv4_LENGTH, L"%d.%d.%d.%d", ipv4[0], ipv4[1], ipv4[2], ipv4[3]);
-	//int precision = 3;
-
-	//for (i = 0; i < globalOffsets.size(); i++)
-	//{
-	//	tempStr.append(std::to_string(round(std::get<0>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-	//	tempStr.append(",");
-	//	tempStr.append(std::to_string(round(std::get<1>(globalOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-	//	if (i + 1 != globalOffsets.size())
-	//		tempStr.append(",");
-	//}
-
-	//swprintf_s(tzKey, MAX_KEY_STRING, L"G_MARK_OFFSET");
-	//int len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
-	//TCHAR* szUniCode = new TCHAR[len];
-	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
-	//SetConfigStr(tzKey, szUniCode);
-	//delete[] szUniCode;
-
-	//tempStr = string("");
-	//for (i = 0; i < localOffsets.size(); i++)
-	//{
-	//	tempStr.append(std::to_string(round(std::get<0>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-	//	tempStr.append(",");
-	//	tempStr.append(std::to_string(round(std::get<1>(localOffsets[i]) * pow(10, precision)) / pow(10, precision)));
-	//	if(i+1 != localOffsets.size())
-	//		tempStr.append(",");
-	//}
-	//swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET");
-	//len = strlen(tempStr.c_str()) + 1; // 널 종료 문자를 포함하여 길이 계산
-	//szUniCode = new TCHAR[len];
-	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, tempStr.c_str(), -1, szUniCode, len);
-	//SetConfigStr(tzKey, szUniCode);
-	//delete[] szUniCode;
-
-	//for (i = 0; i < localOffsets.size(); i++)
-	//{
-	//	swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET_X_%d", i);
-	//	SetConfigDouble(tzKey, , 4);
-	//	swprintf_s(tzKey, MAX_KEY_STRING, L"L_MARK_OFFSET_Y_%d", i);
-	//	SetConfigDouble(tzKey, std::get<1>(localOffsets[i]), 4);
-	//}
-
-
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");
 	SetConfigDouble(tzKey, m_pstCfg->set_align.mark_horz_diff, 4);

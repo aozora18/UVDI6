@@ -46,6 +46,90 @@ private:
 	}
 public: 
 
+	std::string GetLastLineOfFile(const std::string& filePath) 
+	{
+		namespace fs = std::filesystem;
+		
+		try
+		{
+			if (!fs::exists(filePath))
+			{
+				throw std::runtime_error("File does not exist: " + filePath);
+			}
+			else
+			{
+				std::ifstream file(filePath, std::ios::in | std::ios::ate);
+				if (!file.is_open())
+					throw std::runtime_error("Unable to open file: " + filePath);
+
+				std::string lastLine;
+				file.seekg(-1, std::ios::end);
+
+				if (file.tellg() == 0)
+					return lastLine;
+
+				char ch;
+				while (file.tellg() > 0) 
+				{
+					file.get(ch);
+					if (ch == '\n' && file.tellg() > 1) {
+						file.seekg(-2, std::ios::cur);
+					}
+					else 
+					{
+						break;
+					}
+				}
+				std::getline(file, lastLine);
+				file.close();
+
+				return lastLine;
+			}
+			
+		}
+		catch (...)
+		{
+			return nullptr;
+		}
+	}
+
+	//현시간을 double로 반환 
+	double GetCurrentTimeToDouble()  
+	{
+		auto now = std::chrono::system_clock::now();
+		auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+		std::tm buf;
+		localtime_s(&buf, &in_time_t);
+
+		std::ostringstream oss;
+		oss << std::put_time(&buf, "%Y%m%d%H%M");
+		return std::stod(oss.str());
+	}
+
+	//double 시간의 차이를 minute로 반환 
+	double TimegabForMinute(double old, double now)  
+	{
+		std::ostringstream oldStr, nowStr;
+		oldStr << std::fixed << std::setprecision(0) << old;
+		nowStr << std::fixed << std::setprecision(0) << now;
+
+		std::tm* tm[] = { new std::tm(),new std::tm() };
+
+		std::istringstream s1(oldStr.str());
+		s1 >> std::get_time(tm[0], "%Y%m%d%H%M");
+
+		std::istringstream s2(nowStr.str());
+		s2 >> std::get_time(tm[1], "%Y%m%d%H%M");
+
+		auto time1 = std::chrono::system_clock::from_time_t(std::mktime(const_cast<std::tm*>(tm[0])));
+		auto time2 = std::chrono::system_clock::from_time_t(std::mktime(const_cast<std::tm*>(tm[1])));
+		auto diff = std::chrono::duration_cast<std::chrono::minutes>(time2 - time1).count();
+		delete tm[0]; delete tm[1];
+		return static_cast<double>(diff);
+
+	}
+
 	static Stuffs stuffUtils;
 	static Stuffs& GetStuffs()
 	{

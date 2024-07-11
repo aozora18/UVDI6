@@ -1,20 +1,12 @@
 ﻿#pragma once
 //이하는 전부 인라인 클래스임.
-
 #include <iostream>
 #include <filesystem>
 #include <chrono>
-
 #include <cassert>
-
 #include <list>
 #include <map>
 #include <string>
-#include <chrono>
-#include <thread>
-#include <mutex>
-#include <functional>
-#include <iostream>
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -27,6 +19,11 @@
 #include <assert.h>
 #include <fstream>
 #include <regex>
+#include "param/InterLockManager.h"
+#include "webViewinterop.h"
+#include <iomanip>
+#include <sstream>
+#include <cmath>
 
 #include "../../inc/conf/conf_uvdi15.h"
 #include "../../inc/conf/conf_comn.h"
@@ -39,9 +36,8 @@
 #include "../../inc/itfe/EItfcRcpUVDI15.h"
 #include "../../inc/itfe/EItfcThickCali.h"
 #include "../../inc/itfc/ItfcUVDI15.h"
-#include "param/InterLockManager.h"
 
-#include "webViewinterop.h"
+
 
 using namespace std;
 class CaliCalc;
@@ -100,7 +96,6 @@ private:
 	bool isConditionMet;
 };
 
-
 class ThreadManager : public Singleton<ThreadManager>
 {
 public:
@@ -118,8 +113,6 @@ private:
 	std::unordered_map<std::string, tuple<std::unique_ptr<std::thread>, std::atomic<bool>&>> threads_;
 	std::mutex mutex_;
 };
-
-
 
 struct subOffset //참조용.
 {
@@ -216,7 +209,6 @@ struct CaliPoint : subOffset
 	STG_XMXY srcFid;
 };
 
-
 class TriggerBase
 {
 public:
@@ -233,6 +225,7 @@ class TriggerData : TriggerBase
 public:
 	int channel;
 	int delay[end] = { 0,0 };
+	int offset[end] = { 0,0 };
 
 	vector<INT32> pos;
 
@@ -256,8 +249,6 @@ public:
 
 };
 
-
-
 class TriggerManager : TriggerBase
 {
 public:
@@ -272,13 +263,33 @@ public:
 		triggers[channel].delay[decrease] = decDelay;
 	}
 
+	void SetOffset(int channel, int incOffset, int decOffset)
+	{
+		triggers[channel].offset[increase] = incOffset;
+		triggers[channel].offset[decrease] = decOffset;
+	}
+
+
+	void GetDelay(int channel, int& incDelay, int& decDelay)
+	{
+		incDelay = triggers[channel].delay[increase];
+		decDelay = triggers[channel].delay[decrease];
+	}
+
+	void GetOffset(int channel, int& incOffset, int& decOffset)
+	{
+		incOffset = triggers[channel].offset[increase];
+		decOffset = triggers[channel].offset[decrease];
+	}
+
 	void Reset()
 	{
 		uvEng_Mvenc_ReqTriggerStrobe(FALSE);
 		uvEng_Mvenc_ReqEncoderOutReset();
 		uvEng_Mvenc_ResetTrigPosAll();
 
-		triggers.clear();
+		for (auto& v : triggers)
+			v.second.pos.clear();
 	}
 
 	void Regist(int direction, int channel = -1)
@@ -357,7 +368,6 @@ public:
 	
 };
 
-
 struct Params
 {
 	double currGerbermark2x = 0, currGerbermark2y = 0;
@@ -370,6 +380,8 @@ struct Params
 	
 	double distCam2cam[4] = { 0, };
 	int centerCamIdx = 3;
+	double centerMarkzeroOffsetX = 0;
+	double centerMarkzeroOffsetY = 0;
 	ENG_AMOS alignMotion;
 	ENG_ATGL alignType;
 	vector<tuple<ENG_MMDI, double, double>> axisLimit;
@@ -390,40 +402,6 @@ private:
 	double expoShiftX = 0;
 	double expoShiftY = 0;
 };
-
-
-class Environment //환경요소.
-{
-public :
-	bool DoCalib();
-	void UpdateStateValue();
-	void WriteCalibResult();
-
-	tuple<double, double> GetCalibOffset()
-	{
-		return calibOffset;
-	}
-
-	bool NeedCalib()
-	{
-		return needCalib;
-	}
-
-
-private:
-	long reCalibTerm;
-	long lastCalibTime;
-	double lastTemperature;
-	
-	bool needCalib;
-
-	int calibCamIdx;
-	double calibCamX;
-	tuple<double, double> calibStagePos;
-	tuple<double, double> calibOffset; //<-가장 최근에 실행한결과값.
-
-};
-
 
 class Axis //이동가능한축만 등록하며, 특정기능을 담당한다면 옵션추가한다. 
 {
@@ -459,7 +437,6 @@ public:
 		currPos = posCallback != nullptr ? posCallback() : min;
 	}
 };
-
 
 class Status
 {
@@ -534,7 +511,6 @@ public:
 	std::map<ENG_AMTF, vector<STG_XMXY>> markList; //글로벌, 로컬 원본인데 맵핑만된것.	
 };
 
-
 class CommonMotionStuffs
 {
 private:
@@ -561,6 +537,10 @@ public:
 	void GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
 	
 	LPG_ACGR GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType);
+
+	bool NowOnMoving();
+
+
 };
 
 class RefindMotion
@@ -665,9 +645,7 @@ public:
 
 	bool isArrive(string drive, string axis, double dest, float threshold = 0.001);
 
-	bool NowOnMoving();
-
-	bool MovetoGerberPos(int camNum, STG_XMXY tgtPos);
+	bool MovetoGerberPos(int camNum, STG_XMXY tgtPos, CaliPoint* offsetPos=nullptr);
 
 	bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point);
 	void GetStagePosUseGerberPos(int camNum, STG_XMXY gbrPos, STG_XMXY& stagePos);
@@ -717,6 +695,48 @@ public:
 
 
 
+
+
+class Environmental //환경요소.
+{
+public:
+	bool DoCalib();
+	void ReadCalibValue();
+	void WriteCalibValue();
+
+	void GetCalibPositionData(double& stageX, double& stageY, int& calibCamIdx, double& calibCamZPos, double& calibCamXPos);
+
+	void GetCalibOffset(double& offsetX, double& offsetY);
+
+	bool NeedCalib()
+	{
+		//온도변화가 있거나.
+		//일정시간이 지났거나.
+		return true;
+	}
+
+	bool Update()
+	{
+		//Stuffs::GetLastLineOfFile(thcLogLocation);
+	}
+
+private:
+	string thcLogLocation;
+	long reCalibTermMinute; //해당시간 경과 후 재 캘리브
+	double reCalibGabTemp; //해당온도 차이나면 재 캘리브
+
+	// 이 둘은 외부에서 가져오는값, align파일에서//
+	double lastCalibDate;   //마지막 캘리브시간
+	double lastCalibTemperature; //
+
+	tuple<int, double, double> calibCamAxisPos; //캘리브레이션에 사용할 카메라와  camidx, x축좌표 , z축좌표
+	tuple<double, double> calibStagePos; // (x,y)
+
+	tuple<double, double> latestCalibOffset; //<-가장 최근에 캘리브레이션 옵셋
+	tuple<double, double> prevCalibOffset; //<- 기존의 캘리브레이션 옵셋
+};
+
+
 //인라인클래스 
 class GlobalVariables
 {
@@ -737,7 +757,7 @@ private:
 	unique_ptr<RefindMotion> refindMotion;
 	unique_ptr<TriggerManager> triggerManager;
 	unique_ptr<WebMonitor> webMonitor;
-	unique_ptr<Environment> environment;
+	unique_ptr<Environmental> environmental;
 
 	
 	template <typename MapType>
@@ -772,9 +792,9 @@ public:
 		return *webMonitor;
 	}
 
-	Environment& GetEnvironment()
+	Environmental& GetEnvironment()
 	{
-		return *environment;
+		return *environmental;
 	}
 
 	void Destroy()
@@ -784,7 +804,7 @@ public:
 		refindMotion.reset();
 		triggerManager.reset();
 		webMonitor.reset();
-		environment.reset();
+		environmental.reset();
 
 		for (auto it = waiter.begin(); it != waiter.end();) {
 			if (it->second.joinable())

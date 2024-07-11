@@ -592,9 +592,20 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 			LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
 			auto axises = motion.GetAxises();
-			int incdelay = 0;
-			int decdelay = 13;
-			int zeroOffset[] = { -15,0 };
+			//int incdelay = 0;
+			//int decdelay = 13;
+			//int zeroOffset[] = { -15,0 };
+
+
+			int* arrStrRef = uvEng_GetConfig()->set_align.trigOntheflyDelayIncrease;
+
+
+			for (int i = 0; i < MAX_TRIG_CHANNEL; i++)
+			{
+				GlobalVariables::GetInstance()->GetTrigger().SetDelay(i + 1, arrStrRef[i], arrStrRef[4 + i]);
+				GlobalVariables::GetInstance()->GetTrigger().SetOffset(i + 1, arrStrRef[8 + i], arrStrRef[12 + i]);
+			}
+
 
 			auto anchor = [&](double val)->double
 			{
@@ -674,13 +685,18 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 				Sleep(100);
 				trigger.Reset();
 
+				int incOffset = 0, decOffset = 0, incDelay = 0, decDelay = 0;
+				trigger.GetDelay(m_u8ACamID, incDelay, decDelay);
+				trigger.GetOffset(m_u8ACamID, incOffset, decOffset);
+
+
 				for (int j = 0; j < trigCount; j++)
-					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * gab) + basicGab + zeroOffset[direction]);// ); //½ÃÀÛÁÂÇ¥.)
+					trigger.AddTrigPos(m_u8ACamID, (INT32)(j * gab) + basicGab  + (direction == TriggerBase::increase ? incOffset : decOffset));
 
 				trigger.Regist(direction, m_u8ACamID);
 
 				
-				uvEng_Mvenc_ReqTrigDelay(m_u8ACamID, direction == TriggerBase::increase ? incdelay : decdelay);
+				uvEng_Mvenc_ReqTrigDelay(m_u8ACamID, direction == TriggerBase::increase ? incDelay : decDelay);
 
 				uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
 				uvEng_MC2_SendDevLuriaMode(ENG_MMDI::en_stage_y, ENG_MTAE::en_area);
@@ -1146,7 +1162,7 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
 VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/)
 {
 
-	if (m_bRunnigThread || GlobalVariables::GetInstance()->GetAlignMotion().NowOnMoving())
+	if (m_bRunnigThread || CommonMotionStuffs::GetInstance().NowOnMoving())
 	{
 		AfxMessageBox(_T("Measureing still run. wait for finish or terminate"), MB_ICONSTOP | MB_TOPMOST);
 		return;

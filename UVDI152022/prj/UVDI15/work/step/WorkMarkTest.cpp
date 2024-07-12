@@ -809,10 +809,11 @@ VOID CWorkMarkTest::SetWorkNextStaticCam()
 
 			if (++m_u32ExpoCount != m_stExpoLog.expo_count)
 			{
-				m_u8StepIt = 0x01;
+				m_u8StepIt = 0x00;
 			}
 			else
 			{
+				m_u8StepIt = 0x00;
 				m_enWorkState = ENG_JWNS::en_comp;
 				CWork::EndWork();
 			}

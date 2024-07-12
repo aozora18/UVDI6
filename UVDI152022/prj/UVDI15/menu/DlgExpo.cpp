@@ -63,6 +63,8 @@ VOID CDlgExpo::DoDataExchange(CDataExchange* dx)
 	CDlgMenu::DoDataExchange(dx);
 
 	UINT32 i, u32StartID;
+	 
+	DDX_Control(dx, IDC_ADDALIGNOFFSET, includeAlignOffsetBtn);
 
 	/* groupbox - normal */
 	u32StartID	= IDC_EXPO_GRP_TACT_TIME;
@@ -98,10 +100,14 @@ VOID CDlgExpo::DoDataExchange(CDataExchange* dx)
 	/* static - picture - device */
 	//u32StartID	= IDC_EXPO_PIC_SERVICE;
 	//for (i=0; i< eEXPO_PIC_DEV_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_dev[i]);
+
+	u32StartID = IDC_EXPO_BTN_RESET;
+	for (i = 0; i < eEXPO_BTN_MAX; i++)			DDX_Control(dx, u32StartID + i, m_btn_ctl[i]);
 }
 
 BEGIN_MESSAGE_MAP(CDlgExpo, CDlgMenu)
  	ON_CONTROL_RANGE(BN_CLICKED, IDC_EXPO_BTN_RESET, IDC_EXPO_BTN_MARK_NEXT,	OnBtnClick)
+	ON_BN_CLICKED(IDC_ADDALIGNOFFSET, &CDlgExpo::OnBnClickedAddalignoffset)
 END_MESSAGE_MAP()
 
 /*
@@ -244,6 +250,8 @@ VOID CDlgExpo::UpdateControl(UINT64 tick, BOOL is_busy)
 	if (m_btn_ctl[eEXPO_BTN_MARK_NO].IsWindowEnabled() != (bLoaded && !is_busy && bMarked))			m_btn_ctl[eEXPO_BTN_MARK_NO].EnableWindow(bLoaded && !is_busy && bMarked);		/* Mark Number */
 	if (m_btn_ctl[eEXPO_BTN_MARK_PREV].IsWindowEnabled() != (bSelect && u16Marks > 0))				m_btn_ctl[eEXPO_BTN_MARK_PREV].EnableWindow(bSelect && u16Marks > 0);			/* Mark Prev */
 	if (m_btn_ctl[eEXPO_BTN_MARK_NEXT].IsWindowEnabled() != (bSelect && u16Marks > 0))				m_btn_ctl[eEXPO_BTN_MARK_NEXT].EnableWindow(bSelect && u16Marks > 0);			/* Mark Next */
+	if (includeAlignOffsetBtn.IsWindowEnabled() != (bLoaded && !is_busy && bMarked))		includeAlignOffsetBtn.EnableWindow(bLoaded && !is_busy && bMarked);
+	
 }
 
 /*
@@ -259,6 +267,8 @@ VOID CDlgExpo::InitCtrl()
 
 	INT32 i = 0;
 
+	clsResizeUI.ResizeControl(this, &m_grp_ctl[i]);
+
 	/* group box */
 	for (i = 0; i < eEXPO_GRP_MAX; i++)
 	{
@@ -269,6 +279,7 @@ VOID CDlgExpo::InitCtrl()
 		// by sysandj : Resize UI
 	}
 	/* button - normal */
+
 	for (i=0; i< eEXPO_BTN_MAX; i++)
 	{
 		m_btn_ctl[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
@@ -278,6 +289,14 @@ VOID CDlgExpo::InitCtrl()
 		clsResizeUI.ResizeControl(this, &m_btn_ctl[i]);
 		// by sysandj : Resize UI
 	}
+
+	includeAlignOffsetBtn.SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
+	includeAlignOffsetBtn.SetBgColor(g_clrBtnColor);
+	includeAlignOffsetBtn.SetTextColor(g_clrBtnTextColor);
+	clsResizeUI.ResizeControl(this, &includeAlignOffsetBtn);
+
+	
+
 	/* static - Normal */
 	for (i=0; i< eEXPO_TXT_CTL_MAX; i++)
 	{
@@ -301,6 +320,8 @@ VOID CDlgExpo::InitCtrl()
 	//	// by sysandj : Resize UI
 	//}
 	/* static - mark search result */
+	
+
 	for (i=0; i< eEXPO_TXT_MAK_MAX; i++)
 	{
 		m_txt_mak[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
@@ -660,7 +681,9 @@ VOID CDlgExpo::MoveCheckMarkNo()
 	stExpo.Init();
 	/* Vacuum과 Shutter를 동시 제어 수행 */
 	// by sysandj : MCQ대체 추가 필요
-	if (m_u8MarkNo)	m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_move, (PUINT64) & (m_u8MarkNo));
+	UINT64 flag = m_u8MarkNo | (includeAlignOffset ? 0b01000000 : 0b000000000);
+
+	if (m_u8MarkNo)	m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_move, &flag);
 	//else			m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_test);
 	else
 	{
@@ -674,8 +697,9 @@ VOID CDlgExpo::MoveCheckMarkNo()
 			stExpo.expo_count = dlgRept.GetExpoCount();
 			stExpo.move_acam = dlgRept.IsMovingACam() ? 0x01 : 0x00;
 			stExpo.move_ph = dlgRept.IsMovingPH() ? 0x01 : 0x00;
+			
 	}
-
+		stExpo.includeAddAlignOffset = includeAlignOffset;
 		m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_test, PUINT64(&stExpo));
 	}
 
@@ -818,4 +842,13 @@ void CDlgExpo::DispResize(CWnd* pWnd[4])
 		//uvEng_Camera_SetMarkLiveDispSize(tgtSize);
 
 	}
+}
+
+
+void CDlgExpo::OnBnClickedAddalignoffset()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	includeAlignOffset = !includeAlignOffset;
+	includeAlignOffsetBtn.SetWindowTextW(includeAlignOffset ? L"[Yes] \n add Align Offset": L"[No] \n add Align Offset");
+		
 }

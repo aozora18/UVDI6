@@ -7,6 +7,7 @@
 #include "../../MainApp.h"
 #include "WorkMarkMove.h"
 #include "../../GlobalVariables.h"
+#include <bitset>
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -23,6 +24,8 @@ static char THIS_FILE[]	= __FILE__;
 CWorkMarkMove::CWorkMarkMove(UINT8 mark_no)
 	: CWorkStep()
 {
+	includeAlignOffset = (mark_no & 0b01000000) == 0b01000000;
+	mark_no = includeAlignOffset ? (mark_no & ~0b01000000) : mark_no;
 	m_enWorkJobID	= ENG_BWOK::en_mark_move;
 	m_u8MarkNo		= mark_no;
 	m_u8ACamID		= mark_no > 2 ? 0x02 : 0x01;
@@ -144,8 +147,8 @@ void CWorkMarkMove::DoMovingStatic3cam()
 		if (uvEng_Luria_GetGlobalMark(m_u8MarkNo - 1, &markPos))
 		{
 			CaliPoint offsetPos;
-			CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &offsetPos,nullptr);
-			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos, &offsetPos);
+			if(includeAlignOffset)CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &offsetPos,nullptr);
+			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos, includeAlignOffset ? &offsetPos : nullptr);
 			m_enWorkState = arrival == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		}
 		else

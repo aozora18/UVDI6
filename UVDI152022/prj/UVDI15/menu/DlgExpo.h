@@ -142,14 +142,13 @@ public:
 	CDlgExpo(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgExpo();
 
-
 /* 가상함수 선언 */
 protected:
 
 	virtual BOOL		PreTranslateMessage(MSG* msg);
 	virtual VOID		DoDataExchange(CDataExchange* dx);
 	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
-
+	bool includeAlignOffset = false;
 
 public:
 
@@ -179,7 +178,7 @@ protected:
 	CMyStatic			m_txt_val[eEXPO_TXT_VAL_MAX];	/* Text - Data Value */
 	CMyStatic			m_txt_dst[eEXPO_TXT_DST_MAX];	/* Text - Distance between marks */
 	//CMyStatic			m_txt_tmp[eEXPO_TXT_TMP_MAX];	/* Text - Temperature Alarm */
-
+	
 	CMyStatic			m_pic_mak[eEXPO_PIC_MAK_MAX];	/* Picture - Mark Search Results */
 	//CMyStatic			m_pic_dev[eEXPO_PIC_DEV_MAX];	/* Picture - Device Status (TCP/IP or Power) */
 
@@ -189,7 +188,7 @@ protected:
 	CExpoVal			*m_pExpoVal;	/* Exposure 화면에서 실시간으로 갱신되는 값 표현 */
 	CTempAlarm			*m_pTempAlarm;
 
-
+	CMacButton	includeAlignOffsetBtn;
 /* 로컬 함수 */
 protected:
 
@@ -221,4 +220,6 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
  	afx_msg VOID		OnBtnClick(UINT32 id);
+public:
+	afx_msg void OnBnClickedAddalignoffset();
 };

@@ -61,7 +61,7 @@ protected:
 
 
 	static const int endPointPair = 3;
-
+	bool includeAlignOffset = false;
 	std::map<ENG_AMOS, array<std::function<void()>, endPointPair>> markMoveCallback =
 	{
 		{ENG_AMOS::en_onthefly_2cam,

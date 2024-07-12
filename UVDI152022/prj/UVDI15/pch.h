@@ -332,7 +332,7 @@ UINT16					align_motion;					//얼라인모션
 	UINT8				u8_reserved[6];
 	UINT32				expo_count;						/* 노광 반복 횟수 (최소 1 이상 값) */
 	UINT32				u32_reserved;
-
+	bool				includeAddAlignOffset; //이동시에 얼라인옵셋까지 추가해서 움직일지
 
 		/*
 	 desc : 초기화
@@ -366,6 +366,7 @@ UINT16					align_motion;					//얼라인모션
 		move_ph = 0;
 		ready_mode = 0;
 		expo_count = 1;
+		includeAddAlignOffset = false;
 	}
 
 }	STG_CELA, * LPG_CELA;

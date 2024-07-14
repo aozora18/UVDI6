@@ -10,7 +10,7 @@ class CWorkMarkMove : public CWorkStep
 /* 생성자 & 파괴자 */
 public:
 
-	CWorkMarkMove(UINT8 mark_no);
+	CWorkMarkMove(UINT16 mark_no);
 	virtual ~CWorkMarkMove();
 
 /* 가상함수 재정의 */
@@ -61,7 +61,7 @@ protected:
 
 
 	static const int endPointPair = 3;
-	bool includeAlignOffset = false;
+	int includeAlignOffset = 0;
 	std::map<ENG_AMOS, array<std::function<void()>, endPointPair>> markMoveCallback =
 	{
 		{ENG_AMOS::en_onthefly_2cam,

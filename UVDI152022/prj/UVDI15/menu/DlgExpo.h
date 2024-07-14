@@ -148,7 +148,7 @@ protected:
 	virtual BOOL		PreTranslateMessage(MSG* msg);
 	virtual VOID		DoDataExchange(CDataExchange* dx);
 	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
-	bool includeAlignOffset = false;
+	int includeAlignOffset = 0;
 
 public:
 

@@ -7,6 +7,7 @@
 #include "../MainApp.h"
 #include "DlgExpo.h"
 
+
 #include "./expo/DrawMark.h"	/* Mark Search Results Object */
 #include "./expo/DrawDev.h"		/* TCP/IP Communication Status */
 #include "./expo/MarkDist.h"	/* Distance between marks */
@@ -16,6 +17,8 @@
 #include "../pops/DlgStep.h"
 #include "../pops/DlgRept.h"
 #include "../mesg/DlgMesg.h"
+
+#include "../GlobalVariables.h"
 
 
 #ifdef	_DEBUG
@@ -233,9 +236,12 @@ VOID CDlgExpo::UpdateControl(UINT64 tick, BOOL is_busy)
 {
 	UINT16 u16Marks	= uvEng_Camera_GetGrabbedCount();
 	//BOOL bError		= uvEng_IsEngineAlarm();
-	BOOL bSelect	= uvEng_JobRecipe_GetSelectRecipe() ? TRUE : FALSE;
+	LPG_RJAF recipe = uvEng_JobRecipe_GetSelectRecipe();
+	BOOL bSelect	= recipe ? TRUE : FALSE;
 	BOOL bLoaded	= uvCmn_Luria_IsJobNameLoaded();
 	BOOL bMarked	= uvEng_Luria_IsMarkGlobal();
+	
+	ENG_AMOS motion = GlobalVariables::GetInstance()->GetAlignMotion().markParams.alignMotion;
 
 	/* 장비 내부에 에러가 발생된 경우, 무조건 Disabled */
 #if (CUSTOM_CODE_WAIT_JOB == 0)
@@ -250,7 +256,7 @@ VOID CDlgExpo::UpdateControl(UINT64 tick, BOOL is_busy)
 	if (m_btn_ctl[eEXPO_BTN_MARK_NO].IsWindowEnabled() != (bLoaded && !is_busy && bMarked))			m_btn_ctl[eEXPO_BTN_MARK_NO].EnableWindow(bLoaded && !is_busy && bMarked);		/* Mark Number */
 	if (m_btn_ctl[eEXPO_BTN_MARK_PREV].IsWindowEnabled() != (bSelect && u16Marks > 0))				m_btn_ctl[eEXPO_BTN_MARK_PREV].EnableWindow(bSelect && u16Marks > 0);			/* Mark Prev */
 	if (m_btn_ctl[eEXPO_BTN_MARK_NEXT].IsWindowEnabled() != (bSelect && u16Marks > 0))				m_btn_ctl[eEXPO_BTN_MARK_NEXT].EnableWindow(bSelect && u16Marks > 0);			/* Mark Next */
-	if (includeAlignOffsetBtn.IsWindowEnabled() != (bLoaded && !is_busy && bMarked))		includeAlignOffsetBtn.EnableWindow(bLoaded && !is_busy && bMarked);
+	if (includeAlignOffsetBtn.IsWindowEnabled() != (bLoaded && motion == ENG_AMOS::en_static_3cam && !is_busy && bMarked))		includeAlignOffsetBtn.EnableWindow(bLoaded && !is_busy && bMarked);
 	
 }
 
@@ -681,7 +687,9 @@ VOID CDlgExpo::MoveCheckMarkNo()
 	stExpo.Init();
 	/* Vacuum과 Shutter를 동시 제어 수행 */
 	// by sysandj : MCQ대체 추가 필요
-	UINT64 flag = m_u8MarkNo | (includeAlignOffset ? 0b01000000 : 0b000000000);
+
+	
+	UINT64 flag = (includeAlignOffset << 4) | m_u8MarkNo;
 
 	if (m_u8MarkNo)	m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_move, &flag);
 	//else			m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_test);
@@ -699,7 +707,7 @@ VOID CDlgExpo::MoveCheckMarkNo()
 			stExpo.move_ph = dlgRept.IsMovingPH() ? 0x01 : 0x00;
 			
 	}
-		stExpo.includeAddAlignOffset = includeAlignOffset;
+		stExpo.includeAddAlignOffset = flag;
 		m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_test, PUINT64(&stExpo));
 	}
 
@@ -848,7 +856,15 @@ void CDlgExpo::DispResize(CWnd* pWnd[4])
 void CDlgExpo::OnBnClickedAddalignoffset()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	includeAlignOffset = !includeAlignOffset;
-	includeAlignOffsetBtn.SetWindowTextW(includeAlignOffset ? L"[Yes] \n add Align Offset": L"[No] \n add Align Offset");
+	enum
+	{
+		noOffset,
+		addAlign,
+		addAlign_Expo,
+	};
+
+	includeAlignOffset = includeAlignOffset == addAlign_Expo ? noOffset : includeAlignOffset + 1;
+	auto txtMap = map<int, WCHAR*>{{noOffset, L"[No Offset]"}, { addAlign,L"[add Align Offset]" }, { addAlign_Expo,L"[add Align,Expo Offsets]" } };
+	includeAlignOffsetBtn.SetWindowTextW(txtMap[includeAlignOffset]);
 		
 }

@@ -21,11 +21,14 @@ static char THIS_FILE[]	= __FILE__;
  parm : mark_no	- [in]  Global Mark: 모션이 이동하고자 하는 Mark Number (0x01 ~ 0x04)
  retn : None
 */
-CWorkMarkMove::CWorkMarkMove(UINT8 mark_no)
+CWorkMarkMove::CWorkMarkMove(UINT16 mark_no)
 	: CWorkStep()
 {
-	includeAlignOffset = (mark_no & 0b01000000) == 0b01000000;
-	mark_no = includeAlignOffset ? (mark_no & ~0b01000000) : mark_no;
+	int options = (mark_no & ~0b0000000000001111) >> 4;
+	int markNum = mark_no & ~0b1111111111110000;
+
+	includeAlignOffset = options;
+	mark_no = markNum;
 	m_enWorkJobID	= ENG_BWOK::en_mark_move;
 	m_u8MarkNo		= mark_no;
 	m_u8ACamID		= mark_no > 2 ? 0x02 : 0x01;
@@ -146,9 +149,17 @@ void CWorkMarkMove::DoMovingStatic3cam()
 		
 		if (uvEng_Luria_GetGlobalMark(m_u8MarkNo - 1, &markPos))
 		{
-			CaliPoint offsetPos;
-			if(includeAlignOffset)CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &offsetPos,nullptr);
-			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos, includeAlignOffset ? &offsetPos : nullptr);
+			CaliPoint alignOffsetPos,expoOffsetPos,accumOffsets;
+
+			alignOffsetPos = CaliPoint(0, 0, 0, 0);
+			accumOffsets = CaliPoint(0, 0, 0, 0);
+			expoOffsetPos = CaliPoint(0, 0, 0, 0);
+			CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &alignOffsetPos, &expoOffsetPos);
+			
+			accumOffsets = includeAlignOffset == 1 ?  alignOffsetPos  : 
+						   includeAlignOffset == 2 ? expoOffsetPos - alignOffsetPos : CaliPoint(0,0,0,0);
+
+			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos, &accumOffsets);
 			m_enWorkState = arrival == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		}
 		else

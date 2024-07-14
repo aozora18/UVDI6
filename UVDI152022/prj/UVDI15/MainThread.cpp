@@ -268,7 +268,7 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 
 			case ENG_BWOK::en_gerb_onlyfem	: m_pWorkJob = new CWorkOnlyFEM();					break;
 
-			case ENG_BWOK::en_mark_move		: m_pWorkJob = new CWorkMarkMove(UINT8(*data));		break;
+			case ENG_BWOK::en_mark_move		: m_pWorkJob = new CWorkMarkMove(UINT16(*data));		break;
 			//case ENG_BWOK::en_mark_test	: m_pWorkJob = new CWorkMarkTest();					break;
 			case ENG_BWOK::en_mark_test		: 
 			{

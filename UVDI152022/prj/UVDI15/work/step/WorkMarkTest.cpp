@@ -803,24 +803,18 @@ VOID CWorkMarkTest::SetWorkNextStaticCam()
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
 		CWork::CalcStepRate();
+		m_u8StepIt++;
 		if (m_u8StepTotal == m_u8StepIt)
 		{
 			SaveExpoResult(0x01);
+			m_u8StepIt = 0x00;
 
-			if (++m_u32ExpoCount != m_stExpoLog.expo_count)
-			{
-				m_u8StepIt = 0x00;
-			}
-			else
+			if (++m_u32ExpoCount == m_stExpoLog.expo_count)
 			{
 				m_u8StepIt = 0x00;
 				m_enWorkState = ENG_JWNS::en_comp;
 				CWork::EndWork();
 			}
-		}
-		else
-		{
-			m_u8StepIt++;
 		}
 		m_u64DelayTime = GetTickCount64();
 	}

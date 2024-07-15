@@ -364,6 +364,7 @@ typedef struct __st_config_common_global_setup__
 	UINT8				all_alarm_ignore:1;				/* DI 장비에서 발생되는 모든 알람 무시 여부 (1:무시, 0:알림) */
 	UINT8				all_warn_ignore:1;				/* DI 장비에서 발생되는 모든 경고 무시 여부 (1:무시, 0:알림) */
 	UINT8				comm_log_optic:1;				/* PODIS vs. Luria		0 : 통신 로그 저장 안함, 1 : 통신 로그 저장 */
+	UINT8				use_auto_align : 1;				/* 자동과 공정시 Align 동작 사용 유무 0 : Align 동작 없음[Direct Expose] 1 : Align 동작 사용 [ExposeAlign]*/
 
 	UINT8				comm_log_mc2:1;					/* PODIS vs. MC2		0 : 통신 로그 저장 안함, 1 : 통신 로그 저장 (수동 요청된 경우만 저장) */
 	UINT8				comm_log_plc:1;					/* PODIS vs. PLC		0 : 통신 로그 저장 안함, 1 : 통신 로그 저장 (설정 요청된 경우만 저장) */
@@ -389,7 +390,9 @@ typedef struct __st_config_common_global_setup__
 typedef struct __st_config_system_device_monitoring__
 {
 	UINT8				hdd_drive;					/* HDD Drive Index (0:C, 1:D, 2:E, ...) */
-	UINT8				u8_reserved[7];
+	UINT8				log_delect_day : 7;				/* Log 파일 유지 기간*/
+	UINT8				bmp_delect_day : 7;				/* Bmp 파일 유지 기간*/
+	UINT8				u8_reserved[5];
 	TCHAR				mon_time[24];				/* 모니터 시작 시간 (0000-00-00 00:00:00)*/
 	/* 아래 2개 변수는 로그 기준으로 프로그램 실행 중 발생된 에러 및 경고 개수 */
 	UINT16				error_count;				/* 현재까지 발생된 에러 개수 (최대 65535) */

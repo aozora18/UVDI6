@@ -97,8 +97,17 @@ BOOL CRecipeManager::CreateRecipe(CString strRecipeName)
 	UpdateRecipe(stRecipe, eRECIPE_MODE_VIEW);
 	BOOL bSuccess = uvEng_JobRecipe_RecipeAppend(&stRecipe);
 	
-	/*Philhmi에 보고*/
-	//PhilSendCreateRecipe(stRecipe);
+	if (bSuccess == TRUE)
+	{
+		/*Recipe 파라미터 변경시 Log 기록*/
+		TCHAR tzMsg[256] = { NULL };
+		swprintf_s(tzMsg, 256, L"Create Recipe Name: %S", stRecipe.job_name);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+		swprintf_s(tzMsg, 256, L"Gerber Name: %S, Align %S, Expo: %S", stRecipe.gerber_name, stRecipe.align_recipe, stRecipe.expo_recipe);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+		swprintf_s(tzMsg, 256, L"Energy: %.4f, Thick: %d", stRecipe.expo_energy, stRecipe.material_thick);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+	}
 
 	stRecipe.Close();
 
@@ -166,8 +175,12 @@ BOOL CRecipeManager::DeleteRecipe(CString strRecipeName)
 {
 	BOOL bSuccess = uvEng_JobRecipe_RecipeDelete(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
 
-	/*Philhmi에 보고*/
-	//PhilSendDeleteRecipe(strRecipeName);
+	if (bSuccess == TRUE)
+	{
+		/*Recipe 파라미터 변경시 Log 기록*/
+		TCHAR tzMsg[256] = { NULL };
+		swprintf_s(tzMsg, 256, L"Delete Recipe Name: %S", strRecipeName);
+	}
 	
 	::SendMessage(m_hMainWnd, WM_MAIN_RECIPE_DELETE, NULL, (LPARAM)&strRecipeName);
 	return bSuccess;
@@ -489,6 +502,11 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 
 			strParam = GetRecipe(eRecipeMode)->GetParamName(nCntTab, nCntParam);
 			strValue = GetRecipe(eRecipeMode)->GetValue(nCntTab, nCntParam);
+
+			/*Recipe 파라미터 변경시 Log 기록*/
+			TCHAR tzMsg[256] = { NULL };
+			swprintf_s(tzMsg, 256, L"Save Recipe Param %s Value %s", strParam, strValue);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 			switch (nCntTab)
 			{

@@ -283,8 +283,16 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	}
 	else
 	{
-		//callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
-		callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
+		if (uvEng_GetConfig()->set_comn.use_auto_align)
+		{
+			/*자동화 동작시 얼라인 동작 후 노광*/
+			callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
+		}
+		else
+		{
+			/*자동화 동작시 얼라인 동작 없이 노광*/
+			callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+		}
 	}
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }

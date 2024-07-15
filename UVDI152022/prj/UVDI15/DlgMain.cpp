@@ -157,14 +157,15 @@ VOID CDlgMain::OnSysCommand(UINT32 id, LPARAM lparam)
 BOOL CDlgMain::OnInitDlg()
 {
 	
-
 	UINT32 u32Size	= 0, i = 0;
-	Stuffs::GetStuffs().RemoveOldFiles();
 #if (USE_ENGINE_LIB)
 	/* 라이브러리 초기화 */
 	if (!InitLib())		return FALSE;
 #endif
-
+	//Stuffs::GetStuffs().RemoveOldFiles();
+	/*설정 기간이 지난 Save File 삭제 */
+	Stuffs::GetStuffs().RemoveOldFiles(
+		uvEng_GetConfig()->monitor.bmp_delect_day, uvEng_GetConfig()->monitor.log_delect_day);
 	
 	uvEng_Luria_SetAlignMotionPtr(GlobalVariables::GetInstance()->GetAlignMotion());
 	uvEng_Mark_SetAlignMotionPtr(GlobalVariables::GetInstance()->GetAlignMotion());

@@ -19,7 +19,7 @@ CDlgCalbFlatness::CDlgCalbFlatness(UINT32 id, CWnd* parent)
 {
 	m_enDlgID = ENG_CMDI_SUB::en_menu_sub_calb_flatness;
 
-	m_bEditMode = FALSE;
+	m_bEditMode = TRUE;		/*파라미터값 설정 가능*/
 	m_bBtnManualFlag = FALSE;
 	m_bBtnProcFlag = FALSE;
 	m_dOldBasseValue = -1;
@@ -1858,7 +1858,10 @@ UINT FlatnessProcessThread(LPVOID lpParam)
 			}
 			else
 			{
-				pClass->m_nStep = eFLAT_PROC_END;
+				/*측정 완료후 평균값 대비 상대값으로 수정하기 위해 최종 단계 수행*/
+				//pClass->m_nStep = eFLAT_PROC_END;
+				/*측정 데이터 그대로 사용하려면 이대로 종료*/
+				pClass->m_bFlatProcThread = FALSE;
 			}
 
 			break;

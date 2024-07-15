@@ -148,9 +148,14 @@ public:
 		return string(CT2CA(path.Left(spiltIndex)));
 	}
 
-	void RemoveOldFiles()
+	void RemoveOldFiles(UINT8 bmpDelect, UINT8 logDelect)
 	{
-		RemoveOldfiles(GetCurrentExePath() + "\\save_img",1*24); //하루지난건 싹 삭제.
+		//RemoveOldfiles(GetCurrentExePath() + "\\save_img",1*24); //하루지난건 싹 삭제.
+
+		/*Bmp File*/
+		RemoveOldfiles(GetCurrentExePath() + "\\save_img", bmpDelect * 24);
+		/*Log File*/
+		RemoveOldfiles(GetCurrentExePath() + "\\logs\\DlgFile", logDelect * 24);
 	}
 	
 	int ParseAndFillVector(const TCHAR* str, char seperator,  std::vector<double>& vec,std::vector<string> orgVec)

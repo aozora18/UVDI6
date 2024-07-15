@@ -126,6 +126,7 @@ BOOL CConfComn::LoadConfigCommon()
 	m_pstCfg->set_comn.strobe_lamp_type		= GetConfigUint8(L"STROBE_LAMP_TYPE");
 	m_pstCfg->set_comn.all_alarm_ignore		= GetConfigUint8(L"ALL_ALARM_IGNORE");
 	m_pstCfg->set_comn.all_warn_ignore		= GetConfigUint8(L"ALL_WARN_IGNORE");
+	m_pstCfg->set_comn.use_auto_align		= GetConfigUint8(L"USE_AUTO_ALIGN");
 
 	m_pstCfg->set_comn.comm_log_optic		= GetConfigUint8(L"COMM_LOG_OPTIC");
 	m_pstCfg->set_comn.comm_log_mc2			= GetConfigUint8(L"COMM_LOG_MC2");
@@ -165,6 +166,7 @@ BOOL CConfComn::SaveConfigCommon()
 	SetConfigUint32(L"STROBE_LAMP_TYPE",	m_pstCfg->set_comn.strobe_lamp_type);
 	SetConfigUint32(L"ALL_ALARM_IGNORE",	m_pstCfg->set_comn.all_alarm_ignore);
 	SetConfigUint32(L"ALL_WARN_IGNORE",		m_pstCfg->set_comn.all_warn_ignore);
+	SetConfigUint32(L"USE_AUTO_ALIGN",		m_pstCfg->set_comn.use_auto_align);
 	SetConfigStr(L"GERBER_PATH",			m_pstCfg->set_comn.gerber_path);
 
 	SetConfigUint32(L"COMM_LOG_OPTIC",		m_pstCfg->set_comn.comm_log_optic);
@@ -194,6 +196,13 @@ BOOL CConfComn::LoadConfigMonitor()
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"MONITOR");
 
 	m_pstCfg->monitor.hdd_drive		= GetConfigUint8(L"HDD_DRIVE");
+
+	m_pstCfg->monitor.log_delect_day = GetConfigUint8(L"LOG_DELECT_DAY");
+	m_pstCfg->monitor.bmp_delect_day = GetConfigUint8(L"BMP_DELECT_DAY");
+	/*삭제 기간이 설정 되어 있지 않으면 7일 설정 */
+	if (m_pstCfg->monitor.log_delect_day == 0)	m_pstCfg->monitor.log_delect_day = 7;
+	if (m_pstCfg->monitor.bmp_delect_day == 0)	m_pstCfg->monitor.bmp_delect_day = 7;
+
 	m_pstCfg->monitor.error_count	= GetConfigUint16(L"ERROR_COUNT");
 	m_pstCfg->monitor.warn_count	= GetConfigUint16(L"WARN_COUNT");
 
@@ -221,6 +230,8 @@ BOOL CConfComn::SaveConfigMonitor()
 	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"MONITOR");
 
 	SetConfigUint32(L"HDD_DRIVE",	m_pstCfg->monitor.hdd_drive);
+	SetConfigUint32(L"LOG_DELECT_DAY", m_pstCfg->monitor.log_delect_day);
+	SetConfigUint32(L"BMP_DELECT_DAY", m_pstCfg->monitor.bmp_delect_day);
 	SetConfigUint32(L"ERROR_COUNT",	m_pstCfg->monitor.error_count);
 	SetConfigUint32(L"WARN_COUNT",	m_pstCfg->monitor.warn_count);
 	SetConfigStr(L"START_TIME",		m_pstCfg->monitor.mon_time);

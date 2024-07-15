@@ -32,6 +32,8 @@
 ; ALL_ALARM_IGNORE      = DI 장비에서 발생되는 모든 알람 무시 여부 (1:무시, 0:알림)
 ;                         다만 장비 연결 여부는 체크 함 (연결안되면 알람 발생)
 ; ALL_WARN_IGNORE       = DI 장비에서 발생되는 모든 경고 무시 여부 (1:무시, 0:알림)
+; USE_AUTO_ALIGN		= 자동과 공정시 Align 동작 사용 유무 
+;			0 : Align 동작 없음[Direct Expose] 1 : Align 동작 사용 [ExposeAlign]
 ;
 ;
 ; COMM_LOG_OPTIC        = 통신 드라이브를 통해 <송수신>된 로그 이력 남기기
@@ -63,6 +65,7 @@ STROBE_LAMP_TYPE        	= 1
 ALIGN_CAMERA_KIND       	= 1
 ALL_ALARM_IGNORE        	= 1
 ALL_WARN_IGNORE         	= 0
+USE_AUTO_ALIGN		= 1
 
 COMM_LOG_OPTIC          	= 0
 COMM_LOG_MC2            	= 0
@@ -84,6 +87,8 @@ LOG_FILE_TYPE= 0
 ; ERROR_COUNT           = 모니터링 시작한 시간 기준으로 발생된 에러 개수 (최대 개수: 65535)
 ; WARN_COUNT            = 모니터링 시작한 시간 기준으로 발생된 경고 개수 (최대 개수: 65535)
 ;
+; LOG_DELECT_DAY		= LOG 파일 지정 날짜 지나면 삭제 
+; BMP_DELECT_DAY	    	= BMP 파일 지정 날짜 지나면 삭제
 ; HDD_DRIVE             = HDD 용량 모니터링 드라이브 인덱스 (0:C, 1:D, 2:E, 3:F, 4:G, 5:H, ..., )
 ;-------------------------------------------------------------------------------------------------
 
@@ -93,6 +98,8 @@ START_TIME              = 2024-03-06 16:49:20
 ERROR_COUNT             = 0
 WARN_COUNT              = 0
 
+LOG_DELECT_DAY	= 60
+BMP_DELECT_DAY	= 10
 HDD_DRIVE               = 1
 
 ;-------------------------------------------------------------------------------------------------
@@ -1742,6 +1749,6 @@ THC_LOG_LOCATION = \\100.100.100.118\thc_machine\THC_MACHINE
 [REFIND]
 USE_REFIND = 1
 MOVE_OFFSET_X = 2
-MOVE_OFFSET_Y = 1
+MOVE_OFFSET_Y = 2
 RETRY_COUNT = 1
 

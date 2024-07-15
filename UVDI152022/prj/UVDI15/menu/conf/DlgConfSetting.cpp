@@ -1099,51 +1099,6 @@ VOID CDlgConfSetting::SaveConfig()
 	dlgMesg.MyDoModal(L"Config Save succeed", 0x01);
 }
 
-/*
- desc : 환경 설정 파일 적재 - Common
- parm : conf	- [in]  환경 파일 구조체 포인터
- retn : None
-*/
-VOID CDlgConfSetting::LoadCommon(LPG_CIEA conf)
-{
-	//UINT8 u8Check = 0x00;
-	//LPG_CCGS pstConf = &conf->set_comn;
-	//LPG_CIPC pstUvdi15 = &conf->set_uvdi15;
-
-	///* Gerber path */
-	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GERBER_PATH, (LPCTSTR)pstConf->gerber_path);
-	///* Whether to save mark grabbed file */
-	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GRAB_MARK_SAVED, pstConf->grab_mark_saved);
-	///* Whether to save log file */
-	//CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_FILE_SAVED, pstConf->log_file_saved);
-
-}
-
-/*
- desc : 환경 설정 파일 저장 - Common
- parm : conf	- [in]  환경 파일 구조체 포인터
- retn : None
-*/
-VOID CDlgConfSetting::SaveCommon(LPG_CIEA conf)
-{
-	//UINT8 u8Check = 0x00;
-	//LPG_CCGS pstConf = &conf->set_comn;
-	//LPG_CIPC pstUvdi15 = &conf->set_uvdi15;
-	//CUniToChar csCnv;
-	//CString strValue;
-	///* Gerber path */
-	//wmemset(pstConf->gerber_path, 0x00, MAX_PATH_LEN);
-	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GERBER_PATH);
-	//_tcscpy_s(pstConf->gerber_path, MAX_PATH_LEN, strValue.GetBuffer());
-	//strValue.ReleaseBuffer();
-
-	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::GRAB_MARK_SAVED);
-	//pstConf->grab_mark_saved = _ttoi(strValue);
-	///* Whether to save log file */
-	//strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_FILE_SAVED);
-	//pstConf->log_file_saved = _ttoi(strValue);
-
-}
 
 /*
  desc : 환경 설정 파일 설정 - Align Camera의 Gain 값 저장 후, 카메라 파라미터 다시 적용
@@ -1550,5 +1505,35 @@ VOID CDlgConfSetting::SaveFlatness(LPG_CIEA conf)
 	conf->measure_flat.dOffsetZPOS = _ttof(strValue);
 	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LIMIT_Z);
 	conf->measure_flat.dLimitZPOS = _ttof(strValue);
+
+}
+
+/*
+ desc : 환경 설정 파일 적재 - Common, Monitor
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::LoadCommon(LPG_CIEA conf)
+{
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_DELECT_DAY, conf->monitor.log_delect_day);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::BMP_DELECT_DAY, conf->monitor.bmp_delect_day);
+	CSettingManager::GetInstance()->GetSetting()->SetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AUTO_ALIGN, conf->set_comn.use_auto_align);
+}
+
+/*
+ desc : 환경 설정 파일 저장 - Common, Monitor
+ parm : conf	- [in]  환경 파일 구조체 포인터
+ retn : None
+*/
+VOID CDlgConfSetting::SaveCommon(LPG_CIEA conf)
+{
+	CString strValue;
+
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::BMP_DELECT_DAY);
+	conf->monitor.bmp_delect_day = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::LOG_DELECT_DAY);
+	conf->monitor.log_delect_day = _ttoi(strValue);
+	strValue = CSettingManager::GetInstance()->GetSetting()->GetValue(EN_SETTING_TAB::OPTION, EN_SETTING_OPTION::USE_AUTO_ALIGN);
+	conf->set_comn.use_auto_align = _ttoi(strValue);
 
 }

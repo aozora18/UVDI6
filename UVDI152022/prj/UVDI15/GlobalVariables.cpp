@@ -6,8 +6,12 @@ using namespace std;
 #include "pch.h"
 #include "GlobalVariables.h"
 #include "work\Work.h"
+#include "stuffs.h"
 
 CommonMotionStuffs CommonMotionStuffs::inst;
+
+
+
 
 bool ConditionWrapper::WaitFor(std::chrono::milliseconds timeout)
 {
@@ -296,11 +300,8 @@ CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double st
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
 	//CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
 
-	if (fabs(stageOffset.offsetX) < 0.0009f)
-		stageOffset.offsetX = 0;
-
-	if (fabs(stageOffset.offsetY) < 0.0009f)
-		stageOffset.offsetY = 0;
+	stageOffset.offsetX = Stuffs::CutEpsilon(stageOffset.offsetX);
+	stageOffset.offsetY = Stuffs::CutEpsilon(stageOffset.offsetY);
 
 	CaliPoint finalv = stageOffset;// +camOffset;
 	TCHAR tzMsg[256] = { NULL };
@@ -975,12 +976,14 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	const int PAIR = 2;
 	const int MARK1 = 0;
 	const int MARK2 = 1;
-	
+	int idx = 0;
+	tuple<double, double> refindOffset, grabErrOffset;
+	vector<tuple<double, double>> grabErrOffsetBuffer;
 
 	auto sleep = [&](int msec) {this_thread::sleep_for(chrono::milliseconds(msec)); };
 	errFlag = false;
-	tuple<double, double> refindOffset, grabErrOffset; //절대좌표 차이값
-	int idx = 0;
+	
+	
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	vector<tuple<STG_XMXY, double, double >> findOffsets; //원래 좌표 구조 , 절대좌표 차이값 x, 절대좌표 차이값y,  
 	vector<bool> findAtFirstTime = { false,false };
@@ -1019,13 +1022,15 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			double grabOffsetX = 0, grabOffsetY = 0;
 			
 			
-			refindOffset = make_tuple(0, 0); grabErrOffset = make_tuple(0, 0);
+			refindOffset = make_tuple(0, 0);
 
 			if (CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(centerCam, &grabOffsetX, &grabOffsetY))
 			{
 				findAtFirstTime[idx++] = true;
 				refindOffsetPoints.push_back(STG_XMXY(0, 0, grabOffsetX, grabOffsetY, currPath->org_id));
-				grabErrOffset = make_tuple(grabOffsetX, grabOffsetY);
+				grabErrOffsetBuffer.push_back(make_tuple(grabOffsetX, grabOffsetY));
+
+				findOffsets.push_back(make_tuple(*currPath, grabOffsetX * -1.0f, grabOffsetY * -1.0f));
 			}
 			else
 			{
@@ -1038,9 +1043,13 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 				refindOffsetPoints.push_back(STG_XMXY(std::get<0>(refindOffset), std::get<1>(refindOffset), 
 											std::get<0>(grabErrOffset), std::get<1>(grabErrOffset), currPath->org_id));
+
+				grabErrOffsetBuffer.push_back(grabErrOffset);
+				findOffsets.push_back(make_tuple(*currPath, std::get<0>(refindOffset) - std::get<0>(grabErrOffset), 
+															std::get<1>(refindOffset) - std::get<1>(grabErrOffset)));
 			}
 
-			findOffsets.push_back(make_tuple(*currPath, std::get<0>(refindOffset) - std::get<0>(grabErrOffset), std::get<1>(refindOffset) - std::get<1>(grabErrOffset)));
+			
 			representPoints.erase(currPath);
 
 			if (representPoints.empty())
@@ -1064,6 +1073,24 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 
 	const int STG_XMXY_VAL = 0, REFIND_OFFSET_X = 1, REFIND_OFFSET_Y = 2;
 
+	double diffX = std::get<REFIND_OFFSET_X>(findOffsets[1]) - std::get<REFIND_OFFSET_X>(findOffsets[0]);
+	double diffY = std::get<REFIND_OFFSET_Y>(findOffsets[1]) - std::get<REFIND_OFFSET_Y>(findOffsets[0]);
+
+	if (fabs(diffX) > motions.markParams.convertThreshold || 
+		fabs(diffY) > motions.markParams.convertThreshold)
+	{
+		errFlag = true;
+		return true;
+	}
+
+
+//여기서 중요한게 "보정가능성" 이다. 
+/*
+mark1와 mark2의  refind offset + graberr 의 차이가 1.3이상 나게되면 아에 이건 보정 자체가 불가능하다.
+한쪽을 맞추면 한쪽은 반드시 화면에서 벗어나거나 1.3이상이하로 좁힐수가 없기때문이다.
+이 경우엔 반드시 종료시켜준다.
+*/
+
 	if (findAtFirstTime[MARK1] == findAtFirstTime[MARK2] && findAtFirstTime[MARK2] == true) //전부다 원래 예상위치에서 찾은경우. 즉 벗어남이 없는경우.
 	{
 		findOffsets[MARK1] = make_tuple(std::get<STG_XMXY_VAL>(findOffsets[MARK1]), 0, 0); //원래 포지션값은 유지하고 옵셋만 초기화 .
@@ -1071,26 +1098,6 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	}
 
 
-	double diffX = fabs(std::get<REFIND_OFFSET_X>(findOffsets[MARK1]) - std::get<REFIND_OFFSET_X>(findOffsets[MARK2]));
-	double diffY = fabs(std::get<REFIND_OFFSET_Y>(findOffsets[MARK1]) - std::get<REFIND_OFFSET_Y>(findOffsets[MARK2]));
-
-	if (diffX > motions.markParams.convertThreshold || diffX > motions.markParams.convertThreshold)
-	{
-		errFlag = true;
-		return true;
-	}
-
-	//여기서 중요한게 "보정가능성" 이다. 
-
-	/*
-	mark1와 mark2의  refind offset + graberr 의 차이가 1.3이상 나게되면 아에 이건 보정 자체가 불가능하다. 
-	한쪽을 맞추면 한쪽은 반드시 화면에서 벗어나거나 1.3이상이하로 좁힐수가 없기때문이다. 
-	이 경우엔 반드시 종료시켜준다. 
-
-
-
-
-	*/
 
     rstValue = RSTValue(std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_x, std::get<STG_XMXY_VAL>(findOffsets[MARK1]).mark_y,
 						std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_x, std::get<STG_XMXY_VAL>(findOffsets[MARK2]).mark_y,
@@ -1137,7 +1144,8 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 	auto prevStagePos = CommonMotionStuffs::GetInstance().GetCurrStagePos();
 	bool sutable = false;
 	/*							    Y축 위,		X축 오른쪽,		Y축 아래,	Y축 아래,		X축 왼쪽,	X축 왼쪽,		Y축 위,		Y축 위*/
-	vector<int> searchMap = { MUP | YAXIS ,MRIGHT | XAXIS ,MDOWN | YAXIS,MDOWN | YAXIS,MLEFT | XAXIS,MLEFT | XAXIS,MUP | YAXIS,MUP | YAXIS };
+	vector<int> searchMap = { MUP | YAXIS ,MRIGHT | XAXIS ,MDOWN | YAXIS,MDOWN | YAXIS,MLEFT | XAXIS,MLEFT | XAXIS,MUP | YAXIS,MUP | YAXIS , //1회전
+							  MUP | YAXIS,MRIGHT | XAXIS,MRIGHT | XAXIS,MRIGHT | XAXIS,MRIGHT | XAXIS,YAXIS,MDOWN,YAXIS,MDOWN,YAXIS,MDOWN,YAXIS,MLEFT,YAXIS,MLEFT,YAXIS,MLEFT,YAXIS,MLEFT,YAXIS,MUP | YAXIS,YAXIS,MUP | YAXIS,YAXIS,MUP | YAXIS,YAXIS,MUP | YAXIS }; //2회전
 
 	auto step = searchMap.begin();
 	while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)

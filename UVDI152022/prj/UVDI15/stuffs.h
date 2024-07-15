@@ -13,7 +13,6 @@ using namespace std;
 namespace fs = std::filesystem;
 
 
-
 class Stuffs
 {
 private:
@@ -93,6 +92,10 @@ public:
 		}
 	}
 
+	static double CutEpsilon(double v)
+	{
+		return (fabs(v) < 0.0009f) ? 0 : v;
+	}
 	//현시간을 double로 반환 
 	double GetCurrentTimeToDouble()  
 	{

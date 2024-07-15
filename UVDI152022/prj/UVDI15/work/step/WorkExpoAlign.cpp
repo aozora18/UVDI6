@@ -10,6 +10,7 @@
 #include "../../GlobalVariables.h"
 #include <fmt/core.h>
 #include <string>
+#include "../../stuffs.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -848,24 +849,19 @@ void CWorkExpoAlign::DoAlignStaticCam()
 					mark2SumX = mark2RefindX - mark2GrabX;
 					mark2SumY = mark2RefindY - mark2GrabY;
 
-					auto xShiftGab = (mark1SumX + mark2SumX) / 2.0f;
-					auto yShiftGab = (mark1SumY + mark2SumY) / 2.0f;
+					auto xShiftGab = ((mark1SumX + mark2SumX) / 2.0f);
+					auto yShiftGab = ((mark1SumY + mark2SumY) / 2.0f);
 
 					motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab);
+					m_enWorkState = SetExposeStartXY(&xShiftGab, &yShiftGab);
+
 				}
 				catch (...)
 				{
 					m_enWorkState = ENG_JWNS::en_error;
 					return;
 				}
-				m_enWorkState = ENG_JWNS::en_next;
-			},
-			[&]()
-			{
-
-				double expoOffsetX = 0, expoOffsetY = 0;
-				motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
-				m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY);
+				
 			},
 			[&]()
 			{
@@ -873,16 +869,16 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				double expoOffsetX = 0, expoOffsetY = 0;
 				motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
 
-
 				for (auto v : offsetPool[OffsetType::refind])
 				{
 					grabOffset = v;
-					grabOffset.offsetX = expoOffsetX - (v.offsetX - v.suboffsetX) ;
-					grabOffset.offsetY = expoOffsetY - (v.offsetY - v.suboffsetY) ;
+
+					grabOffset.offsetX = Stuffs::CutEpsilon(expoOffsetX - (v.offsetX - v.suboffsetX));
+					grabOffset.offsetY = Stuffs::CutEpsilon(expoOffsetY - (v.offsetY - v.suboffsetY));
 
 					offsetPool[OffsetType::grab].push_back(grabOffset); //일단 grab옵셋을 추가. 
 
-					CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, -grabOffset.offsetX, -grabOffset.offsetY);
+					CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, grabOffset.offsetX, grabOffset.offsetY);
 
 					offsetPool[OffsetType::expo].push_back(expoOffset);
 				}
@@ -981,6 +977,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
 		CWork::CalcStepRate();
+		m_u8StepIt++;
 		if (m_u8StepTotal == m_u8StepIt)
 		{
 			SaveExpoResult(0x01);
@@ -1023,10 +1020,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 				CWork::EndWork();
 			}
 		}
-		else
-		{
-			m_u8StepIt++;
-		}
+		
 		m_u64DelayTime = GetTickCount64();
 	}
 	

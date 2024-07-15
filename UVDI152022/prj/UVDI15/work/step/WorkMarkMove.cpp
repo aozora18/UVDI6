@@ -157,8 +157,10 @@ void CWorkMarkMove::DoMovingStatic3cam()
 			CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &alignOffsetPos, &expoOffsetPos);
 			
 			accumOffsets = includeAlignOffset == 1 ?  alignOffsetPos  : 
-						   includeAlignOffset == 2 ? expoOffsetPos - alignOffsetPos : CaliPoint(0,0,0,0);
+				includeAlignOffset == 2 ? alignOffsetPos + (expoOffsetPos - alignOffsetPos) : CaliPoint(0, 0, 0, 0);
 
+			accumOffsets.offsetX *= -1.0f;
+			accumOffsets.offsetY *= -1.0f;
 			auto arrival = motions.MovetoGerberPos(CENTERCAM, markPos, &accumOffsets);
 			m_enWorkState = arrival == true ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		}

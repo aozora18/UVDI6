@@ -7,6 +7,7 @@
 #include "../../MainApp.h"
 #include "WorkMarkTest.h"
 #include "../../GlobalVariables.h"
+#include "../../stuffs.h"
 #include <atlstr.h>  // CString 및 변환 매크로를 사용하기 위해 필요
 #include <iostream>
 #include <string>
@@ -546,11 +547,15 @@ void CWorkMarkTest::DoAlignStaticCam()
 				mark2SumX = mark2RefindX - mark2GrabX;
 				mark2SumY = mark2RefindY - mark2GrabY;
 
-				auto xShiftGab = (mark1SumX + mark2SumX) / 2.0f;
-				auto yShiftGab = (mark1SumY + mark2SumY) / 2.0f;
+				auto xShiftGab = ((mark1SumX + mark2SumX) / 2.0f);
+				auto yShiftGab = ((mark1SumY + mark2SumY) / 2.0f);
+
+				xShiftGab = fabs(xShiftGab) >= 1.3f ? xShiftGab : 0;
+				yShiftGab = fabs(yShiftGab) >= 1.3f ? yShiftGab : 0;
 
 				motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab);
-				
+				m_enWorkState = SetExposeStartXY(&xShiftGab, &yShiftGab);
+
 				//for (int i = 0; i < representCount; i++)
 				//{
 				//	auto refind = offsetPool[OffsetType::refind][i];
@@ -581,14 +586,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				m_enWorkState = ENG_JWNS::en_error;
 				return;
 			}
-			m_enWorkState = ENG_JWNS::en_next;
-		},
-		[&]()
-		{
-
-			double expoOffsetX = 0, expoOffsetY = 0;
-			motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
-			m_enWorkState = SetExposeStartXY(&expoOffsetX, &expoOffsetY);
+			 
 		},
 		[&]()
 		{
@@ -596,16 +594,17 @@ void CWorkMarkTest::DoAlignStaticCam()
 			double expoOffsetX = 0, expoOffsetY = 0;
 			motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
 
-
+			
 			for (auto v : offsetPool[OffsetType::refind])
 			{
 				grabOffset = v;
-				grabOffset.offsetX = (v.offsetX + v.suboffsetX) - expoOffsetX;
-				grabOffset.offsetY = (v.offsetY + v.suboffsetY) - expoOffsetY;
+
+				grabOffset.offsetX = Stuffs::CutEpsilon(expoOffsetX - (v.offsetX - v.suboffsetX));
+				grabOffset.offsetY = Stuffs::CutEpsilon(expoOffsetY - (v.offsetY - v.suboffsetY));
 
 				offsetPool[OffsetType::grab].push_back(grabOffset); //일단 grab옵셋을 추가. 
 
-				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, -grabOffset.offsetX, -grabOffset.offsetY);
+				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, grabOffset.offsetX, grabOffset.offsetY);
 
 				offsetPool[OffsetType::expo].push_back(expoOffset);
 			}
@@ -797,7 +796,7 @@ VOID CWorkMarkTest::SetWorkNextStaticCam()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 		SaveExpoResult(0x00);
-		m_u8StepIt = 0x01;
+		m_u8StepIt = 0x00;
 		m_enWorkState = ENG_JWNS::en_error;
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)

@@ -114,6 +114,12 @@ protected:
 	UINT64				m_u64StartTimeHMI;			/* 작업 시작 시간 저장 */
 
 	CMainThread			*m_pMainThread;
+
+	CMainThread* GetMainthreadPtr() 
+	{
+		return m_pMainThread;
+	}
+
 	BOOL				m_bMainBusy;
 	/* Logo Images 출력 */
 	CImgCustomer		*m_pImgCustomer;

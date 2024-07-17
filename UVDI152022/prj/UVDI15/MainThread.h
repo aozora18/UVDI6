@@ -10,7 +10,7 @@ class CMainThread : public CThinThread
 public:
 	CMainThread(HWND parent);
 	virtual ~CMainThread();
-
+	void DeleteCurrentJob();
 /* 가상 함수 재정의 */
 protected:
 
@@ -41,8 +41,8 @@ protected:
 	VOID				SendMesgParent(ENG_BWOK msg_id, UINT32 timeout=100);
 
 	VOID				RunWorkJob();
-	VOID				ResetWorkJob();
-
+	BOOL				ResetWorkJob();
+	
 	VOID				UpdateWorkName();
 
 	BOOL				CheckStartButton();

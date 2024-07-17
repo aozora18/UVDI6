@@ -10,6 +10,8 @@
 #include "../../GlobalVariables.h"
 #include "../../stuffs.h"
 
+#include "../../GlobalVariables.h"
+#include "../../work/Work.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -510,6 +512,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("[2DCal]\tSTART"));
 
+	CWork::SetonExternalWork(true);
 
 	std::vector<std::function<bool()>> caliTask =
 	{
@@ -517,7 +520,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 		{
 			for (int nWorkStep = m_nStartIndex; nWorkStep < (int)m_stVctTable.size(); nWorkStep++)
 			{
-				if (TRUE == m_bStop)
+				if (TRUE == m_bStop || CWork::GetAbort())
 				{
 					return FALSE;
 				}
@@ -637,7 +640,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 
 			for (int i = 0; i < maxCycle; i++)
 			{
-				if (TRUE == m_bStop)
+				if (TRUE == m_bStop || CWork::GetAbort())
 				{
 					return FALSE;
 				}
@@ -763,6 +766,8 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_OK, NULL, SMTO_NORMAL, 100, NULL);
 		}
 	}
+
+	CWork::SetonExternalWork(false);
 	m_bRunnigThread = FALSE;
 	return res;
 }

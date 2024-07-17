@@ -298,7 +298,7 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	{
 		case ENG_AMOS::en_static_3cam:
 		{
-			u8ACamNo = 3;
+			u8ACamNo = motions.markParams.centerCamIdx;
 			u8ImgNo = GetMarkImgIDFromIndex(index, u8ACamNo, m_bIsLocal);
 		}
 		break;
@@ -329,9 +329,10 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	pstMark = uvEng_Camera_GetGrabbedMark(u8ACamNo, u8ImgNo);
 	if (!pstMark)	return FALSE;
 	/* Output the grabbed images on screen */
-	//uvEng_Camera_DrawMarkMBufID(m_hPicMark, m_rPicMark, pstMark->cam_id, pstMark->img_id,pstMark->img_id);
+	
 	HDC hcd = ::GetDC(m_hPicMark);
-	uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
+	uvEng_Camera_DrawMarkMBufID(m_hPicMark, m_rPicMark, pstMark->cam_id, pstMark->img_id, pstMark->img_id);
+	//uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
 	::ReleaseDC(m_hPicMark,hcd);
 	/* Update the grabbed results to the text buffer */
 		swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.4f] [Y %+4.4f] [um]",

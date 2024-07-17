@@ -134,6 +134,13 @@ VOID CWorkExpoOnly::SetWorkNext()
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
 
+
+	if (GetAbort())
+	{
+		CWork::EndWork();
+		return;
+	}
+
 	/* 모든 작업이 종료 되었는지 여부 */
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{

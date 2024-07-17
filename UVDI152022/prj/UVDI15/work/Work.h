@@ -2,7 +2,7 @@
 #pragma once
 
 #include <atomic>
-
+class CMainThread;
 class CWork
 {
 /* 생성자 & 파괴자 */
@@ -12,9 +12,11 @@ public:
 	virtual ~CWork();
 	
 
-	static void SetAbort() 
+	static void SetAbort(bool set) 
 	{
-		aborted.store(false);
+
+		aborted.store(set);
+		
 	}
 
 	static bool GetAbort()
@@ -22,14 +24,32 @@ public:
 		return aborted.load();
 	}
 
+
+	static void SetonExternalWork(bool set)
+	{
+		onExternalWork.store(set);
+	}
+
+	static bool GetonExternalWork()
+	{
+		return onExternalWork.load();
+	}
+
+
 /* 가상함수 재정의 */
 protected:
 public:
-	static  atomic<bool> aborted;
+	volatile static atomic<bool> aborted;
+	volatile static atomic<bool> onExternalWork;
+
+	void SetMainthreadPtr(CMainThread* ptr)
+	{
+		mainthreadPtr = ptr;
+	}
 
 /* 열거형 */
 protected:
-	
+	CMainThread* mainthreadPtr = nullptr;
 
 /* 로컬 변수 */
 protected:

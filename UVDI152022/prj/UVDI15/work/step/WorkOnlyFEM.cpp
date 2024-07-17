@@ -98,6 +98,12 @@ VOID CWorkOnlyFEM::SetWorkNext()
 {
 	UINT64 u64JobTime	= GetTickCount64() - m_u64StartTime;
 
+	if (GetAbort())
+	{
+		CWork::EndWork();
+		return;
+	}
+
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
 

@@ -8,6 +8,7 @@
 #include "Work.h"
 #include "../mesg/DlgMesg.h"
 #include "../../UVDI15/GlobalVariables.h"
+#include "../../UVDI15/MainThread.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -15,7 +16,8 @@
 static char THIS_FILE[]	= __FILE__;
 #endif
 
-atomic<bool> CWork::aborted;
+volatile atomic<bool> CWork::aborted;
+volatile atomic<bool> CWork::onExternalWork;
 
 /*
  desc : 생성자
@@ -121,17 +123,17 @@ VOID CWork::SetWorkName()
 */
 VOID CWork::EndWork()
 {
-	SaveWorkLogs(L"The job has ended");
+	SaveWorkLogs(CWork::GetAbort() ? L"job cancled by user request." : L"The job has ended");
 	/* 작업 완료 시간 갱신 */
 	uvEng_SetJobWorkInfo(UINT8(m_enWorkJobID), GetTickCount64() - m_u64StartTime);
 
-	/* 트리거 보드 무조건 Disable */
-// 	uvEng_Trig_ReqTriggerStrobe(FALSE);
-// 	uvEng_Trig_ReqEncoderOutReset();
-// 	uvEng_Trig_ResetTrigPosAll();
 	uvEng_Mvenc_ReqTriggerStrobe(FALSE);
 	uvEng_Mvenc_ReqEncoderOutReset();
 	uvEng_Mvenc_ResetTrigPosAll();
+	m_enWorkState = ENG_JWNS::en_comp;
+	m_u8StepIt = 0;
+	CWork::SetAbort(false);
+	CWork::SetonExternalWork(false);
 }
 
 /*
@@ -157,6 +159,12 @@ VOID CWork::SetWorkNext()
 
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
+	
+	if (CWork::GetAbort())
+	{
+		CWork::EndWork();
+		return;
+	}
 
 	/* 모든 작업이 종료 되었는지 여부 */
 	if (ENG_JWNS::en_error == m_enWorkState)

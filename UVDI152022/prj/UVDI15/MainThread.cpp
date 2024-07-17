@@ -157,6 +157,16 @@ VOID CMainThread::RunWork()
 */
 VOID CMainThread::EndWork()
 {
+	
+}
+
+void CMainThread::DeleteCurrentJob()
+{
+	if (m_pWorkJob == nullptr)
+		return;
+
+	delete m_pWorkJob;
+	m_pWorkJob = nullptr;
 }
 
 /*
@@ -164,11 +174,20 @@ VOID CMainThread::EndWork()
  parm : None
  retn : None
 */
-VOID CMainThread::ResetWorkJob()
+BOOL CMainThread::ResetWorkJob()
 {
-	if (!m_pWorkJob)	return;
-	delete m_pWorkJob;
-	m_pWorkJob		= NULL;
+	
+	if (m_pWorkJob && m_pWorkJob->IsWorkStopped() == false || CWork::GetonExternalWork())
+	{
+		CWork::SetAbort(true);
+		return FALSE;
+	}
+	//만약 장시간 종료되지 않는 job이 있다면 deletecurrentjob을 실행하는 로직 필요.
+	
+	DeleteCurrentJob();
+
+	return TRUE;
+	
 #if 0
 	/* 무조건 최대 값으로 초기화 */
 	m_u8AlignStepIt	= 0xff;
@@ -252,7 +271,13 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 #endif
 		{
 			/* 기존 작업 메모리 해제 */
-			ResetWorkJob();
+
+
+			if (ResetWorkJob() == FALSE)
+			{
+				m_csSyncWork.Leave();
+				return FALSE;
+			}
 
 			/* 작업 동작 모드 */
 			switch (job_id)
@@ -295,6 +320,8 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 			if (!m_pWorkJob)	bSucc = FALSE;
 			else
 			{
+				((CWork*)m_pWorkJob)->SetMainthreadPtr(this);
+
 				bSucc = TRUE;
 				/* 초기화 작업 수행 */
 				if (!m_pWorkJob->InitWork())

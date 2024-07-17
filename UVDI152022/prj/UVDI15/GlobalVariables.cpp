@@ -1067,7 +1067,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	}, 60 * 1000 * PAIR);
 
 	if (res == false || errFlag == true)
-		return res;
+		return false;
 
 	//여기서 rst 계산.
 
@@ -1148,10 +1148,13 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 							  MUP | YAXIS,MRIGHT | XAXIS,MRIGHT | XAXIS,MRIGHT | XAXIS,MRIGHT | XAXIS,YAXIS,MDOWN,YAXIS,MDOWN,YAXIS,MDOWN,YAXIS,MLEFT,YAXIS,MLEFT,YAXIS,MLEFT,YAXIS,MLEFT,YAXIS,MUP | YAXIS,YAXIS,MUP | YAXIS,YAXIS,MUP | YAXIS,YAXIS,MUP | YAXIS }; //2회전
 
 	auto step = searchMap.begin();
-	while (sutable == false && step != searchMap.end() && CWork::GetAbort() == false)
+	while (sutable == false && step != searchMap.end())
 	{
 		try
 		{
+			if (CWork::GetAbort() == false)
+				throw exception();
+
 			auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
 			auto modeDelta = (*step & MLEFT) != 0 || (*step & MRIGHT) != 0 ? stepSizeX : stepSizeY;
 			modeDelta *= ((*step & MLEFT) != 0 || (*step & MDOWN) != 0) ? -1 : 1;
@@ -1180,7 +1183,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 		}
 		catch (...)
 		{
-
+			return false;
 		}
 		
 	}

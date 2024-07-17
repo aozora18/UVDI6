@@ -940,8 +940,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 	try
 	{
 		stepWork[m_u8StepIt]();
-		if (CWork::GetAbort())
-			m_enWorkState = ENG_JWNS::en_error;
+		
 	}
 	catch (const std::exception&)
 	{
@@ -957,6 +956,12 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 	uvEng_UpdateJobWorkTime(u64JobTime);
 	TCHAR tzMesg[128] = { NULL };
+
+	if (CWork::GetAbort())
+	{
+		CWork::EndWork();
+		return;
+	}
 
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{	

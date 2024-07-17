@@ -1140,24 +1140,20 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
 			TCHAR tzMsg[256] = { NULL };
-// 			swprintf_s(tzMsg, 256, L"CheckThick LDS Measure = %.4f Offset Z Pos = %.4f LimitPos = %.4f",
-// 				uvEng_GetConfig()->measure_flat.dAlignMeasure
-// 				, uvEng_GetConfig()->measure_flat.dOffsetZPOS
-// 				, uvEng_GetConfig()->measure_flat.dLimitZPOS);	
 			swprintf_s(tzMsg, 256, L"CheckThick LDS Measure = %.4f", mean);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 			/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
-			if (RealThick > LimitZPos)
-			{
-				swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > LimitZ Pos : %.3f]", RealThick, LimitZPos);
+			//if (RealThick > LimitZPos)
+			//{
+			//	swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > LimitZ Pos : %.3f]", RealThick, LimitZPos);
 
-				CDlgMesg dlgMesg;
-				if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
+			//	CDlgMesg dlgMesg;
+			//	if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
 
-					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
-				return ENG_JWNS::en_error;
-			}
+			//		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
+			//	return ENG_JWNS::en_error;
+			//}
 #endif
 
 

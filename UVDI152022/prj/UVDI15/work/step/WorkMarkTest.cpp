@@ -250,7 +250,8 @@ void CWorkMarkTest::DoAlignStaticCam()
 					if (filteredPath.size() != PAIR)
 						throw exception();
 					
-					refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag, offsetBuff);
+					if(refindMotion.ProcessEstimateRST(CENTER_CAM, filteredPath, errFlag, offsetBuff) == false)
+						throw exception();
 
 
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(), 
@@ -650,8 +651,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 	try
 	{
 		stepWork[m_u8StepIt]();
-		if (CWork::GetAbort())
-			m_enWorkState = ENG_JWNS::en_error;
+		
 	}
 	catch (const std::exception&)
 	{
@@ -787,6 +787,12 @@ VOID CWorkMarkTest::SetWorkNextStaticCam()
 	UINT8 u8WorkTotal = m_u8StepTotal;
 	UINT64 u64JobTime = GetTickCount64() - m_u64StartTime;
 
+	if (CWork::GetAbort())
+	{
+		CWork::EndWork();
+		return;
+	}
+
 	uvEng_UpdateJobWorkTime(u64JobTime);
 
 	if (ENG_JWNS::en_error == m_enWorkState)
@@ -844,7 +850,16 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 
 		SaveExpoResult(0x00);
 		m_u8StepIt = 0x01;
-		m_enWorkState = ENG_JWNS::en_error;
+		//m_enWorkState = ENG_JWNS::en_error;
+
+		if (++m_u32ExpoCount != m_stExpoLog.expo_count)
+		{
+			m_enWorkState = ENG_JWNS::en_next;
+		}
+		else
+		{
+			m_enWorkState = ENG_JWNS::en_error;
+		}
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
@@ -1051,6 +1066,12 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 	swprintf_s(tzResult, 1024, L"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,",
 		pstMarkDiff->result[0].diff * 100.0f, pstMarkDiff->result[1].diff * 100.0f, pstMarkDiff->result[2].diff * 100.0f,
 		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
+	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+
+	auto& measureFlat = uvEng_GetConfig()->measure_flat;
+	auto mean = measureFlat.GetThickMeasureMean();
+
+	swprintf_s(tzResult, 1024, L"%.4f,", mean);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */

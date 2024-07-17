@@ -161,6 +161,12 @@ VOID CWorkFEMExpo::SetWorkNext()
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
 
+	if (GetAbort())
+	{
+		CWork::EndWork();
+		return;
+	}
+
 	if (ENG_JWNS::en_next == m_enWorkState)
 	{
 		/* 작업률 계산 후 임시 저장 */

@@ -71,21 +71,21 @@ VOID CWorkAbort::DoWork()
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-	case 0x01 : m_enWorkState = StopPrinting();							break;
-	/* GetExposeState 요청에 대한 응답이 올 때까지 일정 시간 대기 */
-	case 0x02 : m_enWorkState = SetWorkWaitTime(1000);					break;
-	case 0x03 : m_enWorkState = IsWorkWaitTime();						break;
-	case 0x04 : m_enWorkState = IsStopPrinting();						break;
-	/* 스테이지가 멈출 때까지 일정 시간 대기 */
-	case 0x05 : m_enWorkState = SetWorkWaitTime(2000);					break;
-	case 0x06 : m_enWorkState = IsWorkWaitTime();						break;
-	case 0x07 : m_enWorkState = SetTrigEnable(FALSE);					break;
-	case 0x08 : m_enWorkState = SetMovingUnloader();					break;
-	case 0x09: m_enWorkState = IsTrigEnabled(FALSE);					break;
-	case 0x0a: m_enWorkState = IsMovedUnloader();						break;
+		case 0x01 : m_enWorkState = StopPrinting();							break;
+		/* GetExposeState 요청에 대한 응답이 올 때까지 일정 시간 대기 */
+		case 0x02 : m_enWorkState = SetWorkWaitTime(1000);					break;
+		case 0x03 : m_enWorkState = IsWorkWaitTime();						break;
+		case 0x04 : m_enWorkState = IsStopPrinting();						break;
+		/* 스테이지가 멈출 때까지 일정 시간 대기 */
+		case 0x05 : m_enWorkState = SetWorkWaitTime(2000);					break;
+		case 0x06 : m_enWorkState = IsWorkWaitTime();						break;
+		case 0x07 : m_enWorkState = SetTrigEnable(FALSE);					break;
+		case 0x08 : m_enWorkState = SetMovingUnloader();					break;
+		case 0x09: m_enWorkState = IsTrigEnabled(FALSE);					break;
+		case 0x0a: m_enWorkState = IsMovedUnloader();						break;
 	}
 
-	CWork::SetAbort(); //<-이제 타 work에서 abort를 stop으로 처리가능하게 함. 참고바람. static임 모든 cwork에서 공유.
+	
 	/* 다음 작업 진행 여부 판단 */
 	CWork::SetWorkNext();
 	/* 장시간 동안 동일 위치를 반복 수행한다면 에러 처리 */
@@ -188,7 +188,8 @@ ENG_JWNS CWorkAbort::IsStopPrinting()
 	else
 	{
 		/* 모든 모터가 멈춘 상태인지 재차 확인 */
-		if (uvCmn_MC2_IsMotorDriveStopAll())	return ENG_JWNS::en_next;
+		if (uvCmn_MC2_IsMotorDriveStopAll())	
+			return ENG_JWNS::en_next;
 	}
 
 	return ENG_JWNS::en_wait;

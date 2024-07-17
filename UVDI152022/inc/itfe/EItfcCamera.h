@@ -298,7 +298,7 @@ API_IMPORT BOOL uvEng_Camera_DrawMarkBitmap(HDC hdc, RECT draw, UINT8 cam_id, UI
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_IMPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce, UINT8 flipFlag);
+API_IMPORT VOID uvEng_Camera_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce, UINT8 flipFlag = 0xff);
 /*
  desc : 검색된 Mark 이미지 윈도 영역에 출력 수행 (MIL Buffer ID를 이용한 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context

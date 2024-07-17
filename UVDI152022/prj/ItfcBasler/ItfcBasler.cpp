@@ -1068,7 +1068,7 @@ API_EXPORT BOOL uvBasler_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id,UINT8
 						0x00 - 검색 결과 실패, 0x01 - 검색 결과 성공
  retn : None
 */
-API_EXPORT VOID uvBasler_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce,UINT8 flipFlag)
+API_EXPORT VOID uvBasler_DrawMarkDataBitmap(HDC hdc, RECT draw, LPG_ACGR grab, UINT8 find,bool drawForce,UINT8 flipFlag = 0xff)
 {
 	if (!g_pCamThread)	return;
 	uvMIL_DrawMarkDataBitmap(hdc, draw, grab, find,drawForce, flipFlag);

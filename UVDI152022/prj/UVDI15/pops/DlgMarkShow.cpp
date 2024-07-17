@@ -293,7 +293,7 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	auto alignMotion = motions.markParams.alignMotion;
 	auto aligntype = motions.markParams.alignType;
 	int u8ACamNo = 0;
-	int u8ImgNo = 0;
+	int u8ImgNo = -1;
 	switch (alignMotion)
 	{
 		case ENG_AMOS::en_static_3cam:
@@ -331,8 +331,8 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	/* Output the grabbed images on screen */
 	
 	HDC hcd = ::GetDC(m_hPicMark);
-	uvEng_Camera_DrawMarkMBufID(m_hPicMark, m_rPicMark, pstMark->cam_id, pstMark->img_id, pstMark->img_id);
-	//uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
+//	uvEng_Camera_DrawMarkMBufID(m_hPicMark, m_rPicMark, pstMark->cam_id, pstMark->img_id, pstMark->img_id);
+	uvEng_Camera_DrawMarkDataBitmap(hcd, m_rPicMark, pstMark, pstMark->marked,true,0);
 	::ReleaseDC(m_hPicMark,hcd);
 	/* Update the grabbed results to the text buffer */
 		swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.4f] [Y %+4.4f] [um]",

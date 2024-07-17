@@ -381,7 +381,7 @@ VOID DrawGrabMarkDiffText(HDC hdc, LPG_ACGR grab, PPOINT move)
 VOID DrawGrabMarkArea(HDC hdc, LPG_ACGR s_grab, LPG_GMSR m_grab,
 					  DOUBLE resize_rate, POINT *move, UINT8 find)
 {
-	DOUBLE dbAngle		= g_pstConfig->set_cams.acam_inst_angle == 0 ? 0.0f : 180.0f;
+	DOUBLE dbAngle = 0;//  g_pstConfig->set_cams.acam_inst_angle == 0 ? 0.0f : 180.0f;
 	HPEN hPen, hOldPen;
 	POINT ptLine[4], ptCent;
 	COLORREF crLine[3]	= {RGB(255, 0, 0), RGB(0, 255, 0), RGB(0, 0, 255) };
@@ -391,21 +391,28 @@ VOID DrawGrabMarkArea(HDC hdc, LPG_ACGR s_grab, LPG_GMSR m_grab,
 
 	/* 결과 데이터가 있는지 여부 */
 	if (m_grab->IsEmptyData())	return;
+	
+	double dbRotateCentX = s_grab->mark_cent_px_x;
+	double dbRotateCentY = s_grab->mark_cent_px_y;
+
 	/* Grabbed Image 180도 회전 했으므로 */
 	if (g_pstConfig->set_cams.acam_inst_angle)
 	{
+		POINT half;
+		half.x = s_grab->grab_width / 2.0f;
+		half.y = s_grab->grab_height / 2.0f;
+		auto withGab = half.x - dbRotateCentX;
+		dbRotateCentX += dbRotateCentX < half.x ? abs(withGab) * 2 : abs(withGab) * -2;
+
 		/* Grabbed Image의 중심에서 회전했을 경우, 현재 마크의 중심 좌표 값 반환 */
-		uvCmn_RotateCoord(DOUBLE(s_grab->grab_width/2.0f), DOUBLE(s_grab->grab_height/2.0f),
-						  s_grab->mark_cent_px_x, s_grab->mark_cent_px_y,
-						  DOUBLE(-dbAngle/*g_pstConfig->set_cams.acam_inst_angle*/),	/* 항상 회전 각도의 - (음수) 값을 붙여줘야 됨 (왜냐하면, Grabbed Image 즉, MIL의 ImgRotate 함수 회전이 시계 반대 방향으로 하기 때문임 */
-						  m_grab->cent_x, m_grab->cent_y);
+		uvCmn_RotateCoord(DOUBLE(half.x), DOUBLE(half.y), dbRotateCentX, dbRotateCentY, DOUBLE(-dbAngle), dbRotateCentX, dbRotateCentY);
 	}
 
 	/* 출력되는 윈도 영역에 따라, Grabbed Image의 축소 or 확대에 따른 찾은 Mark 도형 크기 축소 or 확대 */
 	stInSize.cx	= m_grab->mark_width;
 	stInSize.cy	= m_grab->mark_height;
-	stInCent.x	= m_grab->cent_x;
-	stInCent.y	= m_grab->cent_y;
+	stInCent.x	= dbRotateCentX;
+	stInCent.y	= dbRotateCentY;
 	GetDrawMarkArea(&stInSize, &stInCent, resize_rate, ptCent, ptLine);
 
 	/* --------------------------------------------- */
@@ -567,6 +574,7 @@ VOID DrawGrabMarkCent(HDC hdc, LPG_ACGR grab, DOUBLE resize_rate, POINT *move)
 	}
 }
 
+ 
 /*
  desc : Drawing - Align(검색된 Mark) Image (Bitmap을 이용하여 출력)
  parm : hdc		- [in]  이미지가 출력 대상 context

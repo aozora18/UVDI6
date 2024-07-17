@@ -72,6 +72,9 @@ protected:
 	virtual VOID		OnResizeDlg();
 	virtual void		RegisterUILevel() {}
 
+	bool inverseHorizontal; //이미지가 회전영향을 받았을경우.
+	bool inverseVertical;  //이미지가 회전영향을 받았을경우.
+
 public:
 
 	virtual VOID		UpdatePeriod()	{};

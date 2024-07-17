@@ -24,7 +24,7 @@
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
 #undef THIS_FILE
-static char THIS_FILE[]	= __FILE__;
+static char THIS_FILE[] = __FILE__;
 #endif
 
 
@@ -37,14 +37,16 @@ static char THIS_FILE[]	= __FILE__;
 CDlgMmpm::CDlgMmpm(CWnd* parent /*=NULL*/)
 	: CMyDialog(CDlgMmpm::IDD, parent)
 {
-	m_bDrawBG		= TRUE;
-	m_bTooltip		= TRUE;
-	m_hDCDraw		= NULL;
-	m_u8Index		= 0x00;
-	m_u8LeftClick	= 0x00;
-	m_dbStep		= 1.0f;
-	m_pstGrab		= NULL;
-	m_hPrvCursor	= NULL;
+	m_bDrawBG = TRUE;
+	m_bTooltip = TRUE;
+	m_hDCDraw = NULL;
+	m_u8Index = 0x00;
+	m_u8LeftClick = 0x00;
+	m_dbStep = 1.0f;
+	m_pstGrab = NULL;
+	m_hPrvCursor = NULL;
+	inverseHorizontal = false;
+	inverseVertical = true;
 }
 
 /*
@@ -59,17 +61,17 @@ VOID CDlgMmpm::DoDataExchange(CDataExchange* dx)
 	UINT32 i, u32StartID;
 
 	/* Group - Normal */
-	u32StartID	= IDC_MMPM_GRP_STEP;
-	for (i=0; i< eMMPM_GRP_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_grp_ctl[i]);
+	u32StartID = IDC_MMPM_GRP_STEP;
+	for (i = 0; i < eMMPM_GRP_MAX; i++)		DDX_Control(dx, u32StartID + i, m_grp_ctl[i]);
 	/* Static - Normal */
-	u32StartID	= IDC_MMPM_PIC_VIEW;
-	for (i=0; i< eMMPM_PIC_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_ctl[i]);
+	u32StartID = IDC_MMPM_PIC_VIEW;
+	for (i = 0; i < eMMPM_PIC_MAX; i++)		DDX_Control(dx, u32StartID + i, m_pic_ctl[i]);
 	/* Button - Normal */
-	u32StartID	= IDC_MMPM_BTN_HORZ_LEFT;
-	for (i=0; i< eMMPM_BTN_MAX; i++)	DDX_Control(dx, u32StartID+i,	m_btn_ctl[i]);
+	u32StartID = IDC_MMPM_BTN_HORZ_LEFT;
+	for (i = 0; i < eMMPM_BTN_MAX; i++)	DDX_Control(dx, u32StartID + i, m_btn_ctl[i]);
 	/* Step Size */
-	u32StartID	= IDC_MMPM_CHK_STEP_01;
-	for (i=0; i< eMMPM_CHK_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_chk_ctl[i]);
+	u32StartID = IDC_MMPM_CHK_STEP_01;
+	for (i = 0; i < eMMPM_CHK_MAX; i++)		DDX_Control(dx, u32StartID + i, m_chk_ctl[i]);
 }
 
 BEGIN_MESSAGE_MAP(CDlgMmpm, CMyDialog)
@@ -91,10 +93,10 @@ BOOL CDlgMmpm::PreTranslateMessage(MSG* msg)
 {
 	switch (msg->wParam)
 	{
-	case VK_LEFT	:
-	case VK_RIGHT	:
-	case VK_UP		:
-	case VK_DOWN	:	KeyUpDown(UINT16(msg->wParam));	break;
+	case VK_LEFT:
+	case VK_RIGHT:
+	case VK_UP:
+	case VK_DOWN:	KeyUpDown(UINT16(msg->wParam));	break;
 	}
 
 	return CMyDialog::PreTranslateMessage(msg);
@@ -107,7 +109,7 @@ BOOL CDlgMmpm::PreTranslateMessage(MSG* msg)
 */
 BOOL CDlgMmpm::OnInitDlg()
 {
-	UINT8 i	= 0x00;
+	UINT8 i = 0x00;
 	menuPart = 99;
 
 	for (int i = 0; i < 3; i++) {
@@ -122,7 +124,7 @@ BOOL CDlgMmpm::OnInitDlg()
 	/* 컨트롤 초기화 */
 	if (!InitCtrl())	return FALSE;
 	/* Align Mark 출력 위한 DC 핸들 얻기 */
-	m_hDCDraw	= ::GetDC(m_pic_ctl[eMMPM_PIC_VIEW].GetSafeHwnd());
+	m_hDCDraw = ::GetDC(m_pic_ctl[eMMPM_PIC_VIEW].GetSafeHwnd());
 	/* Align Mark 출력 위한 영역 얻기 */
 	m_pic_ctl[eMMPM_PIC_VIEW].GetClientRect(&m_rAreaDraw);
 	/* 윈도 영역 재설정 */
@@ -158,24 +160,24 @@ BOOL CDlgMmpm::OnInitDlg()
 */
 VOID CDlgMmpm::OnExitDlg()
 {
-	POSITION pPos	= NULL;
-	LPG_ACGR pstGrab= NULL;
+	POSITION pPos = NULL;
+	LPG_ACGR pstGrab = NULL;
 
 	/* CDC 핸들 메모리 제거 */
 	if (m_hDCDraw)	::ReleaseDC(m_pic_ctl[eMMPM_PIC_VIEW].GetSafeHwnd(), m_hDCDraw);
 
 	/* 메모리 해제 */
-	pPos	= m_lstGrab.GetHeadPosition();
+	pPos = m_lstGrab.GetHeadPosition();
 	while (pPos)
 	{
-		pstGrab	= m_lstGrab.GetNext(pPos);
+		pstGrab = m_lstGrab.GetNext(pPos);
 		if (pstGrab)	delete pstGrab;
 	}
 	m_lstGrab.RemoveAll();
-	pPos	= m_lstFind.GetHeadPosition();
+	pPos = m_lstFind.GetHeadPosition();
 	while (pPos)
 	{
-		pstGrab	= m_lstFind.GetNext(pPos);
+		pstGrab = m_lstFind.GetNext(pPos);
 		if (pstGrab)	delete pstGrab;
 	}
 	m_lstFind.RemoveAll();
@@ -186,13 +188,13 @@ VOID CDlgMmpm::OnExitDlg()
  parm : dc	- 윈도 DC
  retn : None
 */
-VOID CDlgMmpm::OnPaintDlg(CDC *dc)
+VOID CDlgMmpm::OnPaintDlg(CDC* dc)
 {
 	/* Mark Pattern 출력 */
 	if (m_hDCDraw && m_pstGrab)
 	{
 		// lk91 이미지 테스트 진행시, u8FindMark	= IsValidGrabMarkNum(cam_id, img_id) ? 0x01 : 0x00; 부분 디버깅해서 넘어가야해
-		uvEng_Camera_DrawMarkBitmap(m_hDCDraw, m_rAreaDraw, m_pstGrab->cam_id, m_pstGrab->img_id); 
+		uvEng_Camera_DrawMarkBitmap(m_hDCDraw, m_rAreaDraw, m_pstGrab->cam_id, m_pstGrab->img_id);
 	}
 }
 
@@ -217,14 +219,14 @@ BOOL CDlgMmpm::InitCtrl()
 	// by sysandj : Resize UI
 
 	INT32 i = 0;
-	UINT32 u32IconMove[eMMPM_BTN_CHECK][2]=  {{ IDI_ARR_LEFT_EN, IDI_ARR_LEFT_DIS },
+	UINT32 u32IconMove[eMMPM_BTN_CHECK][2] = { { IDI_ARR_LEFT_EN, IDI_ARR_LEFT_DIS },
 								{ IDI_ARR_RIGHT_EN, IDI_ARR_RIGHT_DIS },
 								{ IDI_ARR_UP_EN, IDI_ARR_UP_DIS },
 								{ IDI_ARR_DOWN_EN, IDI_ARR_DOWN_DIS },
 								{ IDI_UNDO_EN, IDI_UNDO_DIS },
 								{ IDI_ARR_LEFT_EN, IDI_ARR_LEFT_DIS },
 								{ IDI_ARR_RIGHT_EN, IDI_ARR_RIGHT_DIS } };
-	PTCHAR pText	= NULL;
+	PTCHAR pText = NULL;
 
 	/* group box */
 	for (i = 0; i < eMMPM_GRP_MAX; i++)
@@ -236,7 +238,7 @@ BOOL CDlgMmpm::InitCtrl()
 		// by sysandj : Resize UI
 	}
 	/* button - normal */
-	for (i=0; i< eMMPM_BTN_CHECK; i++)
+	for (i = 0; i < eMMPM_BTN_CHECK; i++)
 	{
 		m_btn_ctl[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
 		m_btn_ctl[i].SetBgColor(g_clrBtnColor);
@@ -247,7 +249,7 @@ BOOL CDlgMmpm::InitCtrl()
 		clsResizeUI.ResizeControl(this, &m_btn_ctl[i]);
 		// by sysandj : Resize UI
 	}
-	for (i= eMMPM_BTN_CHECK; i< eMMPM_BTN_MAX; i++)
+	for (i = eMMPM_BTN_CHECK; i < eMMPM_BTN_MAX; i++)
 	{
 		m_btn_ctl[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
 		m_btn_ctl[i].SetBgColor(g_clrBtnColor);
@@ -258,7 +260,7 @@ BOOL CDlgMmpm::InitCtrl()
 		// by sysandj : Resize UI
 	}
 	/* check box - normal */
-	for (i=0; i< eMMPM_CHK_MAX; i++)
+	for (i = 0; i < eMMPM_CHK_MAX; i++)
 	{
 		m_chk_ctl[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
 		m_chk_ctl[i].SetBgColor(RGB(0xff, 0xff, 0xff));
@@ -285,29 +287,32 @@ BOOL CDlgMmpm::InitCtrl()
  parm : None
  retn : None
 */
+
+const int RIGHT = 0x12, LEFT = 0x11, UP = 0x21, DOWN = 0x22;
+
 VOID CDlgMmpm::OnBtnClicked(UINT32 id)
 {
 	switch (id)
 	{
-	case IDC_MMPM_BTN_UNDO		:
-	case IDC_MMPM_BTN_HORZ_LEFT	:
+	case IDC_MMPM_BTN_UNDO:
+	case IDC_MMPM_BTN_HORZ_LEFT:
 	case IDC_MMPM_BTN_HORZ_RIGHT:
-	case IDC_MMPM_BTN_VERT_DOWN	:
-	case IDC_MMPM_BTN_VERT_UP	:
+	case IDC_MMPM_BTN_VERT_DOWN:
+	case IDC_MMPM_BTN_VERT_UP:
 		switch (id)
 		{
-		case IDC_MMPM_BTN_UNDO		:	UndoCenter();		break;
-		case IDC_MMPM_BTN_HORZ_LEFT	:	MoveCenter(0x11);	break;
-		case IDC_MMPM_BTN_HORZ_RIGHT:	MoveCenter(0x12);	break;
-		case IDC_MMPM_BTN_VERT_UP	:	MoveCenter(0x21);	break;
-		case IDC_MMPM_BTN_VERT_DOWN	:	MoveCenter(0x22);	break;
+		case IDC_MMPM_BTN_UNDO:	UndoCenter();		break;
+		case IDC_MMPM_BTN_HORZ_LEFT:	MoveCenter(LEFT);
+		case IDC_MMPM_BTN_HORZ_RIGHT:	MoveCenter(RIGHT);
+		case IDC_MMPM_BTN_VERT_UP:	MoveCenter(UP);	break;
+		case IDC_MMPM_BTN_VERT_DOWN:	MoveCenter(DOWN);	break;
 		}
 		break;
-	case IDC_MMPM_BTN_CHECK		:	MoveCenter(0x00);	break;
-	case IDC_MMPM_BTN_PREV		:	FindData(0x01);		break;
-	case IDC_MMPM_BTN_NEXT		:	FindData(0x02);		break;
-	case IDC_MMPM_BTN_APPLY		:	WorkApply();		break;
-	case IDC_MMPM_BTN_CANCEL	:	WorkCancel();		break;
+	case IDC_MMPM_BTN_CHECK:	MoveCenter(0x00);	break;
+	case IDC_MMPM_BTN_PREV:	FindData(0x01);		break;
+	case IDC_MMPM_BTN_NEXT:	FindData(0x02);		break;
+	case IDC_MMPM_BTN_APPLY:	WorkApply();		break;
+	case IDC_MMPM_BTN_CANCEL:	WorkCancel();		break;
 	case IDC_MMPM_BTN_AUTO_CENTER:	AutoCenter();		break;
 	}
 }
@@ -319,15 +324,15 @@ VOID CDlgMmpm::OnBtnClicked(UINT32 id)
 */
 VOID CDlgMmpm::OnChkClicked(UINT32 id)
 {
-	UINT8 i	= 0x00;
+	UINT8 i = 0x00;
 
-	for (i=0; i< eMMPM_CHK_MAX; i++)	m_chk_ctl[i].SetCheck(0);
+	for (i = 0; i < eMMPM_CHK_MAX; i++)	m_chk_ctl[i].SetCheck(0);
 	switch (id)
 	{
-	case IDC_MMPM_CHK_STEP_01	:	m_chk_ctl[eMMPM_CHK_STEP_01].SetCheck(1);	m_dbStep = 0.1f;	break;
-	case IDC_MMPM_CHK_STEP_02	:	m_chk_ctl[eMMPM_CHK_STEP_02].SetCheck(1);	m_dbStep = 0.5f;	break;
-	case IDC_MMPM_CHK_STEP_05	:	m_chk_ctl[eMMPM_CHK_STEP_05].SetCheck(1);	m_dbStep = 5.0f;	break;
-	case IDC_MMPM_CHK_STEP_10	:	m_chk_ctl[eMMPM_CHK_STEP_10].SetCheck(1);	m_dbStep = 10.0f;	break;
+	case IDC_MMPM_CHK_STEP_01:	m_chk_ctl[eMMPM_CHK_STEP_01].SetCheck(1);	m_dbStep = 0.1f;	break;
+	case IDC_MMPM_CHK_STEP_02:	m_chk_ctl[eMMPM_CHK_STEP_02].SetCheck(1);	m_dbStep = 0.5f;	break;
+	case IDC_MMPM_CHK_STEP_05:	m_chk_ctl[eMMPM_CHK_STEP_05].SetCheck(1);	m_dbStep = 5.0f;	break;
+	case IDC_MMPM_CHK_STEP_10:	m_chk_ctl[eMMPM_CHK_STEP_10].SetCheck(1);	m_dbStep = 10.0f;	break;
 	}
 }
 
@@ -339,13 +344,13 @@ VOID CDlgMmpm::OnChkClicked(UINT32 id)
 VOID CDlgMmpm::FindData(UINT8 direct)
 {
 	CRect rPic;
-	LPG_ACGR pstGrab	= NULL;
+	LPG_ACGR pstGrab = NULL;
 
 	switch (direct)
 	{
-	case 0x00	:	m_u8Index	= 0x00;										break;
-	case 0x01	: if (m_u8Index != 0)	m_u8Index--;						break;
-	case 0x02	: if (m_u8Index+1 != m_lstGrab.GetCount())	m_u8Index++;	break;
+	case 0x00:	m_u8Index = 0x00;										break;
+	case 0x01: if (m_u8Index != 0)	m_u8Index--;						break;
+	case 0x02: if (m_u8Index + 1 != m_lstGrab.GetCount())	m_u8Index++;	break;
 	}
 	if (m_u8Index == 0x00)
 	{
@@ -360,7 +365,7 @@ VOID CDlgMmpm::FindData(UINT8 direct)
 			m_btn_ctl[eMMPM_BTN_NEXT].EnableWindow(TRUE);
 		}
 	}
-	else if (m_u8Index+1 == m_lstGrab.GetCount())
+	else if (m_u8Index + 1 == m_lstGrab.GetCount())
 	{
 		m_btn_ctl[eMMPM_BTN_PREV].EnableWindow(TRUE);
 		m_btn_ctl[eMMPM_BTN_NEXT].EnableWindow(FALSE);
@@ -374,21 +379,28 @@ VOID CDlgMmpm::FindData(UINT8 direct)
 	/* 에러 정보가 발생된 첫 번째 항목 설정  */
 	if (m_lstGrab.GetCount())
 	{
-		pstGrab	= m_lstGrab.GetAt(m_lstGrab.FindIndex(m_u8Index));
+		pstGrab = m_lstGrab.GetAt(m_lstGrab.FindIndex(m_u8Index));
 		//m_pstGrab = pstGrab; // lk91 image test 할 때 아래 두줄 주석 후, 주석 풀기
-		if (!pstGrab)	m_pstGrab	= NULL;
-		else			m_pstGrab	= uvEng_Camera_GetGrabbedMark(pstGrab->cam_id, pstGrab->img_id);
+		if (!pstGrab)	m_pstGrab = NULL;
+		else
+		{
+			m_pstGrab = uvEng_Camera_GetGrabbedMark(pstGrab->cam_id, pstGrab->img_id);
+
+			m_ptCenter.x = m_pstGrab->mark_cent_px_x;
+			m_ptCenter.y = m_pstGrab->mark_cent_px_y;
+		}
+
 	}
 
 	/* 기본 값 설정 */
 	if (m_pstGrab && m_pstGrab->mark_cent_px_x < 1.0f)
 	{
-		m_pstGrab->mark_cent_px_x	= m_pstGrab->grab_width / 2.0f;
-		m_pstGrab->mark_cent_px_y	= m_pstGrab->grab_height / 2.0f;
-		m_pstGrab->mark_width_px	= (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(m_pstGrab->cam_id, 0x00 /* fixed */, 0x00, 0x01), 0);
-		m_pstGrab->mark_height_px	= (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(m_pstGrab->cam_id, 0x00 /* fixed */, 0x01, 0x01), 0);
-		m_pstGrab->mark_width_mm	= m_pstGrab->mark_width_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
-		m_pstGrab->mark_height_mm	= m_pstGrab->mark_height_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
+		m_pstGrab->mark_cent_px_x = m_pstGrab->grab_width / 2.0f;
+		m_pstGrab->mark_cent_px_y = m_pstGrab->grab_height / 2.0f;
+		m_pstGrab->mark_width_px = (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(m_pstGrab->cam_id, 0x00 /* fixed */, 0x00, 0x01), 0);
+		m_pstGrab->mark_height_px = (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(m_pstGrab->cam_id, 0x00 /* fixed */, 0x01, 0x01), 0);
+		m_pstGrab->mark_width_mm = m_pstGrab->mark_width_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
+		m_pstGrab->mark_height_mm = m_pstGrab->mark_height_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
 	}
 
 	/* 이미지 출력 영역 얻기 */
@@ -404,24 +416,24 @@ VOID CDlgMmpm::FindData(UINT8 direct)
 */
 BOOL CDlgMmpm::GetMarkData(UINT8 type)
 {
-	UINT8 i				= 0x00;
-	LPG_ACGR pstGrab	= NULL;
-	LPG_ACGR pstTemp	= NULL;
+	UINT8 i = 0x00;
+	LPG_ACGR pstGrab = NULL;
+	LPG_ACGR pstTemp = NULL;
 
 	/* 실제로 측정 (검색)된 Mark 결과 값을 임시로 저장하기 위함 */
-	for (; i<uvEng_Camera_GetGrabbedCount(); i++)
+	for (; i < uvEng_Camera_GetGrabbedCount(); i++)
 	{
 		/* 검색된 데이터 얻기 */
-		pstTemp	= uvEng_Camera_GetGrabbedMarkIndex(i);
+		pstTemp = uvEng_Camera_GetGrabbedMarkIndex(i);
 		/* 검색된 데이터가 Guide (Mark) 인식 실패인 경우만 메모리에 임시 저장 */
 		if (!pstTemp)	continue;
 		/* 꼭 실패한 마크 정보만 가져온다면 ..., 성공한 마크는 Skip */
 		if (type == 0x00 && 0x01 == pstTemp->marked)	continue;
 		/* 검색된 새로운 마크 정보 저장 */
-		pstGrab	= new STG_ACGR;
+		pstGrab = new STG_ACGR;
 		ASSERT(pstGrab);
-		memcpy(pstGrab, pstTemp, sizeof(STG_ACGR)-sizeof(PUINT8));
-		pstGrab->grab_data	= pstTemp->grab_data;
+		memcpy(pstGrab, pstTemp, sizeof(STG_ACGR) - sizeof(PUINT8));
+		pstGrab->grab_data = pstTemp->grab_data;
 		m_lstGrab.AddTail(pstGrab);
 	}
 
@@ -457,19 +469,19 @@ BOOL CDlgMmpm::GetMarkData(UINT8 type)
 */
 VOID CDlgMmpm::Restore()
 {
-	UINT8 i	= 0x00;
-	POSITION pPos		= NULL;
-	LPG_ACGR pstTemp	= NULL;
-	LPG_ACGR pstGrab	= NULL;
+	UINT8 i = 0x00;
+	POSITION pPos = NULL;
+	LPG_ACGR pstTemp = NULL;
+	LPG_ACGR pstGrab = NULL;
 
-	m_pstGrab	= NULL;
-	for (; i<m_lstGrab.GetCount(); i++)
+	m_pstGrab = NULL;
+	for (; i < m_lstGrab.GetCount(); i++)
 	{
-		pPos	= m_lstGrab.FindIndex(i);
+		pPos = m_lstGrab.FindIndex(i);
 		if (!pPos)	continue;
 
-		pstTemp	= m_lstGrab.GetAt(pPos);
-		pstGrab	= uvEng_Camera_GetGrabbedMark(pstTemp->cam_id, pstTemp->img_id);
+		pstTemp = m_lstGrab.GetAt(pPos);
+		pstGrab = uvEng_Camera_GetGrabbedMark(pstTemp->cam_id, pstTemp->img_id);
 		if (pstGrab)
 		{
 			memcpy(pstGrab, pstTemp, sizeof(STG_ACGR));
@@ -484,14 +496,14 @@ VOID CDlgMmpm::Restore()
 */
 VOID CDlgMmpm::WorkApply()
 {
-	UINT8 i			= 0x00;
-	LPG_ACGR pstGrab= NULL;
+	UINT8 i = 0x00;
+	LPG_ACGR pstGrab = NULL;
 
 	/* 실제로 측정 (검색)된 Mark 결과 값을 임시로 저장하기 위함 */
-	for (; i<uvEng_Camera_GetGrabbedCount(); i++)
+	for (; i < uvEng_Camera_GetGrabbedCount(); i++)
 	{
 		/* 검색된 데이터 얻기 */
-		pstGrab	= uvEng_Camera_GetGrabbedMarkIndex(i);
+		pstGrab = uvEng_Camera_GetGrabbedMarkIndex(i);
 		/* 검색된 데이터가 Guide (Mark) 인식 실패인 경우만 메모리에 임시 저장 */
 		if (0x00 == pstGrab->marked || !pstGrab->IsMarkValid())
 		{
@@ -538,15 +550,15 @@ VOID CDlgMmpm::UndoCenter()
 */
 VOID CDlgMmpm::MoveCenter(UINT8 type)
 {
-	DOUBLE dbPixelSize	= 0.0f;
-	STG_GMFR stGMFR		= {NULL};
-	STG_GMSR stGMSR		= {NULL};
+	DOUBLE dbPixelSize = 0.0f;
+	STG_GMFR stGMFR = { NULL };
+	STG_GMSR stGMSR = { NULL };
 	CRect rPic;
 
 	if (!m_pstGrab)	return;
 
 	/* 픽셀 크기 값 임시 저장 */
-	dbPixelSize	= uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f;
+	dbPixelSize = uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f;
 	/* None Event 즉, 확인 버튼 누른 경우 */
 	if (0x00 == type)
 	{
@@ -556,47 +568,47 @@ VOID CDlgMmpm::MoveCenter(UINT8 type)
 	else
 	{
 		/* 좌/우로 이동 */
-		if (0x11 == type || 0x12 == type)
+		if (LEFT == type || 0x12 == type)
 		{
-			m_pstGrab->mark_cent_px_x	+= (0x11 == type) ? +m_dbStep : -m_dbStep;
-			m_ptCenter.x += (0x11 == type) ? +m_dbStep : -m_dbStep;
+			m_pstGrab->mark_cent_px_x += (LEFT == type) ? -m_dbStep : +m_dbStep;
+			m_ptCenter.x += (LEFT == type) ? -m_dbStep : +m_dbStep;
 		}
 		/* 상/하로 이동 */
 		else
 		{
-			m_pstGrab->mark_cent_px_y	+= (0x21 == type) ? +m_dbStep : -m_dbStep;
-			m_ptCenter.y += (0x11 == type) ? +m_dbStep : -m_dbStep;
+			m_pstGrab->mark_cent_px_y += (UP == type) ? -m_dbStep : +m_dbStep;
+			m_ptCenter.y += (UP == type) ? -m_dbStep : +m_dbStep;
 		}
 	}
 	/* 값 재설정 */
-	m_pstGrab->move_px_x		= -(m_pstGrab->grab_width / 2.0f - m_pstGrab->mark_cent_px_x);
-	m_pstGrab->move_px_y		= -(m_pstGrab->grab_height / 2.0f - m_pstGrab->mark_cent_px_y);
+	m_pstGrab->move_px_x = (m_pstGrab->grab_width / 2.0f - m_pstGrab->mark_cent_px_x) * inverseHorizontal ? -1.0f : 1.0f;
+	m_pstGrab->move_px_y = (m_pstGrab->grab_height / 2.0f - m_pstGrab->mark_cent_px_y) * inverseVertical ? -1.0f : 1.0f;
 	/* Convert pixel to mm */
-	m_pstGrab->move_mm_x		= m_pstGrab->move_px_x * dbPixelSize;
-	m_pstGrab->move_mm_y		= m_pstGrab->move_px_y * dbPixelSize;
-	m_pstGrab->mark_cent_mm_x	= m_pstGrab->mark_cent_px_x * dbPixelSize;
-	m_pstGrab->mark_cent_mm_y	= m_pstGrab->mark_cent_px_y * dbPixelSize;
+	m_pstGrab->move_mm_x = m_pstGrab->move_px_x * dbPixelSize;
+	m_pstGrab->move_mm_y = m_pstGrab->move_px_y * dbPixelSize;
+	m_pstGrab->mark_cent_mm_x = m_pstGrab->mark_cent_px_x * dbPixelSize;
+	m_pstGrab->mark_cent_mm_y = m_pstGrab->mark_cent_px_y * dbPixelSize;
 	/* GMFR Data */
-	stGMFR.score_rate			= 100.0f;
-	stGMFR.scale_rate			= 100.0f;
-	stGMFR.cent_x				= m_pstGrab->mark_cent_px_x;
-	stGMFR.cent_y				= m_pstGrab->mark_cent_px_y;
+	stGMFR.score_rate = 100.0f;
+	stGMFR.scale_rate = 100.0f;
+	stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
+	stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
 	/* GMSR Data */
-	stGMSR.cent_x				= m_pstGrab->mark_cent_px_x;
-	stGMSR.cent_y				= m_pstGrab->mark_cent_px_y;
-	stGMSR.mark_width			= (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
-	stGMSR.mark_height			= (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
-	stGMSR.valid_multi			= 0x01;
-	stGMSR.manual_set			= 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
+	stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
+	stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
+	stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
+	stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
+	stGMSR.valid_multi = 0x01;
+	stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
 #if 0
 	/* 얼라인 카메라가 회전되어 있는지 여부에 따라 화면에 그려질 중심 위치 결정 */
 	if (uvEng_GetConfig()->set_cams.acam_inst_angle)
 	{
 		DOUBLE dbRotCentX, dbRotCentY;
 		uvCmn_RotateCoord(m_pstGrab->grab_width / 2.0f, m_pstGrab->grab_height / 2.0f,
-						  stGMSR.cent_x, stGMSR.cent_y, 180.0f, dbRotCentX, dbRotCentY);
-		stGMSR.cent_x	= dbRotCentX;
-		stGMSR.cent_y	= dbRotCentY;
+			stGMSR.cent_x, stGMSR.cent_y, 180.0f, dbRotCentX, dbRotCentY);
+		stGMSR.cent_x = dbRotCentX;
+		stGMSR.cent_y = dbRotCentY;
 	}
 #endif
 	/* --------------------------- */
@@ -635,10 +647,10 @@ VOID CDlgMmpm::KeyUpDown(UINT16 key)
 {
 	switch (key)
 	{
-	case VK_LEFT	:	MoveCenter(0x11);	break;	/* 방향키 왼쪽 */
-	case VK_RIGHT	:	MoveCenter(0x12);	break;	/* 방향키 오른쪽 */
-	case VK_UP		:	MoveCenter(0x21);	break;	/* 방향키 위쪽 */
-	case VK_DOWN	:	MoveCenter(0x22);	break;	/* 방향키 아래쪽 */
+	case VK_LEFT:	MoveCenter(0x11);	break;	/* 방향키 왼쪽 */
+	case VK_RIGHT:	MoveCenter(0x12);	break;	/* 방향키 오른쪽 */
+	case VK_UP:	MoveCenter(0x21);	break;	/* 방향키 위쪽 */
+	case VK_DOWN:	MoveCenter(0x22);	break;	/* 방향키 아래쪽 */
 	}
 }
 
@@ -849,22 +861,22 @@ VOID CDlgMmpm::OnLButtonUp(UINT flags, CPoint point)
 				}
 
 				//if (m_pstGrab) {
-					CRect rPic;
-					/* 이미지 출력 영역 얻기 */
-					m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
-					ScreenToClient(rPic);
+				CRect rPic;
+				/* 이미지 출력 영역 얻기 */
+				m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
+				ScreenToClient(rPic);
 
-					/* 값 초기화 (반드시 필요) */
-					m_pstGrab->mark_cent_px_x = m_pstGrab->grab_width / 2.0f;
-					m_pstGrab->mark_cent_px_y = m_pstGrab->grab_height / 2.0f;
-					/* Point X/Y 위치가 rPic의 중심에서 얼마만큼 떨어졌는지 계산 */
-					m_pstGrab->mark_cent_px_x += ((rPic.left + rPic.right) / 2.0f - m_ptCenter.x) / tgt_rate;
-					m_pstGrab->mark_cent_px_y += ((rPic.top + rPic.bottom) / 2.0f - m_ptCenter.y) / tgt_rate;
-					//m_pstGrab->mark_cent_px_x += ((rPic.left + rPic.right) / 2.0f - point.x) / tgt_rate;
-					//m_pstGrab->mark_cent_px_y += ((rPic.top + rPic.bottom) / 2.0f - point.y) / tgt_rate;
-					
-					/* 이동한 위치 값 적용 */
-					MoveCenter(0x00);
+				/* 값 초기화 (반드시 필요) */
+				m_pstGrab->mark_cent_px_x = m_pstGrab->grab_width / 2.0f;
+				m_pstGrab->mark_cent_px_y = m_pstGrab->grab_height / 2.0f;
+				/* Point X/Y 위치가 rPic의 중심에서 얼마만큼 떨어졌는지 계산 */
+				m_pstGrab->mark_cent_px_x += ((rPic.left + rPic.right) / 2.0f - m_ptCenter.x) / tgt_rate;
+				m_pstGrab->mark_cent_px_y += ((rPic.top + rPic.bottom) / 2.0f - m_ptCenter.y) / tgt_rate;
+				//m_pstGrab->mark_cent_px_x += ((rPic.left + rPic.right) / 2.0f - point.x) / tgt_rate;
+				//m_pstGrab->mark_cent_px_y += ((rPic.top + rPic.bottom) / 2.0f - point.y) / tgt_rate;
+
+				/* 이동한 위치 값 적용 */
+				MoveCenter(0x00);
 				//}
 			}
 			//uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);

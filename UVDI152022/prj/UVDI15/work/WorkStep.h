@@ -110,7 +110,7 @@ protected:
 	ENG_JWNS			IsACamZAxisMovedAll(unsigned long& lastuniqueID);
 
 	ENG_JWNS			IsSetMarkValid(ENG_AMTF type, UINT8 scan);
-	ENG_JWNS			IsSetMarkValidAll(UINT8 mode,int* camNum=nullptr);
+	ENG_JWNS			IsSetMarkValidAll(UINT8 mode,bool* manualFixed = nullptr , int* camNum=nullptr);
 
 	ENG_JWNS			SetGerberRegist();
 	ENG_JWNS			IsGerberRegisted();

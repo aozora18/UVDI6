@@ -748,6 +748,7 @@ BOOL CMilMain::SetGrabbedMark(LPG_ACGR grab, LPG_GMFR gmfr, LPG_GMSR gmsr)
 	}
 #endif
 	/* 강제로 입력 처리 */
+
 #if 1
 	m_pLastGrabResult->PutGrabbedMark(grab, gmsr,
 									  m_pMilModel[grab->cam_id-1]->GetImageWidth(),
@@ -761,7 +762,7 @@ BOOL CMilMain::SetGrabbedMark(LPG_ACGR grab, LPG_GMFR gmfr, LPG_GMSR gmsr)
 									 m_pMilModel[grab->cam_id-1]->GetImageHeight());
 #endif
 	/* 검색 결과 저장 */
-	m_pLastGrabResult->SaveGrabbedMarkToFile(grab->img_id, gmfr);
+	//m_pLastGrabResult->SaveGrabbedMarkToFile(grab->img_id, gmfr);
 	/* 찾았다고 무조건 성공이 아니라, 원한는 결과 값이 나왔는지 여부에 따라 */
 	return m_pLastGrabResult->IsMarkMatched();
 }

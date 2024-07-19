@@ -490,6 +490,9 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	swprintf_s(tzKey, MAX_KEY_STRING, L"RETRY_COUNT");
 	m_pstCfg->set_align.refindCnt = GetConfigInt(tzKey);
 
+	swprintf_s(tzKey, MAX_KEY_STRING, L"THREASHOLD_DIST");
+	m_pstCfg->set_align.thresholdDist = GetConfigDouble(tzKey);
+
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MOVE_OFFSET_X");
 	m_pstCfg->set_align.refindOffsetX = GetConfigDouble(tzKey);
 

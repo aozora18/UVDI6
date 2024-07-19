@@ -175,6 +175,7 @@ typedef struct __st_config_setup_align_info__
 	double refindOffsetX;
 	double refindOffsetY;
 	int refindCnt;
+	double thresholdDist;
 
 }	STG_CSAI,	*LPG_CSAI;
 

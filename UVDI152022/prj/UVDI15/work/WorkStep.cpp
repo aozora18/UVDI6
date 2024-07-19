@@ -2660,8 +2660,17 @@ ENG_JWNS CWorkStep::IsSetMarkValid(ENG_AMTF type, UINT8 scan)
  parm : mode	- [in]  0x00 : Align Mark (Text), 0x01 : Align Mark (Expose)
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, int* camNum)
+ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum)
 {
+
+	auto SetManualFix = [&](bool set)
+	{
+		if (manualFixed != nullptr)
+			*manualFixed = set;
+	};
+
+	SetManualFix(false);
+
 	TCHAR tzTitle[128]	= {NULL};
 	BOOL bSucc	= FALSE, bMultiMark = FALSE;
 	UINT8 u8Global, u8Local, u8Total;
@@ -2689,12 +2698,14 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, int* camNum)
 	/* 검색된 마크가 유효한지 확인 */
 	// by sysandj : 변수없음(수정)
 	if (pstRecipeAlign)	bMultiMark	= pstRecipeAlign->search_type == (UINT8)ENG_MMSM::en_multi_only;		//search_type
-	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept,camNum))
+	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept,camNum) || true)
 	{
 		/* 오로지 Global Mark 4 Point만 존재하는 경우에만 해당 됨 */
 		if (mode && uvEng_GetConfig()->set_align.use_invalid_mark_cali &&
 			uvEng_Luria_IsMarkGlobal() && !uvEng_Luria_IsMarkLocal() )
 		{
+			
+			SetManualFix(true);
 			/* 잘못 인식된 마크를 수동으로 설정하기 위해 */
 			CDlgMmpm dlgMmpm;
 			bSucc	= (IDOK == dlgMmpm.DoModal());

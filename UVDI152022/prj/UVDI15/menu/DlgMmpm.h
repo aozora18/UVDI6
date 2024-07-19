@@ -134,7 +134,7 @@ protected:
 	void				MenuZoomFit();
 	int					menuPart; // menu 선택, 1:zoom, 2,3,4:3point set, 5:measure, 6:AutoCenter, 99 : 아무것도 선택안된 상태
 	double				tgt_rate; // 비율
-	VOID				AutoCenter();
+	//VOID				AutoCenter();
 /* 공용 함수 */
 public:
 
@@ -145,10 +145,10 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	afx_msg VOID		OnBtnClicked(UINT32 id);
 	afx_msg VOID		OnChkClicked(UINT32 id);
-	afx_msg VOID		OnLButtonDown(UINT flags, CPoint point);
-	afx_msg VOID		OnLButtonUp(UINT flags, CPoint point);
-	afx_msg VOID		OnMouseMove(UINT flags, CPoint point);
+	//afx_msg VOID		OnLButtonDown(UINT flags, CPoint point);
+	//afx_msg VOID		OnLButtonUp(UINT flags, CPoint point);
+	//afx_msg VOID		OnMouseMove(UINT flags, CPoint point);
 public:
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
+	//afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 };

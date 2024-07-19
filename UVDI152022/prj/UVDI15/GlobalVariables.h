@@ -376,8 +376,6 @@ struct Params
 
 	map<int, tuple<double, double>> mark2CamoffsetXY;
 
-	double convertThreshold = 1.3f;
-	
 	double distCam2cam[4] = { 0, };
 	int centerCamIdx = 3;
 	double centerMarkzeroOffsetX = 0;
@@ -573,12 +571,15 @@ class RefindMotion
 	};
 
 
+	
 private:
 	bool useRefind;
 	double stepSizeX, stepSizeY;
 	int refindCnt;
+	
 	RSTValue rstValue;
 public:
+	double thresholdDist;
 	bool IsUseRefind() { return useRefind; }
 
 	RefindMotion();

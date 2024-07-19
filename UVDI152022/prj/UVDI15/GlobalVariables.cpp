@@ -696,8 +696,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 			
 			const bool useRefind = GlobalVariables::GetInstance()->GetRefindMotion().IsUseRefind();
 
-			if (useRefind) //순서대로
-			{
+			//if (useRefind) //순서대로
+			//{
 				auto& pool = status.markPoolForCam[centercam];
 				auto flag = alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all;
 
@@ -706,19 +706,19 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				
 				if (flag == SearchFlag::all)
 					pool.insert(pool.end(), status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end());
-			}
-			else //최단거리
-			{
-				GetGerberPosUseCamPos(centercam, lookat); //현재상황 기준 최단거리조건.
-				STG_XMXY current = lookat;
-				auto& pool = status.markPoolForCam[centercam];
+			//}
+			//else //최단거리
+			//{
+			//	GetGerberPosUseCamPos(centercam, lookat); //현재상황 기준 최단거리조건.
+			//	STG_XMXY current = lookat;
+			//	auto& pool = status.markPoolForCam[centercam];
 
-				while (res == true)
-					if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
-					{
-						pool.push_back(current);
-					}
-			}
+			//	while (res == true)
+			//		if (res = GetNearFid(current, alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all, pool, current))
+			//		{
+			//			pool.push_back(current);
+			//		}
+			//}
 		};
 
 
@@ -1076,8 +1076,8 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	double diffX = std::get<REFIND_OFFSET_X>(findOffsets[1]) - std::get<REFIND_OFFSET_X>(findOffsets[0]);
 	double diffY = std::get<REFIND_OFFSET_Y>(findOffsets[1]) - std::get<REFIND_OFFSET_Y>(findOffsets[0]);
 
-	if (fabs(diffX) > motions.markParams.convertThreshold || 
-		fabs(diffY) > motions.markParams.convertThreshold)
+	if (fabs(diffX) > thresholdDist || 
+		fabs(diffY) > thresholdDist)
 	{
 		errFlag = true;
 		return true;
@@ -1118,6 +1118,7 @@ void RefindMotion::UpdateParamValues()
 	this->stepSizeX = align.refindOffsetX;
 	this->stepSizeY = align.refindOffsetY;
 	this->refindCnt = align.refindCnt;
+	this->thresholdDist = align.thresholdDist;
 }
 
 
@@ -1381,31 +1382,22 @@ void CommonMotionStuffs::GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoi
 void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, CaliPoint* alignOffset , CaliPoint* expoOffset, double posOffsetX, double posOffsetY)
 {
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	string temp = "x" + std::to_string(centerCam);
-
-	auto markPos = mark.GetMarkPos();
-
-	markPos = make_tuple(std::get<0>(markPos) + posOffsetX, std::get<1>(markPos) + posOffsetY);
-
+	
 	if (alignOffset != nullptr)
 	{
-
-		//실시간 좌표로 따지면 나중에 한번에 계산할수가 없다. 마크좌표 기준으로 스테이지 좌표를 역산하게해야한다. 
-		/**alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos,
-			motions.GetAxises()["stage"]["y"].currPos,
-			centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);*/
 		STG_XMXY stagePos;
+		mark.mark_x += posOffsetX; mark.mark_y += posOffsetY;
 		motions.GetStagePosUseGerberPos(centerCam, mark, stagePos);
 
 		*alignOffset = motions.EstimateAlignOffset(centerCam, stagePos.mark_x, stagePos.mark_y);
-		//,centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-
-
 		alignOffset->srcFid = mark;
 	}
 
 	if (expoOffset != NULL)
 	{
+		auto markPos = mark.GetMarkPos();
+		markPos = make_tuple(std::get<0>(markPos) + posOffsetX, std::get<1>(markPos) + posOffsetY);
+
 		*expoOffset = motions.EstimateExpoOffset(centerCam,std::get<0>(markPos), std::get<1>(markPos));
 		expoOffset->srcFid = mark;
 	}

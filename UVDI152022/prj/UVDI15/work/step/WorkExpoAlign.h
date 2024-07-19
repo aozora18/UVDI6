@@ -54,7 +54,7 @@ public:
 
 
 
-	void SetAlignMode();
+	bool SetAlignMode();
 
 	
 	static const int endPointPair = 3;

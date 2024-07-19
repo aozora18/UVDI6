@@ -1772,7 +1772,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		if (grab == nullptr)
 			return ENG_JWNS::en_error;
 
-		if (grab->marked == false)
+		if (grab->marked == 0)
 			return ENG_JWNS::en_error;
 
 		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f",(isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
@@ -1978,7 +1978,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			for (int i = 0; i < grabPtr->GetCount(); i++)
 			{
 				auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
-				if (grab != nullptr && grab->fiducialMarkIndex == markTgt && (pstGrab->reserve && matchingFlags) == matchingFlags)
+				if (grab != nullptr && grab->fiducialMarkIndex == markTgt && (grab->reserve && matchingFlags) == matchingFlags)
 					return grab;
 			}
 			return nullptr;
@@ -2693,7 +2693,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, int* camNum)
 	{
 		/* 오로지 Global Mark 4 Point만 존재하는 경우에만 해당 됨 */
 		if (mode && uvEng_GetConfig()->set_align.use_invalid_mark_cali &&
-			uvEng_Luria_IsMarkGlobal() && !uvEng_Luria_IsMarkLocal())
+			uvEng_Luria_IsMarkGlobal() && !uvEng_Luria_IsMarkLocal() )
 		{
 			/* 잘못 인식된 마크를 수동으로 설정하기 위해 */
 			CDlgMmpm dlgMmpm;

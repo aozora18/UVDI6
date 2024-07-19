@@ -25,6 +25,7 @@ UINT64					g_u64JobWorkTime		= 0;		/* 현재 동작 중인 작업 시간 갱신 
 CAtlList <UINT64>		g_lstJobWorkTime;					/* 가장 최근에 발생된 작업 시간 저장 */
 DOUBLE					g_dbWorkStepRate		= 0.0f;		/* 전체 작업 단계 진행률 */
 PTCHAR					g_ptzWorkStepName		= NULL;
+PTCHAR					optionalWorkstepText = NULL;
 MarkoffsetInfo			markoffset;
 CMySection				g_syncJobWorkTime;
 
@@ -92,6 +93,7 @@ VOID ClosedSharedMemory()
 
 	/* 작업 이름 메모리 해제 */
 	if (g_ptzWorkStepName)	::Free(g_ptzWorkStepName);
+	delete optionalWorkstepText;
 }
 
 /*
@@ -114,6 +116,8 @@ BOOL OpenSharedMemory(ENG_ERVM e_mode)
 	ASSERT(g_ptzWorkStepName);
 	wmemset(g_ptzWorkStepName, 0x00, WORK_NAME_LEN);
 
+	optionalWorkstepText = new TCHAR[WORK_NAME_LEN];
+	wmemset(optionalWorkstepText, 0x00, WORK_NAME_LEN);
 	/* Config */
 	g_pMemConf	= new CMemConf(bIsEngine);
 	ASSERT(g_pMemConf);
@@ -1202,14 +1206,43 @@ API_EXPORT BOOL uvEng_IsEngineWarn()
  parm : name	- [in]  작업 (STEP 포함) 이름
  retn : None
 */
-API_EXPORT VOID uvEng_SetWorkStepName(PTCHAR name)
+API_EXPORT VOID uvEng_SetWorkOptionalText(PTCHAR text)
 {
-	INT32 i32Len	= (INT32)wcslen(name);
+
+	if (text == nullptr)
+	{
+		optionalWorkstepText[0] = 0x00;
+		return;
+	}
+
+	INT32 i32Len	= (INT32)wcslen(text);
 	
 	if (i32Len >= WORK_NAME_LEN)	i32Len = WORK_NAME_LEN-1;
-	wcscpy_s(g_ptzWorkStepName, WORK_NAME_LEN, name);
-	g_ptzWorkStepName[i32Len]	= 0x00;
+	wcscpy_s(optionalWorkstepText, WORK_NAME_LEN, text);
+	optionalWorkstepText[i32Len]	= 0x00;
 }
+
+API_EXPORT PTCHAR uvEng_GetWorkOptionalText()
+{
+	return  optionalWorkstepText;
+}
+
+API_EXPORT VOID uvEng_SetWorkStepName(PTCHAR name)
+{
+
+	if (name == nullptr)
+	{
+		g_ptzWorkStepName[0] = 0x00;
+		return;
+	}
+
+	INT32 i32Len = (INT32)wcslen(name);
+
+	if (i32Len >= WORK_NAME_LEN)	i32Len = WORK_NAME_LEN - 1;
+	wcscpy_s(g_ptzWorkStepName, WORK_NAME_LEN, name);
+	g_ptzWorkStepName[i32Len] = 0x00;
+}
+
 
 /*
  desc : 현재 작업 이름 반환

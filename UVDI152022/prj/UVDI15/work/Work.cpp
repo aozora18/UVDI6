@@ -28,6 +28,7 @@ CWork::CWork()
 {
 	m_enWorkJobID	= ENG_BWOK::en_work_none;
 	aborted.store(false);
+	uvEng_SetWorkOptionalText(nullptr);
 }
 
 /*
@@ -123,8 +124,14 @@ VOID CWork::SetWorkName()
 */
 VOID CWork::EndWork()
 {
+	if (CWork::GetAbort())
+	{
+		uvEng_SetWorkOptionalText(L", job cancled by user request.");
+	}
+
 	SaveWorkLogs(CWork::GetAbort() ? L"job cancled by user request." : L"The job has ended");
 	/* 작업 완료 시간 갱신 */
+
 	uvEng_SetJobWorkInfo(UINT8(m_enWorkJobID), GetTickCount64() - m_u64StartTime);
 
 	uvEng_Mvenc_ReqTriggerStrobe(FALSE);

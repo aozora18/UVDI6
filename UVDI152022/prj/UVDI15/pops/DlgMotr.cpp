@@ -923,6 +923,9 @@ void CDlgMotr::OnGrdClickedEvent(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult
 {
 	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
 	int nCommand = ID - IDC_GRD_MOTOR;
+	
+	if (pItem == nullptr || pItem->iRow == -1 || pItem->iColumn == -1)
+		return;
 
 	switch (nCommand)
 	{

@@ -116,7 +116,7 @@ VOID CWorkMarkTest::DoWork()
 	}
 	catch (const std::exception&)
 	{
-
+		CWork::EndWork();
 	}
 	
 }
@@ -170,7 +170,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 	bool refind = refindMotion.IsUseRefind();
 	
 	
-
 	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
 	vector<function<void()>> stepWork =
 	{
@@ -343,8 +342,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 						motions.Refresh();
 
-
-
 						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 							throw exception();
 
@@ -396,7 +393,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 							{
 								//!!!!!!!!!!!!!차후 엣지디텍션을 이용해야할경우 여기에서 처리하면 됨.!!!!!!!!!!!!!!
 								//일단 못찾았으면 바로 캔슬. 
-								throw exception();
+								//throw exception();
 							}
 						}
 						else
@@ -512,24 +509,13 @@ void CWorkMarkTest::DoAlignStaticCam()
 		[&]()
 		{
 			int representCount = offsetPool[OffsetType::refind].size();
-			
-			//자 이제 expo err 값 산출. 
-			//이 값을 이용해서 전체적으로 데이터 변경해줘야한다. 
 
-			/*
-			refind에서 깐다.
-			refind에서 부족분은 grab에서 깐다. 
-			최종적으로 refind + grab + align를 최종 align offset으로 적용하고 
-			해당 거버 좌표에서 expo를 가져와서 다시 합산한다. 
-			*/
-
-			
-			CaliPoint expoCali,grabCali;
+			CaliPoint expoCali, grabCali;
 
 			if (representCount > 2)
-			try
+				try
 			{
-				double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
+				double mark1RefindX = 0, mark1RefindY = 0, mark2RefindX = 0, mark2RefindY = 0; //POOL 넣기전에 처리해야한다. 
 				double mark1GrabX, mark1GrabY, mark2GrabX, mark2GrabY;
 				double mark1SumX, mark1SumY, mark2SumX, mark2SumY;
 
@@ -537,6 +523,15 @@ void CWorkMarkTest::DoAlignStaticCam()
 				mark1RefindY = offsetPool[OffsetType::refind][MARK1].offsetY;
 				mark2RefindX = offsetPool[OffsetType::refind][MARK2].offsetX;
 				mark2RefindY = offsetPool[OffsetType::refind][MARK2].offsetY;
+
+				if (mark1RefindX == 0 &&
+					mark1RefindY == 0 &&
+					mark2RefindX == 0 &&
+					mark2RefindY == 0)
+				{
+					m_enWorkState = ENG_JWNS::en_next;
+					return;
+				}
 
 				mark1GrabX = offsetPool[OffsetType::refind][MARK1].suboffsetX;
 				mark1GrabY = offsetPool[OffsetType::refind][MARK1].suboffsetY;
@@ -551,36 +546,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 				auto xShiftGab = ((mark1SumX + mark2SumX) / 2.0f);
 				auto yShiftGab = ((mark1SumY + mark2SumY) / 2.0f);
 
-				xShiftGab = fabs(xShiftGab) >= 1.3f ? xShiftGab : 0;
-				yShiftGab = fabs(yShiftGab) >= 1.3f ? yShiftGab : 0;
-
 				motions.markParams.SetExpoShiftValue(xShiftGab, yShiftGab);
 				m_enWorkState = SetExposeStartXY(&xShiftGab, &yShiftGab);
 
-				//for (int i = 0; i < representCount; i++)
-				//{
-				//	auto refind = offsetPool[OffsetType::refind][i];
-				//	
-				//	auto align = std::find_if(offsetPool[OffsetType::align].begin(), offsetPool[OffsetType::align].end(), [&](const CaliPoint& v) { return v.srcFid.org_id == refind.srcFid.org_id; });
-				//	if (align == offsetPool[OffsetType::align].end()) 
-				//		throw exception();
-
-				//	//CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, refind.srcFid, nullptr,&expoCali, xShiftGab, yShiftGab);
-
-				//	//offsetPool[OffsetType::expo].push_back(expoCali);
-
-				//	////auto tempSumX = ((refind.offsetX - refind.suboffsetX) - xShiftGab) + align->offsetX + expoCali.offsetX; //<-합산 
-				//	////auto tempSumY = ((refind.offsetY - refind.suboffsetY) - yShiftGab) + align->offsetY + expoCali.offsetY; //<-합산 
-
-				//	//auto tempGraboffsetX = ((refind.offsetX - refind.suboffsetX) - xShiftGab); //최종 그랩옵셋 
-				//	//auto tempGraboffsetY = ((refind.offsetY - refind.suboffsetY) - yShiftGab); //최종 그랩옵셋
-
-				//	//grabCali = refind;
-				//	//grabCali.offsetX = tempGraboffsetX;
-				//	//grabCali.offsetY = tempGraboffsetY;
-
-				//	//offsetPool[OffsetType::grab].push_back(grabCali);
-				//}
 			}
 			catch (...)
 			{
@@ -683,7 +651,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	case 0x05: 
 	{
 		
-		m_enWorkState = SetAlignMovingInit();
+		m_enWorkState = SetAlignMovingInit();								break;
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
 	case 0x06: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
@@ -850,6 +818,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 
 		SaveExpoResult(0x00);
 		m_u8StepIt = 0x01;
+		Sleep(3000);
 		//m_enWorkState = ENG_JWNS::en_error;
 
 		if (++m_u32ExpoCount != m_stExpoLog.expo_count)

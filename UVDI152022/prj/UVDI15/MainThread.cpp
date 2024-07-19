@@ -440,6 +440,9 @@ VOID CMainThread::UpdateWorkName()
 			swprintf_s(tzWork, WORK_NAME_LEN, L"[%s] %s : Completed", ptzState, tzName);
 		}
 	}
+
+	swprintf_s(tzWork, WORK_NAME_LEN, L"%s %s", tzWork, uvEng_GetWorkOptionalText());
+
 	uvEng_SetWorkStepName(tzWork);
 }
 

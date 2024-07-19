@@ -86,11 +86,18 @@ VOID CWorkExpoAlign::DoWork()
 }
 
 
-void CWorkExpoAlign::SetAlignMode()
+bool CWorkExpoAlign::SetAlignMode()
 {
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	
+
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
+
+	if (alignMotion == ENG_AMOS::none || aligntype == ENG_ATGL::en_global_0_local_0x0_n_point)
+		return FALSE;
+
 	const int INIT_STEP = 0;
 	alignCallback[alignMotion][INIT_STEP]();
 	
@@ -644,8 +651,6 @@ void CWorkExpoAlign::DoAlignStaticCam()
 						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 						motions.Refresh();
 
-
-
 						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 							throw exception();
 
@@ -697,7 +702,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 							{
 								//!!!!!!!!!!!!!차후 엣지디텍션을 이용해야할경우 여기에서 처리하면 됨.!!!!!!!!!!!!!!
 								//일단 못찾았으면 바로 캔슬. 
-								throw exception();
+								//throw exception();
 							}
 						}
 						else
@@ -830,7 +835,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				if (representCount > 2)
 				try
 				{
-					double mark1RefindX, mark1RefindY, mark2RefindX, mark2RefindY; //POOL 넣기전에 처리해야한다. 
+					double mark1RefindX=0, mark1RefindY = 0, mark2RefindX = 0, mark2RefindY = 0; //POOL 넣기전에 처리해야한다. 
 					double mark1GrabX, mark1GrabY, mark2GrabX, mark2GrabY;
 					double mark1SumX, mark1SumY, mark2SumX, mark2SumY;
 
@@ -838,6 +843,15 @@ void CWorkExpoAlign::DoAlignStaticCam()
 					mark1RefindY = offsetPool[OffsetType::refind][MARK1].offsetY;
 					mark2RefindX = offsetPool[OffsetType::refind][MARK2].offsetX;
 					mark2RefindY = offsetPool[OffsetType::refind][MARK2].offsetY;
+
+					if (mark1RefindX == 0 &&
+						mark1RefindY == 0 &&
+						mark2RefindX == 0 &&
+						mark2RefindY == 0)
+					{
+						m_enWorkState = ENG_JWNS::en_next;
+						return;
+					}
 
 					mark1GrabX = offsetPool[OffsetType::refind][MARK1].suboffsetX;
 					mark1GrabY = offsetPool[OffsetType::refind][MARK1].suboffsetY;
@@ -861,7 +875,6 @@ void CWorkExpoAlign::DoAlignStaticCam()
 					m_enWorkState = ENG_JWNS::en_error;
 					return;
 				}
-				
 			},
 			[&]()
 			{

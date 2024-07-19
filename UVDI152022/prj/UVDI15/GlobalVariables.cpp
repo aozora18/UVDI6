@@ -1114,10 +1114,10 @@ void RefindMotion::UpdateParamValues()
 {
 	auto& align = uvEng_GetConfig()->set_align;
 
-	useRefind = align.useRefind;
-	stepSizeX = align.refindOffsetX;
-	stepSizeY = align.refindOffsetY;
-	refindCnt = align.refindCnt;
+	this->useRefind = align.useRefind;
+	this->stepSizeX = align.refindOffsetX;
+	this->stepSizeY = align.refindOffsetY;
+	this->refindCnt = align.refindCnt;
 }
 
 
@@ -1152,7 +1152,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 	{
 		try
 		{
-			if (CWork::GetAbort() == false)
+			if (CWork::GetAbort())
 				throw exception();
 
 			auto targetAxis = (*step & XAXIS) != 0 ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;

@@ -250,6 +250,9 @@ API_IMPORT BOOL uvEng_IsEngineWarn();
  retn : None
 */
 API_IMPORT VOID uvEng_SetWorkStepName(PTCHAR name);
+API_IMPORT VOID uvEng_SetWorkOptionalText(PTCHAR text);
+API_IMPORT PTCHAR uvEng_GetWorkOptionalText();
+
 /*
  desc : 현재 작업 이름 반환
  parm : None

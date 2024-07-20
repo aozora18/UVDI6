@@ -399,7 +399,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 							//}
 						}
 
-						offsetPool[OffsetType::align].push_back(alignOffset);
+						//offsetPool[OffsetType::align].push_back(alignOffset);
 						
 						grabMarkPath.erase(currPath);
 

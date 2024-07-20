@@ -675,7 +675,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 6um_Acc_Coord_Ring_D13
+RECIPE_NAME= 6um_onlyGlb_MGlass
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -1747,8 +1747,8 @@ CALIB_CAM_Z =3.699
 THC_LOG_LOCATION = \\100.100.100.118\thc_machine\THC_MACHINE
 
 [REFIND]
-USE_REFIND = 1
+USE_REFIND = 0
 MOVE_OFFSET_X = 2
 MOVE_OFFSET_Y = 2
 RETRY_COUNT = 1
-
+THREASHOLD_DIST = 1.3

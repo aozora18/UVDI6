@@ -608,29 +608,29 @@ VOID CDlgMmpm::MoveCenter(UINT8 type)
 			m_pstGrab->mark_cent_px_y -= step;
 			m_ptCenter.y -= step;
 		}
-
-		/* 값 재설정 */
-		m_pstGrab->move_px_x = -(m_pstGrab->grab_width / 2.0f - m_pstGrab->mark_cent_px_x);
-		m_pstGrab->move_px_y = -(m_pstGrab->grab_height / 2.0f - m_pstGrab->mark_cent_px_y);
-		/* Convert pixel to mm */
-		m_pstGrab->move_mm_x = m_pstGrab->move_px_x * dbPixelSize;
-		m_pstGrab->move_mm_y = m_pstGrab->move_px_y * dbPixelSize;
-		m_pstGrab->mark_cent_mm_x = m_pstGrab->mark_cent_px_x * dbPixelSize;
-		m_pstGrab->mark_cent_mm_y = m_pstGrab->mark_cent_px_y * dbPixelSize;
-		/* GMFR Data */
-		stGMFR.score_rate = 100.0f;
-		stGMFR.scale_rate = 100.0f;
-		stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
-		stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
-		/* GMSR Data */
-		stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
-		stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
-		stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
-		stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
-		stGMSR.valid_multi = 0x01;
-		stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
-
 	}
+
+
+	/* 값 재설정 */
+	m_pstGrab->move_px_x = -(m_pstGrab->grab_width / 2.0f - m_pstGrab->mark_cent_px_x);
+	m_pstGrab->move_px_y = -(m_pstGrab->grab_height / 2.0f - m_pstGrab->mark_cent_px_y);
+	/* Convert pixel to mm */
+	m_pstGrab->move_mm_x = m_pstGrab->move_px_x * dbPixelSize;
+	m_pstGrab->move_mm_y = m_pstGrab->move_px_y * dbPixelSize;
+	m_pstGrab->mark_cent_mm_x = m_pstGrab->mark_cent_px_x * dbPixelSize;
+	m_pstGrab->mark_cent_mm_y = m_pstGrab->mark_cent_px_y * dbPixelSize;
+	/* GMFR Data */
+	stGMFR.score_rate = 100.0f;
+	stGMFR.scale_rate = 100.0f;
+	stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
+	stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
+	/* GMSR Data */
+	stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
+	stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
+	stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
+	stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
+	stGMSR.valid_multi = 0x01;
+	stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
 	
 	/* --------------------------- */
 	/* 강제로 값이 유효하다고 설정 */

@@ -2698,7 +2698,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 	/* 검색된 마크가 유효한지 확인 */
 	// by sysandj : 변수없음(수정)
 	if (pstRecipeAlign)	bMultiMark	= pstRecipeAlign->search_type == (UINT8)ENG_MMSM::en_multi_only;		//search_type
-	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept,camNum) || true)
+	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept,camNum))
 	{
 		/* 오로지 Global Mark 4 Point만 존재하는 경우에만 해당 됨 */
 		if (mode && uvEng_GetConfig()->set_align.use_invalid_mark_cali &&

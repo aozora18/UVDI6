@@ -491,15 +491,15 @@ void CWorkMarkTest::DoAlignStaticCam()
 		[&]()
 		{
 			CaliPoint expoOffset, grabOffset,alignOffset;
-			double expoOffsetX = 0, expoOffsetY = 0;
-			motions.markParams.GetExpoShiftValue(expoOffsetX, expoOffsetY);
+			double expoStartOffsetX = 0, expoStartOffsetY = 0;
+			motions.markParams.GetExpoShiftValue(expoStartOffsetX, expoStartOffsetY);
 
 			for (auto v : offsetPool[OffsetType::refind])
 			{
 				grabOffset = v;
 
-				grabOffset.offsetX = Stuffs::CutEpsilon(expoOffsetX - (v.offsetX - v.suboffsetX));
-				grabOffset.offsetY = Stuffs::CutEpsilon(expoOffsetY - (v.offsetY - v.suboffsetY));
+				grabOffset.offsetX = Stuffs::CutEpsilon(expoStartOffsetX - (v.offsetX - v.suboffsetX));
+				grabOffset.offsetY = Stuffs::CutEpsilon(expoStartOffsetY - (v.offsetY - v.suboffsetY));
 
 				offsetPool[OffsetType::grab].push_back(grabOffset); //일단 grab옵셋을 추가. 
 
@@ -508,10 +508,10 @@ void CWorkMarkTest::DoAlignStaticCam()
 				if(uvEng_GetConfig()->set_align.use_2d_cali_data == false)
 					continue;
 
-				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX, v.offsetY);
-				uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, alignOffset.offsetX, alignOffset.offsetY);
+				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX , v.offsetY);
+				uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, alignOffset.offsetX * -1.0f, alignOffset.offsetY * -1.0f);
 				offsetPool[OffsetType::align].push_back(alignOffset); //얼라인 옵셋을 추가. 
-				uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
+				//uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
 
 				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, v.offsetX, v.offsetY);				
 				offsetPool[OffsetType::expo].push_back(expoOffset);   //익스포 옵셋을 추가. 

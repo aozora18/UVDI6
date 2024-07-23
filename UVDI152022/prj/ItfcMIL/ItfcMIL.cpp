@@ -1936,6 +1936,7 @@ API_EXPORT VOID uvMIL_SetAlignMode(ENG_AOEM mode)
 */
 API_EXPORT BOOL uvMIL_SaveGrabbedToFile(PTCHAR file, INT32 width, INT32 height, PUINT8 image)
 {
+	return TRUE;
 	// if (!g_pMilMain)	return FALSE;
 	return theApp.clMilMain.SaveGrabbedToFile(file, width, height, image);
 }

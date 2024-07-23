@@ -509,12 +509,23 @@ void CWorkMarkTest::DoAlignStaticCam()
 					continue;
 
 				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX , v.offsetY);
-				uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, alignOffset.offsetX * -1.0f, alignOffset.offsetY * -1.0f);
 				offsetPool[OffsetType::align].push_back(alignOffset); //얼라인 옵셋을 추가. 
-				//uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-
+				
 				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, v.offsetX, v.offsetY);				
 				offsetPool[OffsetType::expo].push_back(expoOffset);   //익스포 옵셋을 추가. 
+
+
+				switch (m_stExpoLog.includeAddAlignOffset)
+				{
+					case 1:
+						uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, alignOffset.offsetX * -1.0f, alignOffset.offsetY * -1.0f);
+					break;
+
+					case 2:
+						uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, (alignOffset.offsetX + (expoOffset.offsetX -  alignOffset.offsetX)) * -1.0f,
+																		 (alignOffset.offsetY + (expoOffset.offsetY  - alignOffset.offsetY)) * -1.0f);
+					break;
+				}
 			}
 
 			m_enWorkState = ENG_JWNS::en_next;

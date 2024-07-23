@@ -359,7 +359,7 @@ PH_OFFSET_Y_2	= -0.027050
 
 ; 노광 시작 위치 (기본:X10, Y56)
 
-TABLE_EXPO_START_X_1  	= 125.4339
+TABLE_EXPO_START_X_1  	= 125.434
 TABLE_EXPO_START_Y_1  	= 139.462
 
 
@@ -675,7 +675,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 6um__MasterGlass1
+RECIPE_NAME= 6um_onlyGlb_MGlass
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -809,7 +809,7 @@ CAM7_SAFETY_POS= 0.0000
 
 CAM_1_GAIN_LEVEL    = 80
 CAM_2_GAIN_LEVEL    = 50
-CAM_3_GAIN_LEVEL    = 80
+CAM_3_GAIN_LEVEL    = 10
 
 ;film - CAM1 180, CAM2 120
 
@@ -1395,8 +1395,8 @@ ACAM_Z_FOCUS_3= 0.0000
 
 [PH_FOCUS]
 
-EXPO_STAGE_X            = 15.1806
-EXPO_STAGE_Y            = 51.8475
+EXPO_STAGE_X            = 15.181
+EXPO_STAGE_Y            = 51.847
 MARK_STAGE_X            = 159.0000
 MARK_STAGE_Y            = 750.0000
 MARK_ACAM1_X            = 434.4485

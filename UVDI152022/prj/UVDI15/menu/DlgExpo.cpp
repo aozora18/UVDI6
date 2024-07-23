@@ -707,7 +707,7 @@ VOID CDlgExpo::MoveCheckMarkNo()
 			stExpo.move_ph = dlgRept.IsMovingPH() ? 0x01 : 0x00;
 			
 	}
-		stExpo.includeAddAlignOffset = flag;
+		stExpo.includeAddAlignOffset = includeAlignOffset;
 		m_pDlgMain->RunWorkJob(ENG_BWOK::en_mark_test, PUINT64(&stExpo));
 	}
 

@@ -904,8 +904,8 @@ public:
 	map<int, string> nameTag =
 	{
 		{(int)ENG_AMOS::en_onthefly_2cam , "ontheFly Sidecam"},
-		{(int)ENG_AMOS::en_onthefly_3cam , "ontheFly Centercam"},
-		{(int)ENG_AMOS::en_static_2cam , "Static Sidecam"},
+//		{(int)ENG_AMOS::en_onthefly_3cam , "ontheFly Centercam"},
+//		{(int)ENG_AMOS::en_static_2cam , "Static Sidecam"},
 		{(int)ENG_AMOS::en_static_3cam , "Static CenterCam"},
 	};
 

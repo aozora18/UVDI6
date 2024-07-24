@@ -1978,7 +1978,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			for (int i = 0; i < grabPtr->GetCount(); i++)
 			{
 				auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
-				if (grab != nullptr && grab->fiducialMarkIndex == markTgt && (grab->reserve && matchingFlags) == matchingFlags)
+				if (grab != nullptr && grab->fiducialMarkIndex == markTgt && (grab->reserve & matchingFlags) == matchingFlags)
 					return grab;
 			}
 			return nullptr;
@@ -2096,7 +2096,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			}
 		}
 
-		if (!IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
+		if (IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
 		{
 			for (i = 0; i < u8MarkL; i++)
 			{
@@ -2155,63 +2155,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				}
 			}
 		}
-
-		
-#if(0)
-		if (bSucc)
-		{
-			/* 측정 오차 값이 적용된 마크 넓이 / 높이 값 임시 저장 */
-			if (u8MarkG == 0x04)
-			{
-				u32MarkDist = 0;
-				for (i = 0; i < CrossLengthCount; i++)
-				{
-					stMarkPos1 = lstMarks.GetAt(lstMarks.FindIndex(u8Reg1[i]));
-					stMarkPos2 = lstMarks.GetAt(lstMarks.FindIndex(u8Reg2[i]));
-
-					/* mm -> 0.1 um or 100 nm */
-					i32DistT[i] = (INT32)ROUNDED(sqrt(pow(stMarkPos1.mark_x - stMarkPos2.mark_x, 2) +
-						pow(stMarkPos1.mark_y - stMarkPos2.mark_y, 2)) * 10000.0f, 0);
-					u32MarkDist = (UINT32)abs(i32DistS[i] - i32DistT[i]);
-					//u32MarkDist = uvEng_Camera_GetGrabbedMarkDist((ENG_GMDD)i) * 1000.0f;
-					u8MarkLen[i] = u32MarkDist <= (pstRecipe->global_mark_dist[i] * 10) ? 0x01 : 0x02;
-					//u8MarkLen[i] = u32MarkDist <= (pstRecipe->global_mark_dist[i]) ? 0x01 : 0x02;
-					pstMarkDiff->SetMarkLenDiff(i, u32MarkDist);
-					pstMarkDiff->SetMarkLenValid(i, u8MarkLen[i]);	/* Mark 간의 간격 (대각선 포함)에 대해 유효성 설정 (상/하 수평선, 좌/우 수직선, 대각선 2개 = 총 6개 */
-				}
-			}
-			swprintf_s(tzMsg, 256, L"Limit Dist = %d, %d, %d, %d, %d, %d",
-				pstRecipe->global_mark_dist[0], pstRecipe->global_mark_dist[1], pstRecipe->global_mark_dist[2],
-				pstRecipe->global_mark_dist[3], pstRecipe->global_mark_dist[4], pstRecipe->global_mark_dist[5]);
-			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-
-			swprintf_s(tzMsg, 256, L"Result Dist = %.1f, %.1f, %.1f, %.1f, %.1f, %.1f",
-				pstMarkDiff->result[0].diff * 100000.0f, pstMarkDiff->result[1].diff * 100000.0f, pstMarkDiff->result[2].diff * 100000.0f,
-				pstMarkDiff->result[3].diff * 100000.0f, pstMarkDiff->result[4].diff * 100000.0f, pstMarkDiff->result[5].diff * 100000.0f);
-			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
-
-
-			if (!pstMarkDiff->IsMarkLenValidAll())
-			{
-				bSucc = FALSE;
-				swprintf_s(tzMesg, 128, L"The distance between measured marks is not vald"
-					L"(1:%d)(2:%d)(3:%d)(4:%d)(5:%d)(6:%d)",
-					u8MarkLen[0], u8MarkLen[1], u8MarkLen[2], u8MarkLen[3],
-					u8MarkLen[4], u8MarkLen[5]);
-				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-			}
-			/* Mark들의 거리 및 간격 값 설정했다고 플래그 값 변경 */
-			pstMarkDiff->SetMarkLenData();
-
-			/*수평과 수직간의 오차가 제한값보다 크면 정지*/
-			//if (pstMarkDiff->HorzDiff(0.005) && pstMarkDiff->VertDiff(0.003))
-			if (pstMarkDiff->HorzDiff(pstSetAlign->mark_horz_diff) || pstMarkDiff->VertDiff(pstSetAlign->mark_vert_diff))
-			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"The distance Horz, Vert Error");
-				bSucc = FALSE;
-			}
-		}
-#endif
 
 	}
 

@@ -849,38 +849,52 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		{
 			m_enWorkState = IsAlignMarkRegist();
 		},
-			[&]()
-			{
-					m_enWorkState = SetPrePrinting();
-			},
-			[&]()
-			{
-					m_enWorkState = IsPrePrinted();
-			},
-			[&]()
-			{
-				m_enWorkState = SetPrinting();
-			},
-			[&]()
-			{
-				m_enWorkState = IsPrinted();	 
-			},
-			[&]()
-			{
-				m_enWorkState = SetWorkWaitTime(1000);
-			},
-			[&]()
-			{
-				m_enWorkState = IsWorkWaitTime();
-			},
-			[&]()
-			{
-				m_enWorkState = SetMovingUnloader();
-			},
-			[&]()
-			{
-				m_enWorkState = IsMovedUnloader();
-			},
+		
+		[&]()
+		{
+			m_enWorkState = SetMovingUnloader();
+		},
+		[&]()
+		{
+			m_enWorkState = IsMovedUnloader();
+		},
+		[&]()
+		{
+			this_thread::sleep_for(chrono::seconds(120));
+		},
+
+		[&]()
+		{
+			m_enWorkState = SetPrePrinting();
+		},
+		[&]()
+		{
+			m_enWorkState = IsPrePrinted();
+		},
+		[&]()
+		{
+			m_enWorkState = SetPrinting();
+		},
+		[&]()
+		{
+			m_enWorkState = IsPrinted();
+		},
+		[&]()
+		{
+			m_enWorkState = SetWorkWaitTime(1000);
+		},
+		[&]()
+		{
+			m_enWorkState = IsWorkWaitTime();
+		},
+		[&]()
+		{
+			m_enWorkState = SetMovingUnloader();
+		},
+		[&]()
+		{
+			m_enWorkState = IsMovedUnloader();
+		},
 	};
 
 	m_u8StepTotal = stepWork.size();

@@ -653,6 +653,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 		status.BufferClear();
 
+		if (alignType == ENG_ATGL::en_global_0_local_0x0_n_point || alignType == ENG_ATGL::en_not_defined)
+			return;
+
 		auto GenOntheFly2camFid = [&]()
 		{
 				int tempX = 0, tempY = 0;
@@ -701,8 +704,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				auto& pool = status.markPoolForCam[centercam];
 				auto flag = alignType == ENG_ATGL::en_global_4_local_0_point ? SearchFlag::global : SearchFlag::all;
 
-				if(flag == SearchFlag::global)
-					pool.insert(pool.end(), status.markList[ENG_AMTF::en_global].begin(), status.markList[ENG_AMTF::en_global].end());
+				pool.insert(pool.end(), status.markList[ENG_AMTF::en_global].begin(), status.markList[ENG_AMTF::en_global].end());
 				
 				if (flag == SearchFlag::all)
 					pool.insert(pool.end(), status.markList[ENG_AMTF::en_local].begin(), status.markList[ENG_AMTF::en_local].end());

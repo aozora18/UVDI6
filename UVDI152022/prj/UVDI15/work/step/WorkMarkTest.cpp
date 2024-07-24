@@ -244,7 +244,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				{
 					std::vector<STG_XMXY> filteredPath, offsetBuff;
 					std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
-								[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+								[&](const STG_XMXY& v) { return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
 
 					if (filteredPath.size() != PAIR)
 						throw exception();
@@ -256,7 +256,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						throw exception();
 
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(), 
-												[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+												[&](const STG_XMXY& v) {  return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
 					
 					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]), 
 					[&](STG_XMXY v)->CaliPoint 

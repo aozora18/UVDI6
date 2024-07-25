@@ -122,6 +122,20 @@ struct subOffset //참조용.
 
 struct CaliPoint : subOffset
 {
+	CaliPoint* SetError()
+	{
+		this->x = -1;
+		this->y = -1;
+		this->offsetX = -1;
+		this->offsetY = -1;
+		return this;
+	}
+
+	bool IsError()
+	{
+		return (this->x == -1 ||  this->y == -1 || this->offsetX == -1 || this->offsetY == -1);
+	}
+
 	CaliPoint(double x,
 		double y,
 		double offsetX,
@@ -531,8 +545,8 @@ public:
 
 	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000);
 
-	void GetOffsetsUseMarkPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
-	void GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
+	bool GetOffsetsUseMarkPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
+	bool GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
 	
 	LPG_ACGR GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF markType);
 

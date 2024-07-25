@@ -662,7 +662,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 								{
 
 									STG_XMXY temp = STG_XMXY(currPath->mark_x + grabOffsetX, currPath->mark_y + grabOffsetY);
-									CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset,nullptr, 0, 0); //<-에러옵셋 더해줘야함
+									if (CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset, nullptr, 0, 0) == false) //<-에러옵셋 더해줘야함
+										throw exception();
 
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, 0, 0, std::get<0>(grabOffset), std::get<1>(grabOffset) ,*currPath));
 
@@ -678,8 +679,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 									STG_XMXY temp = STG_XMXY(currPath->mark_x + std::get<0>(refindOffset) + std::get<0>(grabOffset),
 															 currPath->mark_y + std::get<1>(refindOffset) + std::get<1>(grabOffset));
 
-									CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset, nullptr, std::get<0>(refindOffset), std::get<1>(refindOffset)); //<-에러옵셋 더해줘야함
-
+									if (CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset, nullptr, std::get<0>(refindOffset), std::get<1>(refindOffset)) == false) //<-에러옵셋 더해줘야함
+										throw exception();
 
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset) , *currPath));
 
@@ -819,12 +820,22 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				if (uvEng_GetConfig()->set_align.use_2d_cali_data == false)
 					continue;
 
-				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX, v.offsetY);
+				if (CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX, v.offsetY) == false)
+				{
+					m_enWorkState = ENG_JWNS::en_error;
+					return;
+				}
+
 				uvEng_FixMoveOffsetUseMark(CENTER_CAM, v.srcFid, alignOffset.offsetX, alignOffset.offsetY);
 				offsetPool[OffsetType::align].push_back(alignOffset); //얼라인 옵셋을 추가. 
 				uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
 
-				CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, v.offsetX, v.offsetY);
+				if(CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, v.offsetX, v.offsetY) == false)
+				{
+					m_enWorkState = ENG_JWNS::en_error;
+					return;
+				}
+
 				offsetPool[OffsetType::expo].push_back(expoOffset);   //익스포 옵셋을 추가. 
 
 				

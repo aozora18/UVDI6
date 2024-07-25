@@ -2483,8 +2483,8 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
 	sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z2");
 	stSend.stMove[0].dPosition = dACamZAxisSet[0] / 10000.0f;
 	stSend.stMove[1].dPosition = dACamZAxisSet[1] / 10000.0f;
-	stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
-	stSend.stMove[1].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo;
+	stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo/2;
+	stSend.stMove[1].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo/2;
 	stSend.stMove[0].dAcc = 300;
 	stSend.stMove[1].dAcc = 300;
 

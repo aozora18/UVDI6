@@ -217,6 +217,10 @@ CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
 	bool fixX = x == -1 ? true : false;
 	bool fixY = y == -1 ? true : false;
 
+	if (points.front().x > x || points.front().y > y  ||
+		points.back().x <  x || points.back().y < y)
+		return *CaliPoint().SetError();
+
 	for (const auto& point : points)
 	{
 		x = fixX && x != point.x ? point.x : x; //소팅축 고정
@@ -299,6 +303,9 @@ CaliPoint CaliCalc::EstimateAlignOffset(int camIdx, double stageX = 0, double st
 	
 	CaliPoint stageOffset = Estimate(stageCaliData, stageX, stageY);
 	//CaliPoint camOffset = camIdx != STAGE_CALI_INDEX ? Estimate(camCaliData, camX, -1) : CaliPoint();
+
+	if (stageOffset.IsError())
+		throw exception();
 
 	stageOffset.offsetX = Stuffs::CutEpsilon(stageOffset.offsetX);
 	stageOffset.offsetY = Stuffs::CutEpsilon(stageOffset.offsetY);
@@ -1355,54 +1362,70 @@ LPG_ACGR CommonMotionStuffs::GetGrabPtr(int camIdx, int tgtMarkIdx, ENG_AMTF mar
 
 
 
-void CommonMotionStuffs::GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset, CaliPoint* expoOffset,double posOffsetX, double posOffsetY )
+bool CommonMotionStuffs::GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset, CaliPoint* expoOffset,double posOffsetX, double posOffsetY )
 {
-	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	string temp = "x" + std::to_string(centerCam);
-
-	auto markPos = mark.GetMarkPos();
-
-	if (alignOffset != nullptr)
+	try
 	{
-		motions.Refresh();
-		//실시간 좌표로 따지면 나중에 한번에 계산할수가 없다. 마크좌표 기준으로 스테이지 좌표를 역산하게해야한다. 
-		*alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos + posOffsetX, motions.GetAxises()["stage"]["y"].currPos + posOffsetY);
+		AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+		string temp = "x" + std::to_string(centerCam);
+
+		auto markPos = mark.GetMarkPos();
+
+		if (alignOffset != nullptr)
+		{
+			motions.Refresh();
+			//실시간 좌표로 따지면 나중에 한번에 계산할수가 없다. 마크좌표 기준으로 스테이지 좌표를 역산하게해야한다. 
+			*alignOffset = motions.EstimateAlignOffset(centerCam, motions.GetAxises()["stage"]["x"].currPos + posOffsetX, motions.GetAxises()["stage"]["y"].currPos + posOffsetY);
 			//motions.GetAxises()["stage"]["y"].currPos + posOffsetY); //,
 			//centerCam == 3 ? 0 : motions.GetAxises()["cam"][temp.c_str()].currPos);
-		
-		alignOffset->srcFid = mark;
-	}
 
-	if (expoOffset != NULL)
-	{
-		*expoOffset = motions.EstimateExpoOffset(centerCam,std::get<0>(markPos), std::get<1>(markPos));
-		expoOffset->srcFid = mark;
+			alignOffset->srcFid = mark;
+		}
+
+		if (expoOffset != NULL)
+		{
+			*expoOffset = motions.EstimateExpoOffset(centerCam, std::get<0>(markPos), std::get<1>(markPos));
+			expoOffset->srcFid = mark;
+		}
 	}
+	catch (...)
+	{
+		return false;
+	}
+	return true;
 }
 
 
-void CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, CaliPoint* alignOffset , CaliPoint* expoOffset, double posOffsetX, double posOffsetY)
+bool CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, CaliPoint* alignOffset , CaliPoint* expoOffset, double posOffsetX, double posOffsetY)
 {
-	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	
-	if (alignOffset != nullptr)
+	try
 	{
-		STG_XMXY stagePos;
-		mark.mark_x += posOffsetX; mark.mark_y += posOffsetY;
-		motions.GetStagePosUseGerberPos(centerCam, mark, stagePos);
+		AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
-		*alignOffset = motions.EstimateAlignOffset(centerCam, stagePos.mark_x, stagePos.mark_y);
-		alignOffset->srcFid = mark;
+		if (alignOffset != nullptr)
+		{
+			STG_XMXY stagePos;
+			mark.mark_x += posOffsetX; mark.mark_y += posOffsetY;
+			motions.GetStagePosUseGerberPos(centerCam, mark, stagePos);
+
+			*alignOffset = motions.EstimateAlignOffset(centerCam, stagePos.mark_x, stagePos.mark_y);
+			alignOffset->srcFid = mark;
+		}
+
+		if (expoOffset != NULL)
+		{
+			auto markPos = mark.GetMarkPos();
+			markPos = make_tuple(std::get<0>(markPos) + posOffsetX, std::get<1>(markPos) + posOffsetY);
+
+			*expoOffset = motions.EstimateExpoOffset(centerCam, std::get<0>(markPos), std::get<1>(markPos));
+			expoOffset->srcFid = mark;
+		}
 	}
-
-	if (expoOffset != NULL)
+	catch (...)
 	{
-		auto markPos = mark.GetMarkPos();
-		markPos = make_tuple(std::get<0>(markPos) + posOffsetX, std::get<1>(markPos) + posOffsetY);
-
-		*expoOffset = motions.EstimateExpoOffset(centerCam,std::get<0>(markPos), std::get<1>(markPos));
-		expoOffset->srcFid = mark;
+		return false;
 	}
+	return true;
 }
 
 bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout)

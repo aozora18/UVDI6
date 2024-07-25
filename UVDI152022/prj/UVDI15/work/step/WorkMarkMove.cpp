@@ -154,7 +154,11 @@ void CWorkMarkMove::DoMovingStatic3cam()
 			alignOffsetPos = CaliPoint(0, 0, 0, 0);
 			accumOffsets = CaliPoint(0, 0, 0, 0);
 			expoOffsetPos = CaliPoint(0, 0, 0, 0);
-			CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &alignOffsetPos, &expoOffsetPos);
+			if(CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTERCAM, markPos, &alignOffsetPos, &expoOffsetPos) == false)
+			{
+				m_enWorkState = ENG_JWNS::en_error;
+				return;
+			}
 			
 			accumOffsets = includeAlignOffset == 1 ?  alignOffsetPos  : 
 				includeAlignOffset == 2 ? alignOffsetPos + (expoOffsetPos - alignOffsetPos) : CaliPoint(0, 0, 0, 0);

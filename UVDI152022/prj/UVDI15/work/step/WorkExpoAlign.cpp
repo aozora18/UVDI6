@@ -850,6 +850,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			m_enWorkState = IsAlignMarkRegist();
 		},
 		
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		[&]()
 		{
 			m_enWorkState = SetMovingUnloader();
@@ -862,6 +863,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		{
 			this_thread::sleep_for(chrono::seconds(120));
 		},
+#endif
 
 		[&]()
 		{

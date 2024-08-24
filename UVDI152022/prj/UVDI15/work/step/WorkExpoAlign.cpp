@@ -8,7 +8,7 @@
 #include "WorkExpoAlign.h"
 #include "../../mesg/DlgMesg.h"
 #include "../../GlobalVariables.h"
-#include <fmt/core.h>
+//#include <fmt/core.h>
 #include <string>
 #include "../../stuffs.h"
 

@@ -11,7 +11,7 @@
 #include <atlstr.h>  // CString 및 변환 매크로를 사용하기 위해 필요
 #include <iostream>
 #include <string>
-#include <fmt/core.h>
+//#include <fmt/core.h>
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW

@@ -1,4 +1,4 @@
-`
+
 /*
  desc : Basler Camera SDK Interface
 */

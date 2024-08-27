@@ -230,6 +230,7 @@
     <ClInclude Include="param\Setting.h" />
     <ClInclude Include="param\SettingManager.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="pops\DlgGbrPreview.h" />
     <ClInclude Include="pops\DlgLoginAdmin.h" />
     <ClInclude Include="pops\DlgLoginMain.h" />
     <ClInclude Include="pops\DlgLoginManager.h" />
@@ -372,6 +373,7 @@
     </ClCompile>
     <ClCompile Include="MainApp.cpp" />
     <ClCompile Include="DlgMain.cpp" />
+    <ClCompile Include="pops\DlgGbrPreview.cpp" />
     <ClCompile Include="pops\DlgLoginAdmin.cpp" />
     <ClCompile Include="pops\DlgLoginMain.cpp" />
     <ClCompile Include="pops\DlgLoginManager.cpp" />

@@ -525,6 +525,9 @@
     <ClInclude Include="work\step\WorkEnvironCalib.h">
       <Filter>04.작업 파일\작업 이름</Filter>
     </ClInclude>
+    <ClInclude Include="pops\DlgGbrPreview.h">
+      <Filter>03.메뉴 파일\dlgs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -919,6 +922,9 @@
     </ClCompile>
     <ClCompile Include="work\step\WorkEnvironCalib.cpp">
       <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="pops\DlgGbrPreview.cpp">
+      <Filter>03.메뉴 파일\dlgs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

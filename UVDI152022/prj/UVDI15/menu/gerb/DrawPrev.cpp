@@ -427,7 +427,7 @@ int CDrawPrev::OnMouseClick(int x, int y, CRect winRect)
 		
 		//dlg로 띄워주면된다. 다른 엑션 못하게. 어으 구찮어증말.
 
-		return;
+		return -1;
 	}
 
 	lastClick = GetTickCount();

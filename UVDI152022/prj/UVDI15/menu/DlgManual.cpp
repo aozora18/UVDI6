@@ -1281,7 +1281,7 @@ VOID CDlgManual::OnLButtonDown(UINT32 nFlags, CPoint point)
 
 		if (rtPreview.PtInRect(point))
 		{
-			m_pDrawPrev->OnMouseClick(point.x - rtPreview.left, point.y - rtPreview.top);
+			m_pDrawPrev->OnMouseClick(point.x - rtPreview.left, point.y - rtPreview.top, rtPreview);
 			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
 			m_pDrawPrev->Draw();
 

@@ -13,7 +13,8 @@ public:
 
 /* 열거형 변수 */
 protected:
-
+	bool yFlip = true;
+	bool xFlip = false;
 
 /* 로컬 변수 */
 protected:
@@ -36,6 +37,9 @@ protected:
 	std::vector < STG_MARK > m_vGlobalMark;
 	std::vector < STG_MARK > m_vLocalMark;
 
+
+
+
 /* 로컬 함수 */
 protected:
 
@@ -54,8 +58,8 @@ public:
 #else
 	VOID				Draw();
 #endif
-
-	int					OnMouseClick(int x, int y);
+	DWORD lastClick = GetTickCount();
+	int					OnMouseClick(int x, int y,CRect winRect);
 	int					GetSelectGlobalMark() 
 	{ 
 		return m_nSelectGlobalMark; 

@@ -122,8 +122,12 @@ VOID CDrawPrev::Draw()
 	hDC	= ::GetDC(m_hDraw);
 	if (hDC && m_hMemDC)
 	{
-		::BitBlt(hDC, m_rDraw.left, m_rDraw.top, m_rDraw.right, m_rDraw.bottom,
-				 m_hMemDC, 0, 0, SRCCOPY);
+		StretchBlt(hDC, m_rDraw.left, m_rDraw.top, m_rDraw.right, m_rDraw.bottom, m_hMemDC, xFlip ? m_rDraw.right - 1 : 0,
+																							yFlip ? m_rDraw.bottom -1 : 0 , 
+																							xFlip ? -m_rDraw.right : m_rDraw.right,
+																							yFlip ? -m_rDraw.bottom : m_rDraw.bottom, SRCCOPY);
+
+		
 		::ReleaseDC(m_hDraw, hDC);	/* DC 핸들 해제 */
 	}
 }
@@ -413,9 +417,38 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	::ReleaseDC(m_hDraw, hDC);
 }
 
-int CDrawPrev::OnMouseClick(int x, int y)
+int CDrawPrev::OnMouseClick(int x, int y, CRect winRect)
 {
 	POINT point;
+	double clickThreshold = 800;
+	if (GetTickCount() - lastClick < clickThreshold)
+	{
+		bool dblClk = true;
+		
+		//dlg로 띄워주면된다. 다른 엑션 못하게. 어으 구찮어증말.
+
+		return;
+	}
+
+	lastClick = GetTickCount();
+
+
+
+	if (yFlip) //지랄도 이런 지랄이 없네.
+	{
+		int minY = std::min_element(m_vGlobalMark.begin(), m_vGlobalMark.end(), [](const STG_MARK& a, const STG_MARK& b)
+			{
+				return a.rtArea.top < b.rtArea.top;
+			})->rtArea.top;
+
+		INT maxY = std::max_element(m_vGlobalMark.begin(), m_vGlobalMark.end(), [](const STG_MARK& a, const STG_MARK& b)
+			{
+				return a.rtArea.bottom < b.rtArea.bottom;
+			})->rtArea.bottom;
+
+		y = maxY - (y - minY);
+	}
+
 	point.x = x;
 	point.y = y;
 	BOOL bFind = FALSE;

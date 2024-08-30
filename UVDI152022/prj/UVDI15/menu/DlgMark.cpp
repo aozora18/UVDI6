@@ -3641,8 +3641,8 @@ VOID CDlgMark::UpdataStrobeView()
 			}
 			else if (3 == nRow)
 			{
-				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + 1 + vColSize.size()];
-				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + 1 + vColSize.size()]);
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol + pGrid->GetColumnCount() + 1];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16BufferValue[nCol + pGrid->GetColumnCount() + 1]);
 
 			}
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
@@ -3676,7 +3676,7 @@ VOID CDlgMark::setStrobeValue()
 
 	UINT16 recvStrobeValues[8];
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-	GlobalVariables::getInstance()->ResetCounter("strobeRecved");
+	GlobalVariables::GetInstance()->ResetCounter("strobeRecved");
 	/*Cam1*/
 	uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0] = (UINT16)pGrid->GetItemTextToInt(1, 0);
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[0]);
@@ -3699,10 +3699,10 @@ VOID CDlgMark::setStrobeValue()
 	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[6]);
 	Sleep(100);
 
-	GlobalVariables::getInstance()->Waiter("strobe",
+	GlobalVariables::GetInstance()->Waiter("strobe",
 		[]
 		{
-			return GlobalVariables::getInstance()->GetCount("strobeRecved") == 6;
+			return GlobalVariables::GetInstance()->GetCount("strobeRecved") == 6;
 		},
 		[]
 		{
@@ -3710,7 +3710,7 @@ VOID CDlgMark::setStrobeValue()
 		},
 		[&]
 		{
-			std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::getInstance()->GetCount("strobeRecved")) + L"\t";
+			std::wstring info = L"Write timeout. send = 6, receive = " + std::to_wstring(GlobalVariables::GetInstance()->GetCount("strobeRecved")) + L"\t";
 			MessageBoxEx(nullptr, info.c_str(), _T("failed"), MB_OK, LANG_ENGLISH);
 		}
 	);

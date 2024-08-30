@@ -60,10 +60,11 @@ RUN_ENGINE_MONITOR      = 0
 RUN_MATERIAL_DETECT     = 0
 LOG_FILE_SAVED          = 1
 GRAB_MARK_SAVED         = 1
-STROBE_LAMP_TYPE        = 1
+STROBE_LAMP_TYPE        = 0
 ALIGN_CAMERA_KIND       = 1
 ALL_ALARM_IGNORE        = 1
 ALL_WARN_IGNORE         = 0
+USE_AUTO_ALIGN			= 1
 
 COMM_LOG_OPTIC          = 0
 COMM_LOG_MC2            = 0
@@ -74,7 +75,8 @@ COMM_LOG_PM100D         = 0
 COMM_LOG_LITHO          = 0
 
 MESG_BOX_OPTIC          = 1
-LOG_FILE_TYPE= 0
+LOG_FILE_TYPE = 0
+USE_AUTO_ALIGN= 0
 
 ;-------------------------------------------------------------------------------------------------
 ; [MONITOR]
@@ -90,11 +92,13 @@ LOG_FILE_TYPE= 0
 
 [MONITOR]
 
-START_TIME              = 2024-02-20 13:58:37
+START_TIME              = 2024-08-30 09:00:50
 ERROR_COUNT             = 0
 WARN_COUNT              = 0
 
-HDD_DRIVE               = 1
+LOG_DELECT_DAY			= 60
+BMP_DELECT_DAY			= 60
+HDD_DRIVE				= 1
 
 ;-------------------------------------------------------------------------------------------------
 ; [COMMUNICATION]
@@ -135,39 +139,39 @@ HDD_DRIVE               = 1
 
 [COMMUNICATION]
 
-CMPS_IPv4               = 100.100.100.41
-SVC_IPv4                = 100.100.100.41
-MC2_IPv4                = 100.100.100.11
-MC2B_IPv4               = 100.100.100.12
-PLC_IPv4                = 100.100.100.10
-TRIG_IPv4               = 100.100.100.243
-EFEM_IPv4               = 100.100.100.30
-PHILHMI_IPv4	   		= 100.100.100.52
-STROBELAMP_IPv4			= 100.100.100.70
-GENTEC_IPv4				= 100.100.100.50
-KEYENCELDS_IPv4			= 100.100.100.81
+CMPS_IPv4           = 100.100.100.41
+SVC_IPv4            = 100.100.100.41
+MC2_IPv4            = 100.100.100.11
+MC2B_IPv4           = 100.100.100.12
+PLC_IPv4            = 100.100.100.10
+TRIG_IPv4           = 100.100.100.243
+EFEM_IPv4           = 100.100.100.30
+PHILHMI_IPv4	 	= 100.100.100.41
+STROBELAMP_IPv4	 	= 100.100.100.70
+GENTEC_IPv4	 		= 100.100.100.50
+KEYENCELDS_IPv4	 	= 100.100.100.81
 
-PLC_PORT                	= 9922
-EFEM_PORT               	= 9992
-TRIG_PORT               	= 9992
-MC2S_PORT               	= 13827
-MC2C_PORT               	= 13831
-MC2BS_PORT              	= 13827
-MC2BC_PORT              	= 13835
-SVC_PORT                	= 55900
-PHILHMI_PORT	   	= 5252
-STROBELAMP_PORT	= 5000
+PLC_PORT		= 9922
+EFEM_PORT		= 9992
+TRIG_PORT		= 9992
+MC2S_PORT		= 13827
+MC2C_PORT		= 13831
+MC2BS_PORT		= 13827
+MC2BC_PORT		= 13835
+SVC_PORT 		= 55900
+PHILHMI_PORT	= 5252
+STROBELAMP_PORT = 1000
 GENTEC_PORT		= 5000
-KEYENCELDS_PORT		= 5000
+KEYENCELDS_PORT	= 5000
 
-LINK_TIME               = 5000
-IDLE_TIME               = 5000
-SOCK_TIME               = 0
-LIVE_TIME               = 0
+LINK_TIME       = 5000
+IDLE_TIME       = 5000
+SOCK_TIME       = 0
+LIVE_TIME       = 0
 
-PORT_BUFF               = 256
-RECV_BUFF               = 7000
-RING_BUFF               = 21000
+PORT_BUFF       = 256
+RECV_BUFF       = 7000
+RING_BUFF       = 21000
 
 ;-------------------------------------------------------------------------------------------------
 ; [PH_SERVICE]
@@ -324,7 +328,7 @@ OPTIC_VER_MINOR             = 3
 OPTIC_VER_BUILD             = 10007
 
 TABLE_COUNT                 = 1
-TOTAL_PH                      = 6
+TOTAL_PH                    = 6
 LED_COUNT                   = 4
 USE_ANNOUNCEMENT      		= 1
 USE_HW_INITED               = 1
@@ -344,7 +348,6 @@ HYS_TYPE_1_SCROLL_MODE      = 1
 HYS_TYPE_1_NEGATIVE_OFFSET  = 1
 HYS_TYPE_1_DELAY_POSITIVE   = 0.000000
 HYS_TYPE_1_DELAY_NEGATIVE   = 0.000000
-
 ; 2023-10-19 New CAM_Spec (사용안함)
 ;PH_OFFSET_X_2               = 90.658180
 ;PH_OFFSET_Y_2               = 0.022800
@@ -357,62 +360,54 @@ HYS_TYPE_1_DELAY_NEGATIVE   = 0.000000
 ;PH_OFFSET_X_6               = 451.537200
 ;PH_OFFSET_Y_6               = 0.008800
 
-; 2023-10-19 Old CAM_Spec
-;PH_OFFSET_X_2	= 90.651880
-;PH_OFFSET_Y_2	= 0.023500
-;PH_OFFSET_X_3	= 180.519400
-;PH_OFFSET_Y_3	= 0.011340
-;PH_OFFSET_X_4	= 271.042000
-;PH_OFFSET_Y_4	= 0.024660
-;PH_OFFSET_X_5	= 361.000900
-;PH_OFFSET_Y_5	= 0.001380
-;PH_OFFSET_X_6	= 451.500900
-;PH_OFFSET_Y_6	= 0.010700
 
 ; 2023-11-07 Old CAM_Spec
-PH_OFFSET_X_2	= 90.650330
-PH_OFFSET_Y_2	= 0.022950
-PH_OFFSET_X_3	= 180.517150
-PH_OFFSET_Y_3	= 0.009840
-PH_OFFSET_X_4	= 271.038350
-PH_OFFSET_Y_4	= 0.023760
-PH_OFFSET_X_5	= 360.999100
-PH_OFFSET_Y_5	= 0.001630
-PH_OFFSET_X_6	= 451.498400
-PH_OFFSET_Y_6	= 0.010250
+PH_OFFSET_X_2	= 90.652530
+PH_OFFSET_Y_2	= 0.023550
+PH_OFFSET_X_3	= 180.526050
+PH_OFFSET_Y_3	= 0.005140
+PH_OFFSET_X_4	= 271.044850
+PH_OFFSET_Y_4	= 0.016260
+PH_OFFSET_X_5	= 361.010600
+PH_OFFSET_Y_5	= -0.005970
+PH_OFFSET_X_6	= 451.513000
+PH_OFFSET_Y_6	= 0.003350
+
+
 
 ; 노광 시작 위치 (기본:X10, Y56)
-TABLE_EXPO_START_X_1        = 0.000
-TABLE_EXPO_START_Y_1        = 0.000
-PH_PITCH                    = 4
+TABLE_EXPO_START_X_1        = 239.380
+TABLE_EXPO_START_Y_1        = 88.090
+
+PH_PITCH                  	= 4
 PH_ROTATE                   = 1
-TABLE_LIMIT_MIN_X_1         = 0.010
-TABLE_LIMIT_MIN_Y_1         = 0.020
-TABLE_LIMIT_MAX_X_1         = 525.000
-TABLE_LIMIT_MAX_Y_1         = 1300.000
-MAX_Y_MOTION_SPEED          = 300.000
-X_MOTION_SPEED              = 200.000
-Y_ACCELERATION_DISTANCE     = 2.000
-PRODUCT_ID                  = 100002
-PH_Z_AXIS_MOVE_MAX          = 25.000
-PH_Z_AXIS_MOVE_MIN          = 0.000
+TABLE_LIMIT_MIN_X_1			= 0.010
+TABLE_LIMIT_MIN_Y_1			= 0.020
+TABLE_LIMIT_MAX_X_1			= 525.000
+TABLE_LIMIT_MAX_Y_1			= 1300.000
+MAX_Y_MOTION_SPEED			= 300.000
+X_MOTION_SPEED				= 200.000
+Y_ACCELERATION_DISTANCE		= 2.000
+PRODUCT_ID 					= 100002
+PH_Z_AXIS_MOVE_MAX			= 25.000
+PH_Z_AXIS_MOVE_MIN			= 0.000
 ; 2023-07-08 (LLS15) (소재 0.0mm 기준)
-PH_Z_AXIS_FOCUS_1           = 0.0000
-PH_Z_AXIS_FOCUS_2           = 0.0000
-PH_Z_AXIS_FOCUS_3           = 0.0000
-PH_Z_AXIS_FOCUS_4           = 0.0000
-PH_Z_AXIS_FOCUS_5           = 0.0000
-PH_Z_AXIS_FOCUS_6           = 0.0000
+PH_Z_AXIS_FOCUS_1           = 2.7500
+PH_Z_AXIS_FOCUS_2           = 2.0000
+PH_Z_AXIS_FOCUS_3           = 0.9000
+PH_Z_AXIS_FOCUS_4           = 1.8000
+PH_Z_AXIS_FOCUS_5           = 1.2500
+PH_Z_AXIS_FOCUS_6           = 2.1500
 DMD_MIRROR_COUNT_X          = 2560
 DMD_MIRROR_COUNT_Y          = 1600
-PIXEL_SIZE                  = 5.431034
+PIXEL_SIZE                  = 8.880000
 Z_DRIVE_TYPE                = 3
 Z_DRIVE_IPv4                = 100.100.100.12
 
 ;2022-02-09
 PARALLELOGRAM_ADJUST_1      = 1000
 PARALLELOGRAM_ADJUST_2      = 1000
-SCROLL_RATE                 	     = 12500
+SCROLL_RATE                 = 12500
 MOTION_CONTROL_TYPE         = 1
 MOTION_CONTROL_IPv4         = 100.100.100.11
 X_CORRECTION_TABLE_1        = 0
@@ -448,15 +443,29 @@ ILLUM_GARBAGE_PWR           = 0.0010
 ILLUM_MEAS_TYPE             = 1
 
 ; AutoFocus
-USE_AF			 = 0
-AF_GAIN                     	 = 10
-AF_RANGE_MIN_ALL            = 0.500
-AF_RANGE_MAX_ALL            = 24.000
+USE_AF				= 0
+USE_AAQ 			= 1
+USE_EDGE_TRIGER 	= 1
+PH_DOF 				= 50
+AF_GAIN			 	= 10
+AF_RANGE_MIN_ALL	= 0.500
+AF_RANGE_MAX_ALL	= 24.000
+
+PANELMODE 			= 1
+AF_AAQ_RANGE_MIN 	= 18.000
+AF_AAQ_RANGE_MAX 	= 18.000
+AF_TRIM_PH1 		= 18.000
+AF_TRIM_PH2 		= 18.000
+
 PH_Z_SELECT_VELO_0	= 20.0000
 PH_Z_SELECT_VELO_1	= 21.0000
 PH_Z_SELECT_VELO_2	= 22.0000
 PH_Z_SELECT_VELO_3	= 23.0000
-
+USE_EDGE_TRIGGER	= 0
+AF_TRIM_PH3= 0.000
+AF_TRIM_PH4= 0.000
+AF_TRIM_PH5= 0.000
+AF_TRIM_PH6= 0.000
 ;-------------------------------------------------------------------------------------------------
 ; [MC2_SERVICE]
 ;
@@ -547,28 +556,28 @@ MAX_AXIS_5_VELO         = 200.0000
 
 ; 2022-03-21
 MOVE_VELO               = 200.0000
-MARK_VELO               = 0.0000
+MARK_VELO               = 100.0000
 STEP_VELO               = 100.0000
 MOVE_DIST               = 1.0000
 
 PH_VER                  = 1
 ORIGIN_POINT            = 0
-AXIS_0_VELO_SELECT_0= 10.0000
-AXIS_0_VELO_SELECT_1= 50.0000
-AXIS_0_VELO_SELECT_2= 100.0000
-AXIS_0_VELO_SELECT_3= 200.0000
-AXIS_1_VELO_SELECT_0= 10.0000
-AXIS_1_VELO_SELECT_1= 50.0000
-AXIS_1_VELO_SELECT_2= 100.0000
-AXIS_1_VELO_SELECT_3= 200.0000
-AXIS_4_VELO_SELECT_0= 10.0000
-AXIS_4_VELO_SELECT_1= 50.0000
-AXIS_4_VELO_SELECT_2= 100.0000
-AXIS_4_VELO_SELECT_3= 200.0000
-AXIS_5_VELO_SELECT_0= 10.0000
-AXIS_5_VELO_SELECT_1= 50.0000
-AXIS_5_VELO_SELECT_2= 100.0000
-AXIS_5_VELO_SELECT_3= 200.0000
+AXIS_0_VELO_SELECT_0	= 10.0000
+AXIS_0_VELO_SELECT_1	= 50.0000
+AXIS_0_VELO_SELECT_2	= 100.0000
+AXIS_0_VELO_SELECT_3	= 200.0000
+AXIS_1_VELO_SELECT_0	= 10.0000
+AXIS_1_VELO_SELECT_1	= 50.0000
+AXIS_1_VELO_SELECT_2	= 100.0000
+AXIS_1_VELO_SELECT_3	= 200.0000
+AXIS_4_VELO_SELECT_0	= 10.0000
+AXIS_4_VELO_SELECT_1	= 50.0000
+AXIS_4_VELO_SELECT_2	= 100.0000
+AXIS_4_VELO_SELECT_3	= 200.0000
+AXIS_5_VELO_SELECT_0	= 10.0000
+AXIS_5_VELO_SELECT_1	= 50.0000
+AXIS_5_VELO_SELECT_2	= 100.0000
+AXIS_5_VELO_SELECT_3	= 200.0000
 
 
 [MC2B_SERVICE]
@@ -698,8 +707,8 @@ CHECK_START_LED         = 0
 CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 0
-CHECK_HOT_AIR= 0
-RECIPE_NAME= skip3_SKC_15um_2DCali_G11_L14
+CHECK_HOT_AIR			= 0
+RECIPE_NAME				= Glb_20221012-22-c06-t02-06-Gen1_PN3_SR_s01_G34test_0618_gen1-top
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -717,18 +726,21 @@ RECIPE_NAME= skip3_SKC_15um_2DCali_G11_L14
 
 [FILE_NAME]
 
-FILE_LED_POWER          	= led_power
-FILE_JOB_RECIPE		= job_recipe
+FILE_LED_POWER          = led_power
+FILE_JOB_RECIPE			= job_recipe
 FILE_EXPO_RECIPE		= expo_recipe
 FILE_ALIGN_RECIPE		= align_recipe
-FILE_MARK_MODEL         	= mark_model
-FILE_PH_STEP            	= ph_step
-FILE_ACAM_CALI          	= acam_cali
-FILE_TRIG_CALI          	= trig_cali
-FILE_THICK_CALI         	= thick_cali
-FILE_CORRECT_Y         	 = correct_y
+FILE_MARK_MODEL         = mark_model
+FILE_PH_STEP            = ph_step
+FILE_ACAM_CALI          = acam_cali
+FILE_TRIG_CALI          = trig_cali
+FILE_THICK_CALI         = thick_cali
+FILE_CORRECT_Y          = correct_y
 FILE_MARK_RECIPE=
 FILE_MARK_ROI=
+
+FILE_STATIC_ALIGNCALI_CAM = D:\5. DIMaster\UVDI6\UVDI152022\bin\debug\data\xy2d\acam1_cali_Static.dat
+FILE_STATIC_EXPOCALI_CAM = D:\5. DIMaster\UVDI6\UVDI152022\bin\debug\data\xy2d\acam1_expocali_static.dat
 
 ;-------------------------------------------------------------------------------------------------
 ; [SETUP_CAMERA]
@@ -798,12 +810,12 @@ HOL_HEIGHT              = 800
 
 CAM0_SAFETY_POS			= 0.0000
 CAM1_SAFETY_POS			= 750.0000
-CAM2_SAFETY_POS= 0.0000
-CAM3_SAFETY_POS= 0.0000
-CAM4_SAFETY_POS= 0.0000
-CAM5_SAFETY_POS= 0.0000
-CAM6_SAFETY_POS= 0.0000
-CAM7_SAFETY_POS= 0.0000
+CAM2_SAFETY_POS			= 0.0000
+CAM3_SAFETY_POS			= 0.0000
+CAM4_SAFETY_POS			= 0.0000
+CAM5_SAFETY_POS			= 0.0000
+CAM6_SAFETY_POS			= 0.0000
+CAM7_SAFETY_POS			= 0.0000
 
 ;-------------------------------------------------------------------------------------------------
 ; [CAMERA_BASLER]
@@ -829,10 +841,8 @@ CAM7_SAFETY_POS= 0.0000
 
 [CAMERA_BASLER]
 
-;CAM_1_GAIN_LEVEL    = 70
-;CAM_2_GAIN_LEVEL    = 70
-CAM_1_GAIN_LEVEL    = 190
-CAM_2_GAIN_LEVEL    = 200
+CAM_1_GAIN_LEVEL    = 215
+CAM_2_GAIN_LEVEL    = 215
 
 ;film - CAM1 180, CAM2 120
 
@@ -843,10 +853,6 @@ CAM_2_GAIN_LEVEL    = 200
 CAM_REVERSE_X       = 0
 CAM_REVERSE_Y       = 1
 
-;CAM_IPv4_1          = 192.168.11.51
-;CAM_IPv4_2          = 192.168.12.51
-;CAM_IPv4_1          = 169.254.7.45
-;CAM_IPv4_2          = 169.254.8.45
 CAM_IPv4_1          = 169.254.8.46
 CAM_IPv4_2          = 169.254.7.45
 
@@ -861,16 +867,9 @@ FRAME_2             = 1
 TIME_GRAB_2         = 24
 TIME_STEP_2         = 50
 
-;FRAME_1             = 1
-;TIME_GRAB_1         = 24
-;TIME_STEP_1         = 50
-
-;FRAME_2             = 1
-;TIME_GRAB_2         = 24
-;TIME_STEP_2         = 50
-
 Z_AXIS_MOVE_MIN     = -15.0000
 Z_AXIS_MOVE_MAX     = 15.0000
+
 
 ;-------------------------------------------------------------------------------------------------
 ; [TRIG_GRAB]
@@ -913,17 +912,7 @@ TRIG_DELAY_TIME_4       = 300
 
 ; 2022-05-16 (감광 필름. 960 um) (외부:Temp 21.1, 내부(4):22.2)
 TRIG_FORWARD            = -85
-TRIG_BACKWARD           = 100
-
-; 2022-04-29 (감광 필름. 960 um) (외부:Temp 22.9, 내부(4):??.?)
-;TRIG_FORWARD            = -160
-;TRIG_BACKWARD           = 100
-
-; 2022-04-28 (감광 필름. 960 um) (외부:Temp 25.2)
-;TRIG_FORWARD            = -185
-;TRIG_BACKWARD           = 100
-
-
+TRIG_BACKWARD           = -100
 
 ;-------------------------------------------------------------------------------------------------
 ; [SETUP_ALIGN]
@@ -954,56 +943,51 @@ USE_INVALID_MARK_CALI       = 0
 
 ; 2021-08-31 (LLS10) (CCL  + FILM :  200 um)
 DOF_FILM_THICK              = 0.0000
-; 2021-08-24 (LLS10) (CCL  + FILM :  170 um)
-;DOF_FILM_THICK              = +0.1700
-; 2021-08-16 (LLS10) (CCL  + FILM :  120 um)
-;DOF_FILM_THICK              = +0.1200
-;DOF_FILM_THICK             = +0.1800
 
 ALIGN_METHOD                = 0
 
-TABLE_UNLOADER_X_1          = 0.0000
-TABLE_UNLOADER_Y_1          = 0.0000
+TABLE_UNLOADER_X_1          = 265.0000
+TABLE_UNLOADER_Y_1          = 1285.0000
 
-
-; 2023-09-02 수정
-;MARK2_ORG_GERB_X            = 6.1757
-;MARK2_ORG_GERB_Y            = 5.4050
-;MARK2_ORG_GERB_X            = 39.7300
-;MARK2_ORG_GERB_Y            = -20.0000
-;MARK2_STAGE_X               = 160.0000
-
-MARK2_ORG_GERB_X            = 39.7300
-;MARK2_ORG_GERB_Y            = 28.1100
-;MARK2_STAGE_X               = 260.0000
-MARK2_ORG_GERB_Y            = 33.1100
-
+MARK2_ORG_GERB_X            = 39.3300
+MARK2_ORG_GERB_Y            = 33.0000
 MARK2_STAGE_X               = 260.0000
 
-
-; 2022-03-16 (CALI_2D_5x5_510x515_DOT_G11)
-;MARK2_ORG_GERB_X            = 5.6109
-;MARK2_ORG_GERB_Y            = 5.1287
-;MARK2_STAGE_X               = 160.0000
-
-; 2022-03-14 (PH_STEP_510x25_D12_1MM_205978100)
-;MARK2_ORG_GERB_X            = 11.1104
-;MARK2_ORG_GERB_Y            = 8.12827586202
-;MARK2_STAGE_X               = 160.0000
+CENTERCAM_MARKZERO_OFFSET_X = 5.0
+CENTERCAM_MARKZERO_OFFSET_Y = 0
+DIST_CAM1TO3 = 462.7318
+DIST_CAM2TO3 = 199.2866
+;캠1기준으로 캠3을 봤을때 Y 옵셋.
+RELATE_Y_CAM1TO3 = 0.0706
+//RELATE_Y_CAM1TO3 = 0.0482
 
 
 USE_MARK_OFFSET		= 1
-MARK_OFFSET_X_0	= 0.0010
-MARK_OFFSET_Y_0	= 0.0000
-MARK_OFFSET_X_1	= 0.0010
-MARK_OFFSET_Y_1	= 0.0000
-MARK_OFFSET_X_2	= -0.0010
-MARK_OFFSET_Y_2	= 0.0010
-MARK_OFFSET_X_3	= -0.0010
-MARK_OFFSET_Y_3	= 0.0040
-
 MARK_HORZ_DIFF = 0.1050
 MARK_VERT_DIFF = 0.1030
+
+CENTER_CAM_INDEX = 1
+
+TRIG_ONTHEFLY_DELAY_CH1_INCREASE = 0
+TRIG_ONTHEFLY_DELAY_CH2_INCREASE = 0
+TRIG_ONTHEFLY_DELAY_CH3_INCREASE = 0
+TRIG_ONTHEFLY_DELAY_CH4_INCREASE = 0
+
+TRIG_ONTHEFLY_DELAY_CH1_DECREASE = 0
+TRIG_ONTHEFLY_DELAY_CH2_DECREASE = 0
+TRIG_ONTHEFLY_DELAY_CH3_DECREASE = 0
+TRIG_ONTHEFLY_DELAY_CH4_DECREASE = 0
+
+TRIG_ONTHEFLY_OFFSET_CH1_INCREASE = -7
+TRIG_ONTHEFLY_OFFSET_CH2_INCREASE = -7
+TRIG_ONTHEFLY_OFFSET_CH3_INCREASE = -7
+TRIG_ONTHEFLY_OFFSET_CH4_INCREASE = 0
+
+TRIG_ONTHEFLY_OFFSET_CH1_DECREASE = -6
+TRIG_ONTHEFLY_OFFSET_CH2_DECREASE = -6
+TRIG_ONTHEFLY_OFFSET_CH3_DECREASE = -6
+TRIG_ONTHEFLY_OFFSET_CH4_DECREASE = 0
+
 ;-------------------------------------------------------------------------------------------------
 ; [GRAB_PRE_PROC]
 ;
@@ -1099,12 +1083,12 @@ MODEL_CALI              = 500.000000
 [MARK_FIND]
 
 MAX_MARK_REGIST         = 4
-MAX_MARK_GRAB           = 20
+MAX_MARK_GRAB           = 80
 MAX_MARK_FIND           = 1
 
-SCORE_RATE              = 80.0000
+SCORE_RATE              = 50.0000
 ;SCORE_RATE              = 95.0000
-SCALE_RATE              = 70.0000
+SCALE_RATE              = 50.0000
 MODEL_SMOOTH            = 80.0000
 MODEL_SPEED             = 3
 DETAIL_LEVEL            = 1
@@ -1337,62 +1321,26 @@ STEP_MOVE_Z             = 0.050
 POINT_DIST              = 1.0000
 
 QUARTZ_STAGE_X          = 300.0000
-QUARTZ_STAGE_Y1         = 656.0759
-QUARTZ_STAGE_Y2         = 656.0978
-QUARTZ_ACAM_1           = 493.6547
-QUARTZ_ACAM_2           = 239.7259
-
-;22년 7월1일 임시 변경(원본)
-
-;QUARTZ_STAGE_X          = 263.4980
-;QUARTZ_STAGE_Y1         = 1453.0680
-;QUARTZ_STAGE_Y2         = 1453.1295
-;QUARTZ_ACAM_1           = 571.8289
-;QUARTZ_ACAM_2           = 421.2594
+QUARTZ_STAGE_Y1         = 655.8457
+QUARTZ_STAGE_Y2         = 655.8659
+QUARTZ_ACAM_1           = 493.6871
+QUARTZ_ACAM_2           = 239.7581
 
 ; 2.0x Lens (2023-11-29) (Coaxial Lamp)(test)
-ACAM_ANGLE_1            = -0.01480000
-ACAM_ANGLE_2            = 0.03000000
+ACAM_ANGLE_1            = -0.01190000
+ACAM_ANGLE_2            = 0.03360000
 
 ; 2.0x Lens (2023-10-18) (Coaxial Lamp)
-;ACAM_ANGLE_1            = -0.01230000
-;ACAM_ANGLE_2            = 0.03190000
-;ACAM_PIXEL_UM_1         = 2.94420000
-;ACAM_PIXEL_UM_2         = 2.94270000
-;ACAM_Z_FOCUS_1          = 2.9500
-;ACAM_Z_FOCUS_2          = 3.2500
-;IN_RING_COLOR           = 256.0
-;IN_RING_SIZE            = 1.000
-;IN_RING_SIZE            = 0.500
 IN_RING_SIZE            = 0.500
 IN_RING_SCALE_MIN       = 0.5
 IN_RING_SCALE_MAX       = 1.5
+IN_RING_COLOR           = 256.0
 
 ; 2.0x Lens (2023-07-12) (Coaxial Lamp)
-;ACAM_ANGLE_1            = -0.01480000
-;ACAM_ANGLE_2            = -0.03220000
-ACAM_PIXEL_UM_1         = 2.93630000
-ACAM_PIXEL_UM_2         = 2.93490000
-ACAM_Z_FOCUS_1          = 0.0000
-ACAM_Z_FOCUS_2          = 0.0000
-IN_RING_COLOR           = 256.0
-;IN_RING_SIZE            = 1.000
-;IN_RING_SIZE            = 0.500
-;IN_RING_SIZE            = 0.500
-;IN_RING_SCALE_MIN       = 0.5
-;IN_RING_SCALE_MAX       = 1.5
-
-; 0.8x Lens (2020-xx-xx) (Ring Lamp) (2019-xx-xx)
-;ACAM_ANGLE_1            = -0.1009
-;ACAM_ANGLE_2            = -0.0216
-;ACAM_PIXEL_UM_1         = 7.3206
-;ACAM_PIXEL_UM_2         = 7.3002
-;ACAM_Z_FOCUS_1          = -3.2000
-;ACAM_Z_FOCUS_2          = -4.1000
-;IN_RING_COLOR           = 128.0
-;IN_RING_SIZE            = 1.000
-;IN_RING_SCALE_MIN       = 0.95
-;IN_RING_SCALE_MAX       = 1.10
+ACAM_PIXEL_UM_1         = 2.94470000
+ACAM_PIXEL_UM_2         = 2.94230000
+ACAM_Z_FOCUS_1          = 3.2000
+ACAM_Z_FOCUS_2          = 3.4000
 
 BRACKET_SIZE_W          = -9.5000
 BRACKET_SIZE_D          = 20.0000
@@ -1425,19 +1373,6 @@ STEP_MOVE_Z             = 0.025
 ; 2.0x (2021-08-24) (170 um) (Coaxial Lamp)
 ACAM_Z_FOCUS_1          = 3.0500
 ACAM_Z_FOCUS_2          = 3.3000
-;ACAM_Z_FOCUS_2          = -7.7450
-
-; 2.0x Lens (2021-08-16) (120 um) (Coaxial Lamp)
-;ACAM_Z_FOCUS_1          = -6.4550
-;ACAM_Z_FOCUS_2          = -7.7950
-
-; 2.0x Lens (2021-07-12) (Coaxial Lamp)
-;ACAM_Z_FOCUS_1          = -4.084
-;ACAM_Z_FOCUS_2          = -5.264
-
-; 0.8x Lens (2020-xx-xx) (Ring Lamp)
-;ACAM_Z_FOCUS_1          = 1.1200
-;ACAM_Z_FOCUS_2          = 0.2550
 
 MARK_STAGE_X            = 0.0000
 MARK_STAGE_Y1           = 0.0000
@@ -1484,29 +1419,29 @@ MARK_ACAM2_X            = 436.9230
 
 STEP_MOVE_Y             = 17.0000
 STEP_MOVE_Z             = 20.0000
-STEP_Y_COUNT            = 5
+STEP_Y_COUNT            = 22
 REPEAT_COUNT            = 10
 
 PH_VS_PH_DIST           = 103.4700
 
 MODEL_DIA_SIZE          = 2.000
 MODEL_COLOR             = 256.000
-STEP_X_COUNT= 1
+STEP_X_COUNT= 5
 START_FOCUS= 0.000
-START_ENERGY= 110.000
-STEP_FOCUS= 0.010
-STEP_ENERGY= 10.000
+START_ENERGY= 250.000
+STEP_FOCUS= 0.025
+STEP_ENERGY= 20.000
 STEP_MOVE_X= 17.0000
 
-START_FOCUS_1= 3.255
-START_FOCUS_2= 2.540
-START_FOCUS_3= 1.460
-START_FOCUS_4= 2.340
-START_FOCUS_5= 1.790
-START_FOCUS_6= 2.685
+START_FOCUS_1= 3.070
+START_FOCUS_2= 2.320
+START_FOCUS_3= 1.220
+START_FOCUS_4= 2.170
+START_FOCUS_5= 1.620
+START_FOCUS_6= 2.520
 START_FOCUS_7= 0.000
 START_FOCUS_8= 0.000
-PRINT_TYPE= 1
+PRINT_TYPE= 0
 
 ;-------------------------------------------------------------------------------------------------
 ; [PH_STEP]             : 광학계 단차 측정에 필요한 파라미터
@@ -1542,8 +1477,8 @@ MODEL_DIA_SIZE          = 1.000
 MODEL_COLOR             = 256.000
 
 MARK_STAGE_X            = 430.0000
-MARK_STAGE_Y            = 776.1990
-MARK_ACAM1_X            = 123.7992
+MARK_STAGE_Y            = 757.6981
+MARK_ACAM1_X            = 113.7992
 
 SCROLL_MODE             = 1
 STRIPE_WIDTH            = 22.5000
@@ -1551,6 +1486,9 @@ STRIPE_WIDTH            = 22.5000
 PH_SCAN                 = 20
 MARK_PERIOD             = 3.0000
 CENTER_OFFSET           = 0.5000
+
+EXPOSE_ROUND	= 2
+Y_POS_PLUS	= 20
 
 ;-------------------------------------------------------------------------------------------------
 ; [ACAM_CALI]           : 얼라인 카메라의 위치 별 모션 보정 값
@@ -1613,21 +1551,12 @@ PERIOD_WAIT_TIME        = 250
 
 MODEL_SHUT_TYPE         = 8
 MODEL_SHUT_SIZE         = 1.3000
-MODEL_SHUT_COLOR        = 256.000
+MODEL_SHUT_COLOR        = 128.000
 
 MODEL_RING_TYPE         = 256
-MODEL_RING_SIZE1        = 1.9000
+MODEL_RING_SIZE1        = 2.0000
 MODEL_RING_SIZE2        = 2.5000
 MODEL_RING_COLOR        = 256.000
-
-;MODEL_SHUT_TYPE         = 8
-;MODEL_SHUT_SIZE         = 1.0000
-;MODEL_SHUT_COLOR        = 256.000
-
-;MODEL_RING_TYPE         = 256
-;MODEL_RING_SIZE1        = 2.0000
-;MODEL_RING_SIZE2        = 2.5000
-;MODEL_RING_COLOR        = 256.000
 
 ; Align Camera 2D Calibration(0715슈팅검증)
 MARK_STAGE_X            = 163.3932
@@ -1635,20 +1564,6 @@ MARK_STAGE_Y1           = 766.8489
 MARK_STAGE_Y2           = 752.2136
 MARK_ACAM_1             = 406.0045
 MARK_ACAM_2             = 257.8160
-; Align Camera 2D Calibration
-;MARK_STAGE_X            = 159.5959
-;MARK_STAGE_Y1           = 746.9065
-;MARK_STAGE_Y2           = 747.2153
-;MARK_ACAM_1             = 411.0683
-;MARK_ACAM_2             = 261.0172
-
-; Stage XY 2D Calibration
-;MARK_STAGE_X1           = 160.0000
-;MARK_STAGE_X2           = 240.0000
-;MARK_STAGE_Y1           = 747.1595
-;MARK_STAGE_Y2           = 747.2153
-;MARK_ACAM_1             = 485.0000
-;MARK_ACAM_2             = 485.0000
 
 SCORE_VALID_RATE        = 30.0000
 SCALE_VALID_RATE        = 0.1000
@@ -1685,64 +1600,36 @@ VAL_SCALING_Y           = 0.000000
 VAL_OFFSET_X            = 0.000000
 VAL_OFFSET_Y            = 0.000000
 
-;-------------------------------------------------------------------------------------------------
-; [LED_POWER]       LED 파워 측정
-;
-; MEASURE_POS_X   	= 각 포토헤드의 측정 위치
-; MEASURE_POS_Y	  	= 각 포토헤드의 측정 위치
-;
-; BEGIN_POWER_INDEX	= 측정 시작 인덱스 값
-;MEASURE_COUNT		= 측정 횟수
-;INTERVAL_POWER		= 측정 횟수만큼 상승될 인덱스 값
-
-;MAX_POINTS		= 최대 조도 위치를 찾을 때 측정 포인트 수
-;PITCH_POS		= 각 포인트 별 거리 값
-;STAGE_SPEED		= 스테이지 이동 속도
-;HEAD_SPEED		= 헤드 이동 속도
-;MANUAL_POWER_INDEX	= 수동 측정 인덱스 값
-;NORMAL_BOUNDARY	= 정상 범주의 오차 값
-;WARNING_BOUNDARY 	= 경고 점주의 오차 값
-;-------------------------------------------------------------------------------------------------
 
 [LED_POWER]
-MEASURE_POS1_X= 492.4280
-MEASURE_POS1_Y= 770.0000
-MEASURE_POS1_Z= 8.9997
-MEASURE_POS2_X= 402.4279
-MEASURE_POS2_Y= 770.0000
-MEASURE_POS2_Z= 8.9999
-MEASURE_POS3_X= 308.4283
-MEASURE_POS3_Y= 770.0000
-MEASURE_POS3_Z= 8.9999
-MEASURE_POS4_X= 218.4283
-MEASURE_POS4_Y= 770.0000
-MEASURE_POS4_Z= 8.9999
-MEASURE_POS5_X= 128.4284
-MEASURE_POS5_Y= 770.0000
-MEASURE_POS5_Z= 8.9999
-MEASURE_POS6_X= 38.4285
-MEASURE_POS6_Y= 770.0000
-MEASURE_POS6_Z= 8.9999
-BEGIN_POWER_INDEX= 100
-MEASURE_COUNT= 8
-INTERVAL_POWER= 50
-MAX_POINTS= 9
-PITCH_POS= 1.5000
-STAGE_SPEED= 100.000
-HEAD_SPEED= 5.000
-MANUAL_POWER_INDEX= 450
-NORMAL_BOUNDARY= 0.045
-WARNING_BOUNDARY = 0.000
-
-
-;-------------------------------------------------------------------------------------------------
-; [TRIG_STEP]      
-;-------------------------------------------------------------------------------------------------
-;[TRIG_STEP]
-;CH_COUNT= 0
-;TRIG_FORWARD= 0
-;TRIG_BACKWARD= 0
-
+MEASURE_POS1_X			= 490.9281
+MEASURE_POS1_Y			= 771.5002
+MEASURE_POS1_Z			= 8.9996
+MEASURE_POS2_X			= 402.4279
+MEASURE_POS2_Y			= 770.0000
+MEASURE_POS2_Z			= 8.9999
+MEASURE_POS3_X			= 308.4283
+MEASURE_POS3_Y			= 770.0000
+MEASURE_POS3_Z			= 8.9999
+MEASURE_POS4_X			= 218.4283
+MEASURE_POS4_Y			= 770.0000
+MEASURE_POS4_Z			= 8.9999
+MEASURE_POS5_X			= 128.4284
+MEASURE_POS5_Y			= 770.0000
+MEASURE_POS5_Z			= 8.9999
+MEASURE_POS6_X			= 38.4285
+MEASURE_POS6_Y			= 770.0000
+MEASURE_POS6_Z			= 8.9999
+BEGIN_POWER_INDEX		= 50
+MEASURE_COUNT			= 40
+INTERVAL_POWER			= 50
+MAX_POINTS				= 9
+PITCH_POS				= 1.5000
+STAGE_SPEED				= 100.000
+HEAD_SPEED				= 5.000
+MANUAL_POWER_INDEX		= 450
+NORMAL_BOUNDARY			= 0.045
+WARNING_BOUNDARY 		= 0.000
 
 ;-------------------------------------------------------------------------------------------------
 ; [FLATNESS]      LDS 센서
@@ -1764,37 +1651,94 @@ WARNING_BOUNDARY = 0.000
 ;MEASURE_COUNT		= 한 위치 측정 시 측정 횟수
 ;DELAY_TIME		= 각 측정 시 지연 시간
 ;-------------------------------------------------------------------------------------------------
+
 [FLATNESS]
+USE_MOTOR_T			= 0
+USE_MOTOR_Z			= 0
+SPEED_X				= 100.000
+SPEED_Y				= 100.000
+SPEED_T				= 100.000
+SPEED_Z				= 100.000
+START_X				= 500.0000
+START_Y				= 720.0000
+START_T				= 0.0000
+START_Z				= 0.0000
+END_X				= 50.0000
+END_Y				= 1200.0000
+LINE_X				= 10
+LINE_Y				= 10
+MEASURE_COUNT		= 3
+DELAY_TIME			= 1000
 
-USE_MOTOR_T= 0
-USE_MOTOR_Z= 0
-SPEED_X= 100.000
-SPEED_Y= 100.000
-SPEED_T= 100.000
-SPEED_Z= 100.000
-START_X= 500.0000
-START_Y= 720.0000
-START_T= 0.0000
-START_Z= 0.0000
-END_X= 50.0000
-END_Y= 1200.0000
-LINE_X= 10
-LINE_Y= 10
-MEASURE_COUNT= 3
-DELAY_TIME= 1000
-USE_THICK_CHECK= 0
-RANG_START_Y= 0.000
-RANG_END_Y= 0.000
-OFFSET_Z= 0.000
-LIMIT_Z= 0.000
+USE_THICK_CHECK		= 0
+RANG_START_Y		= 900.000
+RANG_END_Y			= 1100.000
+OFFSET_Z			= 0.600 
+LIMIT_Z				= 0.050
 
-[STROBE_LAMP]
 
-STROBE_LAMP[0]= 0
-STROBE_LAMP[1]= 0
-STROBE_LAMP[2]= 0
-STROBE_LAMP[3]= 0
-STROBE_LAMP[4]= 0
-STROBE_LAMP[5]= 0
-STROBE_LAMP[6]= 0
-STROBE_LAMP[7]= 0
+;-------------------------------------------------------------------------------------------------
+; [STROBE_LAMP]      
+STROBE_VALUE[8]		= 8 채널별 조명 밝기값 
+;-------------------------------------------------------------------------------------------------
+[STROBE_LAMP] 
+
+STROBE_LAMP[0]		= 0 
+STROBE_LAMP[1]		= 120
+STROBE_LAMP[2]		= 0
+STROBE_LAMP[3]		= 0 
+STROBE_LAMP[4]		= 0
+STROBE_LAMP[5]		= 90 
+STROBE_LAMP[6]		= 0
+STROBE_LAMP[7]		= 0 
+
+[TRIG_STEP]
+CH_COUNT		= 0
+TRIG_FORWARD		= 0
+TRIG_BACKWARD		= 0
+
+
+;-------------------------------------------------------------------------------------------------
+; [TEMP_RANGE]          Temprature & Range
+;
+; 아래 온도 설정 값은 Range 설정 값보다 항상 2배 이상 크게 설정해야 함
+; HOT_AIR_DEV_TEMP      = Hot Air (온조기) 설정 온도 값 (단위: ℃)
+; HOT_AIR_DEV_RANGE     = Hot Air (온조기) 오차 범위 값 (단위: ℃) (+/- Range Value)
+; HOT_DI_DEV_TEMP       = DI Internal 설정 온도 값 (단위: ℃)
+; HOT_DI_DEV_RANGE      = DI Internal 오차 범위 값 (단위: ℃) (+/- Range Value)
+; HOT_PH_LED_TEMP       = PHOTOHEAD LED 설정 온도 값 (단위: ℃)
+; HOT_PH_LED_RANGE      = PHOTOHEAD LED 오차 범위 값 (단위: ℃) (+/- Range Value)
+; HOT_PH_BOARD_TEMP     = PHOTOHEAD BOARD 설정 온도 값 (단위: ℃)
+; HOT_PH_BOARD_RANGE    = PHOTOHEAD BOARD 오차 범위 값 (단위: ℃)
+;-------------------------------------------------------------------------------------------------
+
+[TEMP_RANGE]
+
+HOT_PH_LED_TEMP         = 20.0
+HOT_PH_LED_RANGE        = 10.0
+HOT_PH_BOARD_TEMP       = 20.0
+HOT_PH_BOARD_RANGE      = 10.0
+
+
+
+[ENVIRONMENT]
+USE_ENVIRONMENT 		= 1
+RE_CALIB_TERM_MINUTE 	= 360
+RE_CALIB_GAB_TEMP 		= 1
+LAST_CALIB_DATE 		= 0
+LAST_CALIB_TEMP 		= 25.2
+INDICATOR_OFFSET_X 		= 0.000
+INDICATOR_OFFSET_Y 		= 0.000
+CALIB_STAGE_X 			= 265.2956
+CALIB_STAGE_Y 			= 691.9116
+CALIB_CAM_IDX 			= 1
+CALIB_CAM_X 			=260
+CALIB_CAM_Z 			=3.699
+THC_LOG_LOCATION 		= \\100.100.100.118\thc_machine\THC_MACHINE
+
+[REFIND]
+USE_REFIND 				= 0
+MOVE_OFFSET_X 			= 2
+MOVE_OFFSET_Y 			= 2
+RETRY_COUNT 			= 1
+THREASHOLD_DIST 		= 1.3

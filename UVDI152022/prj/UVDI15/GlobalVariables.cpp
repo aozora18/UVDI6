@@ -748,7 +748,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 						temp.SetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 						status.markList[ENG_AMTF::en_global].push_back(temp);
 						status.markList[ENG_AMTF::en_mixed].push_back(temp);
-						status.markPoolForCam[(i / sideCamCnt) + 1].push_back(temp);
+						//status.markPoolForCam[(i / sideCamCnt) + 1].push_back(temp);
 					}
 
 				for (int i = 0; i < localFiducial->GetCount(); i++)

@@ -1699,6 +1699,12 @@ BOOL CRecipeManager::CalcMarkDist()
 	//* 현재 선택된 거버 파일 (전체 경로) 얻기 */
 	swprintf_s(tzGerb, MAX_PATH_LEN, L"%S\\%S", pstRecipe->gerber_path, pstRecipe->gerber_name);
 
+	/*파일 경로에 Gerber 데이터가 없을시 종료*/
+	if (!uvCmn_FindFile(tzGerb))
+	{
+		return FALSE;
+	}
+
 
 	/* 거버에 대한 마크 정보 얻기 */
 	if (0x00 != uvEng_Luria_GetGlobalMarkJobName(tzGerb, lstX, lstY,

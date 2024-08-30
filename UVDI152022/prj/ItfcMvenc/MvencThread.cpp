@@ -738,6 +738,18 @@ BOOL CMvencThread::ReqWriteAreaTrigPos(BOOL direct,
 				bSucc = FALSE;
 			}
 		}
+
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		/*노광 방향에 따라 각 트리거 발생 모드 동작 실행*/
+		if (ENG_TEED::en_positive == enable)
+		{
+			MvsEncSetPositiveRun(m_handle, 15);
+		}
+		else if (ENG_TEED::en_negative == enable)
+		{
+			MvsEncSetNegativeRun(m_handle, 15);
+		}
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		/*노광 방향에 따라 각 트리거 발생 모드 동작 실행*/
 		if (ENG_TEED::en_positive == enable)
 		{
@@ -747,7 +759,7 @@ BOOL CMvencThread::ReqWriteAreaTrigPos(BOOL direct,
 		{
 			MvsEncSetNegativeRun(m_handle, 11);
 		}
-
+#endif
 
 		/*Clear*/
 		if (clear)
@@ -1152,11 +1164,28 @@ BOOL CMvencThread::ReqWriteTrigOutOne(UINT32 enc_out)
 			}
 		}
 
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		if (enc_out == 0x01)
+		{
+			//cam1 및 조명(0110) 트리거 실행
+			MvsEncSetPositiveRun(m_handle, 6);	
+			Sleep(10);	
+			MvsEncSetPositiveRun(m_handle, 0);
+		}	
+		else if (enc_out == 0x02)
+		{
+			//cam2 및 조명(1001) 트리거 실행
+			MvsEncSetPositiveRun(m_handle, 9);
+			Sleep(10);
+			MvsEncSetPositiveRun(m_handle, 0);
+		}
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		if (MvsEncSetPositiveRun(m_handle, 0b1000 | (1 << (enc_out - 1))) == 0)
 		{
 			Sleep(10);
 			MvsEncSetPositiveRun(m_handle, 0);
 		}
+#endif
 		else
 		{
 			bSucc = FALSE;

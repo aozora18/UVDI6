@@ -532,12 +532,15 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 		//이 메세지 스레드는 100ms 단위로 호출된다. 100ms마다 호출할 생각이면 굳이 조건걸필요없다. 
 		UpdateLDSMeasure();/*LSD 센서 측정 위치가 맞는지 확인*/
 
+		m_bMainBusy = bBusy;/*장비 동작 중*/
+		GlobalVariables::GetInstance()->IncCount("mainUpdate");
+
 		if (u64Tick > m_u64TickPeriod + 200)
 		{
 			UpdatePeriod(u64Tick, bBusy);
-			m_bMainBusy = bBusy;/*장비 동작 중*/
+			
 			m_u64TickPeriod = u64Tick;
-			GlobalVariables::GetInstance()->IncCount("mainUpdate");
+			
 		}
 	}
 

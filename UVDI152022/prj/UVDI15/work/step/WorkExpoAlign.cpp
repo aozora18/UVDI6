@@ -193,6 +193,40 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	m_stExpoLog.global_dist[4] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag);
 	m_stExpoLog.global_dist[5] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag);
 
+	/* 얼라인 마크 검색 결과 값 저장 */
+	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x00);
+	if (pstMark)
+	{
+		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%.4f,%.4f,",
+			pstMark->score_rate, pstMark->scale_rate,
+			pstMark->move_mm_x, pstMark->move_mm_y);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
+	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x01);
+	if (pstMark)
+	{
+		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%.4f,%.4f,",
+			pstMark->score_rate, pstMark->scale_rate,
+			pstMark->move_mm_x, pstMark->move_mm_y);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
+	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x00);
+	if (pstMark)
+	{
+		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%.4f,%.4f,",
+			pstMark->score_rate, pstMark->scale_rate,
+			pstMark->move_mm_x, pstMark->move_mm_y);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
+	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
+	if (pstMark)
+	{
+		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%.4f,%.4f,",
+			pstMark->score_rate, pstMark->scale_rate,
+			pstMark->move_mm_x, pstMark->move_mm_y);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
+
 
 	/*ExpoLog 기록*/
 	//memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);

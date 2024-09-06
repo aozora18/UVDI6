@@ -3574,8 +3574,8 @@ VOID CDlgMark::InitGridStrobeView()
 		}
 			else if (3 == nRow)
 			{
-				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + vColSize.size()];
-				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + vColSize.size()]);
+				LampValue = uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + 1 + vColSize.size()];
+				pGrid->SetItemTextFmt(nRow, nCol, _T("%d"), uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[nCol + 1 + vColSize.size()]);
 
 				pGrid->SetItemBkColour(nRow, nCol, vColColor[1]);
 				pGrid->SetItemFgColour(nRow, nCol, vColTextColor[0]);

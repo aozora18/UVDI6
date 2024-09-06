@@ -118,7 +118,14 @@ VOID CWorkRecipeLoad::DoWork()
 	case 0x1a : m_enWorkState = SetPhZAxisMovingAll();			break;
 	case 0x1b : m_enWorkState = IsPhZAxisMovedAll();			break;
 	/* Align Camera Z Axis Up & Down */
-	case 0x1c : m_enWorkState = SetACamZAxisMovingAll(m_lastUniqueID);		break;
+	case 0x1c:
+	{
+		auto res = SetACamZAxisMovingAll(m_lastUniqueID);
+		m_enWorkState = res != ENG_JWNS::en_next ? ENG_JWNS::en_wait : res;
+		if (m_enWorkState != ENG_JWNS::en_next)
+			this_thread::sleep_for(std::chrono::microseconds(500));
+	}
+	break;
 	case 0x1d : m_enWorkState = IsACamZAxisMovedAll(m_lastUniqueID);		break;
 	/* Led Duty Cycle & Frame Rate */
 	case 0x1e : m_enWorkState = SetStepDutyFrame();				break;

@@ -2477,28 +2477,27 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
 	stRecv.Reset();
 
 	stSend.usCount = 2;
-	//sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z1");
-	//sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z2");
-	sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z1");
-	sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z2");
+	sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z1");
+	sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z2");
+	//sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z1");
+	//sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z2");
 	stSend.stMove[0].dPosition = dACamZAxisSet[0] / 10000.0f;
 	stSend.stMove[1].dPosition = dACamZAxisSet[1] / 10000.0f;
-	stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo/2;
-	stSend.stMove[1].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo/2;
+	stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo / 2;
+	stSend.stMove[1].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo / 2;
 	stSend.stMove[0].dAcc = 300;
 	stSend.stMove[1].dAcc = 300;
 
 	/* 이동하려는 위치 설정 */
 	uvEng_Philhmi_Send_P2C_ABS_MOVE(stSend, stRecv);
-
+	lastUniqueID = stRecv.ulUniqueID;
 	if (stRecv.usErrorCode)
 	{
 		/* Set the error message */
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move failed");
-		//return ENG_JWNS::en_error;
+		return ENG_JWNS::en_error;
 	}
 
-	lastUniqueID = stRecv.ulUniqueID;
 #endif
 
 	TCHAR tzMsg[256] = { NULL };

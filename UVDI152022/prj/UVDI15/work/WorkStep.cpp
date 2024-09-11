@@ -1795,28 +1795,50 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		
 		temp.reserve = grab->reserve;
 
-		if (pstSetAlign->use_mark_offset)// && useManual == false
+
+		switch (pstSetAlign->use_mark_offset)
+		{
+		case (UINT8)ENG_ADRT::en_no_use:
+		{
+			expoOffset.offsetX = .0f; expoOffset.offsetY = .0f;
+		}
+		break;
+
+		case (UINT8)ENG_ADRT::en_from_info:
+		{
+			double offsetX = 0, offsetY = 0;
+			motions.GetMarkoffsetLegacy(ENG_AMOS::en_static_3cam, isGlobal, temp.tgt_id, offsetX, offsetY);
+			expoOffset.offsetX = offsetX; expoOffset.offsetY = offsetY;
+		}
+		break;
+
+		case (UINT8)ENG_ADRT::en_from_mappingfile:
 		{
 			if (motions.GetOffsetFromPool(OffsetType::expo, temp.tgt_id, expoOffset) == false)
 				return ENG_JWNS::en_error;
+		}
+		break;
 
-			if (motions.GetOffsetFromPool(OffsetType::align, temp.tgt_id, alignOffset) == false)
-				return ENG_JWNS::en_error;
+		default: break;
+		}
 
-			swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);
-			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+		if (motions.GetOffsetFromPool(OffsetType::align, temp.tgt_id, alignOffset) == false)
+			return ENG_JWNS::en_error;
 
-			auto foffsetX = alignOffset.offsetX - (expoOffset.offsetX);
-			auto foffsetY = alignOffset.offsetY - (expoOffset.offsetY);
-		
-			temp.mark_x -= foffsetX;
-			temp.mark_y -= foffsetY;
-			//string fmtFormat = fmt::format("tgt mark {} - 그랩옵셋X = {:.3f}, 그랩옵셋Y = {:.3f},  얼라인옵셋X = {:.3f} ,얼라인옵셋Y = {:.3f} ,  익스포옵셋X = {:.3f}, 익스포옵셋Y = {:.3f}, 원래X = {:.3f} , 원래 Y = {:.3f}, 적용차이X = {:.3f} , 적용차이Y = {:.3f}",
-				//temp.tgt_id, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY, expoOffset.offsetX, expoOffset.offsetX, bkx, bky, bkx - temp.mark_x, bky - temp.mark_y);
+		swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+
+		auto foffsetX = alignOffset.offsetX - (expoOffset.offsetX);
+		auto foffsetY = alignOffset.offsetY - (expoOffset.offsetY);
+
+		temp.mark_x -= foffsetX;
+		temp.mark_y -= foffsetY;
+
+		//string fmtFormat = fmt::format("tgt mark {} - 그랩옵셋X = {:.3f}, 그랩옵셋Y = {:.3f},  얼라인옵셋X = {:.3f} ,얼라인옵셋Y = {:.3f} ,  익스포옵셋X = {:.3f}, 익스포옵셋Y = {:.3f}, 원래X = {:.3f} , 원래 Y = {:.3f}, 적용차이X = {:.3f} , 적용차이Y = {:.3f}",
+			//temp.tgt_id, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY, expoOffset.offsetX, expoOffset.offsetX, bkx, bky, bkx - temp.mark_x, bky - temp.mark_y);
 //			webMonitor.AddLog(fmtFormat);
 
-		}
-		
 		lstMarks.AddTail(temp);
 	}
 
@@ -1960,7 +1982,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	CUniToChar csCnv;
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
-	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
+	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto status = motion.status;
+	ENG_AMOS motionType = motion.markParams.alignMotion; //이건 실시간으로 바뀔수있음을 참고하고, 테스트용으로 사용한다. 
+
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Align.Mark.Regist");
 
@@ -2063,7 +2088,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 				return ENG_JWNS::en_error;
 			}
-			
+
 			if (pstGrab->marked == 0x01)
 			{
 				lstMarkAt.mark_x -= pstGrab->move_mm_x;
@@ -2072,9 +2097,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				swprintf_s(tzMsg, 256, L"Global Mark%d Move_mm: X = %.4f Y = %.4f", lstMarkAt.org_id, pstGrab->move_mm_x, pstGrab->move_mm_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-				if (pstSetAlign->use_mark_offset)
+				if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_info && pstSetAlign->markOffsetPtr != nullptr)
 				{
-					if (pstSetAlign->markOffsetPtr->Get(true, lstMarkAt.tgt_id, val) == false)
+					if (pstSetAlign->markOffsetPtr->Get(motionType,true, lstMarkAt.tgt_id, val) == false)
 					{
 						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
@@ -2086,6 +2111,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 					swprintf_s(tzMsg, 256, L"GLOBAL mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));
 					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+				}
+				else if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_mappingfile) //맵핑파일을 이용하게될경우 이곳에 추가.
+				{
+
 				}
 			}
 			else
@@ -2124,15 +2153,15 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					/* ---------------------------------------------------------------- */
 					/* Align Mark 측정 오차에 최종 Mark Offset 값 포함해서 위치 재 조정 */
 					/* ---------------------------------------------------------------- */
-					
+
 					if (pstGrab->marked == 0x01)
 					{
 						lstMarkAt.mark_x -= pstGrab->move_mm_x;
 						lstMarkAt.mark_y -= pstGrab->move_mm_y;
 
-						if (pstSetAlign->use_mark_offset)
+						if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_info && pstSetAlign->markOffsetPtr != nullptr)
 						{
-							if (pstSetAlign->markOffsetPtr->Get(false, lstMarkAt.tgt_id, val) == false)
+							if (pstSetAlign->markOffsetPtr->Get(motionType,false, lstMarkAt.tgt_id, val) == false)
 							{
 								swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 								LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
@@ -2144,6 +2173,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 							swprintf_s(tzMsg, 256, L"local mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));
 							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+						}
+						else if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_mappingfile) //맵핑파일을 이용하게될경우 이곳에 추가.
+						{
+
 						}
 					}
 					else

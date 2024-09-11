@@ -665,7 +665,8 @@ public:
 	bool GetGerberPosUseCamPos(int camNum, STG_XMXY& point);
 	void GetStagePosUseGerberPos(int camNum, STG_XMXY gbrPos, STG_XMXY& stagePos);
 	
-
+	void GetMarkoffsetLegacy(ENG_AMOS motionType,bool isGlobal, int markID, double& offsetX, double& offsetY);
+	
 	void GetFiducialDimension(ENG_AMTF types, int& x, int& y);
 	bool CheckAlignScanFinished(int scanCount);
 	//void SetAlignMode(ENG_AMOS motion, ENG_ATGL aligntype);

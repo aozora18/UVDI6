@@ -496,6 +496,19 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		return arrived;
 	}
 
+	void AlignMotion::GetMarkoffsetLegacy(ENG_AMOS motionType,bool isGlobal, int tgtID, double& offsetX, double& offsetY)
+	{
+		offsetX = .0f; offsetY = .0f;
+
+		if (pstCfg == nullptr)
+			return; 
+
+		std::tuple<double, double> val = {0,0};
+		pstCfg->set_align.markOffsetPtr->Get(motionType,isGlobal, tgtID, val);
+		offsetX = std::get<0>(val);
+		offsetY = std::get<1>(val);
+	}
+
 	//거버포지션에 대응하는 "얼라인 영역" 스테이지 위치 가져옴.
 	void AlignMotion::GetStagePosUseGerberPos(int camNum, STG_XMXY gbrPos, STG_XMXY& stagePos)
 	{

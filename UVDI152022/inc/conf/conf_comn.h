@@ -88,9 +88,22 @@ typedef enum class __en_align_motion__ : UINT16
 	none = 0,
 	en_onthefly_2cam	= 0b0000001000000001, //온더플라이 사이드캠
 	en_onthefly_3cam	= 0b0000001100000001, //온더플라이 센터캠
+	
 	en_static_2cam      = 0b0000001000000010, //스테틱 사이드캠
 	en_static_3cam		= 0b0000001100000010, //스테틱 센터캠
 }	ENG_AMOS;
+
+
+/* 얼라인 보정값 참조타입  */
+typedef enum class __en_algin_data_ref_type_ : UINT8
+{
+	en_no_use = 0,
+	en_from_info = 1,
+	en_from_mappingfile = 2,
+	en_not_defined = 3,
+
+}	ENG_ADRT;
+
 
 /* Align Mark Type */
 typedef enum class __en_algin_type_global_local__ : UINT8

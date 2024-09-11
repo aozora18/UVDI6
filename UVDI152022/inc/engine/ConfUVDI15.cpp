@@ -12,8 +12,10 @@
 #include <locale>
 #include <iostream>
 #include <sstream>
-
+#include <regex>
 #include <atlstr.h>
+
+#include "../conf/conf_comn.h"
 
 using namespace std;
 
@@ -377,21 +379,31 @@ BOOL CConfUvdi15::SaveConfigSetupCamera()
 	return TRUE;
 }
 
-//void ParseAndFillVector(const TCHAR* str, std::vector<double>& vec)
-//{
-//	vec.clear();
-//	std::wstring temp = std::wstring(str);
-//	std::string utf8Str(temp.begin(), temp.end());
-//
-//	std::stringstream ss(utf8Str);
-//	std::string token;
-//
-//	while (std::getline(ss, token, ','))
-//	{
-//		double val = std::stod(token);
-//		vec.push_back(val);
-//	}
-//}
+
+
+void ParseAndFillVector(const TCHAR* str, std::vector<std::tuple<bool,int, double, double>>& vec)
+{
+	vec.clear();
+
+	std::regex re(R"(\{([GgLl]),\s*(\d+),\s*([-+]?\d+(?:\.\d+)?),\s*([-+]?\d+(?:\.\d+)?)\})"); //이게 뭔지 의문을 갖지마세요. 정규식은 볼때마다 좆같습니다.
+	std::smatch match;
+	
+	CT2A convertedStr(str, CP_UTF8);
+
+	string input = string(convertedStr);
+	if (input.empty()) return;;
+
+	std::string::const_iterator searchStart(input.cbegin());
+
+	// 입력 문자열에서 정규식으로 패턴을 찾아가며 파싱
+	while (std::regex_search(searchStart, input.cend(), match, re)) 
+	{
+		bool isGlobal = match[1].str()[0] == 'g' || match[1].str()[0] == 'G';
+		vec.push_back({ isGlobal ,  std::stoi(match[2]), std::stod(match[3]), std::stod(match[4])});
+		searchStart = match.suffix().first; // 다음 검색 위치로 이동
+	}
+
+}
 
 /*
  desc : Load or Save the config file (SETUP_ALIGN)
@@ -455,27 +467,31 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 		m_pstCfg->set_align.table_unloader_xy[i-1][1]	= GetConfigDouble(tzKey);
 	}
 
-
-	/*vector<double> buff;
-	GetConfigStr(L"G_MARK_OFFSET", longStrVal, 2048);
-	ParseAndFillVector(longStrVal, buff);
-
-	for (int i = 0; i < buff.size();)
+	
+	if (m_pstCfg->set_align.use_mark_offset == (UINT8)ENG_ADRT::en_from_info)
 	{
-		double offsetX = buff[i++];
-		double offsetY = buff[i++];
-		m_pstCfg->set_align.markOffsetPtr->Push(true, std::make_tuple(offsetX, offsetY));
+		const int txtLength = 2048;
+
+		m_pstCfg->set_align.markOffsetPtr->Clear();
+
+		vector<std::tuple<bool,int, double, double>> buff;
+
+		GetConfigStr(L"MARK_OFFSET_FLY", longStrVal, txtLength);
+		ParseAndFillVector(longStrVal, buff);
+		
+		std::for_each(buff.begin(), buff.end(), [&](const std::tuple < bool, int, double, double > & v)
+		{
+			m_pstCfg->set_align.markOffsetPtr->Push(ENG_AMOS::en_onthefly_2cam, std::get<0>(v), { std::get<1>(v), std::get<2>(v), std::get<3>(v) });
+		});
+		
+		GetConfigStr(L"MARK_OFFSET_STA", longStrVal, txtLength);
+		ParseAndFillVector(longStrVal, buff);
+		std::for_each(buff.begin(), buff.end(), [&](const std::tuple<bool,int, double, double>& v)
+		{
+			m_pstCfg->set_align.markOffsetPtr->Push(ENG_AMOS::en_static_3cam, std::get<0>(v), { std::get<1>(v), std::get<2>(v), std::get<3>(v) });
+		});
 	}
 
-	GetConfigStr(L"L_MARK_OFFSET", longStrVal, 2048);
-	ParseAndFillVector(longStrVal, buff);
-
-	for (int i = 0; i < buff.size();)
-	{
-		double offsetX = buff[i++];
-		double offsetY = buff[i++];
-		m_pstCfg->set_align.markOffsetPtr->Push(false, std::make_tuple(offsetX, offsetY));
-	}*/
 
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_HORZ_DIFF");
 	m_pstCfg->set_align.mark_horz_diff = GetConfigDouble(tzKey);
@@ -579,6 +595,14 @@ BOOL CConfUvdi15::SaveConfigSetupAlign()
 	SetConfigDouble(tzKey, m_pstCfg->set_align.mark_horz_diff, 4);
 	swprintf_s(tzKey, MAX_KEY_STRING, L"MARK_VERT_DIFF");
 	SetConfigDouble(tzKey, m_pstCfg->set_align.mark_vert_diff, 4);
+
+	
+	string flyStr = m_pstCfg->set_align.markOffsetPtr->GetRegexString(ENG_AMOS::en_onthefly_2cam);
+	string staStr = m_pstCfg->set_align.markOffsetPtr->GetRegexString(ENG_AMOS::en_static_3cam);
+	
+	USES_CONVERSION;
+	SetConfigStr(L"MARK_OFFSET_FLY", A2T(flyStr.c_str()));
+	SetConfigStr(L"MARK_OFFSET_STA", A2T(staStr.c_str()));
 
 	return TRUE;
 }
@@ -947,6 +971,7 @@ BOOL CConfUvdi15::LoadConfigPhFocus()
 
 	return TRUE;
 }
+
 BOOL CConfUvdi15::SaveConfigPhFocus()
 {
 	TCHAR tzKey[64]	= {NULL};

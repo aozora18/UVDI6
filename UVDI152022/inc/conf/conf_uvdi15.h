@@ -9,6 +9,10 @@
 #include <vector>
 #include <tuple>
 #include <map>
+#include <sstream>
+#include <iostream>
+#include <string>
+#include <atlstr.h>
 /* --------------------------------------------------------------------------------------------- */
 /*                                           상수 값                                             */
 /* --------------------------------------------------------------------------------------------- */
@@ -97,21 +101,29 @@ typedef struct __st_config_setup_camera_info__
 
 
 
-struct MarkoffsetInfo
+class MarkoffsetInfo
 {
-
 private:
-	map<bool, vector <std::tuple<double,double>>> offsetValues;
+	
+	map<ENG_AMOS, map<bool, map<int, std::tuple<double, double>>>>  offsetValues; //데이터 타입 그지같지요? ㅎ
+
 public:
-	void Push(bool isGlobal, std::tuple<double, double> val) 
+	void Push(ENG_AMOS motionType,bool isGlobal, std::tuple<int,double, double> val)
 	{
-		offsetValues[isGlobal].push_back(val);
+		int idx = std::get<0>(val);	
+		auto& motionCategory = offsetValues[motionType];
+		auto& locationCategory = motionCategory[isGlobal];
+
+		locationCategory.insert_or_assign(idx, std::make_tuple(std::get<1>(val), std::get<2>(val)));
 	}
 
-	bool Get(bool isGlobal, int tgtIdx , std::tuple<double, double>& val)
+	bool Get(ENG_AMOS motionType,bool isGlobal, int tgtIdx , std::tuple<double, double>& val)
 	{
-		if (offsetValues[isGlobal].size() <= tgtIdx) return false;
-		val = offsetValues[isGlobal][tgtIdx];
+		auto find = offsetValues[motionType][isGlobal].find(tgtIdx);
+
+		if(find == offsetValues[motionType][isGlobal].end()) return false;
+
+		val = find->second;
 		return true;
 	}
 
@@ -120,12 +132,47 @@ public:
 		offsetValues.clear();
 	}
 
-	vector<std::tuple<double, double>> GetGroup(bool isGlobal)
+	vector<std::tuple<int,double, double>> GetGroup(ENG_AMOS motionType,bool isGlobal)
 	{
-		return offsetValues[isGlobal];
+		std::vector<std::tuple<int, double, double>> ret;
+		auto it = offsetValues[motionType][isGlobal].begin();
+		while (it != offsetValues[motionType][isGlobal].end())
+		{
+			ret.push_back(make_tuple(it->first, std::get<0>(it->second), std::get<1>(it->second)));
+			it++;
+		}
+		return ret;
+	}	
+
+	string GetRegexString(ENG_AMOS motionType)
+	{
+		std::stringstream result;
+
+		if (offsetValues.find(motionType) == offsetValues.end()) 
+			return string("");
+
+		auto& values = offsetValues[motionType];
+
+		if(values.find(true) != values.end())
+		for_each(values[true].begin(), values[true].end(), [&](const pair<int, tuple<double, double>>& v) //글로벌 옵셋을 다시 정규식 표현으로 
+		{
+			result << "{" << "G" << "," << v.first << "," << std::get<0>(v.second) << "," << std::get<1>(v.second) << "},";
+		});
+
+		if (values.find(false) != values.end())
+		for_each(values[false].begin(), values[false].end(), [&](const pair<int, tuple<double, double>>& v) //로컬 옵셋을 다시 정규식 표현으로
+		{
+			result << "{" << "L" << "," << v.first << "," << std::get<0>(v.second) << "," << std::get<1>(v.second) << "},";
+		});
+
+		string finalStr = result.str();
+
+		if (!finalStr.empty() && finalStr.back() == ',')
+			finalStr.pop_back();
+		
+		return finalStr;
 	}
 
-	
 };
 
 /* Setup Align 에 대한 전처리 정보 */
@@ -166,7 +213,7 @@ typedef struct __st_config_setup_align_info__
 	int trigOntheflyOffsetIncrease[4];
 	int trigOntheflyOffsetDecrease[4];
 
-	/* 거버에 저장된 Mark 2번 기준 X 축 모션 좌표 (단위: mm) */
+	
 	void SetMarkoffsetPtr(MarkoffsetInfo& ptr)
 	{
 		markOffsetPtr = &ptr;

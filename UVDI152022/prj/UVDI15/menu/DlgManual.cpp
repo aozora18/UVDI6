@@ -1120,8 +1120,7 @@ VOID CDlgManual::MakeMarkOffsetField()
 	VCT_DLG_PARAM stVctParam;
 	CString strName;
 	CDPoint dpStartPos;
-	vector<LPG_XMXY> globalTemp;
-	vector<LPG_XMXY> localTemp;
+	vector<LPG_XMXY> marks;
 	const int MARK_PAIR = 2;
 	LPG_CIEA cfg = uvEng_GetConfig();
 
@@ -1144,7 +1143,7 @@ VOID CDlgManual::MakeMarkOffsetField()
 		return nullptr;
 	};
 
-	auto uiWorks = [&](std::vector<LPG_XMXY> values,bool isGlobal)
+	auto uiWorks = [&](std::vector<LPG_XMXY> values, ENG_AMOS motionType)
 	{
 		stVctParam.clear();
 		int valueCount = values.size();
@@ -1153,6 +1152,8 @@ VOID CDlgManual::MakeMarkOffsetField()
 		
 		int localCnt = 0;
 		int globalCnt = 0;
+
+		if (cfg->set_align.markOffsetPtr == nullptr) return;
 
 		for (int i = 0; i < valueCount; i++)
 		{
@@ -1168,7 +1169,7 @@ VOID CDlgManual::MakeMarkOffsetField()
 				stParam.u8DecPts = 4;
 				stVctParam.push_back(stParam);
 			}
-			delete singleValue;
+			
 		}
 
 		if (IDOK == dlg.MyDoModal(stVctParam))
@@ -1176,14 +1177,29 @@ VOID CDlgManual::MakeMarkOffsetField()
 			for(int i=0;i<stVctParam.size();i++)
 				valuesCpy.push_back(_ttof(stVctParam[i].strValue));
 
-			temp.Format(_T("%s Mark offset Save?"), isGlobal ? _T("Global") : _T("Local"));
-			if (MessageBoxEx(nullptr, temp, _T("notice"), MB_YESNO | MB_ICONSTOP, LANG_ENGLISH) == IDYES)
+			temp.Format(_T("%s method expo offset Save?"), motionType == ENG_AMOS::en_static_3cam ? _T("Static") : _T("OnTheFly"));
+			if (MessageBoxEx(nullptr, temp, _T("notice"), MB_YESNO | MB_ICONINFORMATION, LANG_ENGLISH) == IDYES)
 			{
+				cfg->set_align.markOffsetPtr->Clear();
+
 				for (int i = 0; i < valueCount; i++)
-					cfg->set_align.markOffsetPtr->Push(isGlobal, std::make_tuple(valuesCpy[(i * MARK_PAIR)], valuesCpy[(i * MARK_PAIR)+1]));
+					cfg->set_align.markOffsetPtr->Push(motionType, values[i]->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL), std::make_tuple(values[i]->tgt_id, valuesCpy[(i * MARK_PAIR)], valuesCpy[(i * MARK_PAIR) + 1])); 
+			
+				uvEng_SaveConfig();
 			}
 		}
+
+		for (int i = 0; i < valueCount; i++)
+		{
+			delete values[i]; values[i] = nullptr;
+		}
 	};
+
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	motions.markParams.alignMotion = ENG_AMOS::en_static_3cam;
+	int localCnt = motions.status.localMarkCnt;
+	int globalCnt = motions.status.globalMarkCnt;
+	auto motionType = motions.markParams.alignMotion;
 
 	try
 	{
@@ -1191,19 +1207,29 @@ VOID CDlgManual::MakeMarkOffsetField()
 		CAtlList <LPG_ACGR>* grabMark = uvEng_Camera_GetGrabbedMarkAll();
 
 		auto markCount = grabMark->GetCount();
-		AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-
-		int localCnt = motions.status.localMarkCnt;
-		int globalCnt = motions.status.globalMarkCnt;
-
+		
+		const int CAM1 = 1; const int CAM2 = 2;
+		
 		switch (motions.markParams.alignMotion)
 		{
 		case ENG_AMOS::en_onthefly_2cam:
 		{
-			globalTemp = vector<LPG_XMXY>{ grabFindFunc(1, 0,true, grabMark,new STG_XMXY()),
-								grabFindFunc(1, 1,true,grabMark, new STG_XMXY()),
-								grabFindFunc(2, 0,true,grabMark, new STG_XMXY()),
-								grabFindFunc(2, 1,true,grabMark, new STG_XMXY()) };
+			marks = vector<LPG_XMXY>{ grabFindFunc(CAM1, 0,true, grabMark,new STG_XMXY()), 
+								grabFindFunc(CAM1, 1,true,grabMark, new STG_XMXY()),
+								grabFindFunc(CAM2, 2,true,grabMark, new STG_XMXY()),
+								grabFindFunc(CAM2, 3,true,grabMark, new STG_XMXY()) }; //이건 고정이니깐.
+
+			if (motions.status.localMarkCnt == 0)
+				break;
+
+			auto cam1FidPool = motions.GetFiducialPool(CAM1);
+			auto cam2FidPool = motions.GetFiducialPool(CAM2);
+
+			for_each(cam1FidPool.begin(), cam1FidPool.end(), [&](const STG_XMXY& v) {marks.push_back(grabFindFunc(CAM1, v.tgt_id, false, grabMark, new STG_XMXY())); });
+			for_each(cam2FidPool.begin(), cam2FidPool.end(), [&](const STG_XMXY& v) {marks.push_back(grabFindFunc(CAM2, v.tgt_id, false, grabMark, new STG_XMXY())); });
+
+			
+
 		}
 		break;
 
@@ -1211,14 +1237,13 @@ VOID CDlgManual::MakeMarkOffsetField()
 		{
 			int centerCam = motions.markParams.centerCamIdx;
 
-			globalTemp = vector<LPG_XMXY>{ grabFindFunc(centerCam, 0,true,grabMark, new STG_XMXY()),
+			marks = vector<LPG_XMXY>{ grabFindFunc(centerCam, 0,true,grabMark, new STG_XMXY()),
 						   grabFindFunc(centerCam, 1,true,grabMark,new STG_XMXY()),
 					       grabFindFunc(centerCam, 2,true,grabMark,new STG_XMXY()),
 					       grabFindFunc(centerCam, 3,true,grabMark,new STG_XMXY()) };
 
-
 			for (int i = 0; i < motions.status.localMarkCnt; i++)
-				localTemp.push_back(grabFindFunc(centerCam,i,false, grabMark, new STG_XMXY()));
+				marks.push_back(grabFindFunc(centerCam,i,false, grabMark, new STG_XMXY()));
 
 		}
 		break;
@@ -1235,16 +1260,11 @@ VOID CDlgManual::MakeMarkOffsetField()
 		return;
 	}
 	
-	cfg->set_align.markOffsetPtr->Clear();
-
-	if (globalTemp.empty() == false)
-		uiWorks(globalTemp,true);
-
-	if(localTemp.empty() == false)
-		uiWorks(localTemp,false);
-
-	if(globalTemp.empty() == false || localTemp.empty() == false)
-		uvEng_SaveConfig();
+	auto res = std::find_if(marks.begin(), marks.end(), [](LPG_XMXY v) {return v == nullptr; });
+	if (marks.empty() || res != marks.end()) return;
+	
+	uiWorks(marks,motionType);
+		
 }
 
 

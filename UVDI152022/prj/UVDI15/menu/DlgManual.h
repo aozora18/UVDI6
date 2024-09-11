@@ -26,8 +26,10 @@ JHMI_ENUM(EN_MANUAL_BTN, int
 	, STOP
 	, CALIBRATION_MARK
 	, MARK_ZERO
+	, CHANGE_ALIGN_MODE
 	, ENERGE
 	, LOAD
+	
 	
 )
 
@@ -141,6 +143,7 @@ protected:
 	VOID				OnlyFEMLoad();
 	VOID				ResetData();
 	BOOL				MarkZero();
+	void ChangeAlignMode();
 
 /* 공용 함수 */
 public:

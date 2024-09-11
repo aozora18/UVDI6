@@ -23,7 +23,7 @@
 #include "../../../inc/conf/vision_uvdi15.h"
 #include "../GlobalVariables.h"
 #include "../pops/DlgParam.h"
-
+#include <atlstr.h>
 #include <tuple>
 #include <vector>
 #include <map>
@@ -469,13 +469,13 @@ VOID CDlgManual::InitCtrl()
 	//rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 	//rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 
-	uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 1) / 2;
+	uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 2) / 3;
 	rtBtn.left = rtStt.left;
 	rtBtn.right = rtBtn.left + uiBtnWidth;
 	rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 
 	nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK;
-	for (nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK; nBtnIndex <= EN_MANUAL_BTN::MARK_ZERO; nBtnIndex++)
+	for (nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK; nBtnIndex <= EN_MANUAL_BTN::CHANGE_ALIGN_MODE; nBtnIndex++)
 	{
 		if (EN_MANUAL_BTN::CALIBRATION_MARK < nBtnIndex)
 		{
@@ -1108,6 +1108,11 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 	case EN_MANUAL_BTN::LOAD:
 		OnlyFEMLoad();
 		break;
+
+	case EN_MANUAL_BTN::CHANGE_ALIGN_MODE:
+		ChangeAlignMode();
+	break;
+
 	}
 }
 
@@ -1196,7 +1201,7 @@ VOID CDlgManual::MakeMarkOffsetField()
 	};
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
-	motions.markParams.alignMotion = ENG_AMOS::en_static_3cam;
+	
 	int localCnt = motions.status.localMarkCnt;
 	int globalCnt = motions.status.globalMarkCnt;
 	auto motionType = motions.markParams.alignMotion;
@@ -1537,6 +1542,32 @@ VOID CDlgManual::OnlyFEMLoad()
 	/*FEM Expose 노광 동작*/
 	//m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_expofem);
 }
+
+void CDlgManual::ChangeAlignMode()
+{
+	LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto motionType = motions.markParams.alignMotion;
+
+	if (job == nullptr || motionType == ENG_AMOS::none)
+	{
+		MessageBoxEx(nullptr, _T("no recipe loaded."), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
+		return;
+	}
+	
+	std::stringstream combine;
+	combine << "current align method is\n" << (((int)motionType & 0b01) != 0 ? "<On The Fly>" : "<Static>") << "\n" << "change to\n" << (((int)motionType & 0b01) != 0 ? "<Static>?" : "<On The Fly>?");
+	USES_CONVERSION;
+	if (MessageBoxEx(nullptr, A2T(combine.str().c_str()), _T(""), MB_OKCANCEL | MB_ICONINFORMATION, LANG_ENGLISH) == IDOK)
+	{
+		int debug = 0;
+	}
+
+	
+	
+
+}
+
 /*
  desc : Direct Expose 후 Align Mark 인식 후 마크 이동 값 제로값으로 수정
  parm : None

@@ -1185,7 +1185,7 @@ VOID CDlgManual::MakeMarkOffsetField()
 			temp.Format(_T("%s method expo offset Save?"), motionType == ENG_AMOS::en_static_3cam ? _T("Static") : _T("OnTheFly"));
 			if (MessageBoxEx(nullptr, temp, _T("notice"), MB_YESNO | MB_ICONINFORMATION, LANG_ENGLISH) == IDYES)
 			{
-				cfg->set_align.markOffsetPtr->Clear();
+				cfg->set_align.markOffsetPtr->Clear(motionType);
 
 				for (int i = 0; i < valueCount; i++)
 					cfg->set_align.markOffsetPtr->Push(motionType, values[i]->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL), std::make_tuple(values[i]->tgt_id, valuesCpy[(i * MARK_PAIR)], valuesCpy[(i * MARK_PAIR) + 1])); 

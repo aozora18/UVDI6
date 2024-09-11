@@ -132,6 +132,11 @@ public:
 		offsetValues.clear();
 	}
 
+	void Clear(ENG_AMOS motionType)
+	{
+		offsetValues[motionType].clear();
+	}
+
 	vector<std::tuple<int,double, double>> GetGroup(ENG_AMOS motionType,bool isGlobal)
 	{
 		std::vector<std::tuple<int, double, double>> ret;

@@ -161,7 +161,10 @@ public:
 		uiRefresh = set; 
 	}
 
-	bool				GetUIRefresh() { return uiRefresh; }
+	bool				GetUIRefresh() 
+	{ 
+		return uiRefresh; 
+	}
 
 	BOOL				IsWorkCompleted()	{	return m_enWorkState == ENG_JWNS::en_comp;	}
 	BOOL				IsWorkStopped();

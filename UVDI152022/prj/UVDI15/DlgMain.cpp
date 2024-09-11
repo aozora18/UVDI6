@@ -545,12 +545,24 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 	}
 
 	/* 현재 자식 화면이 Expose인 경우, 각종 이벤트 처리 */
-	if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_expo)
+	if (m_pDlgMenu)
 	{
+		auto dlgID = m_pDlgMenu->GetDlgID();
 		switch (enWork)
 		{
-		case ENG_BWOK::en_mesg_init	: ((CDlgExpo*)m_pDlgMenu)->Invalidate(FALSE);	break;
-		case ENG_BWOK::en_mesg_mark	: ((CDlgExpo*)m_pDlgMenu)->DrawMarkData();		break;
+			case ENG_BWOK::en_mesg_init	: 
+				if(dlgID == ENG_CMDI::en_menu_expo)
+					((CDlgExpo*)m_pDlgMenu)->Invalidate(FALSE);	
+			break;
+
+			case ENG_BWOK::en_mesg_mark	: 
+				if (dlgID == ENG_CMDI::en_menu_expo)
+					((CDlgExpo*)m_pDlgMenu)->DrawMarkData();
+				else if (dlgID == ENG_CMDI::en_menu_manual)
+					((CDlgAuto*)m_pDlgMenu)->DrawMarkData();
+				else if (dlgID == ENG_CMDI::en_menu_auto)
+					((CDlgManual*)m_pDlgMenu)->DrawMarkData();
+			break;
 		}
 	}
 

@@ -289,7 +289,12 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x08: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
 	case 0x09: m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
 	case 0x0a: m_enWorkState = SetAlignMeasMode();							break;
-	case 0x0b: m_enWorkState = IsAlignMeasMode();							break;
+	case 0x0b:
+	{
+		m_enWorkState = IsAlignMeasMode();
+		SetUIRefresh(true);
+	}
+	break;
 	case 0x0c: m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
 	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
 	case 0x0e:
@@ -578,6 +583,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		{
 			uvEng_ACamCali_ResetAllCaliData();
 			uvEng_Camera_ResetGrabbedImage();
+			SetUIRefresh(true);
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
 		},
 		[&]()

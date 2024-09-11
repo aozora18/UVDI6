@@ -950,12 +950,12 @@ public:
 		return counter[key].load();
 	}
 
-	int ResetCounter(string key)
+	int ResetCounter(string key, int value = 0)
 	{
 		/*if (IsKeyExist(counter, key) == false)
 			throw new exception("no key.");*/
 
-		counter[key].store(0);
+		counter[key].store(value);
 		return GetCount(key);
 	}
 };

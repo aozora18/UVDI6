@@ -1545,6 +1545,13 @@ VOID CDlgManual::OnlyFEMLoad()
 
 void CDlgManual::ChangeAlignMode()
 {
+
+	if (m_pDlgMain->IsBusyWorkJob())
+	{
+		MessageBoxEx(nullptr, _T("cannnot change align method, on working."), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
+		return;
+	}
+
 	LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto motionType = motions.markParams.alignMotion;
@@ -1560,12 +1567,10 @@ void CDlgManual::ChangeAlignMode()
 	USES_CONVERSION;
 	if (MessageBoxEx(nullptr, A2T(combine.str().c_str()), _T(""), MB_OKCANCEL | MB_ICONINFORMATION, LANG_ENGLISH) == IDOK)
 	{
-		int debug = 0;
+		motions.markParams.alignMotion = ((int)motionType & 0b01) != 0 ? ENG_AMOS::en_static_3cam : ENG_AMOS::en_onthefly_2cam; //!! 레퍼런스에서 수정한것임 !!
+
+		//부수적인 작업은 진행해야함. 레시피 변경할때 얼라인 타입에 따라 준비되는 데이터가 따로 있음.
 	}
-
-	
-	
-
 }
 
 /*

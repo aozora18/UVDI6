@@ -148,7 +148,7 @@ protected:
 /* 공용 함수 */
 public:
 
-	VOID				DrawMarkData();	/* 마크 측정 결과를 화면에 출력 */
+	VOID				DrawMarkData(bool drawForce = false);	/* 마크 측정 결과를 화면에 출력 */
 
 /* 메시지 맵 */
 protected:

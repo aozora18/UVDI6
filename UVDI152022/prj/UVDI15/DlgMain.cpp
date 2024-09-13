@@ -559,9 +559,9 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 				if (dlgID == ENG_CMDI::en_menu_expo)
 					((CDlgExpo*)m_pDlgMenu)->DrawMarkData();
 				else if (dlgID == ENG_CMDI::en_menu_manual)
-					((CDlgAuto*)m_pDlgMenu)->DrawMarkData();
-				else if (dlgID == ENG_CMDI::en_menu_auto)
 					((CDlgManual*)m_pDlgMenu)->DrawMarkData();
+				else if (dlgID == ENG_CMDI::en_menu_auto)
+					((CDlgAuto*)m_pDlgMenu)->DrawMarkData();
 			break;
 		}
 	}

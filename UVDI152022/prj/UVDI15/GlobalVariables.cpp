@@ -744,7 +744,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		};
 
 
-		auto GenCommonGlobal = [&]()
+		auto GenCommonGlobal = [&](ENG_AMOS motion)
 		{
 			LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
 			STG_XMXY temp;
@@ -761,7 +761,9 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 						temp.SetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL);
 						status.markList[ENG_AMTF::en_global].push_back(temp);
 						status.markList[ENG_AMTF::en_mixed].push_back(temp);
-						//status.markPoolForCam[(i / sideCamCnt) + 1].push_back(temp);
+
+						if (motion == ENG_AMOS::en_onthefly_2cam)
+							status.markPoolForCam[(i / sideCamCnt) + 1].push_back(temp);
 					}
 
 				for (int i = 0; i < localFiducial->GetCount(); i++)
@@ -785,7 +787,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 		};
 
-		GenCommonGlobal();
+		GenCommonGlobal(alignMotion);
 
 		switch (alignMotion)
 		{

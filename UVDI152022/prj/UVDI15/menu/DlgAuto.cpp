@@ -1041,9 +1041,9 @@ COLORREF CDlgAuto::GetIOColorFg(CString strColor)
 	return BLACK_;
 }
 
-VOID CDlgAuto::DrawMarkData()
+VOID CDlgAuto::DrawMarkData(bool drawForce)
 {
-	if (0 != m_u64TickCount % 20)
+	if (0 != m_u64TickCount % 20 && drawForce == false)
 	{
 		return;
 	}

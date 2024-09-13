@@ -1688,9 +1688,9 @@ BOOL CDlgManual::MarkZero()
  parm : None
  retn : None
 */
-VOID CDlgManual::DrawMarkData()
+VOID CDlgManual::DrawMarkData(bool drawForce)
 {
-	if (0 != m_u64TickCount % 20)
+	if (0 != m_u64TickCount % 20 && drawForce == false)
 	{
 		return;
 	}

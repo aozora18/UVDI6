@@ -1110,7 +1110,8 @@ BOOL CWork::SetAlignACamCaliX()
 
 		//if (!uvEng_Luria_GetGlobalMark(0x01, &stMarkGlobal))	return FALSE;	// Get the Left/Bottom Mark for Global
 		/* Camera 1 & 2에 저장될 시작 배열 인덱스 값 구하기 */
-		for (i=0,k=0,n=0; i< scanCnt; i++)	/* Scan 횟수 : 2회 에서 무제한으로 변경해야함.*/
+		//for (i=0,k=0,n=0; i< scanCnt; i++)	/* Scan 횟수 : 2회 에서 무제한으로 변경해야함.*/
+		for (i = 0, k = 0, n = 2; i < scanCnt; i++)	/* Scan 횟수 : 2회 에서 무제한으로 변경해야함.*/
 		{
 			/* Scan 1 or 2일 때, 각 카메라 별 Left or Right / Bottom의 X 축 기준으로 나머진 X 축들 간의 오차 값 얻기 */
 			if (uvEng_Luria_GetLocalMarkDiffVertX(i, lstCam1, lstCam2))

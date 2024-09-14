@@ -343,7 +343,8 @@ UINT8 CACamCali::SetTrigPosCaliApply()
 		{
 			/* 얼라인 카메라 1 or 2번 */
 			if (i < 0x02)	pstCaliData	= m_pstShMem->cali_global[0x00][i];
-			else			pstCaliData	= m_pstShMem->cali_local[0x00][i-0x02];
+			//else			pstCaliData	= m_pstShMem->cali_local[0x00][i-0x02];
+			else			pstCaliData = m_pstShMem->cali_local[0x00][i];
 			/* 트리거 발생 위치에 해당되는 Calibration XY 오차 값 얻기 */
 			u8MarkSet	= GetCaliPos(0x01,
 									 pstCaliData->acam_motion_x, pstCaliData->stage_motion_y,
@@ -357,7 +358,8 @@ UINT8 CACamCali::SetTrigPosCaliApply()
 
 			/* 얼라인 카메라 2번 */
 			if (i < 0x02)	pstCaliData	= m_pstShMem->cali_global[0x01][i];
-			else			pstCaliData	= m_pstShMem->cali_local[0x01][i-0x02];
+			//else			pstCaliData	= m_pstShMem->cali_local[0x01][i-0x02];
+			else			pstCaliData = m_pstShMem->cali_local[0x01][i];
 			/* 트리거 발생 위치에 해당되는 Calibration XY 오차 값 얻기 */
 			u8MarkSet	= GetCaliPos(0x02,
 									 pstCaliData->acam_motion_x, pstCaliData->stage_motion_y,

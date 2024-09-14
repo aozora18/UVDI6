@@ -898,6 +898,10 @@ BOOL CWorkStep::MoveAxis(ENG_MMDI axis, bool absolute, double pos,bool waiting)
 
 bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
 {	
+	/* 현재 작업 Step Name 설정 */
+	SetStepName(L"Move Cam Safe Pos");
+
+
 	bool doneToggleCam[2];
 
 	LPG_CIEA pstCfg = uvEng_GetConfig();
@@ -1721,6 +1725,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	TCHAR tzMsg[256] = { NULL };
 
+	/* 현재 작업 Step Name 설정 */
+	SetStepName(L"Set.Align.Mark.RegistForSatic");
+
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motions.status;
@@ -2106,8 +2113,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 						bSucc = FALSE;
 					}
 
-					lstMarkAt.mark_x -= std::get<0>(val);
-					lstMarkAt.mark_y -= std::get<1>(val);
+					//lstMarkAt.mark_x -= std::get<0>(val);
+					//lstMarkAt.mark_y -= std::get<1>(val);
+					lstMarkAt.mark_y += std::get<1>(val);
+					lstMarkAt.mark_y += std::get<1>(val);
 
 					swprintf_s(tzMsg, 256, L"GLOBAL mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));
 					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
@@ -4312,6 +4321,8 @@ ENG_JWNS CWorkStep::ResetErrorMC2()
 */
 ENG_JWNS CWorkStep::CameraSetCamMode(ENG_VCCM mode)
 {
+	SetStepName(L"Set.Camera.Mode");
+
 	/* Vision : Grabbed Mode */
 	uvEng_Camera_SetCamMode(mode);
 

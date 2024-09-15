@@ -2177,8 +2177,10 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 								bSucc = FALSE;
 							}
 
-							lstMarkAt.mark_x -= std::get<0>(val);
-							lstMarkAt.mark_y -= std::get<1>(val);
+							//lstMarkAt.mark_x -= std::get<0>(val);
+							//lstMarkAt.mark_y -= std::get<1>(val);
+							lstMarkAt.mark_x += std::get<0>(val);
+							lstMarkAt.mark_y += std::get<1>(val);
 
 							swprintf_s(tzMsg, 256, L"local mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));
 							LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);

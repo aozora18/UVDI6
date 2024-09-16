@@ -337,7 +337,7 @@ BOOL CDlgMarkShow::DrawMark(int index)
 	/* Update the grabbed results to the text buffer */
 		swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.4f] [Y %+4.4f] [um]",
 		pstMark->cam_id, pstMark->img_id + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
-		pstMark->move_mm_x, pstMark->move_mm_y);
+		pstMark->move_mm_x*1000, pstMark->move_mm_y*1000);
 
 	/* Check if it is higher than the mark valid score of the registered recipe */
 	UINT8 u8Mark = pstMark->IsMarkValid() ? 0x01 : 0x00;

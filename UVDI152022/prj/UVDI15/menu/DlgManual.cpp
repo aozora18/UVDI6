@@ -1142,6 +1142,9 @@ VOID CDlgManual::MakeMarkOffsetField()
 			{
 				storedVal->mark_x = grab->move_mm_x;
 				storedVal->mark_y = grab->move_mm_y;
+				storedVal->reserve = grab->reserve;
+
+				storedVal->tgt_id = grab->fiducialMarkIndex;
 				return storedVal;
 			}
 		}
@@ -1162,13 +1165,12 @@ VOID CDlgManual::MakeMarkOffsetField()
 
 		for (int i = 0; i < valueCount; i++)
 		{
-			auto singleValue = (values[i]);
 			for (int j = 0; j < MARK_PAIR; j++)
 			{
-				temp.Format(_T("Mark%d offset %s"), i + 1, (j == 0 ? "x" : "y"));
+				temp.Format(_T("%s_Mark%d offset %s"), values[i]->GetFlag(GLOBAL) ? "G" : "L", i + 1, (j == 0 ? "x" : "y"));
 				stParam.Init();
 				stParam.strName = temp;
-				stParam.strValue = CStringA(singleValue == nullptr ? "" :  std::to_string( j==0 ? singleValue->mark_x : singleValue->mark_y).c_str());
+				stParam.strValue = CStringA(values[i] == nullptr ? "" :  std::to_string( j==0 ? values[i]->mark_x : values[i]->mark_y).c_str());
 				stParam.strUnit = _T("um");
 				stParam.enFormat = ENM_DITM::en_double;
 				stParam.u8DecPts = 4;
@@ -1219,22 +1221,19 @@ VOID CDlgManual::MakeMarkOffsetField()
 		{
 		case ENG_AMOS::en_onthefly_2cam:
 		{
-			marks = vector<LPG_XMXY>{ grabFindFunc(CAM1, 0,true, grabMark,new STG_XMXY()), 
-								grabFindFunc(CAM1, 1,true,grabMark, new STG_XMXY()),
-								grabFindFunc(CAM2, 2,true,grabMark, new STG_XMXY()),
-								grabFindFunc(CAM2, 3,true,grabMark, new STG_XMXY()) }; //이건 고정이니깐.
+			//marks = vector<LPG_XMXY>{ grabFindFunc(CAM1, 0,true, grabMark,new STG_XMXY()), 
+			//					grabFindFunc(CAM1, 1,true,grabMark, new STG_XMXY()),
+			//					grabFindFunc(CAM2, 2,true,grabMark, new STG_XMXY()),
+			//					grabFindFunc(CAM2, 3,true,grabMark, new STG_XMXY()) }; //이건 고정이니깐.
 
-			if (motions.status.localMarkCnt == 0)
-				break;
+			//if (motions.status.localMarkCnt == 0)
+			//	break;
 
 			auto cam1FidPool = motions.GetFiducialPool(CAM1);
 			auto cam2FidPool = motions.GetFiducialPool(CAM2);
 
-			for_each(cam1FidPool.begin(), cam1FidPool.end(), [&](const STG_XMXY& v) {marks.push_back(grabFindFunc(CAM1, v.tgt_id, false, grabMark, new STG_XMXY())); });
-			for_each(cam2FidPool.begin(), cam2FidPool.end(), [&](const STG_XMXY& v) {marks.push_back(grabFindFunc(CAM2, v.tgt_id, false, grabMark, new STG_XMXY())); });
-
-			
-
+			for_each(cam1FidPool.begin(), cam1FidPool.end(), [&](const STG_XMXY& v) {marks.push_back(grabFindFunc(CAM1, v.tgt_id, ((v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) != 0 ? true : false), grabMark, new STG_XMXY())); });
+			for_each(cam2FidPool.begin(), cam2FidPool.end(), [&](const STG_XMXY& v) {marks.push_back(grabFindFunc(CAM2, v.tgt_id, ((v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) != 0 ? true : false), grabMark, new STG_XMXY())); });
 		}
 		break;
 
@@ -1242,14 +1241,17 @@ VOID CDlgManual::MakeMarkOffsetField()
 		{
 			int centerCam = motions.markParams.centerCamIdx;
 
-			marks = vector<LPG_XMXY>{ grabFindFunc(centerCam, 0,true,grabMark, new STG_XMXY()),
+			auto fidPool = motions.GetFiducialPool(centerCam);
+
+			/*marks = vector<LPG_XMXY>{ grabFindFunc(centerCam, 0,true,grabMark, new STG_XMXY()),
 						   grabFindFunc(centerCam, 1,true,grabMark,new STG_XMXY()),
-					       grabFindFunc(centerCam, 2,true,grabMark,new STG_XMXY()),
-					       grabFindFunc(centerCam, 3,true,grabMark,new STG_XMXY()) };
+						   grabFindFunc(centerCam, 2,true,grabMark,new STG_XMXY()),
+						   grabFindFunc(centerCam, 3,true,grabMark,new STG_XMXY()) };*/
 
-			for (int i = 0; i < motions.status.localMarkCnt; i++)
-				marks.push_back(grabFindFunc(centerCam,i,false, grabMark, new STG_XMXY()));
-
+			for_each(fidPool.begin(), fidPool.end(), [&](const STG_XMXY& v)
+				{
+					marks.push_back(grabFindFunc(centerCam, v.tgt_id, ((v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) != 0 ? true : false), grabMark, new STG_XMXY()));
+				});
 		}
 		break;
 

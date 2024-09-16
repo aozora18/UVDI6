@@ -278,6 +278,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 void CWorkExpoAlign::DoInitOnthefly2cam()
 {
 	m_u8StepTotal = 0x24;
+	m_u8StepIt = 1;
 }
 
 void CWorkExpoAlign::DoAlignOnthefly2cam()
@@ -534,7 +535,6 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 	 
 void CWorkExpoAlign::DoInitStaticCam()
 {
-
 	
 	m_u8StepIt = 0;
 

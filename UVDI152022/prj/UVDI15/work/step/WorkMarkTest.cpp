@@ -86,6 +86,7 @@ void CWorkMarkTest::DoInitStatic2cam()
 
 void CWorkMarkTest::DoInitStaticCam()
 {
+	m_u8StepIt = 0;
 	m_u8StepTotal = 0;
 }
 
@@ -96,6 +97,7 @@ void CWorkMarkTest::DoInitOnthefly3cam()
 
 void CWorkMarkTest::DoInitOnthefly2cam()
 {
+	m_u8StepIt = 1;
 	m_u8StepTotal = 0x21;
 }
 
@@ -785,7 +787,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 		SaveExpoResult(0x00);
-		m_u8StepIt = 0x01;
+		
 		Sleep(3000);
 		//m_enWorkState = ENG_JWNS::en_error;
 

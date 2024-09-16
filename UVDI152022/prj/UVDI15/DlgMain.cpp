@@ -534,7 +534,8 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 	UINT64 u64Tick	= GetTickCount64();
 
 	/* 주기적으로 갱신 (500 msec 마다 호출) */
-	if (wparam == MSG_MAIN_THREAD_PERIOD)
+	bool calledByRefreshInUI = (enWork == ENG_BWOK::en_work_request && extensions == (UINT32)ENG_RIJA::invalidateUI);
+	if (wparam == MSG_MAIN_THREAD_PERIOD || calledByRefreshInUI)
 	{
 		//이 메세지 스레드는 100ms 단위로 호출된다. 100ms마다 호출할 생각이면 굳이 조건걸필요없다. 
 		UpdateLDSMeasure();/*LSD 센서 측정 위치가 맞는지 확인*/
@@ -542,13 +543,15 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 		m_bMainBusy = bBusy;/*장비 동작 중*/
 		GlobalVariables::GetInstance()->IncCount("mainUpdate");
 
-		if (u64Tick > m_u64TickPeriod + 200)
+		if (u64Tick > m_u64TickPeriod + 200 || calledByRefreshInUI)
 		{
 			UpdatePeriod(u64Tick, bBusy);
 			
 			m_u64TickPeriod = u64Tick;
 			
 		}
+
+		if (calledByRefreshInUI) return 0L;
 	}
 
 	/* 현재 자식 화면이 Expose인 경우, 각종 이벤트 처리 */
@@ -1408,9 +1411,20 @@ VOID CDlgMain::WorkStop()
 	/* 현재 작업 중일 경우, 한번 더 물어보는 대화 상자 출력 */
 	if (m_pMainThread->IsBusyWorkJob())
 	{
-		if (IDOK != dlgMesg.MyDoModal(L"Do you want to stop the current work ?"))	return;
+		if (IDOK != dlgMesg.MyDoModal(L"Do you want to stop the current work ?"))	
+			return;
+		else
+		{
+			CWork::SetAbort(true);
+			uvEng_SetWorkOptionalText(L"wait for finish previous work.");
+			GlobalVariables::GetInstance()->Waiter([&]
+			{
+				return m_pMainThread->IsBusyWorkJob();
+			}, 10000);
+		}
 	}
 
+	
 	/* 만약 이전에도 중지 작업 요청한 경우라면.... Printing 인쇄 여부 확인하지 않고, 바로 중지 시킴 */
 	if (m_pMainThread->GetWorkJobID() == ENG_BWOK::en_work_stop)
 	{
@@ -1421,6 +1435,7 @@ VOID CDlgMain::WorkStop()
 	{
 		m_pMainThread->RunWorkJob(ENG_BWOK::en_work_stop);
 	}
+
 }
 
 /*

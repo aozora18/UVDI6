@@ -177,7 +177,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 	{
 		[&]()
 		{
-			
+
 			webMonitor.Clear(nullptr);
 			m_enWorkState = SetExposeStartXY();
 		},
@@ -186,7 +186,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 			m_enWorkState = IsExposeStartXY();
 		},
 
-		[&]() 
+		[&]()
 		{
 			if (!(motions.GetCalifeature(OffsetType::align).caliCamIdx == CENTER_CAM) ||
 				!(motions.GetCalifeature(OffsetType::expo).caliCamIdx == CENTER_CAM)) //테이블이 전부 있는지부터 검사.
@@ -195,7 +195,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				}
 			else
 				m_enWorkState = ENG_JWNS::en_next;
-				
+
 		},
 		[&]()
 		{
@@ -204,14 +204,14 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 		[&]()
 		{
-			static map<int, ENG_MMDI> axisMap = 
-			{ 
-				{1,ENG_MMDI::en_align_cam1}, 
-				{2,ENG_MMDI::en_align_cam2}, 
-				{3,ENG_MMDI::en_axis_none} 
+			static map<int, ENG_MMDI> axisMap =
+			{
+				{1,ENG_MMDI::en_align_cam1},
+				{2,ENG_MMDI::en_align_cam2},
+				{3,ENG_MMDI::en_axis_none}
 			};
 			auto res = MoveCamToSafetypos(axisMap[CENTER_CAM], motions.GetCalifeature(OffsetType::expo).caliCamXPos);
-			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error; 
+			m_enWorkState = res ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 		},
 		[&]()
 		{
@@ -237,12 +237,24 @@ void CWorkMarkTest::DoAlignStaticCam()
 		},
 		[&]()
 		{
+			if (refind)
+			{
+				SetStepName(L"mark refind step");
+				SetActionRequest(ENG_RIJA::invalidateUI);
+			}
+			m_enWorkState = ENG_JWNS::en_next;
+
+		},
+		[&]()
+		{
+
 			if (refind == false)
 			{
 				m_enWorkState = ENG_JWNS::en_next;
 			}
 			else
 			{
+				
 				bool errFlag = false;
 				try
 				{
@@ -295,6 +307,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 			const int STABLE_TIME = 1000;
 			bool complete = false;
 
+			SetStepName(L"mark find step");
+			SetActionRequest(ENG_RIJA::invalidateUI);
+			
 			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 			{
 				try

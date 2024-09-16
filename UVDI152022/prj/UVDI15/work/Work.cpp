@@ -167,7 +167,7 @@ VOID CWork::SetWorkNext()
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
 	
-	if (CWork::GetAbort())
+	if (CWork::GetAbort() && m_enWorkJobID !=  ENG_BWOK::en_work_stop)
 	{
 		CWork::EndWork();
 		return;

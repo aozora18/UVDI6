@@ -617,6 +617,16 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		},
 		[&]()
 		{
+			if (refind)
+			{
+				SetStepName(L"mark refind step");
+				SetActionRequest(ENG_RIJA::invalidateUI);
+			}
+			m_enWorkState = ENG_JWNS::en_next;
+		},
+		[&]()
+		{
+
 			if (refind == false)
 			{
 				m_enWorkState = ENG_JWNS::en_next;
@@ -675,6 +685,8 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			const int STABLE_TIME = 1000;
 			bool complete = false;
 
+			SetStepName(L"mark find step");
+			SetActionRequest(ENG_RIJA::invalidateUI);
 			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 			{
 				try

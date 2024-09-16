@@ -166,6 +166,7 @@ typedef enum class __en_req_injob_action_ : UINT32
 {
 	none=0,
 	clearMarkData=1,
+	invalidateUI,
 	end=9999,
 }	ENG_RIJA;
 

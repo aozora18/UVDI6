@@ -177,6 +177,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 	{
 		[&]()
 		{
+			
 			webMonitor.Clear(nullptr);
 			m_enWorkState = SetExposeStartXY();
 		},
@@ -224,7 +225,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 		{
 			uvEng_ACamCali_ResetAllCaliData();
 			uvEng_Camera_ResetGrabbedImage();
-			SetUIRefresh(true);
+			SetActionRequest(ENG_RIJA::clearMarkData);
 			m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
 		},
 		[&]()
@@ -600,6 +601,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	{
 	case 0x01: 
 	{
+		
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		if (m_enWorkState == ENG_JWNS::en_next)
 			GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
@@ -627,7 +629,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	case 0x0b:
 	{
 		m_enWorkState = IsAlignMeasMode();
-		SetUIRefresh(true);
+		SetActionRequest(ENG_RIJA::clearMarkData);
 	}
 	break;
 

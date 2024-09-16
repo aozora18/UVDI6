@@ -160,6 +160,18 @@ typedef enum class __en_job_work_next_state__ : UINT8
 	
 }	ENG_JWNS;
 
+
+
+typedef enum class __en_req_injob_action_ : UINT32
+{
+	none=0,
+	clearMarkData=1,
+	end=9999,
+}	ENG_RIJA;
+
+
+
+
 /* Engine Running Mode (ÃÑ 31°³ ³Ñ¾î°¡¸é ¾ÈµÊ) */
 typedef enum class __en_engine_runnging_vision_mode__ : UINT8
 {

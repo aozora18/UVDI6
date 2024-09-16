@@ -35,6 +35,11 @@ public:
 		return onExternalWork.load();
 	}
 
+	UINT32 SetActionRequest(ENG_RIJA action)
+	{
+		requestActionCode = (UINT32)action;
+		return requestActionCode;
+	}
 
 /* 가상함수 재정의 */
 protected:
@@ -53,7 +58,7 @@ protected:
 
 /* 로컬 변수 */
 protected:
-
+	UINT32				requestActionCode = 0;
 	UINT8				m_u8SetPhNo;			/* 현재 Photohead Number (0-based) */
 
 	UINT8				m_u8RetryCount;			/* 동일한 Step 구역의 반복 횟수 */
@@ -88,6 +93,7 @@ private:
 
 /* 로컬 함수 */
 protected:
+	
 
 	BOOL				InitWork();
 	VOID				EndWork();
@@ -165,6 +171,18 @@ public:
 	{ 
 		return uiRefresh; 
 	}
+
+
+	
+
+	UINT32 GetActionRequest() 
+	{
+		
+
+		return requestActionCode;
+	}
+	
+
 
 	BOOL				IsWorkCompleted()	{	return m_enWorkState == ENG_JWNS::en_comp;	}
 	BOOL				IsWorkStopped();

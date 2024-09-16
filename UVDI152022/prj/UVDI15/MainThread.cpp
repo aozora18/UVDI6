@@ -142,8 +142,19 @@ VOID CMainThread::RunWork()
 		else
 		{
 			/* 부모에게 주기적으로 알리는 방법 제공 */
-			if (m_pWorkJob && IsSetAlignedMark())	SendMesgParent(ENG_BWOK::en_mesg_mark, 100);
-			else									SendMesgParent(ENG_BWOK::en_mesg_norm, 100);
+			if (m_pWorkJob != nullptr)
+			{
+				if (IsSetAlignedMark())
+					SendMesgParent(ENG_BWOK::en_mesg_mark, 500);
+				else
+					SendMesgParent(ENG_BWOK::en_mesg_norm, 500);
+
+				if (m_pWorkJob->GetActionRequest() != (UINT32)ENG_RIJA::none)
+				{
+					SendMesgParent(ENG_BWOK::en_work_request,500, m_pWorkJob->GetActionRequest());
+					m_pWorkJob->SetActionRequest(ENG_RIJA::none);
+				}
+			}
 		}
 		/* 동기 해제 */
 		m_csSyncWork.Leave();
@@ -353,14 +364,14 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 		timeout	- [in]  SendMessag Lifetime (unit: msec)
  retn : None
 */
-VOID CMainThread::SendMesgParent(ENG_BWOK msg_id, UINT32 timeout)
+VOID CMainThread::SendMesgParent(ENG_BWOK msg_id, UINT32 timeout , UINT32 lParamExtenstion)
 {
-	LONG lParam			= IsBusyWorkJob() ? 1 : 0;
 	DWORD_PTR dwResult	= 0;
 	LRESULT lResult		= 0;
 
+	LparamExtension* lParamExt = new LparamExtension(IsBusyWorkJob() ? 1 : 0, lParamExtenstion);
 	/* 부모에게 이벤트 메시지 전달 */
-	lResult	= ::SendMessageTimeout(m_hParent, WM_MAIN_THREAD, WPARAM(msg_id), lParam,
+	lResult	= ::SendMessageTimeout(m_hParent, WM_MAIN_THREAD, WPARAM(msg_id), LPARAM(lParamExt),
 								   SMTO_NORMAL, timeout, &dwResult);
 	if (0 == lResult)
 	{
@@ -368,7 +379,9 @@ VOID CMainThread::SendMesgParent(ENG_BWOK msg_id, UINT32 timeout)
 		/* 현재 발생된 에러 값 저장 */
 		TRACE("MainThread : SendMessage Time out <Normal> = %d \n", GetLastError());
 #endif
+		
 	}
+
 }
 
 /*

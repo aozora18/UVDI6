@@ -70,4 +70,5 @@ public:
 		return m_nSelectLocalMark; 
 	}
 	void				ReleaseMark();
+	void ResetMarkResult();
 };

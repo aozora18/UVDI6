@@ -494,8 +494,31 @@ int CDrawPrev::OnMouseClick(int x, int y, CRect winRect)
 	return -1;
 }
 
+void CDrawPrev::ResetMarkResult()
+{
+	for_each(m_vGlobalMark.begin(), m_vGlobalMark.end(), [&](STG_MARK& v)
+		{
+			v.stInfo.dOffsetX = 0;
+			v.stInfo.dOffsetY = 0;
+			v.stInfo.dScore = -1;
+			v.stInfo.nResult = 0;
+		});
+
+	for_each(m_vLocalMark.begin(), m_vLocalMark.end(), [&](STG_MARK& v)
+		{
+			v.stInfo.dOffsetX = 0;
+			v.stInfo.dOffsetY = 0;
+			v.stInfo.dScore = -1;
+			v.stInfo.nResult = 0;
+		});
+}
+
+
 void CDrawPrev::ReleaseMark()
 {
+
+
+
 	m_nSelectGlobalMark = -1;
 	m_nSelectLocalMark = -1;
 	

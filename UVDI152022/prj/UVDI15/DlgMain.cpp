@@ -520,11 +520,18 @@ BOOL CDlgMain::LoadImages()
 */
 LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 {
-	BOOL bBusy		= LONG(lparam) == 1 ? TRUE : FALSE;
+	
+	LparamExtension* lparamExt = reinterpret_cast<LparamExtension*>(lparam);
+	if (lparamExt == nullptr)
+		return 0L;
+	
+	BOOL bBusy		= LONG(lparamExt->lParam) == 1 ? TRUE : FALSE;
+	UINT32 extensions = lparamExt->extenstion;
+
+	delete lparamExt; lparamExt = nullptr;
+
 	ENG_BWOK enWork	= ENG_BWOK(wparam);
 	UINT64 u64Tick	= GetTickCount64();
-
-
 
 	/* 주기적으로 갱신 (500 msec 마다 호출) */
 	if (wparam == MSG_MAIN_THREAD_PERIOD)
@@ -559,9 +566,17 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 				if (dlgID == ENG_CMDI::en_menu_expo)
 					((CDlgExpo*)m_pDlgMenu)->DrawMarkData();
 				else if (dlgID == ENG_CMDI::en_menu_manual)
-					((CDlgManual*)m_pDlgMenu)->DrawMarkData();
+					((CDlgManual*)m_pDlgMenu)->DrawMarkData(true);
 				else if (dlgID == ENG_CMDI::en_menu_auto)
-					((CDlgAuto*)m_pDlgMenu)->DrawMarkData();
+					((CDlgAuto*)m_pDlgMenu)->DrawMarkData(true);
+			break;
+
+			case ENG_BWOK::en_work_request:
+				MsgRecver* reciver = dynamic_cast<MsgRecver*>(m_pDlgMenu);
+
+				if (reciver != nullptr)
+					reciver->ProcessAction(extensions);
+				
 			break;
 		}
 	}

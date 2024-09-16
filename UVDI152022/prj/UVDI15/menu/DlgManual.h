@@ -72,7 +72,22 @@ class CDlgManual : public CDlgMenu
 	};
 
 public:
+	 bool ProcessAction(UINT32 action) 
+	 { 
+		 switch (action)
+		 {
+			 case (UINT32)ENG_RIJA::clearMarkData:
+			 {
+				 m_pDrawPrev->ResetMarkResult(); 
+				 DrawMarkData(true);
+			 }
+			 break;
 
+			 default:break;
+		 }
+
+		 return true; 
+	 }
 	/* 생성자 / 파괴자 */
 	CDlgManual(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgManual();

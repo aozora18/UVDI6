@@ -4,6 +4,18 @@
 #include "../../inc/comn/ThinThread.h"
 #include "./work/WorkStep.h"
 
+class LparamExtension
+{
+public:
+	LparamExtension(LONG lParam, INT32 extensions)
+	{
+		this->lParam = lParam;
+		this->extenstion = extensions;
+	}
+	LONG lParam;
+	INT32 extenstion;
+};
+
 class CMainThread : public CThinThread
 {
 /* 생성자 / 파괴자 */
@@ -38,7 +50,7 @@ protected:
 /* 로컬 함수 */
 protected:
 
-	VOID				SendMesgParent(ENG_BWOK msg_id, UINT32 timeout=100);
+	VOID				SendMesgParent(ENG_BWOK msg_id, UINT32 timeout=100, UINT32 lParamExtenstion=0);
 
 	VOID				RunWorkJob();
 	BOOL				ResetWorkJob();

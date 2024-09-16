@@ -66,6 +66,7 @@ CDlgAuto::~CDlgAuto()
 {
 }
 
+
 /*
  desc : 윈도 ID 매핑
  parm : dx	- 매핑 객체 ID

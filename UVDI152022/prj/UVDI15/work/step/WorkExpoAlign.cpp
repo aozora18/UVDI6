@@ -432,8 +432,9 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		/* 필요에 따라 분기 처리 */
 		switch (m_u8StepIt)
 		{
-			/* Local Mark 존재 여부 확인 */
-		case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
+		/* Local Mark 존재 여부 확인 */
+		//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
+		case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x17;	break;
 			/* 노광 작업이 완료된 이후, 바로 광학계 내 온도 값 요청 */
 		case 0x24: uvEng_Luria_ReqGetPhLedTempAll();	break;
 		}

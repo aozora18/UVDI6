@@ -268,7 +268,9 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 			idx = IndexOf(pool, u8MarkSeq,isGlobal);
 			
 			if(idx != -1)
-				pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx];
+				//pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx];
+				pstCaliData = isGlobal ? m_pstShMemVisi->cali_global[m_u8ACamID - 1][idx] : m_pstShMemVisi->cali_local[m_u8ACamID - 1][idx + 2];
+
 
 			try
 			{

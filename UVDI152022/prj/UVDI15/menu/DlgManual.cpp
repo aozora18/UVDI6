@@ -225,26 +225,20 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 
 	m_u64TickCount++;
 	m_bBlink = !m_bBlink;
+	DrawMarkData();
 
-	TCHAR tzMesg[128] = { NULL };
-
-
-	LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto motionType = motions.markParams.alignMotion;
 
-	if (motionType == ENG_AMOS::en_onthefly_2cam)
-	{
-		swprintf_s(tzMesg, 128, L"CHANGE ALIGN MODE\n[Normal]");
-		m_pBtn[EN_MANUAL_BTN::CHANGE_ALIGN_MODE]->SetWindowTextW(tzMesg);
-	}
-	else if (motionType == ENG_AMOS::en_onthefly_2cam)
-	{
-		swprintf_s(tzMesg, 128, L"CHANGE ALIGN MODE\n[Refind]");
-		m_pBtn[EN_MANUAL_BTN::CHANGE_ALIGN_MODE]->SetWindowTextW(tzMesg);
-	}
+	if (motionType == ENG_AMOS::none)
+		return;
 
-	DrawMarkData();
+	stringstream temp;
+	temp <<  "CHANGE ALIGN MODE\n" << (motionType == ENG_AMOS::en_onthefly_2cam ? "[refind]" : "[normal]");
+
+	USES_CONVERSION;
+	m_pBtn[EN_MANUAL_BTN::CHANGE_ALIGN_MODE]->SetWindowTextW(A2T(temp.str().c_str()));
+
 }
 
 /*

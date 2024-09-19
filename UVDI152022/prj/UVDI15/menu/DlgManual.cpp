@@ -763,12 +763,17 @@ void CDlgManual::UpdateGridInformation()
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 	DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
+	auto& measureFlat = uvEng_GetConfig()->measure_flat;
+	auto mean = measureFlat.GetThickMeasureMean();
+
 	//DOUBLE LDSToThickOffset = 1.3;
 	DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 	DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-	auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure(); //	DOUBLE LDSMeasure = uvEng_GetConfig()->measure_flat.dAlignMeasure;
+	//auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure(); //	DOUBLE LDSMeasure = uvEng_GetConfig()->measure_flat.dAlignMeasure;
 	//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
-	DOUBLE RealThick = LDSToThickOffset - lastThick + dmater;
+	//DOUBLE RealThick = LDSToThickOffset - lastThick + dmater;
+	/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
+	DOUBLE RealThick = mean + dmater + LDSToThickOffset;
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 	DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 	DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
@@ -777,13 +782,14 @@ void CDlgManual::UpdateGridInformation()
 	//m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > LimitZ Pos : %.3f", RealThick, LimitZPos);
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);
 	/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
-	if (lastThick == 0)
+	if (mean == 0)
 	{
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :0 > Material Thick : 0 + Limit : 0");
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);
 	}
-	else if ((RealThick > (MaxZPos + dmater)) || (RealThick < (MinZPos - dmater)))
+	//else if ((RealThick > (MaxZPos + dmater)) || (RealThick < (MinZPos - dmater)))
+	else if ((RealThick > (dmater + MaxZPos)) || (RealThick < (dmater + MinZPos)))
 	{
 		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, TOMATO);
 		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
@@ -1565,7 +1571,9 @@ void CDlgManual::ChangeAlignMode()
 	}
 	
 	std::stringstream combine;
-	combine << "current align method is\n" << (((int)motionType & 0b01) != 0 ? "<On The Fly>" : "<Static>") << "\n" << "change to\n" << (((int)motionType & 0b01) != 0 ? "<Static>?" : "<On The Fly>?");
+	//combine << "current align method is\n" << (((int)motionType & 0b01) != 0 ? "<On The Fly>" : "<Static>") << "\n" << "change to\n" << (((int)motionType & 0b01) != 0 ? "<Static>?" : "<On The Fly>?");
+	combine << "current align method is\n" << (((int)motionType & 0b01) != 0 ? "<Normal Align>" : "<Refind Align>") << "\n" << "change to\n" << (((int)motionType & 0b01) != 0 ? "<Refind Align>?" : "<Normal Align>?");
+
 	USES_CONVERSION;
 	if (MessageBoxEx(nullptr, A2T(combine.str().c_str()), _T(""), MB_OKCANCEL | MB_ICONINFORMATION, LANG_ENGLISH) == IDOK)
 	{

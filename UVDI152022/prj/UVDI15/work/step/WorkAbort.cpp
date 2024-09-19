@@ -50,7 +50,8 @@ BOOL CWorkAbort::InitWork()
 
 	/* 전체 작업 단계 */
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-	m_u8StepTotal = 0x07;
+	//m_u8StepTotal = 0x07;
+	m_u8StepTotal = 0x0a;
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 	m_u8StepTotal	= 0x0a;
 #endif

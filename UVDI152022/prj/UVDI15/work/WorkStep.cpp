@@ -1116,7 +1116,9 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 			//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
-			DOUBLE RealThick = LDSToThickOffset - mean + dmater;
+			//DOUBLE RealThick = LDSToThickOffset - mean + dmater;
+			/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
+			DOUBLE RealThick = mean + dmater + LDSToThickOffset;
 			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 			DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 			DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
@@ -1125,8 +1127,11 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 			swprintf_s(tzMsg, 256, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);
 			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
+			//swprintf_s(tzMsg, 256, L"Real Thick :%.3f  Material Thick : %.3f + GetThickMeasureMean : %.3f", RealThick, dmater, mean);
+			//LOG_WARN(ENG_EDIC::en_acam_cali, tzMsg);
+
 			/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
-			if ((RealThick > (MaxZPos + dmater)) || (RealThick < (MinZPos - dmater)))
+			if ((RealThick > (dmater + MaxZPos)) || (RealThick < (dmater + MinZPos)))
 			{
 				//swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > LimitZ Pos : %.3f]", RealThick, LimitZPos);
 				swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f]", RealThick, dmater, LimitZPos);
@@ -2056,7 +2061,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	if(bSucc == false)
 		return ENG_JWNS::en_error;
 
-#if(0)
+
 	const int CrossLengthCount = 6;
 	/* -------------------------------------------------------------------------------------- */
 	/* 거버에 등록된 Global Fiducial Mark와 Grabbed Image들 간의 직선 / 대각선 등의 크기 비교 */
@@ -2070,7 +2075,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		i32DistS[i] = (INT32)ROUNDED(sqrt(pow(stMarkPos1.mark_x - stMarkPos2.mark_x, 2) +
 			pow(stMarkPos1.mark_y - stMarkPos2.mark_y, 2)) * 10000.0f, 0);
 	}
-#endif
+
 
 	/* Align Mark로 측정된 오차 값에 Camera Calibration Offset 적용 */
 	if ((ENG_BWOK::en_mark_test == m_enWorkJobID ||
@@ -2168,6 +2173,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 						lstMarkAt.mark_x -= pstGrab->move_mm_x;
 						lstMarkAt.mark_y -= pstGrab->move_mm_y;
 
+						swprintf_s(tzMsg, 256, L"Local Mark%d Move_mm: X = %.4f Y = %.4f", lstMarkAt.org_id, pstGrab->move_mm_x, pstGrab->move_mm_y);
+						LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
 						if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_info && pstSetAlign->markOffsetPtr != nullptr)
 						{
 							if (pstSetAlign->markOffsetPtr->Get(motionType,false, lstMarkAt.tgt_id, val) == false)
@@ -2200,6 +2208,66 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			}
 		}
 
+		if (bSucc)
+		{
+			/* 측정 오차 값이 적용된 마크 넓이 / 높이 값 임시 저장 */
+			if (u8MarkG == 0x04)
+			{
+				u32MarkDist = 0;
+				for (i = 0; i < CrossLengthCount; i++)
+				{
+					stMarkPos1 = lstMarks.GetAt(lstMarks.FindIndex(u8Reg1[i]));
+					stMarkPos2 = lstMarks.GetAt(lstMarks.FindIndex(u8Reg2[i]));
+
+					/* mm -> 0.1 um or 100 nm */
+					i32DistT[i] = (INT32)ROUNDED(sqrt(pow(stMarkPos1.mark_x - stMarkPos2.mark_x, 2) +
+						pow(stMarkPos1.mark_y - stMarkPos2.mark_y, 2)) * 10000.0f, 0);
+					u32MarkDist = (UINT32)abs(i32DistS[i] - i32DistT[i]);
+					//u32MarkDist = uvEng_Camera_GetGrabbedMarkDist((ENG_GMDD)i) * 1000.0f;
+					u8MarkLen[i] = u32MarkDist <= (pstRecipe->global_mark_dist[i] * 10) ? 0x01 : 0x02;
+					//u8MarkLen[i] = u32MarkDist <= (pstRecipe->global_mark_dist[i]) ? 0x01 : 0x02;
+					pstMarkDiff->SetMarkLenDiff(i, u32MarkDist);
+					pstMarkDiff->SetMarkLenValid(i, u8MarkLen[i]);	/* Mark 간의 간격 (대각선 포함)에 대해 유효성 설정 (상/하 수평선, 좌/우 수직선, 대각선 2개 = 총 6개 */
+				}
+			}
+			swprintf_s(tzMsg, 256, L"Limit Dist = %d, %d, %d, %d, %d, %d",
+				pstRecipe->global_mark_dist[0], pstRecipe->global_mark_dist[1], pstRecipe->global_mark_dist[2],
+				pstRecipe->global_mark_dist[3], pstRecipe->global_mark_dist[4], pstRecipe->global_mark_dist[5]);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+			swprintf_s(tzMsg, 256, L"Result Dist = %.1f, %.1f, %.1f, %.1f, %.1f, %.1f",
+				pstMarkDiff->result[0].diff * 100000.0f, pstMarkDiff->result[1].diff * 100000.0f, pstMarkDiff->result[2].diff * 100000.0f,
+				pstMarkDiff->result[3].diff * 100000.0f, pstMarkDiff->result[4].diff * 100000.0f, pstMarkDiff->result[5].diff * 100000.0f);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+#if 0
+			swprintf_s(tzMesg, 256, L"Dist = (top_horz = %.1f)(btm_horz = %.1f)(lft_vert = %.1f)(rgt_vert = %.1f)(lft_diag = %.1f)(rgt_diag = %.1f) 입니다 노광 하시겠습니까?",
+				pstMarkDiff->result[0].diff * 100000.0f, pstMarkDiff->result[1].diff * 100000.0f, pstMarkDiff->result[2].diff * 100000.0f,
+				pstMarkDiff->result[3].diff * 100000.0f, pstMarkDiff->result[4].diff * 100000.0f, pstMarkDiff->result[5].diff * 100000.0f);
+			if (IDNO == AfxMessageBox(tzMesg, MB_YESNO))
+			{
+				bSucc = FALSE;
+			}
+#endif
+			if (!pstMarkDiff->IsMarkLenValidAll())
+			{
+				bSucc = FALSE;
+				swprintf_s(tzMesg, 128, L"The distance between measured marks is not vald"
+					L"(1:%d)(2:%d)(3:%d)(4:%d)(5:%d)(6:%d)",
+					u8MarkLen[0], u8MarkLen[1], u8MarkLen[2], u8MarkLen[3],
+					u8MarkLen[4], u8MarkLen[5]);
+				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			}
+			/* Mark들의 거리 및 간격 값 설정했다고 플래그 값 변경 */
+			pstMarkDiff->SetMarkLenData();
+
+			/*수평과 수직간의 오차가 제한값보다 크면 정지*/
+			//if (pstMarkDiff->HorzDiff(0.005) && pstMarkDiff->VertDiff(0.003))
+			if (pstMarkDiff->HorzDiff(pstSetAlign->mark_horz_diff) || pstMarkDiff->VertDiff(pstSetAlign->mark_vert_diff))
+			{
+				LOG_ERROR(ENG_EDIC::en_uvdi15, L"The distance Horz, Vert Error");
+				bSucc = FALSE;
+			}
+		}
 	}
 
 	/* Global Transformation Recipe 정보 설정 */

@@ -28,6 +28,15 @@ CWorkRecipeLoad::CWorkRecipeLoad(UINT8 offset)
 	m_u8Offset		= offset;
 	m_enWorkJobID	= ENG_BWOK::en_gerb_load;
 	m_lastUniqueID = 0;
+
+	/*UI에 표시되는 추기값 초기화*/
+	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
+	pstParams->rotation = 0;
+	pstParams->scale_xy[0] = 0;
+	pstParams->scale_xy[1] = 0;
+	uvEng_GetConfig()->measure_flat.MeasurePoolClear();
+	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
+	pstMarkDiff->ResetMarkLen();
 }
 
 /*

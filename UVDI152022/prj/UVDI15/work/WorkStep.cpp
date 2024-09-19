@@ -2320,7 +2320,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	/* 다음 상태 확인까지 일정 시간 지연을 위해서 */
 	SetSendCmdTime();
 
-	return ENG_JWNS::en_error;
+	//return ENG_JWNS::en_error;
 	return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 	//return ENG_JWNS::en_next;
 }

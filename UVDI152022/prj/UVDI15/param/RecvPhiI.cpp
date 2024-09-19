@@ -137,6 +137,7 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* calle
 	stSelectSend.ulUniqueID = stRecv->st_c2p_rcp_select.ulUniqueID;
 	CUniToChar csCnv;
 	CString strRecipe;
+	CString strExpo, strAlign;
 
 	strRecipe.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rcp_select.szRecipeName));
 
@@ -157,6 +158,16 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* calle
 			callerInst->RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
 
 			uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
+
+			/*UI Recipe 목록 변경*/
+			strRecipe = CRecipeManager::GetInstance()->GetRecipeName();
+			strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
+			strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+			::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)0, (LPARAM)&strRecipe);
+			::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)1, (LPARAM)&strExpo);
+			::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)2, (LPARAM)&strAlign);
+			/*Auto Dlg로 변경*/
+			callerInst->CreateMenu(IDC_MAIN_BTN_AUTO);
 		}
 		/*Recipe 선택 요청 실패*/
 		else

@@ -291,8 +291,8 @@ VOID CDlgMmpm::OnBtnClicked(UINT32 id)
 	switch (id)
 	{
 		case IDC_MMPM_BTN_UNDO:	UndoCenter();		break;
-		case IDC_MMPM_BTN_HORZ_LEFT:	MoveCenter(LEFT);
-		case IDC_MMPM_BTN_HORZ_RIGHT:	MoveCenter(RIGHT);
+		case IDC_MMPM_BTN_HORZ_LEFT:	MoveCenter(LEFT); break;
+		case IDC_MMPM_BTN_HORZ_RIGHT:	MoveCenter(RIGHT); break;
 		case IDC_MMPM_BTN_VERT_UP:	MoveCenter(UP);	break;
 		case IDC_MMPM_BTN_VERT_DOWN:	MoveCenter(DOWN);	break;
 		case IDC_MMPM_BTN_CHECK:	MoveCenter(0x00);	break;

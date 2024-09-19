@@ -142,19 +142,18 @@ VOID CMainThread::RunWork()
 		else
 		{
 			/* 부모에게 주기적으로 알리는 방법 제공 */
-			if (m_pWorkJob != nullptr)
-			{
-				if (IsSetAlignedMark())
+			
+				if (m_pWorkJob && IsSetAlignedMark())
 					SendMesgParent(ENG_BWOK::en_mesg_mark, 500);
 				else
 					SendMesgParent(ENG_BWOK::en_mesg_norm, 500);
 
-				if (m_pWorkJob->GetActionRequest() != (UINT32)ENG_RIJA::none)
+				if (m_pWorkJob != nullptr && m_pWorkJob->GetActionRequest() != (UINT32)ENG_RIJA::none)
 				{
 					SendMesgParent(ENG_BWOK::en_work_request,500, m_pWorkJob->GetActionRequest());
 					m_pWorkJob->SetActionRequest(ENG_RIJA::none);
 				}
-			}
+			
 		}
 		/* 동기 해제 */
 		m_csSyncWork.Leave();

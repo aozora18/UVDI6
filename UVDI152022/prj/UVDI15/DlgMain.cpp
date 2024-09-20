@@ -312,6 +312,7 @@ VOID CDlgMain::OnExitDlg()
 	CCamSpecMgr::GetInstance()->Terminate();
 	CIOManager::GetInstance()->Destroy();
 	CLogManager::GetInstance()->Destroy();
+	GlobalVariables::GetInstance()->Destroy();
 
 	/* 기본 감시 스레드 메모리 해제 */
 	if (m_pMainThread)
@@ -339,7 +340,7 @@ VOID CDlgMain::OnExitDlg()
 	CloseLib();
 #endif
 
-	GlobalVariables::GetInstance()->Destroy();
+	
 
 	/* 프로그램 종료 대기 알림 */
 	if (m_pDlgWait)

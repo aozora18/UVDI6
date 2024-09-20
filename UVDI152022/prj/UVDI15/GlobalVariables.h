@@ -111,7 +111,7 @@ public:
 private:
 
 	std::unordered_map<std::string, tuple<std::unique_ptr<std::thread>, std::atomic<bool>&>> threads_;
-	std::mutex mutex_;
+	std::recursive_mutex mutex_;
 };
 
 struct subOffset //참조용.
@@ -817,12 +817,25 @@ public:
 
 	void Destroy()
 	{
+		
+		waitForAllWaiter();
+		ThreadManager::getInstance().waitForAllThreads();
+
 		GetAlignMotion().Destroy();
 		alignMotion.reset();
 		refindMotion.reset();
 		triggerManager.reset();
+		webMonitor->StopWebServer();
 		webMonitor.reset();
 		environmental.reset();
+		
+
+		
+		
+	}
+
+	void waitForAllWaiter()
+	{
 
 		for (auto it = waiter.begin(); it != waiter.end();) {
 			if (it->second.joinable())
@@ -836,7 +849,6 @@ public:
 			}
 		}
 
-		ThreadManager::getInstance().waitForAllThreads();
 	}
 
 	bool Waiter(std::function<bool()> func, int timeoutDelay = 3000)

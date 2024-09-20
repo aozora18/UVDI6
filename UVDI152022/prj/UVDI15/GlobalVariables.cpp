@@ -38,7 +38,7 @@ void ThreadManager::addThread(const std::string& key, std::atomic<bool>& stopFla
 	if (threads_.find(key) != threads_.end())
 		return;
 
-	std::lock_guard<std::mutex> lock(mutex_);
+	std::lock_guard<std::recursive_mutex> lock(mutex_);
 	threads_.emplace(key, 
 						make_tuple(std::make_unique<std::thread>(callback),
 								   std::ref(stopFlag)));
@@ -46,7 +46,7 @@ void ThreadManager::addThread(const std::string& key, std::atomic<bool>& stopFla
 
 void ThreadManager::removeThread(const std::string& key)
 {
-	std::lock_guard<std::mutex> lock(mutex_);
+	std::lock_guard<std::recursive_mutex> lock(mutex_);
 	auto it = threads_.find(key);
 	if (it != threads_.end()) 
 	{
@@ -62,19 +62,24 @@ void ThreadManager::removeThread(const std::string& key)
 	}
 }
 
+
+
 void ThreadManager::waitForAllThreads()
 {
-	
-	for (auto& pair : threads_) 
+	std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+	while (threads_.empty() == false)
 	{
-		removeThread(pair.first);
+		auto val = threads_.begin();
+		removeThread(val->first);
+
 	}
 	threads_.clear();
 }
 
 bool ThreadManager::isThreadRunning(const std::string& key)
 {
-	std::lock_guard<std::mutex> lock(mutex_);
+	std::lock_guard<std::recursive_mutex> lock(mutex_);
 	auto it = threads_.find(key);
 	return it != threads_.end() && std::get<0>(it->second)->joinable();
 }

@@ -307,7 +307,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	{
 		m_enWorkState = IsLoadedGerberCheck();
 
-		if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.manualFixOffsetAtSequence)
+		if (m_enWorkState == ENG_JWNS::en_next && !uvEng_GetConfig()->set_align.manualFixOffsetAtSequence)
 		{
 			auto res = motions.IsNeedManualFixOffset(nullptr);
 			if (res == ENG_MFOR::noNeedToFix)
@@ -315,6 +315,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 				m_u8StepIt = 0x1a;
 				m_enWorkState = ENG_JWNS::en_forceSet;
 			}
+			else if (res == ENG_MFOR::firstRun) {}
 			else
 			{
 				m_enWorkState = ENG_JWNS::en_error;

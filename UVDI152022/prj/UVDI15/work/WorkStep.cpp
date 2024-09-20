@@ -1133,13 +1133,13 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 			/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
 			if ((RealThick > (dmater + MaxZPos)) || (RealThick < (dmater + MinZPos)))
 			{
-				//swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > LimitZ Pos : %.3f]", RealThick, LimitZPos);
 				swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f]", RealThick, dmater, LimitZPos);
+				//CDlgMesg dlgMesg;
+				//if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
+				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
 
-				CDlgMesg dlgMesg;
-				if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
-
-					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
+				/*소재 측정 에러 발생 확인*/
+				GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_lds_thick_check;
 				return ENG_JWNS::en_error;
 			}
 

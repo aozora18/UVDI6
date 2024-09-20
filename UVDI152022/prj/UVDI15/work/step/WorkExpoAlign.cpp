@@ -42,6 +42,7 @@ CWorkExpoAlign::CWorkExpoAlign()
 	uvEng_GetConfig()->measure_flat.MeasurePoolClear();
 	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	pstMarkDiff->ResetMarkLen();
+	GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_none;
 }
 
 /*

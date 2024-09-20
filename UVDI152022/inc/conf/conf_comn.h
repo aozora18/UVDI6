@@ -127,6 +127,14 @@ typedef enum class __en_algin_type_global_local__ : UINT8
 	en_not_defined = 0xff,
 
 }	ENG_ATGL;
+
+/* Work Error Type */
+typedef enum class __en_work_error_type__ : UINT8
+{
+	en_none = 0x00,
+	en_lds_thick_check = 0x01,
+
+}	ENG_WETE;
 //
 //typedef enum class __en_algin_type_global_local__ : UINT8
 //{

@@ -42,6 +42,7 @@ CWorkMarkTest::CWorkMarkTest(LPG_CELA expo)
 	uvEng_GetConfig()->measure_flat.MeasurePoolClear();
 	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	pstMarkDiff->ResetMarkLen();
+	GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_none;
 }
 
 /*

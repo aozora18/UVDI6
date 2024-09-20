@@ -27,6 +27,7 @@ JHMI_ENUM(EN_MANUAL_BTN, int
 	, CALIBRATION_MARK
 	, MARK_ZERO
 	, CHANGE_ALIGN_MODE
+	, ERROR_THICK
 	, ENERGE
 	, LOAD
 	
@@ -45,7 +46,7 @@ JHMI_ENUM(EN_GRD_INFORMATION_ROW, int
 	, TACT_TIME
 	, GERBER_NAME
 	, REAL_SCALE
-	, REAL_ROTATION
+	//, REAL_ROTATION
 	, REAL_THICK
 )
 
@@ -158,6 +159,7 @@ protected:
 	VOID				OnlyFEMLoad();
 	VOID				ResetData();
 	BOOL				MarkZero();
+	VOID				ErrorThick();
 	void ChangeAlignMode();
 
 /* 공용 함수 */

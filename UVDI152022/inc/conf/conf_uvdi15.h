@@ -975,6 +975,7 @@ public:
 	UINT8	u8UseThickCheck;					/*LED 측정 동작 사용 유무 확인*/
 	DOUBLE	dOffsetZPOS;						/*LDS 실제 측정값에 대한 보정값*/
 	DOUBLE	dLimitZPOS;							/*LDS 실제 측정값과 설정값에 대한 최대 오차값*/
+	BOOL	bThinkError;						/*LDS Thick 측정 후 여러 유무 0: */
 
 	vector<DOUBLE>* dAlignMeasure;						/*LDS 측정 값*/
 	double lastThickness;

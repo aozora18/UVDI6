@@ -396,6 +396,7 @@ struct Params
 	double centerMarkzeroOffsetY = 0;
 	ENG_AMOS alignMotion;
 	ENG_ATGL alignType;
+	ENG_WETE workErrorType;
 	vector<tuple<ENG_MMDI, double, double>> axisLimit;
 	
 	void SetExpoShiftValue(double x, double y)

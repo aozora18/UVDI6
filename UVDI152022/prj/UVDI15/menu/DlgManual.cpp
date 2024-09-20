@@ -234,7 +234,22 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 		return;
 
 	stringstream temp;
-	temp <<  "CHANGE ALIGN MODE\n" << (motionType == ENG_AMOS::en_onthefly_2cam ? "[refind]" : "[normal]");
+	//temp <<  "CHANGE ALIGN MODE\n" << (motionType == ENG_AMOS::en_onthefly_2cam ? "[refind]" : "[normal]");
+	temp << "CHANGE ALIGN MODE\n" << (motionType == ENG_AMOS::en_onthefly_2cam ? "[normal]" : "[refind]");
+
+	ENG_WETE workerror = GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType;
+
+	/*LDS Thick error 버튼 표시*/
+	if (workerror == ENG_WETE::en_none)
+	{
+		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->SetBgColor(DEF_COLOR_BTN_PAGE_NORMAL);
+		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->RedrawWindow();
+	}
+	else if (workerror == ENG_WETE::en_lds_thick_check)
+	{
+		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->SetBgColor(LIGHT_RED);
+		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->RedrawWindow();
+	}
 
 	USES_CONVERSION;
 	m_pBtn[EN_MANUAL_BTN::CHANGE_ALIGN_MODE]->SetWindowTextW(A2T(temp.str().c_str()));
@@ -373,6 +388,14 @@ VOID CDlgManual::UpdateBtn(UINT64 tick, BOOL is_busy)
 			m_pBtn[nBtnIndex]->RedrawWindow();
 			TRACE(_T("m_pBtn[%d]=SELECT\n"), nBtnIndex);
 		}
+
+		if (m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_work_stop ||
+			m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_gerb_load ||
+			m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_mark_test ||
+			m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_expo_align)
+		{
+			UpdateGridInformation();
+		}
 	}
 }
 
@@ -481,13 +504,15 @@ VOID CDlgManual::InitCtrl()
 	//rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 	//rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 
-	uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 2) / 3;
+	//uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 2) / 3;
+	uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 2) / 4;
 	rtBtn.left = rtStt.left;
 	rtBtn.right = rtBtn.left + uiBtnWidth;
 	rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 
 	nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK;
-	for (nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK; nBtnIndex <= EN_MANUAL_BTN::CHANGE_ALIGN_MODE; nBtnIndex++)
+	//for (nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK; nBtnIndex <= EN_MANUAL_BTN::CHANGE_ALIGN_MODE; nBtnIndex++)
+	for (nBtnIndex = EN_MANUAL_BTN::CALIBRATION_MARK; nBtnIndex <= EN_MANUAL_BTN::ERROR_THICK; nBtnIndex++)
 	{
 		if (EN_MANUAL_BTN::CALIBRATION_MARK < nBtnIndex)
 		{
@@ -734,31 +759,22 @@ void CDlgManual::UpdateGridInformation()
 	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe();
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::GERBER_NAME, 1, L"%S", pJob->gerber_name);
 
-	/*Roation*/
-	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
-	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"%d", pstParams->rotation);
-	if (pstParams->rotation == 0)
-	{
-		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
-	}
-	//else if (pstParams->rotation > pstRecipeExpo->real_rotaion_range)
+	///*Roation*/
+	//LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
+	//m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, L"%d", pstParams->rotation);
+	//if (pstParams->rotation == 0)
+	//{
+	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
+	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, BLACK_);
+	//}
+	//else
 	//{
 	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, SEA_GREEN);
 	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
 	//}
-	//else
-	//{
-	//	m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, TOMATO);
-	//	m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-	//}
-	else
-	{
-		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, SEA_GREEN);
-		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_ROTATION, 1, WHITE_);
-	}
 
 	/*scale_xy*/
+	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, L"ScaleX = %.5f  ScaleY = %.5f", pstParams->scale_xy[0] / 1000000.0f, pstParams->scale_xy[1] / 1000000.0f);
 	if ((pstParams->scale_xy[0] + pstParams->scale_xy[1]) / 2 == 0)
 	{
@@ -1126,7 +1142,9 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 	case EN_MANUAL_BTN::LOAD:
 		OnlyFEMLoad();
 		break;
-
+	case EN_MANUAL_BTN::ERROR_THICK:
+		ErrorThick();
+		break;
 	case EN_MANUAL_BTN::CHANGE_ALIGN_MODE:
 		ChangeAlignMode();
 	break;
@@ -1704,6 +1722,96 @@ BOOL CDlgManual::MarkZero()
 
 	return TRUE;
 }
+
+
+/*
+ desc : 얼라인 동작 에서 LDS 센서로 Thick 측정 후 에러 발생시 조치 사항
+ parm : None
+ retn : None
+*/
+VOID CDlgManual::ErrorThick()
+{
+	if (m_pDlgMain->IsBusyWorkJob())
+	{
+		MessageBoxEx(nullptr, _T("cannnot error thcik method, on working."), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
+		return;
+	}
+
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto motionType = motions.markParams.alignMotion;
+
+	/*Recipe Select 및 Load 확인*/
+	if (pstRecipe == nullptr || motionType == ENG_AMOS::none)
+	{
+		MessageBoxEx(nullptr, _T("no recipe loaded."), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
+		return;
+	}
+
+	/*Thick check 동작 되었는지 확인*/
+	auto& measureFlat = uvEng_GetConfig()->measure_flat;
+	auto mean = measureFlat.GetThickMeasureMean();
+	if (mean == 0)
+	{
+		MessageBoxEx(nullptr, _T("no check thick move"), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
+		return;
+	}
+
+	if (measureFlat.u8UseThickCheck)
+	{
+		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
+		DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+
+		/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
+		DOUBLE RealThick = mean + dmater + LDSToThickOffset;
+		DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+		DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+		DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
+
+		TCHAR tzMsg[256] = { NULL };
+		swprintf_s(tzMsg, 256, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+
+		/*LDS에서 측정한 값과 옵셋값 더한값이 Limit 범위*/
+		if ((RealThick > (dmater + MaxZPos)) || (RealThick < (dmater + MinZPos)))
+		{
+			swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f]", RealThick, dmater, LimitZPos);
+
+			/*측정한 Thick 수치와 Recipe 수치가 다를경우 측정한 값으로 수정하여 재로드 할지 확인*/
+			CDlgMesg dlgMesg;
+			if (IDOK == dlgMesg.MyDoModal(tzMsg, 0x03))
+			{
+				//pstRecipe->material_thick = RealThick * 1000.0f;
+				m_stJob.material_thick = RealThick * 1000.0f;
+				if (uvEng_JobRecipe_RecipeModify(&m_stJob))
+				{
+					/*포커스, 에너지만 다시 세팅*/
+					m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_onlyfem);
+
+					/*초기화*/
+					GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_none;
+					uvEng_GetConfig()->measure_flat.MeasurePoolClear();
+				}
+			}
+		}
+		else
+		{
+			swprintf_s(tzMsg, 256, L"Actual material thickness tolerance range\n [Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f]", RealThick, dmater, LimitZPos);
+
+			CDlgMesg dlgMesg;
+			if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01));
+		}
+	}
+	else
+	{
+		MessageBoxEx(nullptr, _T("no use thikc check."), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
+		return;
+	}
+}
+
 
 /*
  desc : 마크 검사 결과를 이미지와 측정 결과 (오차) 값 출력 (갱신)

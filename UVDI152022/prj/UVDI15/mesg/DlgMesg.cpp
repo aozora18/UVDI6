@@ -182,7 +182,7 @@ VOID CDlgMesg::OnBtnClicked(UINT32 id)
 /*
  desc : DoModal Override 함수
  parm : mesg	- [in]  다이얼로그 상자에 출력되는 메시지
-		type	- [in]  0x00 : 버튼 2개, 0x01 : 버튼 1개, 0x02 : 버튼 2개 (Yes, No)
+		type	- [in]  0x00 : 버튼 2개, 0x01 : 버튼 1개, 0x02 : 버튼 2개 (Yes, No), 0x03 : 버튼 2개 (Edit Thick, Cancel)
  retn : 0L
 */
 INT_PTR CDlgMesg::MyDoModal(PTCHAR mesg, UINT8 type)
@@ -206,6 +206,11 @@ INT_PTR CDlgMesg::MyDoModal(PTCHAR mesg, UINT8 type)
 		{
 			wcscpy_s(m_tzApply, 128, L"Yes");
 			wcscpy_s(m_tzCancel, 128, L"No");
+		}
+		else if (0x03 == type)
+		{
+			wcscpy_s(m_tzApply, 128, L"Edit Thick");
+			wcscpy_s(m_tzCancel, 128, L"Cancel");
 		}
 	}
 

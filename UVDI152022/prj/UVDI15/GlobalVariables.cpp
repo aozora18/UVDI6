@@ -797,6 +797,39 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		}
 	}
 
+	ENG_MFOR AlignMotion::IsNeedManualFixOffset(int* camNum)
+	{
+		CUniToChar csCnv;
+		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+		LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+		LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
+		auto* config = uvEng_GetConfig();
+
+		AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+		
+		if(motions.markParams.alignMotion == ENG_AMOS::none)
+			return ENG_MFOR::noRecipeLoaded;
+
+		auto grabCount = uvEng_Camera_GetGrabbedCount(camNum);
+
+		if (grabCount == 0) 
+			return ENG_MFOR::firstRun;
+
+		auto u8Global = motions.status.globalMarkCnt;
+		auto u8Local = motions.markParams.alignType == ENG_ATGL::en_global_4_local_0_point ? 0 : motions.status.localMarkCnt;
+		
+		bool allGrabbed = grabCount == (u8Global + u8Local);
+
+		if (allGrabbed == false || (u8Global + u8Local == 0))
+			return ENG_MFOR::grabcountMiss;
+
+		bool allValid = uvEng_Camera_IsGrabbedMarkValidAll(false, pstRecipeExpo->mark_score_accept, camNum);
+		if (allValid)
+			return ENG_MFOR::noNeedToFix;
+
+		return ENG_MFOR::canFix;
+	}
+
 	void AlignMotion::DoInitial(LPG_CIEA pstCfg)
 	{
 		this->pstCfg = pstCfg;

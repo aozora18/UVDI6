@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
 #undef THIS_FILE
-static char THIS_FILE[]	= __FILE__;
+static char THIS_FILE[] = __FILE__;
 #endif
 
 /*
@@ -27,8 +27,8 @@ static char THIS_FILE[]	= __FILE__;
 CWorkStep::CWorkStep()
 	: CWork()
 {
-	m_u8LastLoadStrip	= 0;	/* 무조건 초기화 */
-	m_dbLastPrintPosY	= 0.0f;	/* 가장 최근의 Y 축 방향의 노광 모션 위치 값 (단위: mm) */
+	m_u8LastLoadStrip = 0;	/* 무조건 초기화 */
+	m_dbLastPrintPosY = 0.0f;	/* 가장 최근의 Y 축 방향의 노광 모션 위치 값 (단위: mm) */
 }
 
 /*
@@ -47,19 +47,19 @@ CWorkStep::~CWorkStep()
 */
 ENG_JWNS CWorkStep::SetWorkWaitTime(UINT64 time)
 {
-	BOOL bWorkAbort	= FALSE;
+	BOOL bWorkAbort = FALSE;
 #ifdef _DEBUG
 	/* Debug 모드일 경우, 릴리즈 모드 대비 1.5 배 정도 */
-	m_u64WaitTime	= GetTickCount64() + time + (UINT64)ROUNDED(time * 0.5, 0);
+	m_u64WaitTime = GetTickCount64() + time + (UINT64)ROUNDED(time * 0.5, 0);
 #else
-	m_u64WaitTime	= GetTickCount64() + time;
+	m_u64WaitTime = GetTickCount64() + time;
 #endif
 #if 0
 	/* 동기 진행*/
 	if (m_csSyncAbortSet.Enter())
 	{
 		/* 작업 취소 요청이 왔는지 여부에 따라 더 진행할지 여부 판단 */
-		bWorkAbort	= m_bWorkAbortSet;
+		bWorkAbort = m_bWorkAbortSet;
 
 		/* 동기 해제 */
 		m_csSyncAbortSet.Leave();
@@ -98,7 +98,7 @@ ENG_JWNS CWorkStep::IsStepRepeatTimeout(UINT8 back_step, UINT64 time_delay, UINT
 		if (m_u8RetryStep != m_u8StepIt)
 		{
 			m_u8RetryStep = m_u8StepIt;
-			m_u8RetryCount= 0x00;	/* 재시도 횟수 초기화 */
+			m_u8RetryCount = 0x00;	/* 재시도 횟수 초기화 */
 		}
 
 		/* 최대 응답 대기 시간까지 응답이 없으면, 결국 Timeout이 발생됨*/
@@ -164,8 +164,8 @@ ENG_JWNS CWorkStep::SetTrigEnable(BOOL enable)
 */
 ENG_JWNS CWorkStep::SetMovingUnloader()
 {
-	ENG_MMDI enVecAxis	= ENG_MMDI::en_axis_none;
-	LPG_MDSM pstShMC2	= uvEng_ShMem_GetMC2();
+	ENG_MMDI enVecAxis = ENG_MMDI::en_axis_none;
+	LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Move.Stage.Unload");
@@ -192,7 +192,7 @@ ENG_JWNS CWorkStep::SetMovingUnloader()
 	if (abs(pstShMC2->GetDrivePos(UINT8(ENG_MMDI::en_stage_x)) - uvEng_GetConfig()->set_align.table_unloader_xy[0][0]) < 0.001 &&
 		abs(pstShMC2->GetDrivePos(UINT8(ENG_MMDI::en_stage_y)) - uvEng_GetConfig()->set_align.table_unloader_xy[0][1]) < 0.001)
 	{
-		m_enVectMoveDrv	= ENG_MMDI::en_axis_none;
+		m_enVectMoveDrv = ENG_MMDI::en_axis_none;
 	}
 	else
 	{
@@ -207,30 +207,30 @@ ENG_JWNS CWorkStep::SetMovingUnloader()
 #if 1 /* 벡터 이동이 잘 동작하지 않을 때가 있음 */
 		/* Stage Moving (Vector) */
 		if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
-										   uvEng_GetConfig()->set_align.table_unloader_xy[0][0],
-										   uvEng_GetConfig()->set_align.table_unloader_xy[0][1],
-										   uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)],
-										   enVecAxis))
+			uvEng_GetConfig()->set_align.table_unloader_xy[0][0],
+			uvEng_GetConfig()->set_align.table_unloader_xy[0][1],
+			uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)],
+			enVecAxis))
 		{
 			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevMoveVector)");
 			return ENG_JWNS::en_error;
 		}
 
 		/* Vector Moving하는 기본 축 정보 저장 */
-		m_enVectMoveDrv	= (enVecAxis == ENG_MMDI::en_stage_x) ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
+		m_enVectMoveDrv = (enVecAxis == ENG_MMDI::en_stage_x) ? ENG_MMDI::en_stage_x : ENG_MMDI::en_stage_y;
 #else
 		/* X 축으로 이동 */
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_x,
-									  uvEng_GetConfig()->set_align.table_unloader_xy[0][0],
-									  uvEng_GetConfig()->mc2_svc.move_velo))
+			uvEng_GetConfig()->set_align.table_unloader_xy[0][0],
+			uvEng_GetConfig()->mc2_svc.move_velo))
 		{
 			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SetMovingUnloader()->uvEng_MC2_SendDevAbsMove (X))");
 			return ENG_JWNS::en_error;
 		}
 		/* Y 축으로 이동 */
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_y,
-									  uvEng_GetConfig()->set_align.table_unloader_xy[0][1],
-									  uvEng_GetConfig()->mc2_svc.move_velo))
+			uvEng_GetConfig()->set_align.table_unloader_xy[0][1],
+			uvEng_GetConfig()->mc2_svc.move_velo))
 		{
 			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SetMovingUnloader()->uvEng_MC2_SendDevAbsMove (Y))");
 			return ENG_JWNS::en_error;
@@ -276,15 +276,15 @@ ENG_JWNS CWorkStep::IsMovedUnloader()
 ENG_JWNS CWorkStep::SetMovingUnloader()
 {
 	DOUBLE dbStagePosX, dbStagePosY, dbStageVeloY;
-	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
+	LPG_CSAI pstAlign = &uvEng_GetConfig()->set_align;
 
 	SetStepName(L"Set.Moving.Unloader");
 
 	/* Stage X, Y, Camera 1 & 2 X 이동 좌표 얻기 */
-	dbStagePosX	= pstAlign->mark2_stage_x;				/* Calibration 거버의 Mark 2 기준 위치 */
-	dbStagePosY	= pstAlign->table_unloader_xy[0][1];	/* Stage Unloader 위치 */
+	dbStagePosX = pstAlign->mark2_stage_x;				/* Calibration 거버의 Mark 2 기준 위치 */
+	dbStagePosY = pstAlign->table_unloader_xy[0][1];	/* Stage Unloader 위치 */
 	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
-	dbStageVeloY= uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
+	dbStageVeloY = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
 
 	/* 모든 Motor Drive의 토글 값 저장 */
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
@@ -319,8 +319,8 @@ ENG_JWNS CWorkStep::IsMovedUnloader()
 */
 ENG_JWNS CWorkStep::IsLoadedGerberCheck()
 {
-	LPG_CGTI pstTrans	= &uvEng_GetConfig()->global_trans;
-	LPG_LDPP pstPanel	= &uvEng_ShMem_GetLuria()->panel;
+	LPG_CGTI pstTrans = &uvEng_GetConfig()->global_trans;
+	LPG_LDPP pstPanel = &uvEng_ShMem_GetLuria()->panel;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Registed.Gerber.Check");
@@ -330,9 +330,9 @@ ENG_JWNS CWorkStep::IsLoadedGerberCheck()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"No registered gerbers");
 		return ENG_JWNS::en_error;
 	}
-	if (m_enWorkJobID == ENG_BWOK::en_mark_move	||
-		m_enWorkJobID == ENG_BWOK::en_mark_test	||
-		m_enWorkJobID == ENG_BWOK::en_expo_align||
+	if (m_enWorkJobID == ENG_BWOK::en_mark_move ||
+		m_enWorkJobID == ENG_BWOK::en_mark_test ||
+		m_enWorkJobID == ENG_BWOK::en_expo_align ||
 		m_enWorkJobID == ENG_BWOK::en_expo_cali)
 	{
 		//abh1000 Local
@@ -348,17 +348,17 @@ ENG_JWNS CWorkStep::IsLoadedGerberCheck()
 	{
 		/* Rectangle Lock, Rotation, Scale 및 Offset 값 설정되어 있는지 비교 */
 		if (!(pstPanel->global_rectangle_lock == pstTrans->use_rectangle &&
-				pstPanel->global_transformation_recipe[0] == pstTrans->use_rotation_mode &&
-				pstPanel->global_transformation_recipe[1] == pstTrans->use_scaling_mode &&
-				pstPanel->global_transformation_recipe[2] == pstTrans->use_offset_mode))
+			pstPanel->global_transformation_recipe[0] == pstTrans->use_rotation_mode &&
+			pstPanel->global_transformation_recipe[1] == pstTrans->use_scaling_mode &&
+			pstPanel->global_transformation_recipe[2] == pstTrans->use_offset_mode))
 		{
 			return ENG_JWNS::en_wait;
 		}
 		if (!(pstPanel->global_fixed_rotation == pstTrans->rotation &&
-				pstPanel->global_fixed_scaling_xy[0] == pstTrans->scaling[0] &&
-				pstPanel->global_fixed_scaling_xy[1] == pstTrans->scaling[1] &&
-				pstPanel->global_fixed_offset_xy[0] == pstTrans->offset[0] &&
-				pstPanel->global_fixed_offset_xy[1] == pstTrans->offset[1]))
+			pstPanel->global_fixed_scaling_xy[0] == pstTrans->scaling[0] &&
+			pstPanel->global_fixed_scaling_xy[1] == pstTrans->scaling[1] &&
+			pstPanel->global_fixed_offset_xy[0] == pstTrans->offset[0] &&
+			pstPanel->global_fixed_offset_xy[1] == pstTrans->offset[1]))
 		{
 			return ENG_JWNS::en_wait;
 		}
@@ -373,23 +373,23 @@ ENG_JWNS CWorkStep::IsLoadedGerberCheck()
 */
 ENG_JWNS CWorkStep::IsMotorDriveStopAll()
 {
-	BOOL bSucc	= TRUE;
+	BOOL bSucc = TRUE;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Motor.Drive.Stop.All");
 	/* 모든 드라이브의 동작이 멈춘 상태인지 여부 */
-	bSucc	= uvCmn_MC2_IsMotorDriveStopAll();
+	bSucc = uvCmn_MC2_IsMotorDriveStopAll();
 #if 0
-	LPG_MDSM pstMC2	= uvEng_ShMem_GetMC2();
+	LPG_MDSM pstMC2 = uvEng_ShMem_GetMC2();
 	if (!bSucc)
 	{
-		TCHAR tzMesg[128]	= {NULL};
+		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"0:busy(%d)/zero(%d), 1:busy(%d)/zero(%d), "
-								L"4:busy(%d)/zero(%d), 5:busy(%d)/zero(%d)",
-				   pstMC2->act_data[0].flag_busy,pstMC2->act_data[0].flag_zero,
-				   pstMC2->act_data[1].flag_busy,pstMC2->act_data[1].flag_zero,
-				   pstMC2->act_data[4].flag_busy,pstMC2->act_data[4].flag_zero,
-				   pstMC2->act_data[5].flag_busy,pstMC2->act_data[5].flag_zero);
+			L"4:busy(%d)/zero(%d), 5:busy(%d)/zero(%d)",
+			pstMC2->act_data[0].flag_busy, pstMC2->act_data[0].flag_zero,
+			pstMC2->act_data[1].flag_busy, pstMC2->act_data[1].flag_zero,
+			pstMC2->act_data[4].flag_busy, pstMC2->act_data[4].flag_zero,
+			pstMC2->act_data[5].flag_busy, pstMC2->act_data[5].flag_zero);
 		LOG_DEBUG(tzMesg);
 	}
 #endif
@@ -403,8 +403,8 @@ ENG_JWNS CWorkStep::IsMotorDriveStopAll()
 */
 ENG_JWNS CWorkStep::SetTrigPosReset()
 {
-	UINT8 u8TrigCh[2][2]	= { {1, 3}, {2, 4} };
-	UINT8 u8LampType		= uvEng_GetConfig()->set_comn.strobe_lamp_type;	/* 현재 조명 타입 (AMBER or IR)에 따라, Trigger Board에 등록될 채널 변경 */
+	UINT8 u8TrigCh[2][2] = { {1, 3}, {2, 4} };
+	UINT8 u8LampType = uvEng_GetConfig()->set_comn.strobe_lamp_type;	/* 현재 조명 타입 (AMBER or IR)에 따라, Trigger Board에 등록될 채널 변경 */
 
 	/* 기존 등록된 Trigger Position 값이 초기화 되었는지 확인 */
 	if (uvEng_Mvenc_IsTrigPosReset(0x01, 2) &&
@@ -493,8 +493,8 @@ ENG_JWNS CWorkStep::GetJobLists(UINT32 time)
 ENG_JWNS CWorkStep::SetJobNameSelecting()
 {
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_LDJM pstJobMgt	= &uvEng_ShMem_GetLuria()->jobmgt;
-	TCHAR tzJobName[MAX_GERBER_NAME]	= {NULL};
+	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
+	TCHAR tzJobName[MAX_GERBER_NAME] = { NULL };
 	CUniToChar csCnv1, csCnv2;
 
 	/* 현재 작업 Step Name 설정 */
@@ -508,8 +508,8 @@ ENG_JWNS CWorkStep::SetJobNameSelecting()
 
 	/* 거버 전체 경로 설정 */
 	swprintf_s(tzJobName, MAX_GERBER_NAME, L"%s\\%s",
-			   csCnv1.Ansi2Uni(pstRecipe->gerber_path),
-			   csCnv2.Ansi2Uni(pstRecipe->gerber_name));
+		csCnv1.Ansi2Uni(pstRecipe->gerber_path),
+		csCnv2.Ansi2Uni(pstRecipe->gerber_name));
 
 	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzJobName);
 
@@ -560,7 +560,7 @@ ENG_JWNS CWorkStep::SetJobNameLoading()
 	}
 
 	/* 가장 최근의 Job Loading Rate 값 초기화 */
-	m_u8LastLoadStrip	= 0;
+	m_u8LastLoadStrip = 0;
 
 	return ENG_JWNS::en_next;
 }
@@ -572,12 +572,12 @@ ENG_JWNS CWorkStep::SetJobNameLoading()
 */
 ENG_JWNS CWorkStep::IsJobNameLoaded()
 {
-	TCHAR tzStep[64]	= {NULL};
-	LPG_LDJM pstJobMgt	= &uvEng_ShMem_GetLuria()->jobmgt;
+	TCHAR tzStep[64] = { NULL };
+	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
 
 	/* 현재 작업 Step Name 설정 */
 	swprintf_s(tzStep, 64, L"Is.Job.Name.Loaded (%u / %u)",
-			   pstJobMgt->job_state_strip_loaded, pstJobMgt->job_total_strip_loaded);
+		pstJobMgt->job_state_strip_loaded, pstJobMgt->job_total_strip_loaded);
 	SetStepName(tzStep);
 
 	/* 거버 적재가 모두 완료 되었는지 여부 */
@@ -601,18 +601,18 @@ ENG_JWNS CWorkStep::IsJobNameLoaded()
 		{
 			if (pstJobMgt->job_state_strip_loaded > m_u8LastLoadStrip)
 			{
-				m_u64DelayTime	= GetTickCount64();	/* Updates the current time */
+				m_u64DelayTime = GetTickCount64();	/* Updates the current time */
 				/* 가장 최근에 적재된 Strip 개수 정보 임시 저장 */
-				m_u8LastLoadStrip= pstJobMgt->job_state_strip_loaded;
+				m_u8LastLoadStrip = pstJobMgt->job_state_strip_loaded;
 #if 0
 				TRACE(L"Loaded = %u / %u\n",
-					  pstJobMgt->job_state_strip_loaded, pstJobMgt->job_total_strip_loaded);
+					pstJobMgt->job_state_strip_loaded, pstJobMgt->job_total_strip_loaded);
 #endif
 			}
 			/* When the last gerber data is loaded */
 			else if (m_u8LastLoadStrip > 0 && pstJobMgt->IsLoadedGerber())	/*pstJobMgt->job_state_strip_loaded == pstJobMgt->job_total_strip_loaded*/
 			{
-				m_u64DelayTime	= GetTickCount64();	/* Updates the current time */
+				m_u64DelayTime = GetTickCount64();	/* Updates the current time */
 				return ENG_JWNS::en_next;
 			}
 		}
@@ -620,7 +620,7 @@ ENG_JWNS CWorkStep::IsJobNameLoaded()
 	}
 
 	/* When all Jobs are loaded, finally DelayTime needs to be updated */
-	m_u64DelayTime	= GetTickCount64();	/* Updates the current time */
+	m_u64DelayTime = GetTickCount64();	/* Updates the current time */
 
 	return ENG_JWNS::en_next;
 }
@@ -634,9 +634,9 @@ ENG_JWNS CWorkStep::IsJobNameLoaded()
 
 ENG_JWNS CWorkStep::SetTrigPosCalcSaved()
 {
-	UINT8 u8MarkGlobal	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	UINT8 u8MarkLocal	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
-	INT32 /*i32MarkDiffY	= 0, */i32ACamDistXY[2] = {NULL};
+	UINT8 u8MarkGlobal = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
+	UINT8 u8MarkLocal = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+	INT32 /*i32MarkDiffY	= 0, */i32ACamDistXY[2] = { NULL };
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Trig.Calc.Regist");
@@ -669,10 +669,10 @@ ENG_JWNS CWorkStep::SetTrigPosCalcSaved()
 		return ENG_JWNS::en_error;
 	}
 #endif
-	
+
 
 	return CWork::SetTrigPosCalcSaved(i32ACamDistXY[1]/*, i32MarkDiffY*/) ?
-									  ENG_JWNS::en_next : ENG_JWNS::en_error;
+		ENG_JWNS::en_next : ENG_JWNS::en_error;
 }
 
 /*
@@ -682,23 +682,23 @@ ENG_JWNS CWorkStep::SetTrigPosCalcSaved()
 */
 ENG_JWNS CWorkStep::SetTrigRegistGlobal()
 {
-	UINT8 u8Count		= 0x01;
+	UINT8 u8Count = 0x01;
 	PINT32 p32Trig1, p32Trig2;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Trig.Regist.Global");
 	/* 각 카메라 마다 등록될 트리거 개수 */
-	if (0x04 == uvEng_Luria_GetMarkCount(ENG_AMTF::en_global))	u8Count	= 0x02;
+	if (0x04 == uvEng_Luria_GetMarkCount(ENG_AMTF::en_global))	u8Count = 0x02;
 	/* Led Lamp Type에 따라, 트리거 등록할 채널 선택 및 트리거 저장된 배열 포인터 설정 */
-	p32Trig1	= uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x01);
-	p32Trig2	= uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x02);
-	
+	p32Trig1 = uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x01);
+	p32Trig2 = uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x02);
+
 	//if (!p32Trig1 || !p32Trig2)	return ENG_JWNS::en_error;
 	//if (p32Trig1[0] < 1 || p32Trig2[0] < 1)	return ENG_JWNS::en_error;
 	if (!uvEng_Mvenc_ReqWriteAreaTrigPos(TRUE /* 정방향 : 전진 */,
-										0, u8Count, p32Trig1,
-										0, u8Count, p32Trig2,
-										ENG_TEED::en_negative, TRUE))
+		0, u8Count, p32Trig1,
+		0, u8Count, p32Trig2,
+		ENG_TEED::en_negative, TRUE))
 	{
 		return ENG_JWNS::en_error;
 	}
@@ -718,10 +718,10 @@ ENG_JWNS CWorkStep::SetTrigRegistGlobal()
 */
 ENG_JWNS CWorkStep::IsTrigRegistGlobal()
 {
-	UINT8 u8LampType	= 0x00;		/* 0x00 : Coaxial Lamp (1 ch, 3 ch), 0x01 : Ring Lamp (2 ch, 4 ch) */
-	UINT8 u8Count		= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	UINT8 u8TrigCh[2][2]= { {1, 3}, {2, 4} }, u8TrigChNo = 0x00;		/* 0x01 ~ 0x04 */;
-	UINT32 u32TrigPos	= 0;
+	UINT8 u8LampType = 0x00;		/* 0x00 : Coaxial Lamp (1 ch, 3 ch), 0x01 : Ring Lamp (2 ch, 4 ch) */
+	UINT8 u8Count = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
+	UINT8 u8TrigCh[2][2] = { {1, 3}, {2, 4} }, u8TrigChNo = 0x00;		/* 0x01 ~ 0x04 */;
+	UINT32 u32TrigPos = 0;
 	PINT32 p32Trig1, p32Trig2;
 
 	/* 현재 작업 Step Name 설정 */
@@ -732,15 +732,15 @@ ENG_JWNS CWorkStep::IsTrigRegistGlobal()
 	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetSelectAlignRecipe();
 	uvEng_GetConfig()->set_comn.strobe_lamp_type = pstRecipeAlign->lamp_type;
 	uvEng_SaveConfig();
-	
-	u8LampType	= uvEng_GetConfig()->set_comn.strobe_lamp_type;
+
+	u8LampType = uvEng_GetConfig()->set_comn.strobe_lamp_type;
 #endif
 
 	/* Led Lamp Type에 따라, 트리거 등록할 채널 선택 및 트리거 저장된 배열 포인터 설정 */
-	p32Trig1	= uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x01);
-	p32Trig2	= uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x02);
+	p32Trig1 = uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x01);
+	p32Trig2 = uvEng_Trig_GetTrigger(ENG_AMTF::en_global, 0x02);
 	/* Trigger 속성 정보 설정 */
-	u8TrigChNo	= u8TrigCh[u8LampType][0];
+	u8TrigChNo = u8TrigCh[u8LampType][0];
 	/* Channel 1 */
 	//if (!uvEng_Mvenc_IsTrigPosEqual(0x01, 0x00, p32Trig1[0]))
 	//{
@@ -771,9 +771,9 @@ ENG_JWNS CWorkStep::IsTrigRegistGlobal()
 */
 ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 {
-	UINT8 u8LampType= 0x00;		/* 0x00 : AMBER(1 ch, 3 ch), 0x01 : IR (2 ch, 4 ch) */
-	UINT8 u8Index	= 0x00, u8Count = 0x00;
-	BOOL bDirect	= (scan % 2) == 0 ? TRUE /* 역방향 (후진) */ : FALSE /* 정방향 (전진) */;
+	UINT8 u8LampType = 0x00;		/* 0x00 : AMBER(1 ch, 3 ch), 0x01 : IR (2 ch, 4 ch) */
+	UINT8 u8Index = 0x00, u8Count = 0x00;
+	BOOL bDirect = (scan % 2) == 0 ? TRUE /* 역방향 (후진) */ : FALSE /* 정방향 (전진) */;
 	PINT32 p32Trig1, p32Trig2;
 
 	/* 현재 작업 Step Name 설정 */
@@ -783,23 +783,23 @@ ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 		else				SetStepName(L"Set.Trig.Regist.Local (2)");
 	}
 	/* 현재 조명 타입 (AMBER or IR)에 따라, Trigger Board에 등록될 채널 변경 */
-	u8LampType	= uvEng_GetConfig()->set_comn.strobe_lamp_type;
+	u8LampType = uvEng_GetConfig()->set_comn.strobe_lamp_type;
 
 	/* Led Lamp Type에 따라, 트리거 등록할 채널 선택 및 트리거 저장된 배열 포인터 설정 */
-	p32Trig1= uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x01);
-	p32Trig2= uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x02);
+	p32Trig1 = uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x01);
+	p32Trig2 = uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x02);
 	if (!p32Trig1 || !p32Trig2)	return ENG_JWNS::en_error;
 
 	/* 1 Scan할 때, 검색해야 할 Mark 개수 얻기 */
-	u8Count		= uvEng_Luria_GetLocalMarkCountPerScan();
+	u8Count = uvEng_Luria_GetLocalMarkCountPerScan();
 	/* 트리거를 등록하고자 하는 시작 위치 얻기 */
-	u8Index		= u8Count * scan;
-	p32Trig1	+= UINT32(u8Index);
-	p32Trig2	+= UINT32(u8Index);
+	u8Index = u8Count * scan;
+	p32Trig1 += UINT32(u8Index);
+	p32Trig2 += UINT32(u8Index);
 
 	ENG_TEED teed;
 
-	if(scan % 2 == 0x00)
+	if (scan % 2 == 0x00)
 	{
 		teed = ENG_TEED::en_positive;
 	}
@@ -809,9 +809,9 @@ ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 	}
 	/* Trigger 발생 위치 등록 */
 	if (!uvEng_Mvenc_ReqWriteAreaTrigPos(bDirect,
-										0x00, u8Count, p32Trig1,
-										0x00, u8Count, p32Trig2,
-										teed, TRUE))
+		0x00, u8Count, p32Trig1,
+		0x00, u8Count, p32Trig2,
+		teed, TRUE))
 	{
 		return ENG_JWNS::en_error;
 	}
@@ -820,7 +820,7 @@ ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 	TCHAR tzMsg[256] = { NULL };
 	for (int i = 0; i < u8Count; i++)
 	{
-		swprintf_s(tzMsg, 256, L"SetTrigRegistLocal %d: Trig1[%d] = %d Trig2[%d] = %d", scan,i, p32Trig1[i], i, p32Trig1[i]);
+		swprintf_s(tzMsg, 256, L"SetTrigRegistLocal %d: Trig1[%d] = %d Trig2[%d] = %d", scan, i, p32Trig1[i], i, p32Trig1[i]);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
 
@@ -835,9 +835,9 @@ ENG_JWNS CWorkStep::SetTrigRegistLocal(UINT8 scan)
 */
 ENG_JWNS CWorkStep::IsTrigRegistLocal(UINT8 scan)
 {
-	UINT8 i = 0, u8Index	= 0x00, u8Count = 0x00,  u8LampType = 0x00;		/* 0x00 : AMBER(1 ch, 3 ch), 0x01 : IR (2 ch, 4 ch) */
-	UINT8 u8TrigCh[2][2]	= { {1, 3}, {2, 4} }/*, u8ChNo = 0x00*/;		/* 0x01 ~ 0x04 */;
-	TCHAR tzWait[64]		= {NULL};
+	UINT8 i = 0, u8Index = 0x00, u8Count = 0x00, u8LampType = 0x00;		/* 0x00 : AMBER(1 ch, 3 ch), 0x01 : IR (2 ch, 4 ch) */
+	UINT8 u8TrigCh[2][2] = { {1, 3}, {2, 4} }/*, u8ChNo = 0x00*/;		/* 0x01 ~ 0x04 */;
+	TCHAR tzWait[64] = { NULL };
 	PINT32 p32Trig1, p32Trig2;
 
 	/* 현재 작업 Step Name 설정 */
@@ -848,10 +848,10 @@ ENG_JWNS CWorkStep::IsTrigRegistLocal(UINT8 scan)
 	}
 	/* 새로 변경된 트리거 위치인지 여부 확인. 기존과 동일하면 체크하지 않음*/
 	/* 현재 조명 타입 (AMBER or IR)에 따라, Trigger Board에 등록될 채널 변경 */
-	u8LampType	= uvEng_GetConfig()->set_comn.strobe_lamp_type;
+	u8LampType = uvEng_GetConfig()->set_comn.strobe_lamp_type;
 	/* Led Lamp Type에 따라, 트리거 등록할 채널 선택 및 트리거 저장된 배열 포인터 설정 */
-	p32Trig1	= uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x01);
-	p32Trig2	= uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x02);
+	p32Trig1 = uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x01);
+	p32Trig2 = uvEng_Trig_GetTrigger(ENG_AMTF::en_local, 0x02);
 	if (!p32Trig1 || !p32Trig2)	return ENG_JWNS::en_error;
 
 	///* 1 Scan할 때, 검색해야 할 Mark 개수 얻기 */
@@ -872,32 +872,32 @@ ENG_JWNS CWorkStep::IsTrigRegistLocal(UINT8 scan)
 	return ENG_JWNS::en_next;
 }
 
-BOOL CWorkStep::MoveAxis(ENG_MMDI axis, bool absolute, double pos,bool waiting)
+BOOL CWorkStep::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting)
 {
 	double curr = uvCmn_MC2_GetDrvAbsPos(axis);
 
-	double dest = absolute ? pos :  curr + pos;
+	double dest = absolute ? pos : curr + pos;
 
 	if (uvCmn_MC2_IsDriveError(axis) || uvCmn_MC2_IsMotorDriveStopAll() == false ||
 		CInterLockManager::GetInstance()->CheckMoveInterlock(axis, dest))
 		return false;
-	
+
 	uvCmn_MC2_GetDrvDoneToggled(axis);
-	
+
 	BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, uvEng_GetConfig()->mc2_svc.step_velo);
 
-	if(waiting && res)
-	res = GlobalVariables::GetInstance()->Waiter([&]()->bool
-		{
-			return uvCmn_MC2_IsDrvDoneToggled(axis);
-		}, 30 * 1000);
+	if (waiting && res)
+		res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvCmn_MC2_IsDrvDoneToggled(axis);
+			}, 30 * 1000);
 
 	return res;
 }
 
 
 bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
-{	
+{
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Move Cam Safe Pos");
 
@@ -908,25 +908,25 @@ bool CWorkStep::MoveCamToSafetypos(ENG_MMDI callbackAxis, double pos)
 
 	// 동작은 동시에
 	auto res1 = false, res2 = false;
-	
-	res1 = MoveAxis(ENG_MMDI::en_align_cam1,true, pstCfg->set_cams.safety_pos[0], false);
-	res2 = MoveAxis(ENG_MMDI::en_align_cam2, true, pstCfg->set_cams.safety_pos[1], false);
-	
-	if(res1)
-	res1 = GlobalVariables::GetInstance()->Waiter([&]()->bool
-		{
-			return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam1);
-		}, 30 * 1000);
 
-	if(res2)
-	res2 = GlobalVariables::GetInstance()->Waiter([&]()->bool
-	{
-		return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam2);
-	}, 30 * 1000);
+	res1 = MoveAxis(ENG_MMDI::en_align_cam1, true, pstCfg->set_cams.safety_pos[0], false);
+	res2 = MoveAxis(ENG_MMDI::en_align_cam2, true, pstCfg->set_cams.safety_pos[1], false);
+
+	if (res1)
+		res1 = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam1);
+			}, 30 * 1000);
+
+	if (res2)
+		res2 = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam2);
+			}, 30 * 1000);
 
 	if (res1 == res2 && res1 == true && callbackAxis != ENG_MMDI::en_axis_none)
 	{
-		return MoveAxis(callbackAxis,true, pos, true);
+		return MoveAxis(callbackAxis, true, pos, true);
 	}
 	else res1 == res2 && res1 == true;
 }
@@ -1058,7 +1058,7 @@ ENG_JWNS CWorkStep::IsAlignMovedInit(function<bool()> callback)
 */
 ENG_JWNS CWorkStep::SetAlignMovingGlobal()
 {
-	DOUBLE dbStageVelo	= uvEng_GetConfig()->mc2_svc.mark_velo;
+	DOUBLE dbStageVelo = uvEng_GetConfig()->mc2_svc.mark_velo;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Align.Moving.Global");
@@ -1109,7 +1109,7 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 			DOUBLE dLDSZPOS = uvEng_GetConfig()->acam_spec.acam_z_focus[1];
 			DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-			
+
 			DOUBLE LDSToThickOffset = 0;
 			//LDSToThickOffset = 1.3;
 			LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
@@ -1192,16 +1192,16 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 	const int WANGBOKCOUNT = 2;
 
 	UINT8 u8MarkLeft, u8MarkRight;
-	BOOL bStageMoveDirect	= (scan % WANGBOKCOUNT == 0x00) ? FALSE /* 역방향 */ : TRUE /* 정방향 */;
+	BOOL bStageMoveDirect = (scan % WANGBOKCOUNT == 0x00) ? FALSE /* 역방향 */ : TRUE /* 정방향 */;
 
 	DOUBLE dbACamDistXY[2], dbAlignStageY;
 	DOUBLE dbMarkDist, dbDiffMarkX, dbStageVelo, dbACamVelo;
-	STG_XMXY stPoint		= { STG_XMXY(), };
-	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
-	LPG_CMSI pstMC2Svc		= &uvEng_GetConfig()->mc2_svc;
-	LPG_RJAF pstRecipe		= uvEng_JobRecipe_GetSelectRecipe();
+	STG_XMXY stPoint = { STG_XMXY(), };
+	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
+	LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	// by sysandj : 변수없음(수정)
-	LPG_MACP pstThickCali	= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
+	LPG_MACP pstThickCali = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
 
 	/* 현재 작업 Step Name 설정 */
 	if (0x00 == mode)
@@ -1211,12 +1211,12 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 	}
 	else
 	{
-		if (0x00 == scan)	
+		if (0x00 == scan)
 			SetStepName(L"Set.Align.Moving.Local (Move:1)");
-		else				
+		else
 			SetStepName(L"Set.Moving.Align.Local (Move:2)");
 		/* 스테이지 이동 방향 설정 */
-		
+
 	}
 
 	uvEng_Camera_SetMoveStateDirect(bStageMoveDirect);
@@ -1229,24 +1229,24 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 		if (!GetLocalLeftRightBottomMarkIndex(scan, u8MarkLeft, u8MarkRight))
 			return ENG_JWNS::en_error;
 		/* Left와 Right 마크 간의 간격 (넓이) 얻기 */
-		dbMarkDist	= uvEng_Luria_GetLocalMarkACam12DistX(0x00, scan);		/* mm */
-		if (!uvEng_Luria_GetLocalMark(u8MarkLeft, &stPoint))	
+		dbMarkDist = uvEng_Luria_GetLocalMarkACam12DistX(0x00, scan);		/* mm */
+		if (!uvEng_Luria_GetLocalMark(u8MarkLeft, &stPoint))
 			return ENG_JWNS::en_error;
-		dbDiffMarkX	= stPoint.mark_x - pstSetAlign->mark2_org_gerb_xy[0];	/* mm */
+		dbDiffMarkX = stPoint.mark_x - pstSetAlign->mark2_org_gerb_xy[0];	/* mm */
 #if 0
 		TRACE(L"dbDiffMarkX = %d\n", dbDiffMarkX);
 #endif
 		/* 환경 파일에 설정된 이전 Mark 중심일 때, Align Camera 위치 값에 오차 값을 합산 (더하거나 빼거나) */
-		m_dbPosACam[0]	= pstThickCali->mark2_acam_x[0] + dbDiffMarkX;	/* 100 nm or 0.1 um */
+		m_dbPosACam[0] = pstThickCali->mark2_acam_x[0] + dbDiffMarkX;	/* 100 nm or 0.1 um */
 		/* Camera 1대비 Camera2 값을 벌리려는 간격 */
-		m_dbPosACam[1]	= m_dbPosACam[0] + dbMarkDist - dbACamDistXY[0];
+		m_dbPosACam[1] = m_dbPosACam[0] + dbMarkDist - dbACamDistXY[0];
 		/* Camera 1 & 2번 축 이동 속도 */
-		dbACamVelo		= pstMC2Svc->max_velo[UINT8(ENG_MMDI::en_align_cam1)];
+		dbACamVelo = pstMC2Svc->max_velo[UINT8(ENG_MMDI::en_align_cam1)];
 	}
 	else
 	{
 		/* Stage Y 축 이동 속도 */
-		dbStageVelo	= pstMC2Svc->mark_velo;
+		dbStageVelo = pstMC2Svc->mark_velo;
 	}
 
 	/* Align Mark 측정 초기 위치로 이동 모드인 경우 */
@@ -1274,11 +1274,11 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 		//uvEng_Mvenc_ResetTrigPosAll();
 
 
-		
+
 		if (bStageMoveDirect == false)	/* 역방향 Y 축 이동할 때, 멈추고자 하는 위치 값 */
-			dbAlignStageY	= pstSetAlign->table_unloader_xy[0][1];
+			dbAlignStageY = pstSetAlign->table_unloader_xy[0][1];
 		else				/* 정방향 Y 축 이동 */
-			dbAlignStageY	= uvCmn_Luria_GetStartY(ENG_MDMD::en_pos_expo_start);
+			dbAlignStageY = uvCmn_Luria_GetStartY(ENG_MDMD::en_pos_expo_start);
 
 		/* 현재 Done Toggled 값 저장 */
 		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
@@ -1304,8 +1304,8 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 */
 ENG_JWNS CWorkStep::IsAlignMovedLocal(UINT8 mode, UINT8 scan)
 {
-	TCHAR tzStep[2][64]	= { L"Is.Align.Moved.Local.Init", L"Is.Align.Moved.Local.Check" };
-	BOOL bSucc	= FALSE;
+	TCHAR tzStep[2][64] = { L"Is.Align.Moved.Local.Init", L"Is.Align.Moved.Local.Check" };
+	BOOL bSucc = FALSE;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(tzStep[mode]);
@@ -1314,7 +1314,7 @@ ENG_JWNS CWorkStep::IsAlignMovedLocal(UINT8 mode, UINT8 scan)
 	if (0x00 == mode)
 	{
 		/* Check to Done Toggled */
-		bSucc	= uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam2);
+		bSucc = uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_align_cam2);
 		/* Mark Type이 Shared인지 여부에 따라 1번 카메라 이동 여부 결정 */
 		// by sysandj : 함수없음(수정)
 		if (bSucc && (0x00 == scan || !uvEng_Recipe_IsRecipeSharedType()))
@@ -1326,7 +1326,7 @@ ENG_JWNS CWorkStep::IsAlignMovedLocal(UINT8 mode, UINT8 scan)
 	/* Align Mark 검출을 위해 Y 축으로 이동 */
 	else
 	{
-		bSucc	= uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);
+		bSucc = uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y);
 		return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
 	}
 }
@@ -1338,10 +1338,10 @@ ENG_JWNS CWorkStep::IsAlignMovedLocal(UINT8 mode, UINT8 scan)
 */
 ENG_JWNS CWorkStep::SetFinish()
 {
-	ENG_JWNS enState	= ENG_JWNS::en_next;
+	ENG_JWNS enState = ENG_JWNS::en_next;
 
-	if (ENG_JWNS::en_next == enState)	enState	= SetTrigEnable(FALSE);
-	if (ENG_JWNS::en_next == enState)	enState	= SetMovingUnloader();
+	if (ENG_JWNS::en_next == enState)	enState = SetTrigEnable(FALSE);
+	if (ENG_JWNS::en_next == enState)	enState = SetMovingUnloader();
 
 	return enState;
 }
@@ -1353,10 +1353,10 @@ ENG_JWNS CWorkStep::SetFinish()
 */
 ENG_JWNS CWorkStep::IsFinish()
 {
-	ENG_JWNS enState	= ENG_JWNS::en_next;
+	ENG_JWNS enState = ENG_JWNS::en_next;
 
-	if (ENG_JWNS::en_next == enState)	enState	= IsTrigEnabled(FALSE);
-	if (ENG_JWNS::en_next == enState)	enState	= IsMovedUnloader();
+	if (ENG_JWNS::en_next == enState)	enState = IsTrigEnabled(FALSE);
+	if (ENG_JWNS::en_next == enState)	enState = IsMovedUnloader();
 
 	return enState;
 }
@@ -1389,7 +1389,7 @@ ENG_JWNS CWorkStep::SetLedVacuumShutterOut()
 */
 ENG_JWNS CWorkStep::SetVacuumShutterOnOff(UINT8 vacuum, UINT8 shutter)
 {
-	TCHAR tzTilte[128]	= {NULL}, tzVac[2][8] = { L"Off", L"On" }, tzShu[2][8] = { L"Close", L"Open" };
+	TCHAR tzTilte[128] = { NULL }, tzVac[2][8] = { L"Off", L"On" }, tzShu[2][8] = { L"Close", L"Open" };
 	/* 만약, Vaccum 상태를 기존 상태 그대로 유지하는 경우인지에 따라 ... */
 	if (vacuum == 0x02)		vacuum = 0;// by sysandj : MCQ대체 추가 필요 : uvEng_ShMem_GetPLCExt()->r_vacuum_status;
 	/* 만약, Shutter 상태를 기존 상태 그대로 유지하는 경우인지에 따라 ... */
@@ -1403,7 +1403,7 @@ ENG_JWNS CWorkStep::SetVacuumShutterOnOff(UINT8 vacuum, UINT8 shutter)
 	if (ENG_JWNS::en_wait == IsShutterVacuumWait())
 	{
 		SetStepName(L"Shutter && Vacuum Waiting");
-		return ENG_JWNS::en_wait; 
+		return ENG_JWNS::en_wait;
 	}
 	if (!IsWorkRepeat())
 #endif
@@ -1419,7 +1419,7 @@ ENG_JWNS CWorkStep::SetVacuumShutterOnOff(UINT8 vacuum, UINT8 shutter)
 }
 
 /*
- desc : Start Lamp / Vacuum / Shutter 제어 
+ desc : Start Lamp / Vacuum / Shutter 제어
  parm : start_led	- [in]  0x01: On, 0x00: Off
 		vacuum		- [in]  0x01: On, 0x00: Off
 		shutter		- [in]  0x01: Open, 0x00: Close
@@ -1427,7 +1427,7 @@ ENG_JWNS CWorkStep::SetVacuumShutterOnOff(UINT8 vacuum, UINT8 shutter)
 */
 ENG_JWNS CWorkStep::SetLedVacuumShutterOnOff(UINT8 start_led, UINT8 vacuum, UINT8 shutter)
 {
-	TCHAR tzTilte[128]	= {NULL}, tzVac[2][8] = { L"Off", L"On" }, tzShu[2][8] = { L"Close", L"Open" };
+	TCHAR tzTilte[128] = { NULL }, tzVac[2][8] = { L"Off", L"On" }, tzShu[2][8] = { L"Close", L"Open" };
 	UINT8 u8StartLed = 0;// by sysandj : MCQ대체 추가 필요:((LPG_PMRW)uvEng_ShMem_GetPLC()->data)->r_start_button;
 
 	/* 현재 Shutter나 Vacuum이 Open (On) or Close (Off) 상태가 아닌 경우 */
@@ -1439,7 +1439,7 @@ ENG_JWNS CWorkStep::SetLedVacuumShutterOnOff(UINT8 start_led, UINT8 vacuum, UINT
 
 	/* 현재 작업 Step Name 설정 */
 	swprintf_s(tzTilte, 128, L"Led(%s).Vacuum(%s).Shutter(%s)",
-				tzVac[start_led], tzVac[vacuum], tzShu[shutter]);
+		tzVac[start_led], tzVac[vacuum], tzShu[shutter]);
 	SetStepName(tzTilte);
 #if 1
 	vacuum = 0;// by sysandj : MCQ대체 추가 필요 : uvEng_ShMem_GetPLCExt()->r_vacuum_status;	/* 현재 상태 유지 */
@@ -1463,8 +1463,8 @@ ENG_JWNS CWorkStep::SetLedVacuumShutterOnOff(UINT8 start_led, UINT8 vacuum, UINT
 */
 ENG_JWNS CWorkStep::SetLedShutterOnOff(UINT8 start_led, UINT8 shutter)
 {
-	UINT8 u8Vacuum		= 0x00;
-	TCHAR tzTilte[128]	= {NULL}, tzVac[2][8] = { L"Off", L"On" }, tzShu[2][8] = { L"Close", L"Open" };
+	UINT8 u8Vacuum = 0x00;
+	TCHAR tzTilte[128] = { NULL }, tzVac[2][8] = { L"Off", L"On" }, tzShu[2][8] = { L"Close", L"Open" };
 #if 0
 	/* 현재 Shutter나 Vacuum이 Open (On) or Close (Off) 상태가 아닌 경우 */
 	if (ENG_JWNS::en_wait == IsShutterVacuumWait())
@@ -1513,13 +1513,13 @@ ENG_JWNS CWorkStep::IsShutterWait()
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Shutter.Wait");
 #ifndef _DEBUG
-// 	/* 현재 Vacuum 상태가 Waiting 모드인지 여부에 따라 */
-// 	if (uvEng_ShMem_GetPLCExt()->r_shutter_open_close_waiting)
-// 	{
-// 		if (uvEng_GetConfig()->IsRunDemo())	return ENG_JWNS::en_next;
-// 
-// 		return ENG_JWNS::en_wait;	/* Wait 상태 임 */
-// 	}
+	// 	/* 현재 Vacuum 상태가 Waiting 모드인지 여부에 따라 */
+	// 	if (uvEng_ShMem_GetPLCExt()->r_shutter_open_close_waiting)
+	// 	{
+	// 		if (uvEng_GetConfig()->IsRunDemo())	return ENG_JWNS::en_next;
+	// 
+	// 		return ENG_JWNS::en_wait;	/* Wait 상태 임 */
+	// 	}
 #endif
 	return ENG_JWNS::en_next;	/* Wait 상태 아님 */
 }
@@ -1531,7 +1531,7 @@ ENG_JWNS CWorkStep::IsShutterWait()
 */
 ENG_JWNS CWorkStep::IsShutterVacuumWait()
 {
-	BOOL bWaitVacuum	= FALSE;
+	BOOL bWaitVacuum = FALSE;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Shutter.Vacuum.Wait");
@@ -1641,9 +1641,9 @@ ENG_JWNS CWorkStep::SetPrinting()
 	SetStepName(L"Set.Printing");
 
 	/* 가장 최근에 노광한 개수 (Stripe) 개수 초기화 */
-	m_u8PrintStripNum	= 0x00;
-	m_u64TickPrintStrip	= GetTickCount64();	/* 가장 최근에 노광 개수가 변경된 시간 초기화 */
-	m_i32PrintingStageY	= 0;				/* 노광 (Printing)하고 있는 Stage Y 축의 위치 초기화 (단위: um) */
+	m_u8PrintStripNum = 0x00;
+	m_u64TickPrintStrip = GetTickCount64();	/* 가장 최근에 노광 개수가 변경된 시간 초기화 */
+	m_i32PrintingStageY = 0;				/* 노광 (Printing)하고 있는 Stage Y 축의 위치 초기화 (단위: um) */
 	/* Luria Service에게 Printing 호출 */
 	if (!uvEng_Luria_ReqSetPrintOpt(0x01))
 	{
@@ -1671,10 +1671,10 @@ ENG_JWNS CWorkStep::SetPrinting()
 */
 ENG_JWNS CWorkStep::IsPrinted()
 {
-	TCHAR tzTitle[128]	= {NULL};
-	INT32 i32StageY		= 0;
-	UINT8 u8State		= 0x00;
-	DOUBLE dbMotionY	= uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);	/* unit: mm */
+	TCHAR tzTitle[128] = { NULL };
+	INT32 i32StageY = 0;
+	UINT8 u8State = 0x00;
+	DOUBLE dbMotionY = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);	/* unit: mm */
 
 	/* 현재 노광 진행률 값 설정 */
 	swprintf_s(tzTitle, 128, L"Run.Printing (%.2f)", uvCmn_Luria_GetPrintRate());
@@ -1682,7 +1682,7 @@ ENG_JWNS CWorkStep::IsPrinted()
 	SetStepName(tzTitle);
 
 	/* 현재 노광 진행 중 실패 했는지 여부 */
-	u8State	= (UINT8)uvCmn_Luria_GetExposeState();
+	u8State = (UINT8)uvCmn_Luria_GetExposeState();
 	if (0x0f == (u8State & 0x0f))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"There was a problem during the expose operation");
@@ -1712,8 +1712,8 @@ ENG_JWNS CWorkStep::IsPrinted()
 	/* Y 축 노광 방향으로 Motion이 움직이고 있으면, 대기 시간을 최근 시간으로 갱신 */
 	if (abs(dbMotionY - m_dbLastPrintPosY) > 1.0f)	/* 1.0 mm 이상 차이가 발생했는지 여부 */
 	{
-		m_dbLastPrintPosY	= dbMotionY;
-		m_u64DelayTime		= GetTickCount64();
+		m_dbLastPrintPosY = dbMotionY;
+		m_u64DelayTime = GetTickCount64();
 	}
 
 	return ENG_JWNS::en_wait;
@@ -1773,11 +1773,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 			}
 			else
 			{
-				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f",temp.org_id, temp.mark_x, temp.mark_y);
+				swprintf_s(tzMsg, 256, L"Local Luria Mark%d : X = %.4f Y = %.4f", temp.org_id, temp.mark_x, temp.mark_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 			}
 		}
-		
+
 		/* Grabbed Mark images의 결과 값 가져오기 */
 		auto grab = CommonMotionStuffs::GetInstance().GetGrabPtr(CENTERCAM, temp.tgt_id, isGlobal ? ENG_AMTF::en_global : ENG_AMTF::en_local);
 
@@ -1787,13 +1787,13 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		if (grab->marked == 0)
 			return ENG_JWNS::en_error;
 
-		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f",(isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
+		swprintf_s(tzMsg, 256, L"%s Mark%d Move_mm: X = %.4f Y = %.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, grab->move_mm_x, grab->move_mm_y);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 
-		CaliPoint expoOffset, alignOffset,grabOffset;
-		
-		
+		CaliPoint expoOffset, alignOffset, grabOffset;
+
+
 		bool findGrabOffset = motions.GetOffsetFromPool(OffsetType::grab, temp.tgt_id, expoOffset);
 
 		auto grabOffsetX = findGrabOffset ? expoOffset.offsetX : grab->move_mm_x;
@@ -1804,7 +1804,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		temp.mark_x -= grabOffsetX;
 		temp.mark_y -= grabOffsetY;
-		
+
 		temp.reserve = grab->reserve;
 
 
@@ -1965,7 +1965,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	SetSendCmdTime();
 	return ENG_JWNS::en_next;
-	
+
 }
 
 
@@ -2007,7 +2007,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	pstMarks = (LPG_I32XY)::Alloc(sizeof(STG_I32XY) * UINT32(u8MarkG + u8MarkL));
 	ASSERT(pstMarks);
 
-	auto grabFindFunc = [&]( int markTgt, CAtlList <LPG_ACGR>* grabPtr , STG_XMXY_RESERVE_FLAG matchingFlags) -> LPG_ACGR
+	auto grabFindFunc = [&](int markTgt, CAtlList <LPG_ACGR>* grabPtr, STG_XMXY_RESERVE_FLAG matchingFlags) -> LPG_ACGR
 		{
 			if (grabPtr == NULL)
 				return nullptr;
@@ -2043,7 +2043,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	} //마크카운트 그랩카운트 비교해서 다르면 에러처리해서 나감.
 
 	/* Global 마크가 등록되어 있지 않다면 Pass */
-	if (u8MarkG < 4)	
+	if (u8MarkG < 4)
 		return ENG_JWNS::en_next;
 
 	TCHAR tzMsg[256] = { NULL };
@@ -2058,7 +2058,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
 
-	if(bSucc == false)
+	if (bSucc == false)
 		return ENG_JWNS::en_error;
 
 
@@ -2111,7 +2111,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 				if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_info && pstSetAlign->markOffsetPtr != nullptr)
 				{
-					if (pstSetAlign->markOffsetPtr->Get(motionType,true, lstMarkAt.tgt_id, val) == false)
+					if (pstSetAlign->markOffsetPtr->Get(motionType, true, lstMarkAt.tgt_id, val) == false)
 					{
 						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
@@ -2178,7 +2178,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 						if (pstSetAlign->use_mark_offset == (UINT8)ENG_ADRT::en_from_info && pstSetAlign->markOffsetPtr != nullptr)
 						{
-							if (pstSetAlign->markOffsetPtr->Get(motionType,false, lstMarkAt.tgt_id, val) == false)
+							if (pstSetAlign->markOffsetPtr->Get(motionType, false, lstMarkAt.tgt_id, val) == false)
 							{
 								swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 								LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
@@ -2281,18 +2281,18 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		bSucc = FALSE;
 	}
 
-	for (i = 0;i < u8MarkG; i++)
+	for (i = 0; i < u8MarkG; i++)
 	{
 		stMarkPos1 = lstMarks.GetAt(lstMarks.FindIndex(i));
-		
+
 		pstMarks[stMarkPos1.org_id].x = (INT32)ROUNDED(stMarkPos1.mark_x * 1000000.0f, 0);	/* mm -> nm */
 		pstMarks[stMarkPos1.org_id].y = (INT32)ROUNDED(stMarkPos1.mark_y * 1000000.0f, 0);	/* mm -> nm */
 
-		swprintf_s(tzMsg, 256, L"Global Regist Mark%d : X =%.4f Y = %.4f", stMarkPos1.org_id, DOUBLE(pstMarks[stMarkPos1.org_id].x/ 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y/ 1000000.0f));
+		swprintf_s(tzMsg, 256, L"Global Regist Mark%d : X =%.4f Y = %.4f", stMarkPos1.org_id, DOUBLE(pstMarks[stMarkPos1.org_id].x / 1000000.0f), DOUBLE(pstMarks[stMarkPos1.org_id].y / 1000000.0f));
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
 	/* 나머지 Local Mark XML 파일에서 읽어들인 순서대로 저장 */
-	for (j = u8MarkG; j < u8MarkG+u8MarkL;j++)
+	for (j = u8MarkG; j < u8MarkG + u8MarkL; j++)
 	{
 		stMarkPos1 = lstMarks.GetAt(lstMarks.FindIndex(j));
 		pstMarks[stMarkPos1.org_id + u8MarkG].x = (INT32)ROUNDED(stMarkPos1.mark_x * 1000000.0f, 0);	/* mm -> nm */
@@ -2332,9 +2332,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 */
 ENG_JWNS CWorkStep::IsAlignMarkRegist()
 {
-	TCHAR tzMesg[512]	= {NULL};
-	PTCHAR ptzMesg		= NULL;
-	UINT16 u16Status	= 0x0000;
+	TCHAR tzMesg[512] = { NULL };
+	PTCHAR ptzMesg = NULL;
+	UINT16 u16Status = 0x0000;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Align.Mark.Regist");
@@ -2347,7 +2347,7 @@ ENG_JWNS CWorkStep::IsAlignMarkRegist()
 	}
 
 	/* Registration Status 값이 정상적으로 등록되었는지 확인 */
-	u16Status	= uvCmn_Luria_GetRegistrationStatus();
+	u16Status = uvCmn_Luria_GetRegistrationStatus();
 	if (0xffff == u16Status)
 	{
 		/* 너무 자주 요청하면 안되므로 ... */
@@ -2368,11 +2368,11 @@ ENG_JWNS CWorkStep::IsAlignMarkRegist()
 	}
 	else if (0x01 != u16Status)
 	{
-		ptzMesg	= uvCmn_Luria_GetRegistrationStatusMesg();
+		ptzMesg = uvCmn_Luria_GetRegistrationStatusMesg();
 		if (wcslen(ptzMesg) < 1)
 		{
 			swprintf_s(tzMesg, 512, L"Unknown registration status code (%d)",
-					   uvEng_ShMem_GetLuria()->panel.get_registration_status);
+				uvEng_ShMem_GetLuria()->panel.get_registration_status);
 			LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 		}
 		else
@@ -2394,12 +2394,12 @@ ENG_JWNS CWorkStep::IsAlignMarkRegist()
 ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 {
 	UINT8 i;
-	DOUBLE dbPhDiffZ	= 0.0f, dbPhVeloZ[8] = {NULL};
+	DOUBLE dbPhDiffZ = 0.0f, dbPhVeloZ[8] = { NULL };
 
-	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
+	LPG_CSAI pstAlign = &uvEng_GetConfig()->set_align;
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_CLSI pstLuria	= &uvEng_GetConfig()->luria_svc;
-	LPG_CMSI pstMC2		= &uvEng_GetConfig()->mc2b_svc;
+	LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
+	LPG_CMSI pstMC2 = &uvEng_GetConfig()->mc2b_svc;
 	UINT8	 u8drv_id;
 
 	/* 현재 작업 Step Name 설정 */
@@ -2412,12 +2412,12 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 	if (uvEng_GetConfig()->luria_svc.z_drive_type == 0x01)
 	{
 		/* 현재 높이 조절하려는 광학계의 Z Axis 높이에 소재 두께 만큼 증가 or 감소 처리 (단위: um)*/
-		dbPhDiffZ	= pstRecipe->material_thick / 1000.0f - pstAlign->dof_film_thick;
+		dbPhDiffZ = pstRecipe->material_thick / 1000.0f - pstAlign->dof_film_thick;
 
-		for (i=0x00; i<pstLuria->ph_count; i++)
+		for (i = 0x00; i < pstLuria->ph_count; i++)
 		{
 			/* mm -> um 변환 */
-			m_dbPhZAxisSet[i]	= pstLuria->ph_z_focus[i] + dbPhDiffZ;
+			m_dbPhZAxisSet[i] = pstLuria->ph_z_focus[i] + dbPhDiffZ;
 			/* Photohead Z Axis의 Min or Max 값 범위 안에 있는지 여부 */
 			if (pstLuria->ph_z_move_min > m_dbPhZAxisSet[i] ||
 				pstLuria->ph_z_move_max < m_dbPhZAxisSet[i])
@@ -2437,9 +2437,9 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 	else if (uvEng_GetConfig()->luria_svc.z_drive_type == 0x03)
 	{
 		/* 현재 높이 조절하려는 광학계의 Z Axis 높이에 소재 두께 만큼 증가 or 감소 처리 (단위: um)*/
-		dbPhDiffZ	= pstRecipe->material_thick / 1000.0f /* um -> mm */ - pstAlign->dof_film_thick;
+		dbPhDiffZ = pstRecipe->material_thick / 1000.0f /* um -> mm */ - pstAlign->dof_film_thick;
 
-		for (i=0x00; i<pstLuria->ph_count; i++)
+		for (i = 0x00; i < pstLuria->ph_count; i++)
 		{
 			/* mm -> um 변환 */
 			//m_dbPhZAxisSet[i]	= pstLuria->ph_z_focus[i] * 1000.0f, 0 + dbPhDiffZ;
@@ -2478,7 +2478,7 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 ENG_JWNS CWorkStep::IsPhZAxisMovedAll()
 {
 	UINT8 i;
-	BOOL bArrived	= TRUE;
+	BOOL bArrived = TRUE;
 	DOUBLE dbPhNowZ;
 
 	/* 현재 작업 Step Name 설정 */
@@ -2488,18 +2488,18 @@ ENG_JWNS CWorkStep::IsPhZAxisMovedAll()
 	if (uvEng_GetConfig()->IsRunDemo())	return ENG_JWNS::en_next;
 
 	/* 모든 광학계의 Z 축이 원하는 위치에 도달 했는지 여부 */
-	for (i=0x00; i<uvEng_GetConfig()->luria_svc.ph_count; i++)
+	for (i = 0x00; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
-//#if (CUSTOM_CODE_TEST_UVDI15 == 0)
-//		/* 오차 값이 +/- 1 um 이내이면 도달했다고 설정*/
-//		dbPhNowZ	= uvEng_ShMem_GetLuria()->directph.focus_motor_move_abs_position[i] / 1000.0f;
-//#else
-		//dbPhNowZ = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI(0x02 + i));
+		//#if (CUSTOM_CODE_TEST_UVDI15 == 0)
+		//		/* 오차 값이 +/- 1 um 이내이면 도달했다고 설정*/
+		//		dbPhNowZ	= uvEng_ShMem_GetLuria()->directph.focus_motor_move_abs_position[i] / 1000.0f;
+		//#else
+				//dbPhNowZ = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI(0x02 + i));
 		dbPhNowZ = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI(0x06 + i));
-//#endif
+		//#endif
 		if (abs(dbPhNowZ - m_dbPhZAxisSet[i]) > 0.010 /* .0 um */) /* 좀 넉넉히 설정해 줘야 한다. */
 		{
-			bArrived	= FALSE;
+			bArrived = FALSE;
 			break;
 		}
 	}
@@ -2536,7 +2536,7 @@ ENG_JWNS CWorkStep::IsPhZAxisMovedAll()
  parm : None
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
+ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long& lastUniqueID)
 {
 	UINT8 i = 0x00;
 	INT32 i32ACamDiffZ = 0;	/* 단위: 0.1 um or 100 nm */
@@ -2544,7 +2544,7 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	LPG_CCDB pstACamInfo = &uvEng_GetConfig()->set_basler;
 	//LPG_CAFI pstACamFocus = &uvEng_GetConfig()->acam_focus;
-	LPG_CASI pstACamSpec= &uvEng_GetConfig()->acam_spec;
+	LPG_CASI pstACamSpec = &uvEng_GetConfig()->acam_spec;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.ACam.Z.Axis.Moving");
@@ -2583,7 +2583,7 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
 	dACamZAxisSet[0] = (pstACamSpec->acam_z_focus[0] * 10000.0f) + i32ACamDiffZ;
 	dACamZAxisSet[1] = (pstACamSpec->acam_z_focus[1] * 10000.0f) + i32ACamDiffZ;
 
- 	STG_PP_P2C_ABS_MOVE stSend;
+	STG_PP_P2C_ABS_MOVE stSend;
 	STG_PP_P2C_ABS_MOVE_ACK stRecv;
 	stSend.Reset();
 	stRecv.Reset();
@@ -2626,8 +2626,8 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long &lastUniqueID)
 */
 ENG_JWNS CWorkStep::IsACamZAxisMovedAll(unsigned long& lastUniqueID)
 {
-	UINT8 i			= 0x00;
-	INT32 i32ACamNoZ= 0;	/* 단위: 0.1 um or 100 nm */
+	UINT8 i = 0x00;
+	INT32 i32ACamNoZ = 0;	/* 단위: 0.1 um or 100 nm */
 	//LPG_PMRW pstPLC	= uvEng_ShMem_GetPLCExt();
 
 	/* 현재 작업 Step Name 설정 */
@@ -2661,7 +2661,7 @@ ENG_JWNS CWorkStep::IsACamZAxisMovedAll(unsigned long& lastUniqueID)
 	{
 		/* Set the error message */
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move failed");
-		
+
 		return ENG_JWNS::en_error;
 	}
 
@@ -2678,28 +2678,28 @@ ENG_JWNS CWorkStep::IsACamZAxisMovedAll(unsigned long& lastUniqueID)
 */
 ENG_JWNS CWorkStep::IsSetMarkValid(ENG_AMTF type, UINT8 scan)
 {
-	TCHAR tzTitle[128]	= {NULL};
-	BOOL bSucc			= FALSE;
+	TCHAR tzTitle[128] = { NULL };
+	BOOL bSucc = FALSE;
 	UINT8 u8Global, u8Local, u8Total;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Is.SetMark.Valid");
 
 	/* 거버에 등록된 Global & Local Fiducial Mark 개수 */
-	u8Global= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	u8Local	= uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+	u8Global = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
+	u8Local = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
 	/* Global Mark 4개 모두 인식되었는지 여부 확인 */
 	if (ENG_AMTF::en_global == type)
 	{
-		u8Total	= u8Global;
-		bSucc	= uvEng_Camera_GetGrabbedCount() == u8Global;
+		u8Total = u8Global;
+		bSucc = uvEng_Camera_GetGrabbedCount() == u8Global;
 	}
 	else
 	{
 		/* 전체 Local 개수 중 1 Scan 마다 검출되는 Mark 개수 */
-		if (0x00 == scan)	u8Total	= u8Local / 2 + u8Global;
-		else				u8Total	= u8Local + u8Global;
-		bSucc	= uvEng_Camera_GetGrabbedCount() == u8Total;
+		if (0x00 == scan)	u8Total = u8Local / 2 + u8Global;
+		else				u8Total = u8Local + u8Global;
+		bSucc = uvEng_Camera_GetGrabbedCount() == u8Total;
 	}
 
 	/* Title 설정 */
@@ -2718,71 +2718,56 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 {
 
 	auto SetManualFix = [&](bool set)
-	{
-		if (manualFixed != nullptr)
-			*manualFixed = set;
-	};
+		{
+			if (manualFixed != nullptr)
+				*manualFixed = set;
+		};
 
 	SetManualFix(false);
 
-	TCHAR tzTitle[128]	= {NULL};
-	BOOL bSucc	= FALSE, bMultiMark = FALSE;
-	UINT8 u8Global, u8Local, u8Total;
-	CUniToChar csCnv;
-	//LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetSelectRecipe();
-	//LPG_RAAF pstRecipeAlign = uvEng_Mark_GetSelectAlignRecipe();
+	TCHAR tzTitle[128] = { NULL };
+	BOOL bSucc = FALSE, bMultiMark = FALSE;
+	
+	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
-	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
-
+	auto* config = uvEng_GetConfig();
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Is.SetMark.Valid.All");
 
-	if (uvEng_GetConfig()->IsRunDemo())	return ENG_JWNS::en_next;
+	auto result = motions.IsNeedManualFixOffset(camNum);
+	
+	if (config->IsRunDemo() || result == ENG_MFOR::noNeedToFix)	return ENG_JWNS::en_next;
 
-	/* 거버에 등록된 Global & Local Fiducial Mark 개수 */
-	u8Global= uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	u8Local	= (IsMarkTypeOnlyGlobal() == true ? 0 : uvEng_Luria_GetMarkCount(ENG_AMTF::en_local));
-	u8Total	= u8Local + u8Global;
-	/* Global (혹은 Local 포함) Mark가 모두 인식되었는지 여부 확인 */
-	bSucc	= uvEng_Camera_GetGrabbedCount(camNum) == (u8Global + u8Local);
-	//return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
-	/* 검색된 마크가 유효한지 확인 */
-	// by sysandj : 변수없음(수정)
-	if (pstRecipeAlign)	bMultiMark	= pstRecipeAlign->search_type == (UINT8)ENG_MMSM::en_multi_only;		//search_type
-	if (!bSucc || !uvEng_Camera_IsGrabbedMarkValidAll(bMultiMark, pstRecipeExpo->mark_score_accept,camNum))
+	if (result == ENG_MFOR::grabcountMiss)
 	{
-		/* 오로지 Global Mark 4 Point만 존재하는 경우에만 해당 됨 */
-		if (mode && uvEng_GetConfig()->set_align.use_invalid_mark_cali &&
-			uvEng_Luria_IsMarkGlobal() && !uvEng_Luria_IsMarkLocal() )
-		{
-			
-			SetManualFix(true);
-			/* 잘못 인식된 마크를 수동으로 설정하기 위해 */
-			CDlgMmpm dlgMmpm;
-			bSucc	= (IDOK == dlgMmpm.DoModal());
-			///* 가장 최근 시간으로 갱신 */
-			UpdateWaitingTime();
-			return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_error;
-			
-			
-			//abh1000 Local Test
-			//return ENG_JWNS::en_error;
-			//bSucc = TRUE;
-		}
-		else
-		{
-			//abh1000 Local Test
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
-			return ENG_JWNS::en_error;
-			//bSucc = TRUE;
-		}
+		SetStepName(L"Not all marks are grabbed.");
+		return ENG_JWNS::en_error;
 	}
 
+	if (!config->set_align.use_invalid_mark_cali)  //교정하지 않겠다.
+		return ENG_JWNS::en_error;
+	else
+	{
+		if (config->set_align.manualFixOffsetAtSequence) //지금 교정하겠다. 
+		{
+			CDlgMmpm dlgMmpm;
+			bSucc = (IDOK == dlgMmpm.DoModal());
+			UpdateWaitingTime();
+			SetManualFix(true);
+		}
+		else //아니다 다음에 하겠다. 
+		{
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
+			bSucc = false;
+		}
+	}
+	
+	auto u8Global = motions.status.globalMarkCnt;
+	auto u8Local = motions.markParams.alignType == ENG_ATGL::en_global_4_local_0_point ? 0 : motions.status.localMarkCnt;
+
 	/* Title 설정 */
-	swprintf_s(tzTitle, 128, L"Mark.Grabbed (%u / %u)", uvEng_Camera_GetGrabbedCount(camNum), u8Total);
+	swprintf_s(tzTitle, 128, L"Mark.Grabbed (%u / %u)", uvEng_Camera_GetGrabbedCount(camNum), u8Global + u8Local);
 	SetStepName(tzTitle);
 
 	/*Mark Align 결과 Log 출력*/
@@ -2799,7 +2784,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 			pstMark = uvEng_Camera_GetGrabbedMark(u8Cam, u8Img);
 			if (pstMark)
 			{
-				swprintf_s(tzMsg, 256, L"Cam%d-Img%d, %.3f,%.3f,%.4f,%.4f,",
+				swprintf_s(tzMsg, 256, L"[global ]Cam%d-Img%d, %.3f,%.3f,%.4f,%.4f,",
 					u8Cam, u8Img,
 					pstMark->score_rate, pstMark->scale_rate,
 					pstMark->move_mm_x, pstMark->move_mm_y);
@@ -2808,7 +2793,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 		}
 	}
 
-	return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+	return bSucc ? ENG_JWNS::en_next : ENG_JWNS::en_error;
 }
 
 /*
@@ -2820,39 +2805,39 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 {
 
 	auto ChangeXml = [&](string xmlPath, ENG_ATGL alignType)
-	{
-		auto SplitPath = [&](const std::string& filepath, std::string& directory, std::string& filename)
-			{
-				fs::path pathObj(filepath);
-				directory = pathObj.parent_path().string();
-				filename = pathObj.filename().string();
-			};
+		{
+			auto SplitPath = [&](const std::string& filepath, std::string& directory, std::string& filename)
+				{
+					fs::path pathObj(filepath);
+					directory = pathObj.parent_path().string();
+					filename = pathObj.filename().string();
+				};
 
-		auto AddSuffixToFilename = [&](const std::string& filename, const std::string& suffix)->std::string
-			{
-				size_t dotPos = filename.find_last_of('.');
-				if (dotPos != std::string::npos)
-					return filename.substr(0, dotPos) + suffix + filename.substr(dotPos);
-				return filename;
-			};
+			auto AddSuffixToFilename = [&](const std::string& filename, const std::string& suffix)->std::string
+				{
+					size_t dotPos = filename.find_last_of('.');
+					if (dotPos != std::string::npos)
+						return filename.substr(0, dotPos) + suffix + filename.substr(dotPos);
+					return filename;
+				};
 
-		auto RemovenReplace = [&](string removeName, string replaceName)
-			{
-				fs::remove(removeName);
-				fs::copy_file(replaceName, removeName);
-			};
+			auto RemovenReplace = [&](string removeName, string replaceName)
+				{
+					fs::remove(removeName);
+					fs::copy_file(replaceName, removeName);
+				};
 
-		string root, filename;
-		SplitPath(xmlPath, root, filename);
+			string root, filename;
+			SplitPath(xmlPath, root, filename);
 
-		auto combineName =  AddSuffixToFilename(filename, alignType == ENG_ATGL::en_global_4_local_0_point ? "_G" : "_GL");
-		RemovenReplace(xmlPath, root + "\\" + combineName);
-	};
+			auto combineName = AddSuffixToFilename(filename, alignType == ENG_ATGL::en_global_4_local_0_point ? "_G" : "_GL");
+			RemovenReplace(xmlPath, root + "\\" + combineName);
+		};
 
 
-	CHAR szGerbFile[MAX_PATH_LEN]	= {NULL};
+	CHAR szGerbFile[MAX_PATH_LEN] = { NULL };
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_LDJM pstJobMgt	= &uvEng_ShMem_GetLuria()->jobmgt;
+	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
 	CUniToChar csCnv;
 
 	/* 현재 작업 Step Name 설정 */
@@ -2867,7 +2852,7 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The gerber file to be registered exists");
 		return ENG_JWNS::en_error;
 	}
-	
+
 	/* 현재 선택된 거버 파일 등록 수행 */
 	sprintf_s(szGerbFile, MAX_PATH_LEN, "%s\\%s", pstRecipe->gerber_path, pstRecipe->gerber_name);
 
@@ -2875,7 +2860,7 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
 	ENG_ATGL alignType = (ENG_ATGL)pstAlign->align_type;
 
-	ChangeXml(string(szGerbFile)+"\\rlt_settings.xml", alignType);
+	ChangeXml(string(szGerbFile) + "\\rlt_settings.xml", alignType);
 
 	if (!uvEng_Luria_ReqAddJobList(csCnv.Ansi2Uni(szGerbFile)))
 	{
@@ -2902,7 +2887,7 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 ENG_JWNS CWorkStep::IsGerberRegisted()
 {
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_LDJM pstJobMgt	= &uvEng_ShMem_GetLuria()->jobmgt;
+	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Gerber.Registed");
@@ -2926,7 +2911,7 @@ ENG_JWNS CWorkStep::IsGerberRegisted()
 */
 ENG_JWNS CWorkStep::SetStepDutyFrame()
 {
-	LPG_LDEW pstExpo	= &uvEng_ShMem_GetLuria()->exposure;
+	LPG_LDEW pstExpo = &uvEng_ShMem_GetLuria()->exposure;
 	CUniToChar csCnv;
 
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
@@ -2939,10 +2924,10 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 	if (uvEng_GetConfig()->IsRunDemo())
 	{
 		// by sysandj : 변수없음(수정)
-		pstJobRecipe->step_size			= 4;
-		pstExpoRecipe->led_duty_cycle	= 10;
+		pstJobRecipe->step_size = 4;
+		pstExpoRecipe->led_duty_cycle = 10;
 		// by sysandj : 변수없음(수정)
-		pstJobRecipe->frame_rate		= 999;
+		pstJobRecipe->frame_rate = 999;
 	}
 	/* Step Size, Duty Cycle 및 Frame 값 초기화 */
 	pstExpo->SetDutyStepFrame();
@@ -2955,9 +2940,9 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 	}
 
 
-	if (!uvEng_Luria_ReqSetExposureFactor(	pstJobRecipe->step_size,
-											pstExpoRecipe->led_duty_cycle,
-											pstJobRecipe->frame_rate / 1000.0f))
+	if (!uvEng_Luria_ReqSetExposureFactor(pstJobRecipe->step_size,
+		pstExpoRecipe->led_duty_cycle,
+		pstJobRecipe->frame_rate / 1000.0f))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposureFactor)");
 		return ENG_JWNS::en_error;
@@ -2979,7 +2964,7 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 */
 ENG_JWNS CWorkStep::IsStepDutyFrame()
 {
-	LPG_LDEW pstExpo	= &uvEng_ShMem_GetLuria()->exposure;
+	LPG_LDEW pstExpo = &uvEng_ShMem_GetLuria()->exposure;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Step.Duty.Frame");
@@ -2997,10 +2982,10 @@ ENG_JWNS CWorkStep::IsStepDutyFrame()
 */
 ENG_JWNS CWorkStep::SetExposeStartXY(double* startXoffset, double* startYoffset)
 {
-	DOUBLE *pStartXY	= uvEng_GetConfig()->luria_svc.table_expo_start_xy[0];
-	LPG_LDMC pstMachine	= &uvEng_ShMem_GetLuria()->machine;
+	DOUBLE* pStartXY = uvEng_GetConfig()->luria_svc.table_expo_start_xy[0];
+	LPG_LDMC pstMachine = &uvEng_ShMem_GetLuria()->machine;
 
-	
+
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Expose.Start.XY");
 
@@ -3012,14 +2997,14 @@ ENG_JWNS CWorkStep::SetExposeStartXY(double* startXoffset, double* startYoffset)
 	}
 
 	/* 노광 시작 위치 정보 초기화 */
-	pstMachine->table_expo_start_xy[0].x	= -1;
-	pstMachine->table_expo_start_xy[0].y	= -1;
+	pstMachine->table_expo_start_xy[0].x = -1;
+	pstMachine->table_expo_start_xy[0].y = -1;
 
 	/* 송신 설정 */
 	/* Led Duty Cycle & Frame Rate 설치 */
-	if (!uvEng_Luria_ReqSetTableExposureStartPos(0x01, 
-		startXoffset != nullptr ? pStartXY[0]  + *startXoffset : pStartXY[0],
-		startYoffset != nullptr ? pStartXY[1]  + *startYoffset : pStartXY[1]))	/* table number is fixed */
+	if (!uvEng_Luria_ReqSetTableExposureStartPos(0x01,
+		startXoffset != nullptr ? pStartXY[0] + *startXoffset : pStartXY[0],
+		startYoffset != nullptr ? pStartXY[1] + *startYoffset : pStartXY[1]))	/* table number is fixed */
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposeStartXY)");
 		return ENG_JWNS::en_error;
@@ -3035,7 +3020,7 @@ ENG_JWNS CWorkStep::SetExposeStartXY(double* startXoffset, double* startYoffset)
 */
 ENG_JWNS CWorkStep::IsExposeStartXY()
 {
-	LPG_LDMC pstMachine	= &uvEng_ShMem_GetLuria()->machine;
+	LPG_LDMC pstMachine = &uvEng_ShMem_GetLuria()->machine;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Expose.Start.XY");
@@ -3056,10 +3041,10 @@ ENG_JWNS CWorkStep::IsExposeStartXY()
 */
 ENG_JWNS CWorkStep::SetLedAmplitude()
 {
-	TCHAR tzMesg[128]	= {NULL};
+	TCHAR tzMesg[128] = { NULL };
 	CUniToChar csCnv;
-	UINT16 i = 0x00, u16LedPower[MAX_PH][4/* Not MAX_LED */] = {NULL};
-	LPG_PLPI pstLedPower= NULL;
+	UINT16 i = 0x00, u16LedPower[MAX_PH][4/* Not MAX_LED */] = { NULL };
+	LPG_PLPI pstLedPower = NULL;
 	//LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
@@ -3068,16 +3053,16 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 
 	//LPG_LDEW pstExpose	= &uvEng_ShMem_GetLuria()->exposure;
 
-	
+
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Led.Amplitude");
 
 	/* 레시피에 설정된 Led Power Name을 이용한 Led Power Index 조회 */
-	pstLedPower	= uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
+	pstLedPower = uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
 	if (!pstLedPower)
 	{
 		swprintf_s(tzMesg, 128, L"Failed to get the Led Power Index (for %s name)",
-				   csCnv.Ansi2Uni(pstExpoRecipe->power_name));
+			csCnv.Ansi2Uni(pstExpoRecipe->power_name));
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 		return ENG_JWNS::en_error;
 	}
@@ -3086,7 +3071,7 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 	//pstExpose->ResetPowerIndex();
 
 	/* 현재 설정된 Recipe 파워 값 복사 */
-	for (i=0x00; i<uvEng_GetConfig()->luria_svc.ph_count; i++)
+	for (i = 0x00; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 #ifdef _DEBUG
 		const int MAX_ALLOW_POWER_INDEX = 3000;
@@ -3124,7 +3109,7 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 ENG_JWNS CWorkStep::IsLedAmplituded()
 {
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_LDEW pstExpose	= &uvEng_ShMem_GetLuria()->exposure;
+	LPG_LDEW pstExpose = &uvEng_ShMem_GetLuria()->exposure;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Led.Amplituded");
@@ -3146,14 +3131,14 @@ ENG_JWNS CWorkStep::IsLedAmplituded()
 */
 ENG_JWNS CWorkStep::SetAllPhMotorMoving()
 {
-	BOOL bSucc	= TRUE;
+	BOOL bSucc = TRUE;
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.All.Optic.Motor.Base.Moving");
 
 	/* 기준 소재로 측정된 기준 Focus 위치로 이동 */
 	if (uvEng_GetConfig()->luria_svc.z_drive_type == 0x01)
 	{
-		bSucc	= uvEng_Luria_ReqSetAllMotorBaseAbsPosition();
+		bSucc = uvEng_Luria_ReqSetAllMotorBaseAbsPosition();
 		/* 통신 시간 초기화 */
 		SetSendCmdTime();
 	}
@@ -3189,8 +3174,8 @@ ENG_JWNS CWorkStep::SetAllPhMotorMoving()
 */
 ENG_JWNS CWorkStep::IsAllPhMotorMoved()
 {
-	UINT8 i			= 0;
-	INT32 i32Set	= 0, i32Get = 0;
+	UINT8 i = 0;
+	INT32 i32Set = 0, i32Get = 0;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.All.Optic.Motor.Moved");
@@ -3212,7 +3197,7 @@ ENG_JWNS CWorkStep::IsAllPhMotorMoved()
 	else if (uvEng_GetConfig()->luria_svc.z_drive_type == 0x03)
 	{
 #if 0
-	return uvCmn_MC2_IsAllPhMotorFocusMoved() ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+		return uvCmn_MC2_IsAllPhMotorFocusMoved() ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
 #else
 		UINT8 u8drv_id;
 		int i;
@@ -3225,8 +3210,8 @@ ENG_JWNS CWorkStep::IsAllPhMotorMoved()
 
 		if (bSucc)	ENG_JWNS::en_next;
 		else        ENG_JWNS::en_wait;
-	//return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_axis_ph1) &&
-	//	   uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_axis_ph1) ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
+		//return uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_axis_ph1) &&
+		//	   uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_axis_ph1) ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
 #endif
 
 
@@ -3243,7 +3228,7 @@ ENG_JWNS CWorkStep::IsAllPhMotorMoved()
 ENG_JWNS CWorkStep::SetAllPhMotorHoming()
 {
 #ifndef _DEBUG
-	LPG_LDDP pstDirectPh	= &uvEng_ShMem_GetLuria()->directph;
+	LPG_LDDP pstDirectPh = &uvEng_ShMem_GetLuria()->directph;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.All.Optic.Motor.Homing");
@@ -3284,7 +3269,7 @@ ENG_JWNS CWorkStep::SetAllPhMotorHoming()
 ENG_JWNS CWorkStep::IsAllPhMotorHomed()
 {
 #ifndef _DEBUG
-	LPG_LDDP pstDirectPh	= &uvEng_ShMem_GetLuria()->directph;
+	LPG_LDDP pstDirectPh = &uvEng_ShMem_GetLuria()->directph;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.All.Optic.Motor.Homed");
@@ -3329,13 +3314,13 @@ ENG_JWNS CWorkStep::IsAllPhMotorHomed()
 */
 ENG_JWNS CWorkStep::InitDriveErrorReset()
 {
-	UINT8 i	= 0x00;
+	UINT8 i = 0x00;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Init.Drive.Error.Reset");
 
 	/* 현재 모든 드라이브 중 1개로 에러 코드가 존재한다면, 에러 리셋 처리 */
-	for (; i<uvEng_GetConfig()->mc2_svc.drive_count; i++)
+	for (; i < uvEng_GetConfig()->mc2_svc.drive_count; i++)
 	{
 		/* 참고로, 에러가 발생된 드라이브의 경우, 반드시 리셋 호출 후 Homing 작업 수행해야 함 */
 		/* 결국에 에러 코드만 Reset 시키기 위함이고, 별도로 Homing 작업을 수행해야 함 */
@@ -3377,7 +3362,7 @@ ENG_JWNS CWorkStep::InitDriveErrorReset()
 */
 ENG_JWNS CWorkStep::IsDriveErrorReseted(UINT8 back_step)
 {
-	UINT8 i	= 0x00;
+	UINT8 i = 0x00;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Init.Drive.Error.Reset");
@@ -3385,14 +3370,14 @@ ENG_JWNS CWorkStep::IsDriveErrorReseted(UINT8 back_step)
 	/* 현재 MC2 드라이브 쪽에 에러가 계속 남아 있는 상태인지 여부 확인*/
 	if (uvCmn_MC2_IsAnyDriveError())	return ENG_JWNS::en_wait;
 	/* 현재 모든 드라이브가 DoneToggled 되었는지 확인 */
-	for (; i<uvEng_GetConfig()->mc2_svc.drive_count; i++)
+	for (; i < uvEng_GetConfig()->mc2_svc.drive_count; i++)
 	{
 		if (!uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI(uvEng_GetConfig()->mc2_svc.axis_id[i])))	return ENG_JWNS::en_wait;
 	}
 
 #if (MC2_DRIVE_2SET == 1)
 	UINT8 u8drv_id;
-	for (i=0; i < uvEng_GetConfig()->mc2b_svc.drive_count; i++)
+	for (i = 0; i < uvEng_GetConfig()->mc2b_svc.drive_count; i++)
 	{
 		u8drv_id = i + DRIVEDIVIDE;
 		if (!uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI(u8drv_id)))	return ENG_JWNS::en_wait;
@@ -3412,12 +3397,12 @@ ENG_JWNS CWorkStep::DoDriveHoming(ENG_MMDI drv_id)
 	/* 현재 작업 Step Name 설정 */
 	switch (drv_id)
 	{
-	case ENG_MMDI::en_stage_x		:	SetStepName(L"Do.Homing.Stage.X");	break;
-	case ENG_MMDI::en_stage_y		:	SetStepName(L"Do.Homing.Stage.Y");	break;
-	case ENG_MMDI::en_align_cam1	:	SetStepName(L"Do.Homing.ACam.1");	break;
-	case ENG_MMDI::en_align_cam2	:	SetStepName(L"Do.Homing.ACam.2");	break;
-	case ENG_MMDI::en_axis_ph1		:	SetStepName(L"Do.Homing.PH.1");		break;
-	case ENG_MMDI::en_axis_ph2		:	SetStepName(L"Do.Homing.PH.2");		break;
+	case ENG_MMDI::en_stage_x:	SetStepName(L"Do.Homing.Stage.X");	break;
+	case ENG_MMDI::en_stage_y:	SetStepName(L"Do.Homing.Stage.Y");	break;
+	case ENG_MMDI::en_align_cam1:	SetStepName(L"Do.Homing.ACam.1");	break;
+	case ENG_MMDI::en_align_cam2:	SetStepName(L"Do.Homing.ACam.2");	break;
+	case ENG_MMDI::en_axis_ph1:	SetStepName(L"Do.Homing.PH.1");		break;
+	case ENG_MMDI::en_axis_ph2:	SetStepName(L"Do.Homing.PH.2");		break;
 	}
 
 #if 0	/* 여기서는 드라이브 에러 체크하지 않음 */
@@ -3476,19 +3461,19 @@ ENG_JWNS CWorkStep::IsDrivedHomed(ENG_MMDI drv_id)
 	{
 		switch (drv_id)
 		{
-		case ENG_MMDI::en_stage_x		:	SetStepName(L"Is.Homed.Stage.X");	break;
-		case ENG_MMDI::en_stage_y		:	SetStepName(L"Is.Homed.Stage.Y");	break;
-		case ENG_MMDI::en_align_cam1	:	SetStepName(L"Is.Homed.ACam.1");	break;
-		case ENG_MMDI::en_align_cam2	:	SetStepName(L"Is.Homed.ACam.2");	break;
-		case ENG_MMDI::en_axis_ph1		:	SetStepName(L"Is.Homed.PH.1");		break;
-		case ENG_MMDI::en_axis_ph2		:	SetStepName(L"Is.Homed.PH.2");		break;
+		case ENG_MMDI::en_stage_x:	SetStepName(L"Is.Homed.Stage.X");	break;
+		case ENG_MMDI::en_stage_y:	SetStepName(L"Is.Homed.Stage.Y");	break;
+		case ENG_MMDI::en_align_cam1:	SetStepName(L"Is.Homed.ACam.1");	break;
+		case ENG_MMDI::en_align_cam2:	SetStepName(L"Is.Homed.ACam.2");	break;
+		case ENG_MMDI::en_axis_ph1:	SetStepName(L"Is.Homed.PH.1");		break;
+		case ENG_MMDI::en_axis_ph2:	SetStepName(L"Is.Homed.PH.2");		break;
 		}
 	}
 
 	if (!uvCmn_MC2_IsDriveHomed(drv_id))
 	{
 		/* 어쩔수 없이 시간 갱신 (만약 Homing 안될 때 무한 대기 됨) */
-		m_u64DelayTime	= GetTickCount64();
+		m_u64DelayTime = GetTickCount64();
 		return ENG_JWNS::en_wait;
 	}
 	return ENG_JWNS::en_next;
@@ -3501,16 +3486,16 @@ ENG_JWNS CWorkStep::IsDrivedHomed(ENG_MMDI drv_id)
 */
 ENG_JWNS CWorkStep::IsDrivedHomedAll()
 {
-	UINT8 i	= 0x00, u8Count = uvEng_GetConfig()->luria_svc.z_drive_type == 0x01 ? 0x04 : 0x06;
-	ENG_MMDI enDrvID[6]	= {ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
+	UINT8 i = 0x00, u8Count = uvEng_GetConfig()->luria_svc.z_drive_type == 0x01 ? 0x04 : 0x06;
+	ENG_MMDI enDrvID[6] = { ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
 						   ENG_MMDI::en_align_cam1, ENG_MMDI::en_align_cam2,
 						   ENG_MMDI::en_axis_ph1, ENG_MMDI::en_axis_ph2 };
-	LPG_MDSM pstMC2		= uvEng_ShMem_GetMC2();
+	LPG_MDSM pstMC2 = uvEng_ShMem_GetMC2();
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Homed.Drive.All");
 
-	for (; i<u8Count/*uvEng_GetConfig()->mc2_svc.drive_count*/; i++)
+	for (; i < u8Count/*uvEng_GetConfig()->mc2_svc.drive_count*/; i++)
 	{
 		if (!uvCmn_MC2_IsDriveHomed(enDrvID[i]))
 		{
@@ -3528,8 +3513,8 @@ ENG_JWNS CWorkStep::IsDrivedHomedAll()
 */
 ENG_JWNS CWorkStep::WaitACamError(UINT8 cam_no)
 {
-	ENG_MMDI enDrvID	= cam_no == 1 ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
-	LPG_MDSM pstMC2		= uvEng_ShMem_GetMC2();
+	ENG_MMDI enDrvID = cam_no == 1 ? ENG_MMDI::en_align_cam1 : ENG_MMDI::en_align_cam2;
+	LPG_MDSM pstMC2 = uvEng_ShMem_GetMC2();
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Wait.Camera.Error.Check");
@@ -3613,14 +3598,14 @@ ENG_JWNS CWorkStep::InitializeHWInit()
 */
 ENG_JWNS CWorkStep::SetACamMovingZAxisQuartz()
 {
-	UINT8 u8CamID		=  (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? 0x01 : 0x02;
-	DOUBLE dbACamSetZ	= 0.0f;
+	UINT8 u8CamID = (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? 0x01 : 0x02;
+	DOUBLE dbACamSetZ = 0.0f;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"ACam.Moving.Z.Axis.Quartz");
 
 	/* Quartz 에 맞게 Focusing 위치 이동 */
-	dbACamSetZ	= uvEng_GetConfig()->acam_spec.acam_z_focus[u8CamID-1];
+	dbACamSetZ = uvEng_GetConfig()->acam_spec.acam_z_focus[u8CamID - 1];
 	/* Align Camera Z Axis을 절대 위치로 이동 */
 	// by sysandj : MCQ대체 추가 필요
 // 	if (!uvEng_MCQ_SetACamMovePosZ(u8CamID, 0x00, dbACamSetZ))
@@ -3639,8 +3624,8 @@ ENG_JWNS CWorkStep::SetACamMovingZAxisQuartz()
 */
 ENG_JWNS CWorkStep::IsACamMovedZAxisQuartz()
 {
-	UINT8 u8CamID		=  (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? 0x01 : 0x02;
-	INT32 i32ACamSetZ	= 0, i32ACamNowZ = 0;
+	UINT8 u8CamID = (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? 0x01 : 0x02;
+	INT32 i32ACamSetZ = 0, i32ACamNowZ = 0;
 	//LPG_PMRW pstPLC		= uvEng_ShMem_GetPLCExt();
 
 	/* 현재 작업 Step Name 설정 */
@@ -3652,7 +3637,7 @@ ENG_JWNS CWorkStep::IsACamMovedZAxisQuartz()
 	//else					i32ACamNowZ	= (INT32)ROUNDED(pstPLC->r_camera2_z_axis_position_display / 10.0f, 0);
 
 	/* 최종 이동해야 할 Align Camera의 Z 위치 값 (단위: mm --> um) */
-	i32ACamSetZ	= (INT32)ROUNDED(uvEng_GetConfig()->acam_spec.acam_z_focus[u8CamID-1] * 1000.0f, 0);
+	i32ACamSetZ = (INT32)ROUNDED(uvEng_GetConfig()->acam_spec.acam_z_focus[u8CamID - 1] * 1000.0f, 0);
 
 	/* 원래 이동하고자 했던 위치 값과 현재 이동한 위치 값 비교 (1 um 단위로 비교) */
 	if (i32ACamSetZ != i32ACamNowZ)
@@ -3670,31 +3655,31 @@ ENG_JWNS CWorkStep::IsACamMovedZAxisQuartz()
 */
 ENG_JWNS CWorkStep::SetACamMovingSide()
 {
-	INT32 i32MovePos	= 0;
-	UINT32 u32MoveSpeed	= 0;
-	ENG_MMDI enACamDrv	= (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? ENG_MMDI::en_align_cam2 : ENG_MMDI::en_align_cam1;
-	
+	INT32 i32MovePos = 0;
+	UINT32 u32MoveSpeed = 0;
+	ENG_MMDI enACamDrv = (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? ENG_MMDI::en_align_cam2 : ENG_MMDI::en_align_cam1;
+
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.ACam.Moving.Side");
 
 	/* Align Camera 2 */
 	if (enACamDrv == ENG_MMDI::en_align_cam2)
 	{
-		i32MovePos	= (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_dist[UINT8(enACamDrv)] * 10000.0f, 0);
+		i32MovePos = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_dist[UINT8(enACamDrv)] * 10000.0f, 0);
 	}
 	/* Align Camera 1 */
 	else
 	{
-		i32MovePos	= (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.min_dist[UINT8(enACamDrv)] * 10000.0f, 0);
+		i32MovePos = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.min_dist[UINT8(enACamDrv)] * 10000.0f, 0);
 	}
-	u32MoveSpeed= (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(enACamDrv)] * 10000.0f, 0);
+	u32MoveSpeed = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(enACamDrv)] * 10000.0f, 0);
 
 	/* 현재 이동하고자 하는 모션의 Toggled 값 얻기 */
 	uvCmn_MC2_GetDrvDoneToggled(enACamDrv);
 	/* 사이드로 이동 시키기 */
 	if (!uvEng_MC2_SendDevAbsMove(enACamDrv,
-								  i32MovePos/10000.0f,
-								  u32MoveSpeed/10000.0f))
+		i32MovePos / 10000.0f,
+		u32MoveSpeed / 10000.0f))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove)");
 		return ENG_JWNS::en_error;
@@ -3710,7 +3695,7 @@ ENG_JWNS CWorkStep::SetACamMovingSide()
 */
 ENG_JWNS CWorkStep::IsACamMovedSide()
 {
-	ENG_MMDI enACamDrv	= (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? ENG_MMDI::en_align_cam2 : ENG_MMDI::en_align_cam1;
+	ENG_MMDI enACamDrv = (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? ENG_MMDI::en_align_cam2 : ENG_MMDI::en_align_cam1;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.ACam.Moved.Side");
@@ -3729,22 +3714,22 @@ ENG_JWNS CWorkStep::IsACamMovedSide()
 */
 ENG_JWNS CWorkStep::SetACamMovingQuartz()
 {
-	UINT8 u8CamID	= (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? 0x01 : 0x02;
-	DOUBLE dbACamMovePos= 0.0f, dbXMovePos = 0.0f, dbYMovePos = 0.0f;
-	DOUBLE dbACAmSpeed	= 0.0f, dbXMoveSpeed = 0.0f, dbYMoveSpeed = 0.0f;
-	LPG_CASI pstACamSpec=  &uvEng_GetConfig()->acam_spec;
+	UINT8 u8CamID = (m_enDrvACamID == ENG_MMDI::en_align_cam1) ? 0x01 : 0x02;
+	DOUBLE dbACamMovePos = 0.0f, dbXMovePos = 0.0f, dbYMovePos = 0.0f;
+	DOUBLE dbACAmSpeed = 0.0f, dbXMoveSpeed = 0.0f, dbYMoveSpeed = 0.0f;
+	LPG_CASI pstACamSpec = &uvEng_GetConfig()->acam_spec;
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.ACam.Moving.Quartz");
 
 	/* Quartz 위치 */
-	dbXMovePos		= pstACamSpec->quartz_stage_x;
-	dbYMovePos		= pstACamSpec->quartz_stage_y[u8CamID-1];
-	dbACamMovePos	= pstACamSpec->quartz_acam[u8CamID-1];
+	dbXMovePos = pstACamSpec->quartz_stage_x;
+	dbYMovePos = pstACamSpec->quartz_stage_y[u8CamID - 1];
+	dbACamMovePos = pstACamSpec->quartz_acam[u8CamID - 1];
 	/* Speed */
-	dbXMoveSpeed	= uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)];
-	dbYMoveSpeed	= uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_y)];
-	dbACAmSpeed		= uvEng_GetConfig()->mc2_svc.max_velo[UINT8(m_enDrvACamID)];
+	dbXMoveSpeed = uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)];
+	dbYMoveSpeed = uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_y)];
+	dbACAmSpeed = uvEng_GetConfig()->mc2_svc.max_velo[UINT8(m_enDrvACamID)];
 
 	/* 현재 이동하고자 하는 모션의 Toggled 값 얻기 */
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
@@ -3806,8 +3791,8 @@ ENG_JWNS CWorkStep::IsACamMovedQuartz()
 */
 ENG_JWNS CWorkStep::SetExposeReady(BOOL in_mark, BOOL detect, BOOL vaccum, UINT32 count)
 {
-	STG_CGTI stTrans	= {NULL};
-	LPG_CGTI pstTrans	= &uvEng_GetConfig()->global_trans;
+	STG_CGTI stTrans = { NULL };
+	LPG_CGTI pstTrans = &uvEng_GetConfig()->global_trans;
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Init.Processing");
@@ -3846,7 +3831,7 @@ ENG_JWNS CWorkStep::SetExposeReady(BOOL in_mark, BOOL detect, BOOL vaccum, UINT3
 	//}
 	LPG_LDEW pstExpo = &uvEng_ShMem_GetLuria()->exposure;
 
-	if (pstExpo->frame_rate_factor>999)
+	if (pstExpo->frame_rate_factor > 999)
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to frame rate factor");
 		return ENG_JWNS::en_error;
@@ -3904,15 +3889,15 @@ ENG_JWNS CWorkStep::SetExposeReady(BOOL in_mark, BOOL detect, BOOL vaccum, UINT3
 		}
 		/* Set the Global Transformation Information */
 		if (!uvEng_Luria_ReqSetGlobalTransformationRecipe(stTrans.use_rotation_mode,
-														  stTrans.use_scaling_mode,
-														  stTrans.use_offset_mode))
+			stTrans.use_scaling_mode,
+			stTrans.use_offset_mode))
 		{
 			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the SetTransformationRecipe (Auto ? Fixed) for Global fiducial");
 			return ENG_JWNS::en_error;
 		}
-		if (!uvEng_Luria_ReqSetGlobalFixed(stTrans.rotation/1000.0f,
-										   stTrans.scaling[0]/1000000.0f, stTrans.scaling[1]/1000000.0f,
-										   stTrans.offset[0]/1000000.0f, stTrans.offset[1]/1000000.0f))
+		if (!uvEng_Luria_ReqSetGlobalFixed(stTrans.rotation / 1000.0f,
+			stTrans.scaling[0] / 1000000.0f, stTrans.scaling[1] / 1000000.0f,
+			stTrans.offset[0] / 1000000.0f, stTrans.offset[1] / 1000000.0f))
 		{
 			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the SetTransformationRecipe Value for Global fiducial");
 			return ENG_JWNS::en_error;
@@ -3929,7 +3914,7 @@ ENG_JWNS CWorkStep::SetExposeReady(BOOL in_mark, BOOL detect, BOOL vaccum, UINT3
 */
 ENG_JWNS CWorkStep::SetMovingSideACam2()
 {
-	INT32 i32ACamPos2	= 0;
+	INT32 i32ACamPos2 = 0;
 	UINT32 u32VeloACamX;
 
 	SetStepName(L"Set.Moving.Side.ACam2");
@@ -3937,12 +3922,12 @@ ENG_JWNS CWorkStep::SetMovingSideACam2()
 	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_align_cam2);
 
 	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
-	u32VeloACamX= (UINT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_align_cam2)] * 10000.0f, 0);
+	u32VeloACamX = (UINT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_align_cam2)] * 10000.0f, 0);
 	/* 2 번 카메라 위치 맨 마지막으로 이동 시킴 */
-	i32ACamPos2	= (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_dist[UINT8(ENG_MMDI::en_align_cam2)] * 10000.0f, 0);	/* 0.1 um or 100 ns */
+	i32ACamPos2 = (INT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_dist[UINT8(ENG_MMDI::en_align_cam2)] * 10000.0f, 0);	/* 0.1 um or 100 ns */
 	/* Align Camera 이동 하기 */
 	if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2,
-								  i32ACamPos2/10000.0f, u32VeloACamX/10000.0f))
+		i32ACamPos2 / 10000.0f, u32VeloACamX / 10000.0f))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove)");
 		return ENG_JWNS::en_error;
@@ -3974,8 +3959,8 @@ ENG_JWNS CWorkStep::IsMovedSideACam2()
 */
 ENG_JWNS CWorkStep::SetMovingMarkACam1(UINT8 mark_no)
 {
-	TCHAR tzStepName[64]= {NULL};
-	INT32 i32PosStageY	= 0, i32PosACamX = 0;
+	TCHAR tzStepName[64] = { NULL };
+	INT32 i32PosStageY = 0, i32PosACamX = 0;
 	UINT32 u32VeloACamX, u32VeloStageY;
 
 	swprintf_s(tzStepName, 64, L"Moving.Mark.Pos (%d)", mark_no);
@@ -3991,16 +3976,16 @@ ENG_JWNS CWorkStep::SetMovingMarkACam1(UINT8 mark_no)
 	uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_global, 0x00, mark_no, i32PosACamX);
 	uvEng_ACamCali_AddMarkPos(1, ENG_AMTF::en_global, 0x01, mark_no, GetGlobalMarkMotionPosY(mark_no));
 	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
-	u32VeloACamX	= (UINT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_align_cam1)] * 10000.0f, 0);
-	u32VeloStageY	= (UINT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_y)] * 10000.0f, 0);
+	u32VeloACamX = (UINT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_align_cam1)] * 10000.0f, 0);
+	u32VeloStageY = (UINT32)ROUNDED(uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_y)] * 10000.0f, 0);
 	/* 무조건 Align Camera 1번과 Stage Y 이동 하기 */
 	if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1,
-								  i32PosACamX/10000.0f,
-								  u32VeloACamX/10000.0f))
+		i32PosACamX / 10000.0f,
+		u32VeloACamX / 10000.0f))
 		return ENG_JWNS::en_error;
 	if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_y,
-								  i32PosStageY/10000.0f,
-								  u32VeloStageY/10000.0f))
+		i32PosStageY / 10000.0f,
+		u32VeloStageY / 10000.0f))
 		return ENG_JWNS::en_error;
 
 	return ENG_JWNS::en_next;
@@ -4031,9 +4016,9 @@ ENG_JWNS CWorkStep::IsMovedMarkACam1()
 ENG_JWNS CWorkStep::IsGrabbedImageCount(UINT16 count, UINT64 delay, int* camNum)
 {
 	UINT16 u16Grab = 0;
-	
+
 	u16Grab = uvEng_Camera_GetGrabbedCount(camNum);
-	
+
 	/*Camera 정지 모드*/
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
 	/*Mc2 트리거 모드 노광 모드로 변경*/
@@ -4042,13 +4027,13 @@ ENG_JWNS CWorkStep::IsGrabbedImageCount(UINT16 count, UINT64 delay, int* camNum)
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())
 	{
-		TCHAR tzTitle[64]	= {NULL};
+		TCHAR tzTitle[64] = { NULL };
 		swprintf_s(tzTitle, 64, L"Is.Grabbed.Image.Count (%u/%u)", count, u16Grab);
 		SetStepName(tzTitle);
 	}
 
 	if (uvEng_GetConfig()->IsRunDemo())	return ENG_JWNS::en_next;
-	
+
 
 	//abh1000 Local Test
 	///* 임의 시간 동안 캡처된 이미지 개수가 없다면 에러 처리 */
@@ -4108,7 +4093,7 @@ bool CWorkStep::SetAutoFocusFeatures()
 */
 ENG_JWNS CWorkStep::CheckValidRecipe()
 {
-	TCHAR tzMesg[128]	= {NULL};
+	TCHAR tzMesg[128] = { NULL };
 
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	// by sysandj : 변수없음(수정)
@@ -4122,7 +4107,7 @@ ENG_JWNS CWorkStep::CheckValidRecipe()
 	if (!pstThick)
 	{
 		swprintf_s(tzMesg, 128, L"There is no thickness correction info. for recipe [%s]",
-				   csCnv.Ansi2Uni(pstRecipe->job_name));
+			csCnv.Ansi2Uni(pstRecipe->job_name));
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 		return ENG_JWNS::en_error;
 	}
@@ -4173,7 +4158,7 @@ ENG_JWNS CWorkStep::SetSelectedJobIndex(UINT8 index)
 */
 ENG_JWNS CWorkStep::IsSelectedJobIndex()
 {
-	INT32 i32Index	= 0x00;
+	INT32 i32Index = 0x00;
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Selected.Job.Index (0)");
 #if 0
@@ -4203,8 +4188,8 @@ ENG_JWNS CWorkStep::SetDeleteSelectedJobName(UINT32 time)
 	if (uvCmn_Luria_GetJobCount() < 1)	return ENG_JWNS::en_next;
 #endif
 	/* Job Name 삭제 전에, 등록된 Job 개수 임시 저장 */
-	m_u8LastJobCount	= uvCmn_Luria_GetJobCount();
-	
+	m_u8LastJobCount = uvCmn_Luria_GetJobCount();
+
 	/* Job Delete 요청 */
 	if (m_u8LastJobCount && !uvEng_Luria_ReqSetDeleteSelectedJob())
 	{
@@ -4232,7 +4217,7 @@ ENG_JWNS CWorkStep::SetDeleteSelectedJobName(UINT32 time)
 */
 ENG_JWNS CWorkStep::IsDeleteSelectedJobName(UINT8 back_step)
 {
-	ENG_JWNS enState	= IsWorkWaitTime();
+	ENG_JWNS enState = IsWorkWaitTime();
 
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Deleted.Last.Job.Name");
@@ -4262,8 +4247,8 @@ ENG_JWNS CWorkStep::IsDeleteSelectedJobName(UINT8 back_step)
 	{
 		switch (m_enWorkJobID)
 		{
-		case ENG_BWOK::en_gerb_load		:
-		case ENG_BWOK::en_gerb_unload	:	m_u8StepIt	= back_step;	break;	/* 다시 처음부터 삭제 작업 수행 */
+		case ENG_BWOK::en_gerb_load:
+		case ENG_BWOK::en_gerb_unload:	m_u8StepIt = back_step;	break;	/* 다시 처음부터 삭제 작업 수행 */
 		}
 	}
 
@@ -4277,38 +4262,38 @@ ENG_JWNS CWorkStep::IsDeleteSelectedJobName(UINT8 back_step)
 */
 ENG_JWNS CWorkStep::SetHysteresis(UINT8 offset)
 {
-	TCHAR tzMesg[128]	= {NULL};
-	INT32 i32NegaOffset	= 0;
-	UINT32 u32DelayPosi	= 0, u32DelayNega = 0;
+	TCHAR tzMesg[128] = { NULL };
+	INT32 i32NegaOffset = 0;
+	UINT32 u32DelayPosi = 0, u32DelayNega = 0;
 
-	LPG_CLSI pstLuria	= &uvEng_GetConfig()->luria_svc;
-	LPG_LDMC pstMemMach	= &uvEng_ShMem_GetLuria()->machine;
+	LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
+	LPG_LDMC pstMemMach = &uvEng_ShMem_GetLuria()->machine;
 	//LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
-	 LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 	// by sysandj : 변수없음(수정)
 	LPG_OSSD pstPhStep = uvEng_PhStep_GetRecipeData(pstRecipe->frame_rate);
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Hysteresis");
 #if 0
-	i32NegaOffset	= pstPhStep->nega_offset_px;
-	u32DelayNega	= pstPhStep->delay_posi_nsec;
-	u32DelayPosi	= pstPhStep->delay_nega_nsec;
+	i32NegaOffset = pstPhStep->nega_offset_px;
+	u32DelayNega = pstPhStep->delay_posi_nsec;
+	u32DelayPosi = pstPhStep->delay_nega_nsec;
 
 	/* 아래 정보는 단차 노광을 위한 환경 설정 임 */
 	if (0xff != offset)
 	{
-		i32NegaOffset	= offset;
-		u32DelayNega	= 0;
-		u32DelayPosi	= 0;
+		i32NegaOffset = offset;
+		u32DelayNega = 0;
+		u32DelayPosi = 0;
 	}
 
 	/* Step 정보 확인 */
 	if (!pstPhStep)
 	{
 		// by sysandj : 변수없음(수정)
- 		swprintf_s(tzMesg, 128, L"Failed to search the file of photohead step [frame_rate=%u]",
- 				   pstRecipe->frame_rate);
+		swprintf_s(tzMesg, 128, L"Failed to search the file of photohead step [frame_rate=%u]",
+			pstRecipe->frame_rate);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 		return ENG_JWNS::en_error;
 	}
@@ -4317,9 +4302,9 @@ ENG_JWNS CWorkStep::SetHysteresis(UINT8 offset)
 	pstMemMach->ResetHysteresisType1();
 	/* Hysterisis 값 설정 */
 	if (!uvEng_Luria_ReqSetMotionType1Hysteresis(pstPhStep->scroll_mode,
-												 i32NegaOffset,
-												 u32DelayNega,
-												 u32DelayPosi))
+		i32NegaOffset,
+		u32DelayNega,
+		u32DelayPosi))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionType1Hysteresis)");
 		return ENG_JWNS::en_error;

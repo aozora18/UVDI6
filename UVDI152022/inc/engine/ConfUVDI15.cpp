@@ -424,6 +424,10 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 	//m_pstCfg->set_align.align_method			= GetConfigUint8(L"ALIGN_METHOD");
 	m_pstCfg->set_align.use_2d_cali_data		= GetConfigUint8(L"USE_2D_CALI_DATA");
 	m_pstCfg->set_align.use_invalid_mark_cali	= GetConfigUint8(L"USE_INVALID_MARK_CALI");
+
+	m_pstCfg->set_align.manualFixOffsetAtSequence = GetConfigUint8(L"MANUAL_FIX_OFFSET_AT_SEQUENCE") == 1 ? true : false;
+
+
 	m_pstCfg->set_align.use_mark_offset			= GetConfigUint8(L"USE_MARK_OFFSET");
 	m_pstCfg->set_align.dof_film_thick			= GetConfigDouble(L"DOF_FILM_THICK");
 	m_pstCfg->set_align.mark2_org_gerb_xy[0]	= GetConfigDouble(L"MARK2_ORG_GERB_X");

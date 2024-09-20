@@ -189,6 +189,7 @@ typedef struct __st_config_setup_align_info__
 																/* 2 : Align Camera 1개로 임의 마크 측정 (멈추면서 측정) */
 	UINT8				use_2d_cali_data;						/* Align Camera의 2D Calibration Data 적용 여부 (1:사용, 0:미사용) */
 	UINT8				use_invalid_mark_cali;					/* 인식되지 않은 Mark에 대해 강제(수동)로 인식시킬지 여부 (1:사용, 0:미사용) */
+	bool				manualFixOffsetAtSequence;					/* 인식되지 않은 Mark에 대해 강제(수동)로 인식시킬지 여부 (1:사용, 0:미사용) */
 	UINT8				use_mark_offset;						/* 각 Global Mark Offset에 추가 기능 적용 여부 (1:사용, 0:미사용) */
 	UINT8				u8_reserved[4];
 	DOUBLE				dof_film_thick;							/* Align Camera & Photohead Focus 조정할 때 사용되는소재의 두께 (단위: mm) */

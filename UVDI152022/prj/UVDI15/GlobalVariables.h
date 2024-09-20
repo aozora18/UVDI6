@@ -634,6 +634,7 @@ public:
 		etc = 0b00000010,
 	};
 
+	ENG_MFOR IsNeedManualFixOffset(int* camNum = nullptr);
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
 	CaliPoint EstimateExpoOffset(int camIdx, double gbrX, double gbrY);

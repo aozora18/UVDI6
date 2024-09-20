@@ -476,7 +476,8 @@ BOOL CCamThread::IsGrabbedMarkValidAll(BOOL multi_mark, DOUBLE set_score,int* ca
 				bIsValid= pstGrab->IsMarkValid(multi_mark) && pstGrab->marked;
 				if (bIsValid)
 				{
-					if (set_score > 0.0f && set_score > pstGrab->score_rate)	bIsValid	= FALSE;
+					if (set_score > 0.0f && set_score > pstGrab->score_rate)	
+						bIsValid	= FALSE;
 				}
 			}
 		}

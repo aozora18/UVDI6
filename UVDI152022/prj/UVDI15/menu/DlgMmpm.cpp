@@ -34,7 +34,7 @@ static char THIS_FILE[] = __FILE__;
 		parent	- [in]  자신을 호출한 부모 윈도 클래스 포인터
  retn : None
 */
-CDlgMmpm::CDlgMmpm(CWnd* parent /*=NULL*/)
+CDlgMmpm::CDlgMmpm(bool showAll,CWnd* parent /*=NULL*/)
 	: CMyDialog(CDlgMmpm::IDD, parent)
 {
 	m_bDrawBG = TRUE;
@@ -45,6 +45,7 @@ CDlgMmpm::CDlgMmpm(CWnd* parent /*=NULL*/)
 	m_dbStep = 1.0f;
 	m_pstGrab = NULL;
 	m_hPrvCursor = NULL;
+	this->showAll = showAll;
 }
 
 /*
@@ -137,9 +138,11 @@ BOOL CDlgMmpm::OnInitDlg()
 	InitDispMMPM();
 	/* Grab.Failed 정보 얻어서 메모리 저장하기 */
 #if 0
+	0x00 : 실패한 마크만 가져오기, 0x01 : 모든 마크 정보 가져오기
+
 	if (!GetMarkData(0x00))	return FALSE;
 #else
-	if (!GetMarkData(0x01))	return FALSE;
+	if (!GetMarkData(showAll ? 0x01 : 0x00))	return FALSE;
 #endif
 
 	//InitDispMark();
@@ -506,6 +509,8 @@ VOID CDlgMmpm::WorkApply()
 			pstGrab->move_mm_y = pstModifyed->move_mm_y;
 			pstGrab->move_px_x = pstModifyed->move_px_x;
 			pstGrab->move_px_y = pstModifyed->move_px_y;
+			pstGrab->score_rate = 100;
+			pstGrab->scale_rate = 100;
 			pstGrab->marked = pstModifyed->marked;
 			
 		}

@@ -298,15 +298,31 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x01: 
 	{
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
-		
-		if (m_enWorkState == ENG_JWNS::en_next)
-		{
-			offsetPool.clear();
-			motions.SetFiducialPool();
-		}
+		offsetPool.clear();
+		motions.SetFiducialPool();
 	}
 	break;
-	case 0x02: m_enWorkState = IsLoadedGerberCheck();						break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+	
+	case 0x02: 
+	{
+		m_enWorkState = IsLoadedGerberCheck();
+
+		if (m_enWorkState == ENG_JWNS::en_next && uvEng_GetConfig()->set_align.manualFixOffsetAtSequence)
+		{
+			auto res = motions.IsNeedManualFixOffset(nullptr);
+			if (res == ENG_MFOR::noNeedToFix)
+			{
+				m_u8StepIt = 0x1a;
+				m_enWorkState = ENG_JWNS::en_forceSet;
+			}
+			else
+			{
+				m_enWorkState = ENG_JWNS::en_error;
+			}
+		}
+	}
+	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
+
 	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
 	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
 	case 0x05: 
@@ -327,7 +343,12 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		
 	}
 	break;
-	case 0x0c: m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
+	case 0x0c: 
+	{
+		m_enWorkState = SetAlignMovingGlobal();						
+	}
+	break;	/* Global Mark 4 군데 위치 확인 */
+
 	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
 	case 0x0e:
 	{

@@ -222,4 +222,5 @@ protected:
  	afx_msg VOID		OnBtnClick(UINT32 id);
 public:
 	afx_msg void OnBnClickedAddalignoffset();
+	afx_msg void OnStnDblclickExpoPicMarks(UINT32 id);
 };

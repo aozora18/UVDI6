@@ -58,7 +58,7 @@ class CDlgMmpm : public CMyDialog
 {
 public:
 
-	CDlgMmpm(CWnd* parent = NULL);
+	CDlgMmpm(bool showAll = true, CWnd* parent = NULL);
 	enum { IDD = IDD_MMPM };
 
 /* 가상 함수 */
@@ -134,6 +134,7 @@ protected:
 	void				MenuZoomFit();
 	int					menuPart; // menu 선택, 1:zoom, 2,3,4:3point set, 5:measure, 6:AutoCenter, 99 : 아무것도 선택안된 상태
 	double				tgt_rate; // 비율
+	bool showAll = true;
 	//VOID				AutoCenter();
 /* 공용 함수 */
 public:

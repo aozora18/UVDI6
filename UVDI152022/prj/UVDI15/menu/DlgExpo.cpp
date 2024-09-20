@@ -14,6 +14,7 @@
 #include "./expo/ExpoVal.h"		/* Update to realtime value */
 #include "./expo/TempAlarm.h"	/* Temperature Alarm */
 
+#include "DlgMmpm.h"
 #include "../pops/DlgStep.h"
 #include "../pops/DlgRept.h"
 #include "../mesg/DlgMesg.h"
@@ -111,6 +112,8 @@ VOID CDlgExpo::DoDataExchange(CDataExchange* dx)
 BEGIN_MESSAGE_MAP(CDlgExpo, CDlgMenu)
  	ON_CONTROL_RANGE(BN_CLICKED, IDC_EXPO_BTN_RESET, IDC_EXPO_BTN_MARK_NEXT,	OnBtnClick)
 	ON_BN_CLICKED(IDC_ADDALIGNOFFSET, &CDlgExpo::OnBnClickedAddalignoffset)
+	ON_CONTROL_RANGE(STN_DBLCLK,IDC_EXPO_PIC_MARK_1, IDC_EXPO_PIC_MARK_4 ,&CDlgExpo::OnStnDblclickExpoPicMarks)
+
 END_MESSAGE_MAP()
 
 /*
@@ -867,4 +870,59 @@ void CDlgExpo::OnBnClickedAddalignoffset()
 	auto txtMap = map<int, WCHAR*>{{noOffset, L"[No Offset]"}, { addAlign,L"[add Align Offset]" }, { addAlign_Expo,L"[add Align,Expo Offsets]" } };
 	includeAlignOffsetBtn.SetWindowTextW(txtMap[includeAlignOffset]);
 		
+}
+
+
+void CDlgExpo::OnStnDblclickExpoPicMarks(UINT32 id)
+{
+	switch (id)
+	{
+		case IDC_EXPO_PIC_MARK_1:
+		case IDC_EXPO_PIC_MARK_2:
+		case IDC_EXPO_PIC_MARK_3:
+		case IDC_EXPO_PIC_MARK_4:
+		{
+			AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+			int CENTER_CAM = motions.markParams.centerCamIdx;
+			auto result =  motions.IsNeedManualFixOffset(((UINT16)motions.markParams.alignMotion & 0b10) == 0b10 ? &CENTER_CAM : nullptr);
+			auto* config = uvEng_GetConfig();
+
+			switch (result)
+			{
+				case ENG_MFOR::canFix:
+				{
+					CDlgMmpm dlgMmpm(false,nullptr);
+					if((IDOK == dlgMmpm.DoModal()) == false) // cancle했을때
+						AfxMessageBox(L"[error]user cancled.", MB_ICONSTOP | MB_TOPMOST);
+
+					Invalidate(1);
+				}
+				break;
+
+				case ENG_MFOR::noRecipeLoaded:
+				{
+					AfxMessageBox(L"[error]no recipe Loaded.", MB_ICONSTOP | MB_TOPMOST);
+				}
+				break;
+
+				case ENG_MFOR::grabcountMiss:
+				{
+					AfxMessageBox(L"[error]The offset cannot be set manually. All marks are ungrabbed.", MB_ICONSTOP | MB_TOPMOST);
+				}
+				break;
+
+				case ENG_MFOR::noNeedToFix:
+				{
+					AfxMessageBox(L"all marks are properly grabbed. no need to set manually", MB_ICONSTOP | MB_TOPMOST);
+				}
+				break;
+			}
+		}
+		break;
+			
+	}
+
+
+	int debug=0;
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }

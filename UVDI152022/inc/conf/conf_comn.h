@@ -105,6 +105,18 @@ typedef enum class __en_algin_data_ref_type_ : UINT8
 }	ENG_ADRT;
 
 
+/*실패사유*/
+typedef enum class __en_manualfixoffset_result__ : UINT8
+{
+	canFix,
+	noNeedToFix,
+	grabcountMiss,
+	noRecipeLoaded,
+	firstRun,
+	none,
+}	ENG_MFOR;
+
+
 /* Align Mark Type */
 typedef enum class __en_algin_type_global_local__ : UINT8
 {

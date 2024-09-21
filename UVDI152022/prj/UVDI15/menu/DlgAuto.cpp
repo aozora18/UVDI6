@@ -810,6 +810,20 @@ void CDlgAuto::UpdateGridProduct()
   			break;
   		}
   	}
+
+	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
+	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PRODUCT_ROW::REAL_SCALE, 1, L"ScaleX = %.5f  ScaleY = %.5f", pstParams->scale_xy[0] / 1000000.0f, pstParams->scale_xy[1] / 1000000.0f);
+	if ((pstParams->scale_xy[0] + pstParams->scale_xy[1]) / 2 == 0)
+	{
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_PRODUCT_ROW::REAL_SCALE, 1, ALICE_BLUE);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_PRODUCT_ROW::REAL_SCALE, 1, BLACK_);
+	}
+	else
+	{
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_PRODUCT_ROW::REAL_SCALE, 1, ALICE_BLUE);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_PRODUCT_ROW::REAL_SCALE, 1, BLACK_);
+	}
+
   
 	m_pGrd[nGridIndex]->Refresh();
 }

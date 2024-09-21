@@ -450,7 +450,8 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-		m_enWorkState = ENG_JWNS::en_comp;
+		//m_enWorkState = ENG_JWNS::en_comp;
+		m_enWorkState = ENG_JWNS::en_error;
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		m_enWorkState = ENG_JWNS::en_error;
 #endif

@@ -16,6 +16,7 @@ enum EnMesgBtn
 {
 	eMESG_BTN_APPLY	,
 	eMESG_BTN_CANCEL,
+	eMESG_BTN_MIDDLE,
 	eMESG_BTN_MAX
 };
 
@@ -47,6 +48,7 @@ protected:
 
 	TCHAR				m_tzQuery[1024];
 	TCHAR				m_tzApply[128], m_tzCancel[128];
+	TCHAR				m_tzMiddle[128];
 
 	UINT8				m_u8BtnType;	/* 0x00 : 버튼 2개, 0x01 : 버튼 1개만 */
 

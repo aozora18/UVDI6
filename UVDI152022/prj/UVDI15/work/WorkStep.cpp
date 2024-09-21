@@ -1168,6 +1168,17 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 		}
 
+		else
+		{
+			/*한 싸이클만 통과 였다면 LDS Check 기능 On으로 변경*/
+			if (measureFlat.bOnePass)
+			{
+				uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
+				uvEng_GetConfig()->measure_flat.u8UseThickCheck = TRUE;
+				uvEng_SaveConfig();
+			}
+		}
+
 		return ENG_JWNS::en_next;
 	}
 

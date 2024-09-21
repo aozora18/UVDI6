@@ -337,6 +337,17 @@ VOID CDlgManual::UpdateBtn(UINT64 tick, BOOL is_busy)
 				TRACE(_T("m_pBtn[%d]=NORMAL\n"), nBtnIndex);
 			}
 		}
+		/*동작 초기헤 UI 파라미터값 초기화*/
+		if (uvEng_GetWorkStepRate() < 10)
+		{
+
+			if (m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_gerb_load ||
+				m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_mark_test ||
+				m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_expo_align)
+			{
+				UpdateGridInformation();
+			}
+		}
 	}
 	else
 	{
@@ -388,7 +399,7 @@ VOID CDlgManual::UpdateBtn(UINT64 tick, BOOL is_busy)
 			m_pBtn[nBtnIndex]->RedrawWindow();
 			TRACE(_T("m_pBtn[%d]=SELECT\n"), nBtnIndex);
 		}
-
+		/*동작 완료때 UI 파라미터값 초기화*/
 		if (m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_work_stop ||
 			m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_gerb_load ||
 			m_pDlgMain->GetWorkJobID() == ENG_BWOK::en_mark_test ||
@@ -813,8 +824,8 @@ void CDlgManual::UpdateGridInformation()
 	if (mean == 0)
 	{
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :0 > Material Thick : 0 + Limit : 0");
-		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, WHITE_);
-		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_SCALE, 1, BLACK_);
+		m_pGrd[nGridIndex]->SetItemBkColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, WHITE_);
+		m_pGrd[nGridIndex]->SetItemFgColour(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, BLACK_);
 	}
 	//else if ((RealThick > (MaxZPos + dmater)) || (RealThick < (MinZPos - dmater)))
 	else if ((RealThick > (dmater + MaxZPos)) || (RealThick < (dmater + MinZPos)))
@@ -1782,7 +1793,8 @@ VOID CDlgManual::ErrorThick()
 
 			/*측정한 Thick 수치와 Recipe 수치가 다를경우 측정한 값으로 수정하여 재로드 할지 확인*/
 			CDlgMesg dlgMesg;
-			if (IDOK == dlgMesg.MyDoModal(tzMsg, 0x03))
+			UINT8  result = dlgMesg.MyDoModal(tzMsg, 0x03);
+			if (IDOK == result)
 			{
 				//pstRecipe->material_thick = RealThick * 1000.0f;
 				m_stJob.material_thick = RealThick * 1000.0f;
@@ -1794,7 +1806,17 @@ VOID CDlgManual::ErrorThick()
 					/*초기화*/
 					GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_none;
 					uvEng_GetConfig()->measure_flat.MeasurePoolClear();
+
+					UpdateGridInformation();
+					UpdateGridParameter();
 				}
+			}
+			else if (IDIGNORE == result)
+			{
+				/*이번 소재만 LDS Check OFF*/
+				uvEng_GetConfig()->measure_flat.bOnePass = TRUE;
+				uvEng_GetConfig()->measure_flat.u8UseThickCheck = FALSE;
+				uvEng_SaveConfig();
 			}
 		}
 		else

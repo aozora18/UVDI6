@@ -292,6 +292,8 @@ BOOL CDlgMain::OnInitDlg()
 
 	
 	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
+	/*딱 한번만 초기화 필요*/
+	uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
 
 	return TRUE;
 }

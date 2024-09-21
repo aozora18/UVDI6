@@ -92,7 +92,7 @@ USE_AUTO_ALIGN= 0
 
 [MONITOR]
 
-START_TIME              = 2024-09-18 13:30:51
+START_TIME              = 2024-09-21 10:39:48
 ERROR_COUNT             = 0
 WARN_COUNT              = 0
 
@@ -939,6 +939,7 @@ TRIG_BACKWARD           = -100
 
 USE_2D_CALI_DATA            = 1
 USE_INVALID_MARK_CALI       = 1
+MANUAL_FIX_OFFSET_AT_SEQUENCE	= 1
 
 ; 2021-08-31 (LLS10) (CCL  + FILM :  200 um)
 DOF_FILM_THICK              = 0.0000

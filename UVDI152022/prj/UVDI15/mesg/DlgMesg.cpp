@@ -28,6 +28,7 @@ CDlgMesg::CDlgMesg(CWnd* parent /*=NULL*/)
 
 	wmemset(m_tzApply, 0x00, 128);
 	wmemset(m_tzCancel, 0x00, 128);
+	wmemset(m_tzMiddle, 0x00, 128);
 	wmemset(m_tzQuery, 0x00, 1024);
 }
 
@@ -51,7 +52,7 @@ VOID CDlgMesg::DoDataExchange(CDataExchange* dx)
 }
 
 BEGIN_MESSAGE_MAP(CDlgMesg, CMyDialog)
-	ON_CONTROL_RANGE(BN_CLICKED, IDC_MESG_BTN_APPLY, IDC_MESG_BTN_CANCEL, OnBtnClicked)
+	ON_CONTROL_RANGE(BN_CLICKED, IDC_MESG_BTN_APPLY, IDC_MESG_BTN_MIDDLE, OnBtnClicked)
 END_MESSAGE_MAP()
 
 /*
@@ -155,15 +156,33 @@ BOOL CDlgMesg::InitCtrl()
 	{
 		m_btn_ctl[eMESG_BTN_APPLY].ShowWindow(SW_HIDE);
 		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_SHOW);
+		m_btn_ctl[eMESG_BTN_MIDDLE].ShowWindow(SW_HIDE);
 		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(L"Close");
 		SetWindowTextW(L"Information");
+	}
+	else if (0x02 == m_u8BtnType)
+	{
+		m_btn_ctl[eMESG_BTN_APPLY].ShowWindow(SW_SHOW);
+		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_SHOW);
+		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_HIDE);
+		m_btn_ctl[eMESG_BTN_APPLY].SetWindowTextW(m_tzApply);
+		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(m_tzCancel);
+	}
+	else if (0x03 == m_u8BtnType)
+	{
+		m_btn_ctl[eMESG_BTN_APPLY].SetWindowTextW(m_tzApply);
+		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(m_tzCancel);
+		m_btn_ctl[eMESG_BTN_MIDDLE].SetWindowTextW(m_tzMiddle);
 	}
 	else
 	{
 		m_btn_ctl[eMESG_BTN_APPLY].SetWindowTextW(m_tzApply);
 		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(m_tzCancel);
+		m_btn_ctl[eMESG_BTN_MIDDLE].SetWindowTextW(m_tzMiddle);
+		m_btn_ctl[eMESG_BTN_MIDDLE].ShowWindow(SW_HIDE);
 		SetWindowTextW(L"Question ?");
 	}
+
 
 	return TRUE;
 }
@@ -175,8 +194,9 @@ BOOL CDlgMesg::InitCtrl()
 */
 VOID CDlgMesg::OnBtnClicked(UINT32 id)
 {
-	if (id == IDC_MESG_BTN_APPLY)	CMyDialog::EndDialog(IDOK);
-	else							CMyDialog::EndDialog(IDCANCEL);
+	if (id == IDC_MESG_BTN_APPLY)		CMyDialog::EndDialog(IDOK);
+	else if (id == IDC_MESG_BTN_MIDDLE)	CMyDialog::EndDialog(IDIGNORE);
+	else								CMyDialog::EndDialog(IDCANCEL);
 }
 
 /*
@@ -210,6 +230,7 @@ INT_PTR CDlgMesg::MyDoModal(PTCHAR mesg, UINT8 type)
 		else if (0x03 == type)
 		{
 			wcscpy_s(m_tzApply, 128, L"Edit Thick");
+			wcscpy_s(m_tzMiddle, 128, L"Pass");
 			wcscpy_s(m_tzCancel, 128, L"Cancel");
 		}
 	}

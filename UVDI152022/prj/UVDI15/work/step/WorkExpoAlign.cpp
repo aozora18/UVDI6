@@ -301,6 +301,12 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		offsetPool.clear();
 		motions.SetFiducialPool();
+
+		if (motions.IsAlignComplete())
+		{
+			uvEng_Camera_ResetGrabbedImage();
+			motions.SetAlignComplete(false);
+		}
 	}
 	break;
 	
@@ -402,8 +408,20 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	}
 	break;
 
-	case 0x1a:m_enWorkState = SetAlignMarkRegist();break;
-	case 0x1b:m_enWorkState = IsAlignMarkRegist();break;
+	case 0x1a:
+	{
+		m_enWorkState = SetAlignMarkRegist();
+
+	}
+	break;
+	case 0x1b:
+	{
+		m_enWorkState = IsAlignMarkRegist();
+		if(m_enWorkState == ENG_JWNS::en_next)
+			motions.SetAlignComplete(true);
+		
+	}
+	break;
 	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
 
 	case 0x1d: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */

@@ -630,6 +630,13 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		if (m_enWorkState == ENG_JWNS::en_next)
 			GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
+
+		if (motions.IsAlignComplete())
+		{
+			uvEng_Camera_ResetGrabbedImage();
+			motions.SetAlignComplete(false);
+		}
+
 	}
 	break;	    /* 노광 가능한 상태인지 여부 확인 */
 	case 0x02:
@@ -730,7 +737,13 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	}
 	break;
 
-	case 0x1b: m_enWorkState = IsAlignMarkRegist();							break;
+	case 0x1b: 
+	{
+		m_enWorkState = IsAlignMarkRegist();
+		if (m_enWorkState == ENG_JWNS::en_next)
+			motions.SetAlignComplete(true);
+	}
+	break;
 	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
 	case 0x1d: m_enWorkState = SetWorkWaitTime(2000);						break;
 	case 0x1e: m_enWorkState = IsWorkWaitTime();							break;

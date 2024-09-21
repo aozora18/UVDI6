@@ -399,6 +399,12 @@ struct Params
 	ENG_WETE workErrorType;
 	vector<tuple<ENG_MMDI, double, double>> axisLimit;
 	
+	void Reset()
+	{
+		alignMotion = ENG_AMOS::none;
+		alignType = ENG_ATGL::en_not_defined;
+	}
+
 	void SetExpoShiftValue(double x, double y)
 	{
 		this->expoShiftX = x;
@@ -635,6 +641,9 @@ public:
 		etc = 0b00000010,
 	};
 
+	void SetAlignComplete(bool res) { alignComplete = res; }
+	bool IsAlignComplete() { return alignComplete; }
+
 	ENG_MFOR IsNeedManualFixOffset(int* camNum = nullptr);
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
@@ -645,7 +654,7 @@ public:
 protected:
 	CaliCalc caliCalcInst;
 	map<string, map<string, Axis>> axises;
-
+	bool alignComplete = false;
 public:
 
 	map<string, map<string, Axis>> GetAxises() { return axises; }

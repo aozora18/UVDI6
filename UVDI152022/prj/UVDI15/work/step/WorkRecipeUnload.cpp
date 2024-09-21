@@ -6,7 +6,7 @@
 #include "pch.h"
 #include "../../MainApp.h"
 #include "WorkRecipeUnload.h"
-
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -64,13 +64,18 @@ VOID CWorkRecipeUnload::DoWork()
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-	/* 기존 등록된 모든 거버 제거 */
-	case 0x01 : m_enWorkState = GetJobLists(2000);				break;
-	case 0x02 : m_enWorkState = IsRecvJobLists();				break;
-	case 0x03 : m_enWorkState = SetSelectedJobIndex();			break;
-	case 0x04 : m_enWorkState = IsSelectedJobIndex();			break;
-	case 0x05 : m_enWorkState = SetDeleteSelectedJobName(1000);	break;
-	case 0x06 : m_enWorkState = IsDeleteSelectedJobName(0x00);	break;
+		/* 기존 등록된 모든 거버 제거 */
+		case 0x01 : m_enWorkState = GetJobLists(2000);				break;
+		case 0x02 : m_enWorkState = IsRecvJobLists();				break;
+		case 0x03 : m_enWorkState = SetSelectedJobIndex();			break;
+		case 0x04 : m_enWorkState = IsSelectedJobIndex();			break;
+		case 0x05 : m_enWorkState = SetDeleteSelectedJobName(1000);	break;
+		case 0x06 : 
+		{
+			GlobalVariables::GetInstance()->GetAlignMotion().markParams.Reset();
+			m_enWorkState = IsDeleteSelectedJobName(0x00);
+		}
+		break;
 
 	}
 

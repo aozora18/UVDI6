@@ -84,6 +84,7 @@ VOID CWorkRecipeLoad::DoWork()
 	{
 	case 0x01 : 
 	{
+		uvEng_Camera_ResetGrabbedImage();
 		m_enWorkState = CheckValidRecipe();
 		m_enWorkState = m_enWorkState == ENG_JWNS::en_next && SetAutoFocusFeatures() ? m_enWorkState : ENG_JWNS::en_error;
 	}

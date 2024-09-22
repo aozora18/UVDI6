@@ -457,9 +457,11 @@ void CWorkMarkTest::DoAlignStaticCam()
 			bool manualFixed = false;
 			m_enWorkState = IsSetMarkValidAll(0x00,&manualFixed, &CENTER_CAM);
 
+			if (manualFixed == false) return;
+
 			try
 			{
-				if (manualFixed == false || m_enWorkState == ENG_JWNS::en_error) throw exception();
+				//if (manualFixed == false || m_enWorkState == ENG_JWNS::en_error) throw exception();
 				for (auto& v : offsetPool[OffsetType::refind]) //수동보정이 발생했다면 옵셋을 다시 변경해준다. 
 				{
 					auto grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
@@ -643,20 +645,20 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	{
 		m_enWorkState = IsLoadedGerberCheck();
 
-		if (m_enWorkState == ENG_JWNS::en_next && !uvEng_GetConfig()->set_align.manualFixOffsetAtSequence)
-		{
-			auto res = motions.IsNeedManualFixOffset(nullptr);
-			if (res == ENG_MFOR::noNeedToFix)
-			{
-				m_u8StepIt = 0x1a;
-				m_enWorkState = ENG_JWNS::en_forceSet;
-			}
-			else if (res == ENG_MFOR::firstRun){}
-			else 
-			{
-				m_enWorkState = ENG_JWNS::en_error;
-			}
-		}
+		//if (m_enWorkState == ENG_JWNS::en_next && !uvEng_GetConfig()->set_align.manualFixOffsetAtSequence)
+		//{
+		//	auto res = motions.IsNeedManualFixOffset(nullptr);
+		//	if (res == ENG_MFOR::noNeedToFix)
+		//	{
+		//		m_u8StepIt = 0x1a;
+		//		m_enWorkState = ENG_JWNS::en_forceSet;
+		//	}
+		//	else if (res == ENG_MFOR::firstRun){}
+		//	else 
+		//	{
+		//		m_enWorkState = ENG_JWNS::en_error;
+		//	}
+		//}
 	}
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */

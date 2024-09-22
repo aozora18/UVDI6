@@ -2748,7 +2748,11 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 
 	auto result = motions.IsNeedManualFixOffset(camNum);
 	
-	if (config->IsRunDemo() || result == ENG_MFOR::noNeedToFix)	return ENG_JWNS::en_next;
+	if (config->IsRunDemo() || result == ENG_MFOR::noNeedToFix)
+	{
+		SetManualFix(true);
+		return ENG_JWNS::en_next;
+	}
 
 	if (result == ENG_MFOR::grabcountMiss)
 	{

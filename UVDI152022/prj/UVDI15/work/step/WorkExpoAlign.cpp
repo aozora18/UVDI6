@@ -688,9 +688,13 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				bool errFlag = false;
 				try
 				{
+					//std::vector<STG_XMXY> filteredPath, offsetBuff;
+					//std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
+					//			[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
 					std::vector<STG_XMXY> filteredPath, offsetBuff;
 					std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
-								[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+						[&](const STG_XMXY& v) { return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
+
 
 					if (filteredPath.size() != PAIR)
 						throw exception();
@@ -1071,6 +1075,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 		
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		SaveExpoResult(0x00);
 		m_enWorkState = ENG_JWNS::en_comp;
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		SaveExpoResult(0x00);

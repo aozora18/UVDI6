@@ -2748,33 +2748,49 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 
 	auto result = motions.IsNeedManualFixOffset(camNum);
 	
-	if (config->IsRunDemo() || result == ENG_MFOR::noNeedToFix)
+	if (config->IsRunDemo())
 	{
-		SetManualFix(true);
-		return ENG_JWNS::en_next;
+		bSucc = TRUE;
 	}
-
-	if (result == ENG_MFOR::grabcountMiss)
-	{
-		SetStepName(L"Not all marks are grabbed.");
-		return ENG_JWNS::en_error;
-	}
-
-	if (!config->set_align.use_invalid_mark_cali)  //교정하지 않겠다.
-		return ENG_JWNS::en_error;
 	else
 	{
-		if (config->set_align.manualFixOffsetAtSequence) //지금 교정하겠다. 
+		
+		if (result == ENG_MFOR::noNeedToFix)
 		{
-			CDlgMmpm dlgMmpm;
-			bSucc = (IDOK == dlgMmpm.DoModal());
-			UpdateWaitingTime();
-			SetManualFix(true);
+			bSucc = TRUE;
 		}
-		else //아니다 다음에 하겠다. 
+		else
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
-			bSucc = false;
+
+			if (result == ENG_MFOR::grabcountMiss)
+			{
+				SetStepName(L"Not all marks are grabbed.");
+			}
+				
+			if (!config->set_align.use_invalid_mark_cali)  //교정하지 않겠다.
+			{
+				bSucc = FALSE;
+			}
+			else
+			{
+				
+				else
+				{
+					if (config->set_align.manualFixOffsetAtSequence) //지금 교정하겠다. 
+					{
+						CDlgMmpm dlgMmpm;
+						bSucc = (IDOK == dlgMmpm.DoModal());
+						SetManualFix(bSucc);
+							
+						UpdateWaitingTime();
+					}
+					else //아니다 다음에 하겠다. 
+					{
+						LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
+						bSucc = FALSE;
+					}
+				}
+			}
 		}
 	}
 	

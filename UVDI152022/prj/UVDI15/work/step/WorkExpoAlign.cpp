@@ -706,7 +706,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 						throw exception();
 
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(),
-												[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
+						[&](const STG_XMXY& v) {  return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
 
 					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]),
 					[&](STG_XMXY v)->CaliPoint
@@ -865,13 +865,11 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		},
 		[&]()
 		{
-			bool manualFixed = false;
-			m_enWorkState = IsSetMarkValidAll(0x01,&manualFixed, &CENTER_CAM);
-
-			if (manualFixed == false) return;
-
 			try
 			{
+				bool manualFixed = false;
+				m_enWorkState = IsSetMarkValidAll(0x01,&manualFixed, &CENTER_CAM);
+				if(m_enWorkState == ENG_JWNS::en_next && manualFixed == true )
 				for (auto& v : offsetPool[OffsetType::refind]) //수동보정이 발생했다면 옵셋을 다시 변경해준다. 
 				{
 					auto grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);

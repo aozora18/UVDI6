@@ -414,11 +414,14 @@ VOID CDlgMmpm::FindData(UINT8 direct)
 
 	RecalCetner(m_pstGrab);
 
+	
+
+	DrawMilETC();
+
 	/* 이미지 출력 영역 얻기 */
 	m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
 	ScreenToClient(rPic);
 	InvalidateRect(rPic);
-	DrawMilETC();
 }
 
 /*
@@ -597,11 +600,12 @@ VOID CDlgMmpm::UndoCenter()
 
 	Restore();
 	
+	DrawMilETC();
 	/* 이미지 출력 영역 얻기 */
 	m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
 	ScreenToClient(rPic);
 	InvalidateRect(rPic);
-	DrawMilETC();
+	
 }
 
 /*

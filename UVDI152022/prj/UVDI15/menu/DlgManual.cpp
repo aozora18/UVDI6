@@ -1825,6 +1825,9 @@ VOID CDlgManual::ErrorThick()
 
 					UpdateGridInformation();
 					UpdateGridParameter();
+
+					/*얼라인 마크 인식 초기화*/
+					motions.SetAlignComplete(true);
 				}
 			}
 			else if (IDIGNORE == result)
@@ -1833,6 +1836,9 @@ VOID CDlgManual::ErrorThick()
 				uvEng_GetConfig()->measure_flat.bOnePass = TRUE;
 				uvEng_GetConfig()->measure_flat.u8UseThickCheck = FALSE;
 				uvEng_SaveConfig();
+
+				/*얼라인 마크 인식 초기화*/
+				motions.SetAlignComplete(true);
 			}
 		}
 		else

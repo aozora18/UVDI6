@@ -2129,9 +2129,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 						bSucc = FALSE;
 					}
 
-					//lstMarkAt.mark_x -= std::get<0>(val);
-					//lstMarkAt.mark_y -= std::get<1>(val);
-					lstMarkAt.mark_y += std::get<1>(val);
+					lstMarkAt.mark_x += std::get<0>(val);
+					//lstMarkAt.mark_y += std::get<1>(val);
 					lstMarkAt.mark_y += std::get<1>(val);
 
 					swprintf_s(tzMsg, 256, L"GLOBAL mark%d expo_offset_x = %.4f expo_offset_y =%.4f", lstMarkAt.org_id, std::get<0>(val), std::get<1>(val));

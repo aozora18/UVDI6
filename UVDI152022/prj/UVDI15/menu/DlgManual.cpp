@@ -251,6 +251,13 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->RedrawWindow();
 	}
 
+	/*자동화 동작시 AlignExpo 동작 비활성*/
+	if (g_u8Romote == en_menu_phil_mode_auto)
+	{
+		m_pBtn[EN_MANUAL_BTN::ALIGN_EXPOSE]->SetBgColor(DEF_COLOR_BTN_MENU_NORMAL);
+		m_pBtn[EN_MANUAL_BTN::ALIGN_EXPOSE]->SetTextColor(DEF_COLOR_BTN_PAGE_NORMAL_TEXT);
+	}
+
 	USES_CONVERSION;
 	m_pBtn[EN_MANUAL_BTN::CHANGE_ALIGN_MODE]->SetWindowTextW(A2T(temp.str().c_str()));
 
@@ -1093,6 +1100,15 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 
 	CString strMsg;
 	UINT nID = id - DEF_UI_MANUAL_BTN;
+
+	/*자동화 동작시 AlignExpo 동작 비활성*/
+	if ((g_u8Romote == en_menu_phil_mode_auto) && (nID == EN_MANUAL_BTN::ALIGN_EXPOSE))
+	{
+		CDlgMesg dlgMesg;
+		dlgMesg.MyDoModal(L"Align Expose not exected in auto mode", 0x01);
+		return;
+	}
+
 	switch (nID)
 	{
 	case EN_MANUAL_BTN::DIRECT_EXPOSE:

@@ -460,8 +460,11 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		SaveExpoResult(0x00);
 		m_u8StepIt = 0x00;
 
-		/*노광 종료가 되면 Philhmil에 완료보고*/
-		SetPhilProcessCompelet();
+		if (g_u8Romote == en_menu_phil_mode_auto)
+		{
+			/*노광 종료가 되면 Philhmil에 완료보고*/
+			SetPhilProcessCompelet();
+		}
 
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
@@ -514,8 +517,8 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 
 
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				//if (g_u8Romote == en_menu_phil_mode_auto)
-				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				if (g_u8Romote == en_menu_phil_mode_auto)
+				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
@@ -523,7 +526,8 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 			else
 			{
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				if (g_u8Romote == en_menu_phil_mode_auto)
+				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}

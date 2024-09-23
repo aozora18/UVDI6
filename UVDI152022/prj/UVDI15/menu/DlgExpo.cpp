@@ -261,6 +261,11 @@ VOID CDlgExpo::UpdateControl(UINT64 tick, BOOL is_busy)
 	if (m_btn_ctl[eEXPO_BTN_MARK_NEXT].IsWindowEnabled() != (bSelect && u16Marks > 0))				m_btn_ctl[eEXPO_BTN_MARK_NEXT].EnableWindow(bSelect && u16Marks > 0);			/* Mark Next */
 	if (includeAlignOffsetBtn.IsWindowEnabled() != (bLoaded && motion == ENG_AMOS::en_static_3cam && !is_busy && bMarked))		includeAlignOffsetBtn.EnableWindow(bLoaded && !is_busy && bMarked);
 	
+	/*자동화 동작시 AlignExpo 동작 비활성*/
+	if (g_u8Romote == en_menu_phil_mode_auto)
+	{
+		m_btn_ctl[eEXPO_BTN_EXPO_ALIGN].EnableWindow(0);	/* Expose Align */
+	}
 }
 
 /*

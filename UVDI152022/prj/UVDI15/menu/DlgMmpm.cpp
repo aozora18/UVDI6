@@ -151,6 +151,10 @@ BOOL CDlgMmpm::OnInitDlg()
 	/* 현재 가장 첫번째 실패한 정보 얻기 */
 	FindData(0x00);
 
+	
+
+	
+
 	return TRUE;
 }
 
@@ -335,6 +339,7 @@ VOID CDlgMmpm::OnChkClicked(UINT32 id)
 
 void CDlgMmpm::RecalCetner(LPG_ACGR grab)
 {
+	if (grab == nullptr) return;
 	/* 기본 값 설정 */
 	if (grab && grab->mark_cent_px_x < 1.0f)
 	{
@@ -413,6 +418,7 @@ VOID CDlgMmpm::FindData(UINT8 direct)
 	m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
 	ScreenToClient(rPic);
 	InvalidateRect(rPic);
+	DrawMilETC();
 }
 
 /*
@@ -441,7 +447,7 @@ BOOL CDlgMmpm::GetMarkData(UINT8 type)
 		pstGrab = new STG_ACGR;
 		ASSERT(pstGrab);
 		memcpy(pstGrab, pstTemp, sizeof(STG_ACGR) - sizeof(PUINT8));
-		//pstGrab->grab_data = pstTemp->grab_data;
+		pstGrab->grab_data = pstTemp->grab_data;
 		m_lstGrab.AddTail(pstGrab);
 	}
 
@@ -524,21 +530,21 @@ VOID CDlgMmpm::WorkApply()
 			pstGrab->score_rate = 100;
 			pstGrab->scale_rate = 100;
 			pstGrab->marked = pstModifyed->marked;
-
+			pstGrab->SetMarkValid(1);
 			/* GMFR Data */
 			stGMFR.score_rate = 100.0f;
 			stGMFR.scale_rate = 100.0f;
-			stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
-			stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
+			stGMFR.cent_x = pstModifyed->mark_cent_px_x;
+			stGMFR.cent_y = pstModifyed->mark_cent_px_y;
 			/* GMSR Data */
-			stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
-			stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
-			stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
-			stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
+			stGMSR.cent_x = pstModifyed->mark_cent_px_x;
+			stGMSR.cent_y = pstModifyed->mark_cent_px_y;
+			stGMSR.mark_width = (UINT32)ROUNDUP(pstModifyed->mark_width_px, 0);
+			stGMSR.mark_height = (UINT32)ROUNDUP(pstModifyed->mark_height_px, 0);
 			stGMSR.valid_multi = 0x01;
 			stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
 
-			uvEng_Camera_SetGrabbedMarkEx(m_pstGrab, &stGMFR, &stGMSR);
+			uvEng_Camera_SetGrabbedMarkEx(pstGrab, &stGMFR, &stGMSR);
 
 		}
 	}

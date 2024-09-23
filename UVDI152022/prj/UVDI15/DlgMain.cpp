@@ -531,7 +531,7 @@ LRESULT CDlgMain::OnMsgMainThread(WPARAM wparam, LPARAM lparam)
 	BOOL bBusy		= LONG(lparamExt->lParam) == 1 ? TRUE : FALSE;
 	UINT32 extensions = lparamExt->extenstion;
 
-	delete lparamExt; lparamExt = nullptr;
+	
 
 	ENG_BWOK enWork	= ENG_BWOK(wparam);
 	UINT64 u64Tick	= GetTickCount64();

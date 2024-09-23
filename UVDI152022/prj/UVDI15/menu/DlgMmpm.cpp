@@ -161,12 +161,18 @@ BOOL CDlgMmpm::OnInitDlg()
 */
 VOID CDlgMmpm::OnExitDlg()
 {
-	POSITION pPos = NULL;
-	LPG_ACGR pstGrab = NULL;
-
+	
 	/* CDC 핸들 메모리 제거 */
 	if (m_hDCDraw)	::ReleaseDC(m_pic_ctl[eMMPM_PIC_VIEW].GetSafeHwnd(), m_hDCDraw);
 
+	
+	MemRelease();
+}
+
+VOID CDlgMmpm::MemRelease()
+{
+	LPG_ACGR pstGrab = NULL;
+	POSITION pPos = NULL;
 	/* 메모리 해제 */
 	pPos = m_lstGrab.GetHeadPosition();
 	while (pPos)
@@ -326,6 +332,31 @@ VOID CDlgMmpm::OnChkClicked(UINT32 id)
 	}
 }
 
+
+void CDlgMmpm::RecalCetner(LPG_ACGR grab)
+{
+	/* 기본 값 설정 */
+	if (grab && grab->mark_cent_px_x < 1.0f)
+	{
+		grab->mark_cent_px_x = grab->grab_width / 2.0f;
+		grab->mark_cent_px_y = grab->grab_height / 2.0f;
+		grab->mark_width_px = (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(grab->cam_id, 0x00 /* fixed */, 0x00, 0x01), 0);
+		grab->mark_height_px = (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(grab->cam_id, 0x00 /* fixed */, 0x01, 0x01), 0);
+		grab->mark_width_mm = grab->mark_width_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
+		grab->mark_height_mm = grab->mark_height_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
+	}
+
+	m_ptCenter.x = grab->mark_cent_px_x;
+	m_ptCenter.y = grab->mark_cent_px_y;
+
+	if (grab->marked == 0)
+	{
+		grab->move_px_x = m_ptCenter.x;
+		grab->move_px_y = m_ptCenter.y;
+	}
+
+}
+
 /*
  desc : 이전 / 다음 Guide (Mark) 인식 실패한 곳 찾기
  parm : direct	- [in]  0x00 : first, 0x01 : Prev, 0x02 : Next
@@ -376,25 +407,7 @@ VOID CDlgMmpm::FindData(UINT8 direct)
 			m_pstGrab = pstGrab;//uvEng_Camera_GetGrabbedMark(pstGrab->cam_id, pstGrab->img_id);
 	}
 
-	/* 기본 값 설정 */
-	if (m_pstGrab && m_pstGrab->mark_cent_px_x < 1.0f)
-	{
-		m_pstGrab->mark_cent_px_x = m_pstGrab->grab_width / 2.0f;
-		m_pstGrab->mark_cent_px_y = m_pstGrab->grab_height / 2.0f;
-		m_pstGrab->mark_width_px = (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(m_pstGrab->cam_id, 0x00 /* fixed */, 0x00, 0x01), 0);
-		m_pstGrab->mark_height_px = (UINT32)ROUNDUP(uvEng_Camera_GetMarkModelSize(m_pstGrab->cam_id, 0x00 /* fixed */, 0x01, 0x01), 0);
-		m_pstGrab->mark_width_mm = m_pstGrab->mark_width_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
-		m_pstGrab->mark_height_mm = m_pstGrab->mark_height_px * (uvEng_GetConfig()->acam_spec.spec_pixel_um[0 /* fixed */] / 1000.0f);
-	}
-	
-	m_ptCenter.x = m_pstGrab->mark_cent_px_x;
-	m_ptCenter.y = m_pstGrab->mark_cent_px_y;
-
-	if (m_pstGrab->marked == 0)
-	{
-		m_pstGrab->move_px_x = m_ptCenter.x;
-		m_pstGrab->move_px_y = m_ptCenter.y;
-	}
+	RecalCetner(m_pstGrab);
 
 	/* 이미지 출력 영역 얻기 */
 	m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
@@ -412,6 +425,8 @@ BOOL CDlgMmpm::GetMarkData(UINT8 type)
 	UINT8 i = 0x00;
 	LPG_ACGR pstGrab = NULL;
 	LPG_ACGR pstTemp = NULL;
+	
+	MemRelease();
 
 	/* 실제로 측정 (검색)된 Mark 결과 값을 임시로 저장하기 위함 */
 	for (; i < uvEng_Camera_GetGrabbedCount(); i++)
@@ -426,7 +441,7 @@ BOOL CDlgMmpm::GetMarkData(UINT8 type)
 		pstGrab = new STG_ACGR;
 		ASSERT(pstGrab);
 		memcpy(pstGrab, pstTemp, sizeof(STG_ACGR) - sizeof(PUINT8));
-		pstGrab->grab_data = pstTemp->grab_data;
+		//pstGrab->grab_data = pstTemp->grab_data;
 		m_lstGrab.AddTail(pstGrab);
 	}
 
@@ -464,22 +479,16 @@ VOID CDlgMmpm::Restore()
 {
 	UINT8 i = 0x00;
 	POSITION pPos = NULL;
-	LPG_ACGR pstTemp = NULL;
-	LPG_ACGR pstGrab = NULL;
+	
+	LPG_ACGR curMdpyGrab = m_lstGrab.GetAt(m_lstGrab.FindIndex(m_u8Index));
 
-	m_pstGrab = NULL;
-	for (; i < m_lstGrab.GetCount(); i++)
-	{
-		pPos = m_lstGrab.FindIndex(i);
-		if (!pPos)	continue;
+	LPG_ACGR orgGrab = uvEng_Camera_GetGrabbedMark(curMdpyGrab->cam_id, curMdpyGrab->img_id);
+	if (orgGrab == nullptr)
+		throw exception();
 
-		pstTemp = m_lstGrab.GetAt(pPos);
-		pstGrab = uvEng_Camera_GetGrabbedMark(pstTemp->cam_id, pstTemp->img_id);
-		if (pstGrab)
-		{
-			memcpy(pstGrab, pstTemp, sizeof(STG_ACGR));
-		}
-	}
+
+
+	RecalCetner(orgGrab);
 }
 
 /*
@@ -505,6 +514,9 @@ VOID CDlgMmpm::WorkApply()
 			if (pstGrab == nullptr)
 				throw exception();
 			
+			STG_GMFR stGMFR = { NULL };
+			STG_GMSR stGMSR = { NULL };
+
 			pstGrab->move_mm_x = pstModifyed->move_mm_x;
 			pstGrab->move_mm_y = pstModifyed->move_mm_y;
 			pstGrab->move_px_x = pstModifyed->move_px_x;
@@ -512,13 +524,28 @@ VOID CDlgMmpm::WorkApply()
 			pstGrab->score_rate = 100;
 			pstGrab->scale_rate = 100;
 			pstGrab->marked = pstModifyed->marked;
-			
+
+			/* GMFR Data */
+			stGMFR.score_rate = 100.0f;
+			stGMFR.scale_rate = 100.0f;
+			stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
+			stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
+			/* GMSR Data */
+			stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
+			stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
+			stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
+			stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
+			stGMSR.valid_multi = 0x01;
+			stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
+
+			uvEng_Camera_SetGrabbedMarkEx(m_pstGrab, &stGMFR, &stGMSR);
+
 		}
 	}
 	catch(...)
 	{
 			CDlgMesg dlgMesg;
-			dlgMesg.MyDoModal(L"Unset (adjusted) value exists by operator", 0x01);
+			dlgMesg.MyDoModal(L"[error] not all grabs are marked", 0x01);
 			return;
 	}
 
@@ -563,11 +590,12 @@ VOID CDlgMmpm::UndoCenter()
 	CRect rPic;
 
 	Restore();
-	FindData(0x00);
+	
 	/* 이미지 출력 영역 얻기 */
 	m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
 	ScreenToClient(rPic);
 	InvalidateRect(rPic);
+	DrawMilETC();
 }
 
 /*
@@ -624,26 +652,28 @@ VOID CDlgMmpm::MoveCenter(UINT8 type)
 	m_pstGrab->move_mm_y = m_pstGrab->move_px_y * dbPixelSize;
 	m_pstGrab->mark_cent_mm_x = m_pstGrab->mark_cent_px_x * dbPixelSize;
 	m_pstGrab->mark_cent_mm_y = m_pstGrab->mark_cent_px_y * dbPixelSize;
-	/* GMFR Data */
-	stGMFR.score_rate = 100.0f;
-	stGMFR.scale_rate = 100.0f;
-	stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
-	stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
-	/* GMSR Data */
-	stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
-	stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
-	stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
-	stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
-	stGMSR.valid_multi = 0x01;
-	stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
-	
-	/* --------------------------- */
-	/* 강제로 값이 유효하다고 설정 */
-	/* --------------------------- */
 
-	//m_pstGrab->SetMarkValid(0x01);
-	/* 수동으로 값 설정 */
-	uvEng_Camera_SetGrabbedMarkEx(m_pstGrab, &stGMFR, &stGMSR);
+
+	///* GMFR Data */
+	//stGMFR.score_rate = 100.0f;
+	//stGMFR.scale_rate = 100.0f;
+	//stGMFR.cent_x = m_pstGrab->mark_cent_px_x;
+	//stGMFR.cent_y = m_pstGrab->mark_cent_px_y;
+	///* GMSR Data */
+	//stGMSR.cent_x = m_pstGrab->mark_cent_px_x;
+	//stGMSR.cent_y = m_pstGrab->mark_cent_px_y;
+	//stGMSR.mark_width = (UINT32)ROUNDUP(m_pstGrab->mark_width_px, 0);
+	//stGMSR.mark_height = (UINT32)ROUNDUP(m_pstGrab->mark_height_px, 0);
+	//stGMSR.valid_multi = 0x01;
+	//stGMSR.manual_set = 0x01;	/* 수동으로 인식 했다고 설정 (이미지를 회전하지 않기 위함) */
+	//
+	///* --------------------------- */
+	///* 강제로 값이 유효하다고 설정 */
+	///* --------------------------- */
+
+	////m_pstGrab->SetMarkValid(0x01);
+	///* 수동으로 값 설정 */
+	//uvEng_Camera_SetGrabbedMarkEx(m_pstGrab, &stGMFR, &stGMSR);
 
 	/* 이미지 출력 영역 얻기 */
 	m_pic_ctl[eMMPM_PIC_VIEW].GetWindowRect(rPic);
@@ -651,12 +681,18 @@ VOID CDlgMmpm::MoveCenter(UINT8 type)
 	/* Align Mark Area 갱신 */
 	InvalidateRect(rPic);
 
-	// Overlay 
-	CString sTmp;
+	
+	DrawMilETC();
+}
+
+void CDlgMmpm::DrawMilETC()
+{
 	uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MMPM, 1);
 	uvEng_Camera_OverlayAddCrossList(DISP_TYPE_MMPM, 1, m_ptCenter.x, m_ptCenter.y, 20, 20, eM_COLOR_RED);
+	
 	uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
 }
+
 
 /*
  desc : 방향 키보드 이벤트 처리

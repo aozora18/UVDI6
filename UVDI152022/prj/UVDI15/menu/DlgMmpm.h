@@ -71,7 +71,7 @@ protected:
 	virtual VOID		OnPaintDlg(CDC *dc);
 	virtual VOID		OnResizeDlg();
 	virtual void		RegisterUILevel() {}
-
+	VOID MemRelease();
 	bool inverseHorizontal; //이미지가 회전영향을 받았을경우.
 	bool inverseVertical;  //이미지가 회전영향을 받았을경우.
 
@@ -114,6 +114,7 @@ protected:
 	BOOL				GetMarkData(UINT8 type);
 
 	VOID				FindData(UINT8 direct);
+	void RecalCetner(LPG_ACGR grab);
 
 	VOID				UndoCenter();
 	VOID				MoveCenter(UINT8 type);
@@ -121,6 +122,7 @@ protected:
 	VOID				WorkApply();
 	VOID				WorkCancel();
 	VOID				KeyUpDown(UINT16 key);
+	void				DrawMilETC();
 
 	VOID				Restore();
 

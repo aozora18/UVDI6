@@ -374,12 +374,17 @@ VOID CMainThread::SendMesgParent(ENG_BWOK msg_id, UINT32 timeout , UINT32 lParam
 								   SMTO_NORMAL, timeout, &dwResult);
 	if (0 == lResult)
 	{
+		
+
 #if 0
 		/* 현재 발생된 에러 값 저장 */
 		TRACE("MainThread : SendMessage Time out <Normal> = %d \n", GetLastError());
 #endif
 		
 	}
+	
+	if (lParamExt != nullptr)
+		delete lParamExt; lParamExt = nullptr;
 
 }
 

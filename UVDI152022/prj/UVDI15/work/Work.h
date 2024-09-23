@@ -11,7 +11,7 @@ public:
 	CWork();
 	virtual ~CWork();
 	
-
+	void SetProcessComplete() { workProcessCompleted = true; }
 	static void SetAbort(bool set) 
 	{
 
@@ -183,7 +183,7 @@ public:
 	}
 	
 
-
+	bool workProcessCompleted = false;
 	BOOL				IsWorkCompleted()	{	return m_enWorkState == ENG_JWNS::en_comp;	}
 	BOOL				IsWorkStopped();
 	BOOL				IsWorkError();

@@ -1,6 +1,6 @@
 
 /*
- desc : Align (Both Global and Local Mark) Mark 동작 (인식)
+ desc : Align 노광 진행 - 얼라인 카메라 X 축 이동 없이 스테이지 Y 축만 후진
 */
 
 #include "pch.h"
@@ -20,6 +20,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 using namespace std;
+
 /*
  desc : 생성자
  parm : None
@@ -51,12 +52,15 @@ CWorkMarkTest::CWorkMarkTest(LPG_CELA expo)
  retn : None
 */
 CWorkMarkTest::~CWorkMarkTest()
-{
-}
+	{
+	}
 
 BOOL CWorkMarkTest::SetAlignMode()
 {
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+
+
+
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
 	const int INIT_STEP = 0;
@@ -71,13 +75,13 @@ BOOL CWorkMarkTest::SetAlignMode()
 
 
 /*
- desc : 초기 작업 수행
- parm : None
- retn : TRUE or FALSE
+ desc : 노광 완료 후 각종 정보 저장
+ parm : state	- [in]  0x00: 작업 실패, 0x01: 작업 성공
+ retn : None
 */
 BOOL CWorkMarkTest::InitWork()
 {
-	/* 내부 멤버 변수 값 초기화 */
+	//UINT8 i;
 	if (!CWork::InitWork())	return FALSE;
 
 	/* 총 검색 대상의 마크 개수 얻기 */
@@ -87,12 +91,12 @@ BOOL CWorkMarkTest::InitWork()
 
 	m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
 	return SetAlignMode();
-}
+	}
 
 void CWorkMarkTest::DoInitStatic2cam()
-{
+	{
 	int debug = 0;
-}
+	}
 
 void CWorkMarkTest::DoInitStaticCam()
 {
@@ -101,15 +105,15 @@ void CWorkMarkTest::DoInitStaticCam()
 }
 
 void CWorkMarkTest::DoInitOnthefly3cam()
-{
+	{
 	int debug = 0;
-}
+		}
 
 void CWorkMarkTest::DoInitOnthefly2cam()
-{
+	{
 	m_u8StepIt = 1;
 	m_u8StepTotal = 0x21;
-}
+	}
 
 
 /*
@@ -118,7 +122,7 @@ void CWorkMarkTest::DoInitOnthefly2cam()
  retn : None
 */
 VOID CWorkMarkTest::DoWork()
-{
+	{
 	const int Initstep = 0, processWork = 1, checkWorkstep = 2;
 	try
 	{
@@ -129,44 +133,45 @@ VOID CWorkMarkTest::DoWork()
 	catch (const std::exception&)
 	{
 		CWork::EndWork();
+
 	}
 
-}
+	}
 
-//온더플라이 3캠
+
 void CWorkMarkTest::DoAlignOnthefly3cam()
-{
+	{
 	try
 	{
 		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
-		{
+	{
 
 
 
-		}
+	}
 	}
 	catch (const std::exception& e)
-	{
+		{
 		throw(e);
-	}
+		}
 
 
-}
+			}
 
 //스테틱 2캠
 void CWorkMarkTest::DoAlignStatic2cam()
-{
-	try
-	{
-		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 		{
+	try
+		{
+		switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
+{
 
-		}
-	}
+}
+}
 	catch (const std::exception& e)
-	{
+{
 		throw(e);
-	}
+}
 }
 
 //스테틱 3캠
@@ -181,13 +186,10 @@ void CWorkMarkTest::DoAlignStaticCam()
 	const int MARK1 = 0, MARK2 = 1;
 	bool refind = refindMotion.IsUseRefind();
 
-
-	//스텝 중간에 추가할라면 지랄같으니 앞으로 수정해야할 코드중 step구조 있으면 이런식으로 변경할것
 	vector<function<void()>> stepWork =
 	{
 		[&]()
 		{
-
 			webMonitor.Clear(nullptr);
 			m_enWorkState = SetExposeStartXY();
 		},
@@ -253,7 +255,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 				SetActionRequest(ENG_RIJA::invalidateUI);
 			}
 			m_enWorkState = ENG_JWNS::en_next;
-
 		},
 		[&]()
 		{
@@ -264,13 +265,16 @@ void CWorkMarkTest::DoAlignStaticCam()
 			}
 			else
 			{
-
 				bool errFlag = false;
 				try
 				{
+					//std::vector<STG_XMXY> filteredPath, offsetBuff;
+					//std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
+					//			[&](const STG_XMXY& v) { return v.tgt_id == MARK1 || v.tgt_id == MARK2; });
 					std::vector<STG_XMXY> filteredPath, offsetBuff;
 					std::copy_if(grabMarkPath.begin(), grabMarkPath.end(), std::back_inserter(filteredPath),
-								[&](const STG_XMXY& v) { return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
+						[&](const STG_XMXY& v) { return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
+
 
 					if (filteredPath.size() != PAIR)
 						throw exception();
@@ -282,7 +286,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 						throw exception();
 
 					auto match = std::remove_if(grabMarkPath.begin(), grabMarkPath.end(),
-												[&](const STG_XMXY& v) {  return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
+						[&](const STG_XMXY& v) {  return (v.reserve & STG_XMXY_RESERVE_FLAG::GLOBAL) == STG_XMXY_RESERVE_FLAG::GLOBAL && (v.tgt_id == MARK1 || v.tgt_id == MARK2); });
 
 					std::transform(offsetBuff.begin(), offsetBuff.end(), std::back_inserter(offsetPool[OffsetType::refind]),
 					[&](STG_XMXY v)->CaliPoint
@@ -319,7 +323,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 
 			SetStepName(L"mark find step");
 			SetActionRequest(ENG_RIJA::invalidateUI);
-
 			complete = GlobalVariables::GetInstance()->Waiter([&]()->bool
 			{
 				try
@@ -389,7 +392,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 									if (CommonMotionStuffs::GetInstance().GetOffsetsCurrPos(CENTER_CAM, *currPath, &alignOffset, nullptr, std::get<0>(refindOffset), std::get<1>(refindOffset)) == false) //<-에러옵셋 더해줘야함
 										throw exception();
 
-
 									offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y, std::get<0>(refindOffset), std::get<1>(refindOffset), std::get<0>(grabOffset), std::get<1>(grabOffset) , *currPath));
 
 									/*webMonitor.AddLog(fmt::format("<{}>refind로 찾음!!  ORG_ID{} , TGT_ID{} , 원래마크위치x = {} , 원래마크위치y = {},리파인드옵셋x = {} , 리파인드옵셋y = {}, 그랩에러옵셋x = {} , 그랩옵샛에러 y={} , 최종얼라인옵셋X = {} , 최종얼라인옵셋y={}\r\n",
@@ -399,11 +401,9 @@ void CWorkMarkTest::DoAlignStaticCam()
 							}
 							else
 							{
-
 								offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y,
 									estimatedXMXY.mark_x - currPath->mark_x,
 									estimatedXMXY.mark_y - currPath->mark_y, 0, 0, *currPath));
-
 								//!!!!!!!!!!!!!차후 엣지디텍션을 이용해야할경우 여기에서 처리하면 됨.!!!!!!!!!!!!!!
 								//일단 못찾았으면 바로 캔슬. 
 								//throw exception();
@@ -419,15 +419,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 							offsetPool[OffsetType::refind].push_back(CaliPoint(currPath->mark_x, currPath->mark_y,
 																				estimatedXMXY.mark_x - currPath->mark_x,
 																				estimatedXMXY.mark_y - currPath->mark_y, grabOffsetX, grabOffsetY,*currPath));
-
-							//CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, *currPath, &alignOffset,nullptr, 0, 0);
-							//GetOffsetsCurrPos;
-							//if (refind == false)
-							//{
-							//	STG_XMXY stagePos = STG_XMXY();
-							//	CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, *currPath, &alignOffset, nullptr, 0, 0); //<-에러옵셋 더해줘야함
-							//	uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, currPath->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
-							//}
 						}
 
 						//offsetPool[OffsetType::align].push_back(alignOffset);
@@ -538,7 +529,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 				if (uvEng_GetConfig()->set_align.use_2d_cali_data == false)
 					continue;
 
-				if (CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX , v.offsetY) == false)
+				if (CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, &alignOffset, nullptr, v.offsetX, v.offsetY) == false)
 				{
 					m_enWorkState = ENG_JWNS::en_error;
 					return;
@@ -601,6 +592,7 @@ void CWorkMarkTest::DoAlignStaticCam()
 		[&]()
 		{
 			m_enWorkState = IsMovedUnloader();
+			SetProcessComplete();
 		},
 	};
 
@@ -658,7 +650,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	{
 		m_enWorkState = IsAlignMeasMode();
 		SetActionRequest(ENG_RIJA::clearMarkData);
-	}
+}
 	break;
 
 	case 0x0c: m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
@@ -832,23 +824,23 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 			m_enWorkState = ENG_JWNS::en_next;
 		}
 		else
-		{
+				{
 			m_enWorkState = ENG_JWNS::en_error;
-		}
-	}
+				}
+			}
 	else if (ENG_JWNS::en_next == m_enWorkState)
-	{
-		/* 작업률 계산 후 임시 저장 */
+			{
+				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
 		CWork::CalcStepRate();
 		/* 현재 Global Mark까지 인식 했는지 여부 */
 		if (m_u8StepIt == 0x0d)
-		{
+				{
 
 			/* 현재 동작 모드가 Global 방식인지 Local 포함 방식인지 여부에 따라 다름 */
 			//if (IsMarkTypeOnlyGlobal())	m_u8StepIt	= 0x1a;
 			if (IsMarkTypeOnlyGlobal() || uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) == 0)
 				m_u8StepIt = 0x16;
-		}
+				}
 		if (m_u8StepTotal == m_u8StepIt)
 		{
 			/* 작업 완료 후 각종 필요한 정보 저장 */
@@ -861,6 +853,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 			else
 			{
 				m_enWorkState = ENG_JWNS::en_comp;
+
 				/* 항상 호출*/
 				CWork::EndWork();
 			}
@@ -871,9 +864,10 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 			/* 다음 작업 단계로 이동 */
 			m_u8StepIt++;
 		}
-		/* 가장 최근에 Waiting 한 시간 저장 */
+
 		m_u64DelayTime = GetTickCount64();
 	}
+
 }
 
 
@@ -895,7 +889,7 @@ ENG_JWNS CWorkMarkTest::SetHomingACamSide()
 	//{
 		/* 1번 카메라부터 home */
 	if (!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam1))
-	{
+{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (1) to (left)");
 		return  ENG_JWNS::en_wait;
 	}
@@ -1007,7 +1001,7 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
-	/* 얼라인 마크 검색 결과 값 저장 */
+
 	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x00);
 	if (pstMark)
 	{
@@ -1031,10 +1025,10 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	}
+}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
 	if (pstMark)
-	{
+{
 		swprintf_s(tzResult, 1024, L"%.3f,%.3f,%.4f,%.4f,",
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
@@ -1043,15 +1037,9 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 
 	/* 광학계 LED / Board 온도 값 저장 */
 	//for (int i = 0x00; i < 0x06; i++)
-	//{
-	//	swprintf_s(tzResult, 1024, L"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",
-	//		pLed[i][0] / 10.0f, pLed[i][1] / 10.0f, pLed[i][2] / 10.0f, pLed[i][3] / 10.0f,
-	//		pBoard[i][0] / 2.0f, pBoard[i][1] / 2.0f, pBoard[i][2] / 2.0f, pBoard[i][3] / 2.0f);
-	//	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	//}
 
 
-	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
+
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
 }
 

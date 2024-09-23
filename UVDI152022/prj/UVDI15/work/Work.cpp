@@ -26,6 +26,7 @@ volatile atomic<bool> CWork::onExternalWork;
 */
 CWork::CWork()
 {
+	workProcessCompleted = false;
 	m_enWorkJobID	= ENG_BWOK::en_work_none;
 	aborted.store(false);
 	uvEng_SetWorkOptionalText(nullptr);
@@ -229,7 +230,7 @@ VOID CWork::SetWorkStop()
 VOID CWork::CalcStepRate()
 {
 	DOUBLE dbRate	= DOUBLE(m_u8StepIt) / DOUBLE(m_u8StepTotal) * 100.0f;
-	if (dbRate > 100.0f)	dbRate = 100.0f;
+	if (dbRate > 100.0f || workProcessCompleted)	dbRate = 100.0f;
 	/* 전역 메모리에 설정 */
 	uvEng_SetWorkStepRate (dbRate);
 }

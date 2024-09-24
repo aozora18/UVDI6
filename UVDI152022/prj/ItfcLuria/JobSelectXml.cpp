@@ -289,18 +289,26 @@ int ProcessXml(string xmlFilename)
 	{
 		auto CodeBody = [&]()
 		{
-			string root, file;
-			SplitPath(directory, root, file);
-			auto searchName = AddSuffixToFilename(file, token);
-			combinePath = root + "\\" + searchName;
-			for (const auto& entry : fs::directory_iterator(root))
-			{
-				if (!entry.is_regular_file()) continue;
-				std::string filename = entry.path().filename().string();
-				if (filename != searchName) continue;
-				return true;
-			}
-			return false;
+				try
+				{
+					string root, file;
+					SplitPath(directory, root, file);
+					auto searchName = AddSuffixToFilename(file, token);
+					combinePath = root + "\\" + searchName;
+					for (const auto& entry : fs::directory_iterator(root))
+					{
+						if (!entry.is_regular_file()) continue;
+						std::string filename = entry.path().filename().string();
+						if (filename != searchName) continue;
+						return true;
+					}
+					return false;
+				}
+				catch (...)
+				{
+					return false;
+				}
+			
 		};
 
 		find =  CodeBody();
@@ -782,13 +790,12 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 	/* job name 절대 경로 설정 */
 	sprintf_s(szJobPath, MAX_PATH_LEN, "%s\\rlt_settings.xml", job_name);
 
-
-	ProcessXml(string(szJobPath));
-
-
 	// XML 열기
 	xmlErr = xmlDoc.LoadFile(szJobPath);
 	if (0 != xmlErr)	return FALSE;
+
+	ProcessXml(string(szJobPath));
+
 	/* 첫 번째 노드 얻기 */
 	xmlNode = (tinyxml2::XMLNode*)xmlDoc.FirstChild();
 	if (!xmlNode)	return FALSE;

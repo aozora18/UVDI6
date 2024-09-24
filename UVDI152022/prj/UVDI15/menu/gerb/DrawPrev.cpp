@@ -437,7 +437,7 @@ int CDrawPrev::OnMouseClick(int x, int y, CRect winRect)
 
 
 
-	if (yFlip) //지랄도 이런 지랄이 없네.
+	if (yFlip && m_vGlobalMark.empty() == false) //지랄도 이런 지랄이 없네.
 	{
 		int minY = std::min_element(m_vGlobalMark.begin(), m_vGlobalMark.end(), [](const STG_MARK& a, const STG_MARK& b)
 			{

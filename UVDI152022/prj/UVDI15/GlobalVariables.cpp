@@ -828,6 +828,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		if (allGrabbed == false || (u8Global + u8Local == 0))
 			return ENG_MFOR::grabcountMiss;
 
+
+
 		bool allValid = uvEng_Camera_IsGrabbedMarkValidAll(false, pstRecipeExpo->mark_score_accept, camNum);
 		if (allValid)
 			return ENG_MFOR::noNeedToFix;

@@ -77,6 +77,7 @@ BOOL CMainThread::StartWork()
 */
 VOID CMainThread::RunWork()
 {
+	
 	/* 동기 진입 */
 	if (m_csSyncWork.Enter())
 	{
@@ -98,7 +99,7 @@ VOID CMainThread::RunWork()
 			{
 				uvEng_Luria_SetWorkBusy(TRUE);
 			}
-			RunWorkJob();
+			//RunWorkJob();
 		}
 		else
 		{
@@ -348,6 +349,36 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 					case ENG_BWOK::en_expo_align	: SendMesgParent(ENG_BWOK::en_mesg_init, 100);	break;
 					}
 				}
+
+
+
+				//////////////////////////////////////////////////////////////////////////
+				//발상의 전환 그냥 RunWorkJob()을 thread로 뺀다. 
+				//////////////////////////////////////////////////////////////////////////
+				if (workThread.joinable() )
+				{
+					if (exited.load() == false) //완료 전 새로운 w강제종료 필요
+					{
+						if(TerminateThread(workThread.native_handle(), 0) == true) //<-갱장히 리스키하그든요.
+							workThread.detach();
+					}
+					else
+						workThread.join();
+
+					this_thread::sleep_for(chrono::milliseconds(1000));
+				}
+
+				workThread = thread([&]()
+				{
+					exited.store(false);
+					while (m_bAppExit == false && m_pWorkJob != nullptr && !m_pWorkJob->IsWorkStopped())
+					{
+						RunWorkJob();
+						this_thread::sleep_for(chrono::milliseconds(300));
+					}
+					exited.store(true);
+				});
+				//////////////////////////////////////////////////////////////////////////
 			}
 		}
 		/* 동기 해제 */

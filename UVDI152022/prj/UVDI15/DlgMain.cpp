@@ -1416,15 +1416,8 @@ VOID CDlgMain::WorkStop()
 	{
 		if (IDOK != dlgMesg.MyDoModal(L"Do you want to stop the current work ?"))	
 			return;
-		else
-		{
-			CWork::SetAbort(true);
-			uvEng_SetWorkOptionalText(L"wait for finish previous work.");
-			GlobalVariables::GetInstance()->Waiter([&]
-			{
-				return m_pMainThread->IsBusyWorkJob();
-			}, 10000);
-		}
+		
+		CWork::SetAbort(true);
 	}
 
 	

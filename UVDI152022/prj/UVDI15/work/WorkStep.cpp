@@ -2617,7 +2617,7 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long& lastUniqueID)
 	{
 		/* Set the error message */
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move failed");
-		return ENG_JWNS::en_error;
+		return ENG_JWNS::en_wait;
 	}
 
 #endif
@@ -2660,12 +2660,14 @@ ENG_JWNS CWorkStep::IsACamZAxisMovedAll(unsigned long& lastUniqueID)
 #elif (USE_IO_LINK_PHILHMI == 1)
 	STG_PP_PACKET_RECV stRecv = { 0, };
 	stRecv.st_c2p_abs_move_comp.Reset();
-	//if (FALSE == uvEng_Philhmi_GetRecvWaitFromUniqueID(lastUniqueID, &stRecv, 10000))
-	//{
-	//	// Alarm 처리 필요
-	//	// 10초 Timeout이 지나도 complete 신호가 오지 않은 상황
-	//	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move timeout");
-	//}
+
+	if (TRUE == uvEng_Philhmi_GetRecvWaitFromUniqueID(lastUniqueID, &stRecv, 10000))
+	{
+		// Alarm 처리 필요
+		// 10초 Timeout이 지나도 complete 신호가 오지 않은 상황
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move timeout");
+		return ENG_JWNS::en_error;
+	}
 
 	if (stRecv.st_c2p_abs_move_comp.usErrorCode)
 	{

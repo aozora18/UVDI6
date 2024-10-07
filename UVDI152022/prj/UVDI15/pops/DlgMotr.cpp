@@ -640,11 +640,14 @@ VOID CDlgMotr::MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL 
 
 			stSend.usCount = 1;
 			if (drv_id == ENG_MMDI::en_axis_acam1)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN CAMERA Z 1", DEF_MAX_RECIPE_NAME_LENGTH);
+				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z1", DEF_MAX_RECIPE_NAME_LENGTH);
 			else if (drv_id == ENG_MMDI::en_axis_acam2)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN CAMERA Z 2", DEF_MAX_RECIPE_NAME_LENGTH);
+				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z2", DEF_MAX_RECIPE_NAME_LENGTH);
+			else if (drv_id == ENG_MMDI::en_axis_acam3)
+				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z3", DEF_MAX_RECIPE_NAME_LENGTH);
+
 			stSend.stMove[0].dPosition = dPosition;
-			stSend.stMove[0].dSpeed = dSpeed;
+			stSend.stMove[0].dSpeed = 10;// dSpeed;
 			stSend.stMove[0].dAcc = DEF_DEFAULT_ACC;
 			uvEng_Philhmi_Send_P2C_ABS_MOVE(stSend, stRecv);
 		}

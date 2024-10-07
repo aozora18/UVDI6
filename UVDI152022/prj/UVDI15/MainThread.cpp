@@ -55,6 +55,9 @@ CMainThread::~CMainThread()
 {
 	/* 기존 작업 메모리 해제 */
 	ResetWorkJob();
+	if (workThread.joinable())
+		workThread.join();
+
 }
 
 /*

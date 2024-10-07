@@ -304,6 +304,7 @@ typedef enum class __en_mc2_motion_drive_id__ : UINT8
 
 	en_axis_acam1					= 0x12,
 	en_axis_acam2					= 0x13,
+	en_axis_acam3					= 0x14,
 #endif
 
 	en_axis_none					= 0xf0,

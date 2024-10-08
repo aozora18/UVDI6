@@ -26,7 +26,7 @@ protected:
 
 /* 로컬 변수 */
 protected:
-
+	unsigned long		m_lastUniqueID=0;
 	UINT8				m_u8LastJobCount;		/* 가장 최근까지 등록된 Job Name의 등록 개수 (임시 변수 임 T.T) */
 	UINT8				m_u8PrintStripNum;		/* 가장 마지막에 노광한 개수 저장 */
 	UINT8				m_u8LastLoadStrip;		/* 가장 최근에 거버가 적재된 진행률 값 */

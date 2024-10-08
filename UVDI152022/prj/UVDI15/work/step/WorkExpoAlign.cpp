@@ -301,7 +301,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 
 void CWorkExpoAlign::DoInitOnthefly2cam()
 {
-	m_u8StepTotal = 0x24;
+	m_u8StepTotal = 0x29;
 	m_u8StepIt = 1;
 }
 
@@ -324,7 +324,31 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	}
 	break;
 	
-	case 0x02: 
+	case 0x02:
+	{
+		m_enWorkState = SetPhZAxisMovingAll();
+	}break;
+
+	case 0x03:
+	{
+		m_enWorkState = IsPhZAxisMovedAll();
+	}break;
+
+	case 0x04:
+	{
+		auto res = SetACamZAxisMovingAll(m_lastUniqueID);
+		m_enWorkState = res != ENG_JWNS::en_next ? ENG_JWNS::en_wait : res;
+		if (m_enWorkState != ENG_JWNS::en_next)
+			this_thread::sleep_for(std::chrono::microseconds(500));
+	}break;
+
+	case 0x05:
+	{
+		m_enWorkState = IsACamZAxisMovedAll(m_lastUniqueID);
+
+	}break;
+
+	case 0x07: 
 	{
 		m_enWorkState = IsLoadedGerberCheck();
 
@@ -347,34 +371,34 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	}
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 
-	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
-	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
-	case 0x05: 
+	case 0x08: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
+	case 0x09: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
+	case 0x0a: 
 	{
 		m_enWorkState = SetAlignMovingInit();
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
 
-	case 0x06: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
-	case 0x07: m_enWorkState = IsAlignMovedInit();							break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
-	case 0x08: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
-	case 0x09: m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
-	case 0x0a: m_enWorkState = SetAlignMeasMode();							break;
-	case 0x0b:
+	case 0x0b: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
+	case 0x0c: m_enWorkState = IsAlignMovedInit();							break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
+	case 0x0d: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
+	case 0x0e: m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
+	case 0x0f: m_enWorkState = SetAlignMeasMode();							break;
+	case 0x10:
 	{
 		m_enWorkState = IsAlignMeasMode();
 		SetActionRequest(ENG_RIJA::clearMarkData);
 		
 	}
 	break;
-	case 0x0c: 
+	case 0x11: 
 	{
 		m_enWorkState = SetAlignMovingGlobal();						
 	}
 	break;	/* Global Mark 4 군데 위치 확인 */
 
-	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
-	case 0x0e:
+	case 0x12: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
+	case 0x13:
 	{
 		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
 		CameraSetCamMode(ENG_VCCM::en_none);
@@ -382,55 +406,55 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
 	}
 
-	case 0x0f: m_enWorkState = SetTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
-	case 0x10: m_enWorkState = IsTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 등록 확인 */
-	case 0x11:
+	case 0x14: m_enWorkState = SetTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 - 트리거 보드에 Local Mark 위치 등록 */
+	case 0x15: m_enWorkState = IsTrigRegistLocal(scanCount);										break;	/* Trigger (역방향) 발생 위치 등록 확인 */
+	case 0x16:
 	{
 		m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);
 		
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Local) 시작 위치 도착 여부 */
 
-	case 0x12:
+	case 0x17:
 	{
 		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
 		
 	}
 	break;	/* Cam None 모드로 변경 */
 
-	case 0x13: m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 위치 확인 */
-	case 0x14: m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 측정 완료 여부 */
+	case 0x18: m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 위치 확인 */
+	case 0x19: m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toScanMoving, scanCount);		break;	/* Local Mark (역방향) 16 군데 측정 완료 여부 */
 
-	case 0x15:
+	case 0x1a:
 		this_thread::sleep_for(chrono::milliseconds(200)); // 잠깐 기다려주는 이유가 바슬러 스레드에서 캠 데이터를 가져가는 스레드 리프레시 타임이 있기때문.
 		m_u8StepIt = GlobalVariables::GetInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
 		m_enWorkState = ENG_JWNS::en_forceSet;
 		break;
 
-	case 0x16:
+	case 0x1b:
 		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);break;	/* Cam None 모드로 변경 */
 
-	case 0x17: m_enWorkState = SetTrigEnable(FALSE);						break;
-	case 0x18:
+	case 0x1c: m_enWorkState = SetTrigEnable(FALSE);						break;
+	case 0x1d:
 	{
 		SetUIRefresh(true);
 		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);
 	}
 	break;
-	case 0x19:
+	case 0x1e:
 	{
 		
 		m_enWorkState = IsSetMarkValidAll(0x01);
 	}
 	break;
 
-	case 0x1a:
+	case 0x1f:
 	{
 		m_enWorkState = SetAlignMarkRegist();
 
 	}
 	break;
-	case 0x1b:
+	case 0x20:
 	{
 		m_enWorkState = IsAlignMarkRegist();
 		if(m_enWorkState == ENG_JWNS::en_next)
@@ -438,23 +462,23 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		
 	}
 	break;
-	case 0x1c: m_enWorkState = IsTrigEnabled(FALSE);						break;
+	case 0x21: m_enWorkState = IsTrigEnabled(FALSE);						break;
 
-	case 0x1d: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */
-	case 0x1e: m_enWorkState = IsPrePrinted();								break;	/* Luria Control - PrePrinted 확인 */
+	case 0x22: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */
+	case 0x23: m_enWorkState = IsPrePrinted();								break;	/* Luria Control - PrePrinted 확인 */
 	
-	case 0x1f:
+	case 0x24:
 	{
 		m_enWorkState = SetPrinting();
 	}
 	break;	/* Luria Control - Printing */
-	case 0x20: m_enWorkState = IsPrinted();								break;	/* Luria Control - Printed 확인 */
+	case 0x25: m_enWorkState = IsPrinted();								break;	/* Luria Control - Printed 확인 */
 
-	case 0x21: m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
-	case 0x22: m_enWorkState = IsWorkWaitTime();							break;	/* 대기 완료 여부 확인 */
+	case 0x26: m_enWorkState = SetWorkWaitTime(1000);						break;	/* 일정 시간 대기 */
+	case 0x27: m_enWorkState = IsWorkWaitTime();							break;	/* 대기 완료 여부 확인 */
 
-	case 0x23: m_enWorkState = SetMovingUnloader();						break;	/* Stage Unloader 위치로 이동 */
-	case 0x24: m_enWorkState = IsMovedUnloader();							break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
+	case 0x28: m_enWorkState = SetMovingUnloader();						break;	/* Stage Unloader 위치로 이동 */
+	case 0x29: m_enWorkState = IsMovedUnloader();							break;	/* Stage Unloader 위치에 도착 했는지 여부 확인 */
 
 
 	}
@@ -652,6 +676,27 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		[&]()
 		{
 			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+		},
+
+		[&]()
+		{
+			m_enWorkState = SetPhZAxisMovingAll();
+		},
+		[&]()
+		{
+			m_enWorkState = IsPhZAxisMovedAll();
+		},
+
+		[&]()
+		{
+			auto res = SetACamZAxisMovingAll(m_lastUniqueID);
+			m_enWorkState = res != ENG_JWNS::en_next ? ENG_JWNS::en_wait : res;
+			if (m_enWorkState != ENG_JWNS::en_next)
+				this_thread::sleep_for(std::chrono::microseconds(500));
+		},
+		[&]()
+		{
+			m_enWorkState = IsACamZAxisMovedAll(m_lastUniqueID);
 		},
 
 		[&]()

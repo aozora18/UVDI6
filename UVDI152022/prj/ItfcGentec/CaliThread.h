@@ -3,7 +3,12 @@
 
 #define DEF_SOCKET	1
 #define DEF_SERIAL	2
+
+#ifdef CUSTOM_CODE_HDDI6
+#define DEF_COMMUNICATION_TYPE		DEF_SERIAL
+#else
 #define DEF_COMMUNICATION_TYPE		DEF_SOCKET
+#endif
 
 #include "../../inc/comn/ThinThread.h"
 #include "SerialComm.h"

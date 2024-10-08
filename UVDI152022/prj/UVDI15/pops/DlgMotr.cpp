@@ -665,7 +665,7 @@ VOID CDlgMotr::MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL 
 			else if (drv_id == ENG_MMDI::en_axis_acam2)
 				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN CAMERA Z 2", DEF_MAX_RECIPE_NAME_LENGTH);
 			stSend.stMove[0].dPosition = dPosition;
-			stSend.stMove[0].dSpeed = dSpeed;
+			stSend.stMove[0].dSpeed = 10;
 			stSend.stMove[0].dAcc = DEF_DEFAULT_ACC;
 			uvEng_Philhmi_Send_P2C_REL_MOVE(stSend, stRecv);
 		}

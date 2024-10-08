@@ -146,7 +146,6 @@ VOID CWork::EndWork()
 
 	if (GetRelayWork() != ENG_BWOK::en_work_none)
 	{
-		CWork::SetAbort(true);
 		thread([&]()
 		{
 				this_thread::sleep_for(chrono::milliseconds(1000));

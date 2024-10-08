@@ -27,9 +27,6 @@ protected:
 
 	UINT64				m_u64TickLoaded;
 
-	// by sysandj
-	unsigned long		m_lastUniqueID;
-
 /* 로컬 함수 */
 protected:
 

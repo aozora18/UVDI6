@@ -1418,6 +1418,7 @@ VOID CDlgMain::WorkStop()
 			return;
 		
 		CWork::SetAbort(true);
+		this_thread::sleep_for(chrono::milliseconds(2000));
 	}
 
 	

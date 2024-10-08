@@ -197,7 +197,6 @@ void CMainThread::DeleteCurrentJob()
 */
 BOOL CMainThread::ResetWorkJob()
 {
-	
 	if (m_pWorkJob && m_pWorkJob->IsWorkStopped() == false || CWork::GetonExternalWork())
 	{
 		CWork::SetAbort(true);
@@ -391,7 +390,6 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 				{
 					exited.store(false);
 					while (m_bAppExit == false && 
-						CWork::GetAbort() == false &&
 						m_pWorkJob != nullptr && 
 						m_pWorkJob->IsWorkStopped()  == false)
 					{

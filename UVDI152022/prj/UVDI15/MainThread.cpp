@@ -112,6 +112,13 @@ VOID CMainThread::RunWork()
 		/* 만약 작업 동작이 에러가 발생 했다면 ... Abort 동작 수행 */
 		if (m_pWorkJob && m_pWorkJob->IsWorkError())
 		{
+			if (CWork::GetAbort() == false)
+			{
+				m_csSyncWork.Leave();
+				CWork::SetAbort(true);
+				return;
+			}
+
 			RunWorkJob(ENG_BWOK::en_work_stop);
 		}
 		/* 로그 데이터 관리 */
@@ -383,7 +390,10 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 				workThread = thread([&]()
 				{
 					exited.store(false);
-					while (m_bAppExit == false && m_pWorkJob != nullptr && !m_pWorkJob->IsWorkStopped())
+					while (m_bAppExit == false && 
+						CWork::GetAbort() == false &&
+						m_pWorkJob != nullptr && 
+						m_pWorkJob->IsWorkStopped()  == false)
 					{
 						RunWorkJob();
 						this_thread::sleep_for(chrono::milliseconds(300));

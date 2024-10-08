@@ -643,9 +643,10 @@ VOID CDlgMotr::MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL 
 				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z1", DEF_MAX_RECIPE_NAME_LENGTH);
 			else if (drv_id == ENG_MMDI::en_axis_acam2)
 				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z2", DEF_MAX_RECIPE_NAME_LENGTH);
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 			else if (drv_id == ENG_MMDI::en_axis_acam3)
 				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z3", DEF_MAX_RECIPE_NAME_LENGTH);
-
+#endif
 			stSend.stMove[0].dPosition = dPosition;
 			stSend.stMove[0].dSpeed = 10;// dSpeed;
 			stSend.stMove[0].dAcc = DEF_DEFAULT_ACC;

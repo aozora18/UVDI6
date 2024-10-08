@@ -165,7 +165,8 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			L"score_1,scale_1,mark_move_x1(mm),mark_move_y1(mm),"
 			L"score_2,scale_2,mark_move_x2(mm),mark_move_y2(mm),"
 			L"score_3,scale_3,mark_move_x3(mm),mark_move_y3(mm),"
-			L"score_4,scale_4,mark_move_x4(mm),mark_move_y4(mm),\n");
+			L"score_4,scale_4,mark_move_x4(mm),mark_move_y4(mm),"
+			L"read_thick(mm),\n");
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
 	}
 
@@ -242,6 +243,19 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 	}
 
+	auto& measureFlat = uvEng_GetConfig()->measure_flat;
+	auto mean = measureFlat.GetThickMeasureMean();
+	if (measureFlat.u8UseThickCheck)
+	{
+		DOUBLE RealThick;
+		DOUBLE LDSToThickOffset = 0;
+		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
+		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+
+		RealThick = mean + dmater + LDSToThickOffset;
+		swprintf_s(tzResult, 1024, L"%.3f,", RealThick);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
 	///* 마크 간의 6 곳 길이 측정 오차 값 과 전체 노광하는데 소요된 시간 저장 */
 	//swprintf_s(tzResult, 1024, L"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,",
 	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz),
@@ -1070,8 +1084,12 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 		SaveExpoResult(0x00);
 		m_u8StepIt = 0x00;
 #endif
-		/*노광 종료가 되면 Philhmil에 완료보고*/
-		SetPhilProcessCompelet();
+
+		if (g_u8Romote == en_menu_phil_mode_auto)
+		{
+			/*노광 종료가 되면 Philhmil에 완료보고*/
+			SetPhilProcessCompelet();
+		}
 
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
@@ -1099,16 +1117,18 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				//if (g_u8Romote == en_menu_phil_mode_auto)
-				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				if (g_u8Romote == en_menu_phil_mode_auto)
+				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
+
 			}
 			else
 			{
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
-				if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+				if (g_u8Romote == en_menu_phil_mode_auto)
+				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}

@@ -8,7 +8,8 @@ class CWork
 /* 생성자 & 파괴자 */
 public:
 
-	CWork();
+	CWork(ENG_BWOK relayWork);
+	ENG_BWOK GetRelayWork() { return relayWork; }
 	virtual ~CWork();
 	
 	void SetProcessComplete() { workProcessCompleted = true; }
@@ -43,6 +44,7 @@ public:
 
 /* 가상함수 재정의 */
 protected:
+	ENG_BWOK relayWork;
 public:
 	volatile static atomic<bool> aborted;
 	volatile static atomic<bool> onExternalWork;

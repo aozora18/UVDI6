@@ -24,8 +24,9 @@ volatile atomic<bool> CWork::onExternalWork;
  parm : None
  retn : None
 */
-CWork::CWork()
+CWork::CWork(ENG_BWOK relayWork)
 {
+	this->relayWork = relayWork;
 	workProcessCompleted = false;
 	m_enWorkJobID	= ENG_BWOK::en_work_none;
 	aborted.store(false);
@@ -142,6 +143,12 @@ VOID CWork::EndWork()
 	m_u8StepIt = 0;
 	CWork::SetAbort(false);
 	CWork::SetonExternalWork(false);
+
+	if (GetRelayWork() != ENG_BWOK::en_work_none)
+	{
+		this_thread::sleep_for(chrono::microseconds(2000));
+		thread([&](){mainthreadPtr->RunWorkJob(GetRelayWork(), nullptr, true);}).detach();
+	}
 }
 
 /*

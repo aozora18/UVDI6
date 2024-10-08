@@ -265,7 +265,7 @@ VOID CMainThread::RunWorkJob()
 		data	- [in]  Job 별 상이한 값
  retn : TRUE or FALSE
 */
-BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
+BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWork)
 {
 	BOOL bSucc	= FALSE;
 
@@ -302,7 +302,9 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 			case ENG_BWOK::en_work_home		: m_pWorkJob = new CWorkHoming();					break;
 			case ENG_BWOK::en_work_init		: m_pWorkJob = new CWorkInited();					break;
 
-			case ENG_BWOK::en_gerb_load		: m_pWorkJob = new CWorkRecipeLoad(UINT8(*data));	break;
+			case ENG_BWOK::en_gerb_load		: 
+				m_pWorkJob = new CWorkRecipeLoad(UINT8(*data), ENG_BWOK::en_work_none);
+				break;
 			case ENG_BWOK::en_gerb_unload	: m_pWorkJob = new CWorkRecipeUnload();				break;
 
 			case ENG_BWOK::en_gerb_onlyfem	: m_pWorkJob = new CWorkOnlyFEM();					break;
@@ -322,8 +324,15 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data)
 			case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CELA(data));	break;
 			case ENG_BWOK::en_expo_align	: 
 			{
-				auto expoAlign = new CWorkExpoAlign();
-				m_pWorkJob = static_cast<CWorkStep*>(expoAlign);
+				bool loaded = uvCmn_Luria_IsJobNameLoaded();
+
+				if(calledByRelayWork == false && loaded == false)
+					m_pWorkJob = new CWorkRecipeLoad(0xff, ENG_BWOK::en_expo_align);
+				else
+				{
+					auto expoAlign = new CWorkExpoAlign();
+					m_pWorkJob = static_cast<CWorkStep*>(expoAlign);
+				}
 			}
 			break;
 			//case ENG_BWOK::en_expo_align: m_pWorkJob = new CWorkExpoAlign(LPG_CELA(data));

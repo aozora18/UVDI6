@@ -22,8 +22,8 @@ static char THIS_FILE[]	= __FILE__;
 						HysterisysÀÇ Negative Pixel °ª
  retn : None
 */
-CWorkRecipeLoad::CWorkRecipeLoad(UINT8 offset)
-	: CWorkStep()
+CWorkRecipeLoad::CWorkRecipeLoad(UINT8 offset, ENG_BWOK relayWork)
+	: CWorkStep(relayWork)
 {
 	m_u8Offset		= offset;
 	m_enWorkJobID	= ENG_BWOK::en_gerb_load;

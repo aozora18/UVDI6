@@ -24,8 +24,8 @@ static char THIS_FILE[] = __FILE__;
  parm : None
  retn : None
 */
-CWorkStep::CWorkStep()
-	: CWork()
+CWorkStep::CWorkStep(ENG_BWOK relayWork)
+	: CWork(relayWork)
 {
 	m_u8LastLoadStrip = 0;	/* 무조건 초기화 */
 	m_dbLastPrintPosY = 0.0f;	/* 가장 최근의 Y 축 방향의 노광 모션 위치 값 (단위: mm) */

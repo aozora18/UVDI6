@@ -70,7 +70,7 @@ protected:
 /* 공용 함수 */
 public:
 
-	BOOL				RunWorkJob(ENG_BWOK job_id, PUINT64 data=NULL);
+	BOOL				RunWorkJob(ENG_BWOK job_id, PUINT64 data=NULL,bool calledByRelayWork=false);
 	BOOL				IsBusyWorkJob();
 
 	ENG_BWOK			GetWorkJobID();

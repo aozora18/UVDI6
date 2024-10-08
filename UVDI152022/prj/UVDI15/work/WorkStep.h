@@ -8,7 +8,7 @@ class CWorkStep : public CWork
 /* 생성자 & 파괴자 */
 public:
 
-	CWorkStep();
+	CWorkStep(ENG_BWOK relayWork = ENG_BWOK::en_work_none);
 	virtual ~CWorkStep();
 
 	vector<int> selCamNum;

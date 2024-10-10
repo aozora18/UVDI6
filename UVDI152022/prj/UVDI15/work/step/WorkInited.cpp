@@ -51,6 +51,9 @@ BOOL CWorkInited::InitWork()
 	/* 이 사나리에서는 처음부터 대기하므로, 타이틀 표현을 해줘야 함 */
 	SetStepName(L"Initialize");
 
+	/* 기존 검색된 Grabbed Data & Image 제거 */
+	uvEng_Camera_ResetGrabbedImage();
+
 	return TRUE;
 }
 

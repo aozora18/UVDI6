@@ -359,7 +359,8 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 			if (res == ENG_MFOR::noNeedToFix)
 			{
 				//m_u8StepIt = 0x1a;
-				m_u8StepIt = 0x18;
+				//m_u8StepIt = 0x18;
+				m_u8StepIt = 0x1d;
 				m_enWorkState = ENG_JWNS::en_forceSet;
 			}
 			else if (res == ENG_MFOR::firstRun) {}
@@ -427,7 +428,8 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 	case 0x1a:
 		this_thread::sleep_for(chrono::milliseconds(200)); // 잠깐 기다려주는 이유가 바슬러 스레드에서 캠 데이터를 가져가는 스레드 리프레시 타임이 있기때문.
-		m_u8StepIt = GlobalVariables::GetInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
+		//m_u8StepIt = GlobalVariables::GetInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x16 : 0x0e; //남아있으면 다시 올라감. 
+		m_u8StepIt = GlobalVariables::GetInstance()->GetAlignMotion().CheckAlignScanFinished(++scanCount) ? 0x1b : 0x13; //남아있으면 다시 올라감. 
 		m_enWorkState = ENG_JWNS::en_forceSet;
 		break;
 
@@ -498,7 +500,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
 		SaveExpoResult(0x00);
-		m_u8StepIt = 0x00;
+		//m_u8StepIt = 0x00;
 
 		if (g_u8Romote == en_menu_phil_mode_auto)
 		{
@@ -528,9 +530,10 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		{
 		/* Local Mark 존재 여부 확인 */
 		//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
-		case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x17;	break;
+		//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x17;	break;
+		case 0x12:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x1c;	break;
 			/* 노광 작업이 완료된 이후, 바로 광학계 내 온도 값 요청 */
-		case 0x24: uvEng_Luria_ReqGetPhLedTempAll();	break;
+		case 0x29: uvEng_Luria_ReqGetPhLedTempAll();	break;
 		}
 
 		/* 모든 동작이 완료되었는지 확인 */
@@ -586,7 +589,8 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 			m_u8StepIt++;
 		}
 		/* Align Mark를 정상 인식 후, 노광을 진행할 것인지 여부 물어보기 */
-		if (m_u8StepIt == 0x1f && uvEng_GetConfig()->set_uvdi15.check_query_expo)
+		//if (m_u8StepIt == 0x1f && uvEng_GetConfig()->set_uvdi15.check_query_expo)
+		if (m_u8StepIt == 0x24 && uvEng_GetConfig()->set_uvdi15.check_query_expo)
 		{
 			CDlgMesg dlgMesg;
 			if (IDOK != dlgMesg.MyDoModal(L"Do you really want to expose?", 0x02))

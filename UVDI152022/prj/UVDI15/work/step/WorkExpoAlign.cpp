@@ -493,6 +493,12 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 	UINT64 u64TickCount = GetTickCount64();
 	UINT64 u64JobTime = u64TickCount - m_u64StartTime;
 
+	if (GetAbort())
+	{
+		CWork::EndWork();
+		return;
+
+	}
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
 

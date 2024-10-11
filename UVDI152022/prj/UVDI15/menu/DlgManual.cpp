@@ -819,7 +819,12 @@ void CDlgManual::UpdateGridInformation()
 	//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
 	//DOUBLE RealThick = LDSToThickOffset - lastThick + dmater;
 	/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 	DOUBLE RealThick = mean + dmater + LDSToThickOffset;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	DOUBLE RealThick = mean + LDSToThickOffset;
+#endif
+
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 	DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 	DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
@@ -1791,8 +1796,13 @@ VOID CDlgManual::ErrorThick()
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
 		DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
 		DOUBLE RealThick = mean + dmater + LDSToThickOffset;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+		DOUBLE RealThick = mean + LDSToThickOffset;
+#endif
+
 		DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 		DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
 		DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
@@ -1826,8 +1836,6 @@ VOID CDlgManual::ErrorThick()
 					UpdateGridInformation();
 					UpdateGridParameter();
 
-					/*얼라인 마크 인식 초기화*/
-					motions.SetAlignComplete(true);
 				}
 			}
 			else if (IDIGNORE == result)
@@ -1836,10 +1844,10 @@ VOID CDlgManual::ErrorThick()
 				uvEng_GetConfig()->measure_flat.bOnePass = TRUE;
 				uvEng_GetConfig()->measure_flat.u8UseThickCheck = FALSE;
 				uvEng_SaveConfig();
-
-				/*얼라인 마크 인식 초기화*/
-				motions.SetAlignComplete(true);
 			}
+
+			/*얼라인 마크 인식 초기화*/
+			motions.SetAlignComplete(true);
 		}
 		else
 		{

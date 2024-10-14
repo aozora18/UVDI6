@@ -173,4 +173,5 @@ protected:
  	afx_msg VOID		OnBtnClick(UINT32 id);
 	afx_msg void		OnGrdClick(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg VOID		OnLButtonDown(UINT32 nFlags, CPoint point);
+	afx_msg VOID		OnLButtonDblClk(UINT nFlags, CPoint point);
 };

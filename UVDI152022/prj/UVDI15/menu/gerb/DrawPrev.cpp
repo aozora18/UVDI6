@@ -419,24 +419,17 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	::ReleaseDC(m_hDraw, hDC);
 }
 
+void CDrawPrev::OnMouseDblClick()
+{
+	DlgGbrPreview dlg; // 우리가 만든 다이얼로그 클래스의 인스턴스 생성
+	dlg.DoModal();        // 모달 다이얼로그로 표시
+}
+
+
 int CDrawPrev::OnMouseClick(int x, int y, CRect winRect)
 {
 	POINT point;
-	double clickThreshold = 800;
-	if (GetTickCount() - lastClick < clickThreshold)
-	{
-		bool dblClk = true;
-		DlgGbrPreview dlg; // 우리가 만든 다이얼로그 클래스의 인스턴스 생성
-		dlg.DoModal();        // 모달 다이얼로그로 표시
-		//dlg로 띄워주면된다. 다른 엑션 못하게. 어으 구찮어증말.
-
-		return -1;
-	}
-
-	lastClick = GetTickCount();
-
-
-
+	
 	if (yFlip && m_vGlobalMark.empty() == false) //지랄도 이런 지랄이 없네.
 	{
 		int minY = std::min_element(m_vGlobalMark.begin(), m_vGlobalMark.end(), [](const STG_MARK& a, const STG_MARK& b)

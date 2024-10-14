@@ -89,6 +89,7 @@ VOID CDlgAuto::DoDataExchange(CDataExchange* dx)
 
 BEGIN_MESSAGE_MAP(CDlgAuto, CDlgMenu)
 	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 /*
@@ -828,6 +829,29 @@ void CDlgAuto::UpdateGridProduct()
 	m_pGrd[nGridIndex]->Refresh();
 }
 
+VOID CDlgAuto::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	if (m_pDrawPrev)
+	{
+		CRect rtDlg;
+		CRect rtPreview;
+		CRect rtPreviewOrg;
+
+		GetWindowRect(rtDlg);
+		GetDlgItem(IDC_AUTO_PIC_PREVIEW)->GetWindowRect(rtPreview);
+
+		rtPreviewOrg = rtPreview;
+		rtPreview.OffsetRect(-rtDlg.left, -rtDlg.top);
+
+		if (rtPreview.PtInRect(point))
+		{
+			m_pDrawPrev->OnMouseDblClick();
+		}
+	}
+
+
+
+}
 
 VOID CDlgAuto::OnLButtonDown(UINT32 nFlags, CPoint point)
 {

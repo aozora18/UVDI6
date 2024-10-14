@@ -60,6 +60,7 @@ public:
 #endif
 	DWORD lastClick = GetTickCount();
 	int					OnMouseClick(int x, int y,CRect winRect);
+	void OnMouseDblClick();
 	int					GetSelectGlobalMark() 
 	{ 
 		return m_nSelectGlobalMark; 

@@ -179,4 +179,6 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
 	afx_msg VOID		OnLButtonDown(UINT32 nFlags, CPoint point);
+	afx_msg VOID		OnLButtonDblClk(UINT nFlags, CPoint point);
 };
+

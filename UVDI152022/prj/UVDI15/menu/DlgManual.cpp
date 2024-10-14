@@ -103,6 +103,7 @@ BEGIN_MESSAGE_MAP(CDlgManual, CDlgMenu)
 	ON_WM_LBUTTONDOWN()
 	ON_CONTROL_RANGE(BN_CLICKED, DEF_UI_MANUAL_BTN, DEF_UI_MANUAL_BTN + (UINT)EN_MANUAL_BTN::_size(), OnBtnClick)
 	ON_NOTIFY_RANGE(NM_CLICK, DEF_UI_MANUAL_GRD, DEF_UI_MANUAL_GRD + eGRD_MAX, OnGrdClick)
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 /*
@@ -1359,6 +1360,29 @@ void CDlgManual::OnGrdClick(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult)
 		break;
 	}
 }
+
+
+VOID CDlgManual::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	if (m_pDrawPrev)
+	{
+		CRect rtDlg;
+		CRect rtPreview;
+		CRect rtPreviewOrg;
+
+		GetWindowRect(rtDlg);
+		GetDlgItem(IDC_MANUAL_PIC_PREVIEW)->GetWindowRect(rtPreview);
+
+		rtPreviewOrg = rtPreview;
+		rtPreview.OffsetRect(-rtDlg.left, -rtDlg.top);
+
+		if (rtPreview.PtInRect(point))
+		{
+			m_pDrawPrev->OnMouseDblClick();
+		}
+	}
+}
+
 
 VOID CDlgManual::OnLButtonDown(UINT32 nFlags, CPoint point)
 {

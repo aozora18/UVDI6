@@ -13,7 +13,7 @@ public:
 
 /* 열거형 변수 */
 protected:
-	bool yFlip = true;
+	bool yFlip = false;
 	bool xFlip = false;
 
 /* 로컬 변수 */

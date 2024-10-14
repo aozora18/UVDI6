@@ -714,6 +714,15 @@ API_EXPORT LPG_ACGR uvBasler_GetLastGrabbedMark()
 	return g_pCamThread->GetLastGrabbedMark();
 }
 
+API_EXPORT BOOL uvBasler_GetModelRadius(UINT8 cam_id, double& width, double& height, bool toPixelSize)
+{
+	if (!g_pCamThread)	return NULL;
+	return uvMIL_GetModelRadius(cam_id, width, height, toPixelSize);
+}
+
+
+
+
 /*
  desc : 가장 최근 Grabbed Image의 매칭 검색 결과 구조체 포인터 반환
  parm : None
@@ -1791,6 +1800,11 @@ API_EXPORT VOID uvBasler_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int f
 API_EXPORT VOID uvBasler_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag)
 {
 	uvMIL_OverlayAddTextList(fi_iDispType, fi_iNo, fi_iX, fi_iY, fi_sText, fi_color, fi_iSizeX, fi_iSizeY, fi_sFont, fi_bEgdeFlag);
+}
+
+API_EXPORT VOID uvBasler_OverlayAddCircleList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_color)
+{
+	uvMIL_OverlayAddCircleList(fi_iDispType, fi_iNo, fi_iLeft, fi_iTop, fi_iRight, fi_iBottom, fi_color);
 }
 
 /* desc : Overlay 관련 함수 - Line List 추가 */

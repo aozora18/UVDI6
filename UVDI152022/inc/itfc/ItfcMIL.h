@@ -157,6 +157,8 @@ API_IMPORT UINT32 uvMIL_GetModelRegistCount(UINT8 cam_id);
 */
 API_IMPORT BOOL uvMIL_RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 img_id, PUINT8 image, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc);
 
+API_EXPORT BOOL uvMIL_GetModelRadius(UINT8 cam_id, double& width, double& height, bool toPixelSize);
+
 
 API_EXPORT VOID uvMIL_Camera_ClearShapes(int fi_iDispType);
 
@@ -479,6 +481,7 @@ API_EXPORT VOID uvMIL_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int fi_i
 API_EXPORT VOID uvMIL_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag);
 API_EXPORT VOID uvMIL_ImageFlip(PUINT8 img_src, PUINT8 img_dst, UINT32 width, UINT32 height);
 API_EXPORT VOID uvMIL_OverlayAddLineList(int fi_iDispType, int fi_iNo, int fi_iSx, int fi_iSy, int fi_iEx, int fi_iEy, int fi_iStyle, int fi_color);
+API_EXPORT VOID uvMIL_OverlayAddCircleList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_color);
 API_EXPORT VOID uvMIL_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, UINT8 mark_no);
 API_EXPORT VOID uvMIL_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
 API_EXPORT VOID uvMIL_InitMask(UINT8 cam_id);

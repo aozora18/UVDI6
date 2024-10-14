@@ -308,6 +308,9 @@ API_IMPORT BOOL uvBasler_RunMarkerStrip(UINT8 cam_id, LPG_MSMP param, STG_MSMR &
  retn : 객체 포인터 (매칭이 실패한 경우 NULL)
 */
 API_IMPORT LPG_ACGR uvBasler_GetLastGrabbedMark();
+
+API_IMPORT BOOL uvBasler_GetModelRadius(UINT8 cam_id, double& width, double& height, bool toPixelSize);
+
 /*
  desc : 가장 최근에 Calibrated된 결과 데이터 반환
  parm : None
@@ -746,6 +749,7 @@ API_EXPORT VOID uvBasler_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_
 API_EXPORT VOID uvBasler_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, int fi_iWdt1, int fi_iWdt2, int fi_color);
 API_EXPORT VOID uvBasler_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag);
 API_EXPORT VOID uvBasler_OverlayAddLineList(int fi_iDispType, int fi_iNo, int fi_iSx, int fi_iSy, int fi_iEx, int fi_iEy, int fi_iStyle, int fi_color);
+API_EXPORT VOID uvBasler_OverlayAddCircleList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_color);
 API_EXPORT VOID uvBasler_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, UINT8 mark_no);
 API_EXPORT VOID uvBasler_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
 API_EXPORT VOID uvBasler_InitMask(UINT8 cam_id);

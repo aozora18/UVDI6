@@ -152,7 +152,9 @@ BOOL CDlgMmpm::OnInitDlg()
 	FindData(0x00);
 
 	
-
+	uvEng_GetModelRadius(1, modelWidth, modelHeight, true);
+	modelWidth = modelWidth / 2;
+	modelHeight = modelHeight / 2;
 	
 
 	return TRUE;
@@ -698,8 +700,17 @@ VOID CDlgMmpm::MoveCenter(UINT8 type)
 void CDlgMmpm::DrawMilETC()
 {
 	uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MMPM, 1);
+
 	uvEng_Camera_OverlayAddCrossList(DISP_TYPE_MMPM, 1, m_ptCenter.x, m_ptCenter.y, 20, 20, eM_COLOR_RED);
+
+	//여기서 현재 레시피를 갖고와서...
+	//마크의 크기와 현재 1마이크로당 픽셀값을 갖고와서...
+	//계산해준다.
+	//일단 여기서 서클을 그릴수있게 추가
 	
+
+	uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MMPM, 1, m_ptCenter.x - modelWidth, m_ptCenter.y - modelHeight, m_ptCenter.x + modelWidth, m_ptCenter.y + modelHeight, PS_SOLID, eM_COLOR_GREEN);
+	uvEng_Camera_OverlayAddCircleList(DISP_TYPE_MMPM, 1, m_ptCenter.x - modelWidth, m_ptCenter.y - modelHeight, m_ptCenter.x + modelWidth, m_ptCenter.y + modelHeight, eM_COLOR_GREEN);
 	uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MMPM, 1);
 }
 

@@ -75,8 +75,9 @@ protected:
 	bool inverseHorizontal; //이미지가 회전영향을 받았을경우.
 	bool inverseVertical;  //이미지가 회전영향을 받았을경우.
 
+private:
+	double modelWidth = 100, modelHeight = 100;
 public:
-
 	virtual VOID		UpdatePeriod()	{};
 
 /* 로컬 변수 */

@@ -912,6 +912,21 @@ API_EXPORT BOOL uvMIL_RunModelFind(UINT8 cam_id, UINT8 mode, UINT8 img_id, PUINT
 	return bSucc;
 }
 
+
+API_EXPORT long uvMIL_GetModelRadius(UINT8 cam_id,double& width, double& height,  bool toPixelSize)
+{
+	BOOL bSucc = FALSE;
+
+	// if (!g_pMilMain)	return FALSE;
+	if (cam_id < 1 || cam_id > MAX_ALIGN_CAMERA)	return FALSE;
+	
+	width = theApp.clMilMain.GetMarkModelSize(cam_id, 0, 0, toPixelSize ? 1 : 0);
+	height = theApp.clMilMain.GetMarkModelSize(cam_id, 0, 1, toPixelSize ? 1 : 0);
+	
+	return true;
+}
+
+
 /*
  desc : 사용자에 의해 수동으로 검색된 경우, 결과 값만 처리
  parm : grab	- [in]  사용자에 의해 수동으로 입력된 grabbed image 결과 정보가 저장된 구조체 포인터
@@ -2520,6 +2535,11 @@ API_EXPORT VOID uvMIL_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX
 API_EXPORT VOID uvMIL_OverlayAddLineList(int fi_iDispType, int fi_iNo, int fi_iSx, int fi_iSy, int fi_iEx, int fi_iEy, int fi_iStyle, int fi_color)
 {
 	theApp.clMilDisp.AddLineList(fi_iDispType, fi_iNo, fi_iSx, fi_iSy, fi_iEx, fi_iEy, fi_iStyle, fi_color);
+}
+
+API_EXPORT VOID uvMIL_OverlayAddCircleList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_color)
+{
+	theApp.clMilDisp.AddCircleList(fi_iDispType, fi_iNo, fi_iLeft, fi_iTop, fi_iRight, fi_iBottom, fi_color);
 }
 
 /* desc: MARK SET DISP ID 할당 */

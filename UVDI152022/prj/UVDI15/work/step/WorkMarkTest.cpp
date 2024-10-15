@@ -52,8 +52,14 @@ CWorkMarkTest::CWorkMarkTest(LPG_CELA expo)
  retn : None
 */
 CWorkMarkTest::~CWorkMarkTest()
-	{
-	}
+{
+	if (bundleAction[0].joinable())
+		bundleAction[0].join();
+
+	if (bundleAction[1].joinable())
+		bundleAction[1].join();
+
+}
 
 BOOL CWorkMarkTest::SetAlignMode()
 {
@@ -609,7 +615,6 @@ void CWorkMarkTest::DoAlignStaticCam()
 	}
 }
 
-
 //온더플라이 2캠
 void CWorkMarkTest::DoAlignOnthefly2cam()
 {
@@ -618,13 +623,10 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	{
 	case 0x01:
 	{
-
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		motions.SetAlignComplete(false);
 		if (m_enWorkState == ENG_JWNS::en_next)
 			GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
-
-
 	}
 	break;	    /* 노광 가능한 상태인지 여부 확인 */
 	case 0x02:
@@ -632,28 +634,81 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 		m_enWorkState = IsLoadedGerberCheck();
 	}
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
-	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
-	case 0x03: m_enWorkState = SetTrigEnable(FALSE);						break;	/* Trigger Event - 비활성화 설정 */
-	case 0x04: m_enWorkState = IsTrigEnabled(FALSE);						break;	/* Trigger Event - 빌활성화 확인  */
-	case 0x05:
+	
+	case 0x03: 
 	{
+		bundleResult[0] = false; bundleResult[1] = false;doNextJob = false;
 
-		m_enWorkState = SetAlignMovingInit();								break;
+		bundleAction[0] = std::thread([&]()
+		{
+			ENG_JWNS res = ENG_JWNS::en_wait;
+			if (SetAlignMovingInit() == ENG_JWNS::en_next)
+			{
+				doNextJob = true;cv.notify_one();//여기서 bundleAction[1]이 실행해야함 flag 
+				res = ENG_JWNS::en_wait;
+				while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next)
+				{
+					res = IsAlignMovedInit();Sleep(100);
+				}
+			}
+			else
+			{	
+				doNextJob = true; cv.notify_one();//여기서 bundleAction[1]이 실행해야함 flag 
+			}
+
+			bundleResult[0] = res == ENG_JWNS::en_next ? true : false;
+
+		});
+	
+		bundleAction[1] = std::thread([&]()
+			{
+				ENG_JWNS res = ENG_JWNS::en_next;
+				std::unique_lock<std::mutex> lock(mtx);
+				cv.wait(lock, [&] { return doNextJob; });
+
+				if(SetTrigEnable(FALSE) == ENG_JWNS::en_next &&
+					IsTrigEnabled(FALSE) == ENG_JWNS::en_next && 
+					SetTrigPosCalcSaved() == ENG_JWNS::en_next &&
+					SetTrigRegistGlobal() == ENG_JWNS::en_next &&
+					IsTrigRegistGlobal() == ENG_JWNS::en_next &&
+					SetAlignMeasMode() == ENG_JWNS::en_next)
+				{
+					res = ENG_JWNS::en_wait;
+					while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next)
+					{
+						res = IsAlignMeasMode(); Sleep(100);
+					}
+					if(res == ENG_JWNS::en_next)SetActionRequest(ENG_RIJA::clearMarkData);
+					bundleResult[1] = res == ENG_JWNS::en_next ? true : false;
+				}
+			});
+
+		m_enWorkState = ENG_JWNS::en_next;
+	}	
+	break;	/* Trigger Event - 비활성화 설정 */
+
+	case 0x04: m_enWorkState = ENG_JWNS::en_next; break;	/* Trigger Event - 빌활성화 확인  */
+	case 0x05: m_enWorkState = ENG_JWNS::en_next; break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
+	case 0x06: m_enWorkState = ENG_JWNS::en_next; break;	/* Trigger 발생 위치 계산 및 임시 저장 */
+	case 0x07: m_enWorkState = ENG_JWNS::en_next; break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
+	case 0x08: m_enWorkState = ENG_JWNS::en_next; break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
+	case 0x09: m_enWorkState = ENG_JWNS::en_next; break;	/* Trigger 발생 위치 등록 확인 */
+	case 0x0a: m_enWorkState = ENG_JWNS::en_next; break;
+	case 0x0b: m_enWorkState = ENG_JWNS::en_next; break;
+
+	case 0x0c:
+	{
+		bundleAction[1].join();
+		bundleAction[0].join();
+
+		if (bundleResult[0] == false || bundleResult[1] == false)
+		{
+			m_enWorkState = ENG_JWNS::en_error;
+			return;
+		}
+		m_enWorkState = SetAlignMovingGlobal();
 	}
-	break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
-	case 0x06: m_enWorkState = SetTrigPosCalcSaved();						break;	/* Trigger 발생 위치 계산 및 임시 저장 */
-	case 0x07: m_enWorkState = IsAlignMovedInit();							break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치 도착 여부 */
-	case 0x08: m_enWorkState = SetTrigRegistGlobal();						break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
-	case 0x09: m_enWorkState = IsTrigRegistGlobal();						break;	/* Trigger 발생 위치 등록 확인 */
-	case 0x0a: m_enWorkState = SetAlignMeasMode();							break;
-	case 0x0b:
-	{
-		m_enWorkState = IsAlignMeasMode();
-		SetActionRequest(ENG_RIJA::clearMarkData);
-}
-	break;
-
-	case 0x0c: m_enWorkState = SetAlignMovingGlobal();						break;	/* Global Mark 4 군데 위치 확인 */
+	break;	/* Global Mark 4 군데 위치 확인 */
 	case 0x0d: m_enWorkState = IsAlignMovedGlobal();						break;	/* Global Mark 4 군데 측정 완료 여부 */
 	case 0x0e:
 	{
@@ -722,7 +777,6 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 	case 0x1e: m_enWorkState = IsWorkWaitTime();							break;
 	case 0x20:
 	{
-
 		m_enWorkState = SetMovingUnloader();
 	}
 	break;

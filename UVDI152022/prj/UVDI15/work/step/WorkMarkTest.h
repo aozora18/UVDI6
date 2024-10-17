@@ -7,16 +7,12 @@
 #include "../../../../inc/itfe/EItfcLuria.h"
 #include "../../GlobalVariables.h"
 
-class CWorkMarkTest : public CWorkStep
+class CWorkMarkTest : public CWorkStep , BundleAction
 {
 	/* 생성자 & 파괴자 */
 public:
 
-	thread bundleAction[2];
-	bool bundleResult[2] = { false,false };
-	bool doNextJob = false;
-	std::mutex mtx;
-	std::condition_variable cv;
+
 
 	CWorkMarkTest(LPG_CELA expo);
 	virtual ~CWorkMarkTest();

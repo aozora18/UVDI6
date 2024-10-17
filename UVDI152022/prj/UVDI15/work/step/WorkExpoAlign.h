@@ -7,7 +7,7 @@
 #include "../../GlobalVariables.h"
 
 using namespace std;
-class CWorkExpoAlign : public CWorkStep
+class CWorkExpoAlign : public CWorkStep, BundleAction
 {
 /* 생성자 & 파괴자 */
 public:

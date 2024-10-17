@@ -3,6 +3,16 @@
 
 #include "Work.h"
 
+class BundleAction
+{
+public:
+	thread bundleAction[2];
+	bool bundleResult[2] = { false,false };
+	bool doNextJob = false;
+	std::mutex mtx;
+	std::condition_variable cv;
+};
+
 class CWorkStep : public CWork
 {
 /* 생성자 & 파괴자 */

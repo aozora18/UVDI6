@@ -181,9 +181,8 @@ VOID CMacButton::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 VOID CMacButton::DrawButton(LPDRAWITEMSTRUCT lpDIS)
 {
 	if (lpDIS->hDC == nullptr)
-	{
-		int debug = 0;
-	}
+		return;
+	
 	CDC* pDC = CDC::FromHandle(lpDIS->hDC);
 	CRect rectItem(lpDIS->rcItem);
 
@@ -195,7 +194,10 @@ VOID CMacButton::DrawButton(LPDRAWITEMSTRUCT lpDIS)
 
 	// Create a mem DC for drawing
 	CDC dcMem;
-	dcMem.CreateCompatibleDC(pDC);
+
+	if (dcMem.CreateCompatibleDC(pDC) == FALSE)
+		return;
+
 	CBitmap bmp;
 	bmp.CreateCompatibleBitmap(pDC, rectItem.Width(), rectItem.Height());
 	CBitmap *pOldBmp = dcMem.SelectObject(&bmp);

@@ -204,8 +204,9 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 			caliInfoLoadComplete = true;
 		};
 
+	
 	if (caliInfoLoadComplete == false)
-		std::thread([=]() {loadSeq(cfg); }).detach();
+		loadseqThread = std::thread([=]() {loadSeq(cfg); });
 }
 
 

@@ -330,6 +330,12 @@ private:
 
 class CaliCalc
 {
+public:
+	~CaliCalc()
+	{
+		if (loadseqThread.joinable())loadseqThread.join();
+	}
+
 public :
 	struct CaliFeature
 	{
@@ -337,6 +343,10 @@ public :
 		int caliCamIdx;
 		double caliCamXPos;
 		int dataRowCnt, dataColCnt;
+
+
+		
+
 
 		CaliFeature() 
 		{
@@ -366,7 +376,7 @@ public:
 protected:
 	map<OffsetType, CaliFeature> calidataFeature;
 	map<OffsetType, vector<CaliPoint>> caliDataMap;
-
+	thread loadseqThread;
 	double LimittoMicro(double val);
 
 	void SortPos(std::vector<CaliPoint>& dataList);

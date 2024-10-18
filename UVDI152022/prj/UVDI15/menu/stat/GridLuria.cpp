@@ -49,8 +49,14 @@ CGridLuria::CGridLuria(HWND parent, HWND grid, UINT32 g_id, UINT32 count)
 	m_u32RowCnt		= count;
 	if (count)
 	{
-		m_pszItem	= (PTCHAR *)::Alloc(sizeof(PTCHAR) * count);
-		m_pszItem[0]= (PTCHAR)::Alloc(sizeof(TCHAR) * m_u32Items * count);
+
+		m_pszItem = new PTCHAR[count];
+
+		for (UINT32 i = 0; i < count; ++i) 
+		{
+			m_pszItem[i] = new TCHAR[m_u32Items];
+		}
+
 		for (UINT32 i=1; i<count; i++)	m_pszItem[i] = m_pszItem[i-1] + m_u32Items;
 		wmemset(m_pszItem[0], 0x00, sizeof(TCHAR) * m_u32Items);
 	}
@@ -70,10 +76,15 @@ CGridLuria::~CGridLuria()
 	}
 	if (m_pszItem)
 	{
-		::Free(m_pszItem[0]);
-		::Free(m_pszItem);
-		m_pszItem	= NULL;
+		for (UINT32 i = 0; i < m_u32RowCnt; ++i)
+		{
+			delete[] m_pszItem[i];  // 각 문자열 배열 해제
+		}
+		delete m_pszItem;  // 포인터 배열 해제
+		m_pszItem = nullptr;  // 포인터 초기화
 	}
+
+	
 }
 
 /*

@@ -193,7 +193,7 @@ VOID CTcpThread::SocketError(PTCHAR mesg)
 	u32Len	= (UINT32)uvCmn_GetMultiOf8(u32Len) + 48 /* Socket TCP/IP Setup Error */;
 
 	/* 임시 메모리 할당 */
-	ptzMesg	= (PTCHAR)::Alloc(u32Len * sizeof(TCHAR));
+	ptzMesg = new TCHAR[u32Len];//(PTCHAR)::Alloc(u32Len * sizeof(TCHAR));
 	memset(ptzMesg, 0x00, u32Len);
 
 	/* 에러 메시지 설정 */
@@ -205,7 +205,7 @@ VOID CTcpThread::SocketError(PTCHAR mesg)
 	if (!IsRunDemo())	LOG_ERROR(ENG_EDIC::en_engine, ptzMesg);
 
 	/* 메모리 해제 */
-	if (ptzMesg)	::Free(ptzMesg);
+	if (ptzMesg)	delete ptzMesg;
 }
 
 /*

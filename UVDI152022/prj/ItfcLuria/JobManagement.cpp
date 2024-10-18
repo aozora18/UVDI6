@@ -775,7 +775,7 @@ VOID CJobManagement::SetRecvPanelDataDCodeList(PUINT8 data, UINT32 size)
 	}
 
 	/* 구조체 복사 */
-	pstDCode	= (LPG_JMPL)::Alloc(sizeof(STG_JMPL));
+	pstDCode = new STG_JMPL();// (LPG_JMPL)::Alloc(sizeof(STG_JMPL));
 	ASSERT(pstDCode);
 	memcpy(pstDCode, pData, u32Size);
 	/* Bytes Ordering */
@@ -785,7 +785,7 @@ VOID CJobManagement::SetRecvPanelDataDCodeList(PUINT8 data, UINT32 size)
 	memcpy(&m_pstJobMgt->selected_job_dcode_list, pstDCode, u32Size);
 
 	/* 메모리 해제 */
-	::Free(pstDCode);
+	delete pstDCode;
 }
 
 /*
@@ -823,7 +823,7 @@ VOID CJobManagement::SetRecvPanelDataInfo(PUINT8 data, UINT32 size)
 	}
 
 	/* 구조체 복사 */
-	pstPanel	= (LPG_JMPD)::Alloc(sizeof(STG_JMPD));
+	pstPanel = new STG_JMPD();// (LPG_JMPD)::Alloc(sizeof(STG_JMPD));
 	ASSERT(pstPanel);
 	memcpy(pstPanel, pData, u32Size);
 
@@ -835,7 +835,8 @@ VOID CJobManagement::SetRecvPanelDataInfo(PUINT8 data, UINT32 size)
 	memcpy(&m_pstJobMgt->selected_job_panel_data, pstPanel, u32Size);
 
 	/* 메모리 해제 */
-	::Free(pstPanel);
+	delete pstPanel;
+	
 }
 
 /*

@@ -35,34 +35,34 @@ CMilDisp::~CMilDisp()
 /* desc : Display 관련 변수 초기화 */
 VOID CMilDisp::InitMilDisp()
 {
-	clLineList = (CDrawDcLine**)malloc(sizeof(CDrawDcLine*) * PART_CNT);
+	clLineList = new CDrawDcLine*[PART_CNT];// (CDrawDcLine**)malloc(sizeof(CDrawDcLine*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
-		clLineList[i] = (CDrawDcLine*)malloc(sizeof(CDrawDcLine) * theApp.clMilMain.GRABMARK_CNT);
+		clLineList[i] = new CDrawDcLine[theApp.clMilMain.GRABMARK_CNT];// (CDrawDcLine*)malloc(sizeof(CDrawDcLine) * theApp.clMilMain.GRABMARK_CNT);
 	}
 
-	clPixelList = (CDrawDcPixel**)malloc(sizeof(CDrawDcPixel*) * PART_CNT);
+	clPixelList = new CDrawDcPixel[PART_CNT]; //(CDrawDcPixel**)malloc(sizeof(CDrawDcPixel*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
-		clPixelList[i] = (CDrawDcPixel*)malloc(sizeof(CDrawDcPixel) * theApp.clMilMain.GRABMARK_CNT);
+		clPixelList[i] = new CDrawDcPixel[theApp.clMilMain.GRABMARK_CNT];
 	}
 
-	clBoxList = (CDrawDcBox**)malloc(sizeof(CDrawDcBox*) * PART_CNT);
+	clBoxList = new  CDrawDcBox*[PART_CNT];// (CDrawDcBox**)malloc(sizeof(CDrawDcBox*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
-		clBoxList[i] = (CDrawDcBox*)malloc(sizeof(CDrawDcBox) * theApp.clMilMain.GRABMARK_CNT);
+		clBoxList[i] = new CDrawDcBox[theApp.clMilMain.GRABMARK_CNT];// (CDrawDcBox*)malloc(sizeof(CDrawDcBox) * theApp.clMilMain.GRABMARK_CNT);
 	}
 
-	clCircleList = (CDrawDcCircle**)malloc(sizeof(CDrawDcCircle*) * PART_CNT);
+	clCircleList = new CDrawDcCircle* [PART_CNT];// (CDrawDcCircle**)malloc(sizeof(CDrawDcCircle*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
-		clCircleList[i] = (CDrawDcCircle*)malloc(sizeof(CDrawDcCircle) * theApp.clMilMain.GRABMARK_CNT);
+		clCircleList[i] = new CDrawDcCircle[theApp.clMilMain.GRABMARK_CNT];// (CDrawDcCircle*)malloc(sizeof(CDrawDcCircle) * theApp.clMilMain.GRABMARK_CNT);
 	}
 
-	clCrossList = (CDrawDcCross**)malloc(sizeof(CDrawDcCross*) * PART_CNT);
+	clCrossList = new CDrawDcCross*[PART_CNT];// (CDrawDcCross**)malloc(sizeof(CDrawDcCross*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
-		clCrossList[i] = (CDrawDcCross*)malloc(sizeof(CDrawDcCross) * theApp.clMilMain.GRABMARK_CNT);
+		clCrossList[i] = new CDrawDcCross[theApp.clMilMain.GRABMARK_CNT];//  (CDrawDcCross*)malloc(sizeof(CDrawDcCross) * theApp.clMilMain.GRABMARK_CNT);
 	}
 
-	clTextList = (CDrawDcText**)malloc(sizeof(CDrawDcText*) * PART_CNT);
+	clTextList = new CDrawDcText*[PART_CNT];// (CDrawDcText**)malloc(sizeof(CDrawDcText*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
-		clTextList[i] = (CDrawDcText*)malloc(sizeof(CDrawDcText) * theApp.clMilMain.GRABMARK_CNT);
+		clTextList[i] = new CDrawDcText[theApp.clMilMain.GRABMARK_CNT];// (CDrawDcText*)malloc(sizeof(CDrawDcText) * theApp.clMilMain.GRABMARK_CNT);
 	}
 
 	m_fZoomX = new float[theApp.clMilMain.CAM_CNT];
@@ -95,20 +95,21 @@ VOID CMilDisp::CloseMilDisp()
 	if (m_fPanX)		delete m_fPanX;
 	if (m_fPanY)		delete m_fPanY;
 
-	for (int i = 0; i < PART_CNT; i++) {
-		free(clLineList[i]);
-		free(clPixelList[i]);
-		free(clBoxList[i]);
-		free(clCircleList[i]);
-		free(clCrossList[i]);
-		free(clTextList[i]);
+	for (int i = 0; i < PART_CNT; i++) 
+	{
+		delete clLineList[i];
+		delete clPixelList[i];
+		delete clBoxList[i];
+		delete clCircleList[i];
+		delete clCrossList[i];
+		delete clTextList[i];
 	}
-	free(clLineList);
-	free(clPixelList);
-	free(clBoxList);
-	free(clCircleList);
-	free(clCrossList);
-	free(clTextList);
+	delete[] clLineList;
+	delete[] clPixelList;
+	delete[] clBoxList;
+	delete[] clCircleList;
+	delete[] clCrossList;
+	delete[] clTextList;
 	terminated = true;
 }
 

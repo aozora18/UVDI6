@@ -75,7 +75,7 @@ PUINT8 CPanelPreparation::GetPktDynamicFiducials(ENG_LPGS flag, UINT8 type,
 		UINT16 u16Count	= SWAP16(count), i = 0;
 		PUINT8 pBody	= NULL, pNext;
 		UINT32 u32Body	= 0;
-		pBody	= (PUINT8)::Alloc(sizeof(INT32)*count*2+8);
+		pBody = new UINT8[sizeof(INT32) * count * 2 + 8];// (PUINT8)::Alloc(sizeof(INT32) * count * 2 + 8);
 		memset(pBody, 0x00, sizeof(INT32)*count*2+8);
 		pNext	= pBody;
 		/* Set the send packet */
@@ -91,7 +91,7 @@ PUINT8 CPanelPreparation::GetPktDynamicFiducials(ENG_LPGS flag, UINT8 type,
 		}
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCPP::en_dynamic_fiducials,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
@@ -129,7 +129,7 @@ PUINT8 CPanelPreparation::GetPktRegistrationPoints(ENG_LPGS flag, UINT16 count, 
 		UINT16 u16Count	= SWAP16(count), i = 0;
 		PUINT8 pBody	= NULL, pNext;
 		UINT32 u32Body	= 0;
-		pBody	= (PUINT8)::Alloc(sizeof(INT32)*count*2+8);
+		pBody = new UINT8[sizeof(INT32) * count * 2 + 8];// (PUINT8)::Alloc(sizeof(INT32) * count * 2 + 8);
 		memset(pBody, 0x00, sizeof(INT32)*count*2+8);
 		pNext	= pBody;
 		/* Set the send packet */
@@ -143,7 +143,7 @@ PUINT8 CPanelPreparation::GetPktRegistrationPoints(ENG_LPGS flag, UINT16 count, 
 		}
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCPP::en_registration_points,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
@@ -711,7 +711,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedRotation(ENG_LPGS flag, UINT16 count, 
 	if (ENG_LPGS::en_set == flag)
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(INT32)*count+8);
+		pBody = new UINT8[sizeof(INT32) * count + 8];//(PUINT8)::Alloc(sizeof(INT32)*count+8);
 		memset(pBody, 0x00, sizeof(INT32)*count+8);
 		pNext	= pBody;
 		memcpy(pNext, &u16Count, 2);	pNext	+= 2;
@@ -723,7 +723,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedRotation(ENG_LPGS flag, UINT16 count, 
 		u32Body	= UINT32(pNext - pBody);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCPP::en_local_fixed_rotation,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
@@ -765,7 +765,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedScaling(ENG_LPGS flag, UINT16 count,
 	if (ENG_LPGS::en_set == flag)
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(INT32)*count+8);
+		pBody = new UINT8[sizeof(INT32) * count + 8];//= (PUINT8)::Alloc(sizeof(INT32)*count+8);
 		memset(pBody, 0x00, sizeof(INT32)*count+8);
 		pNext	= pBody;
 		memcpy(pNext, &u16Count, 2);	pNext	+= 2;
@@ -779,7 +779,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedScaling(ENG_LPGS flag, UINT16 count,
 		u32Body	= UINT32(pNext - pBody);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCPP::en_local_fixed_scaling,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
@@ -819,7 +819,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedOffset(ENG_LPGS flag, UINT16 count,
 	if (ENG_LPGS::en_set == flag)
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(INT32)*count+8);
+		pBody = new UINT8[sizeof(INT32) * count + 8];// (PUINT8)::Alloc(sizeof(INT32) * count + 8);
 		memset(pBody, 0x00, sizeof(INT32)*count+8);
 		pNext	= pBody;
 		memcpy(pNext, &u16Count, 2);	pNext	+= 2;
@@ -833,7 +833,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedOffset(ENG_LPGS flag, UINT16 count,
 		u32Body	= UINT32(pNext - pBody);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCPP::en_local_fixed_offset,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
@@ -1218,7 +1218,7 @@ VOID CPanelPreparation::SetRecvDynamicFiducials(PUINT8 data, UINT32 size)
 	if (0x00 == u8Type)
 	{
 		/* 임시 저장 구조체 메모리 할당 */
-		pstGlobal	= (LPG_PPDG)::Alloc(sizeof(STG_PPDG));
+		pstGlobal = new STG_PPDG();// (LPG_PPDG)::Alloc(sizeof(STG_PPDG));
 		ASSERT(pstGlobal);
 		memcpy(pstGlobal, pData, u32Size);
 		pstGlobal->SWAP();
@@ -1229,7 +1229,7 @@ VOID CPanelPreparation::SetRecvDynamicFiducials(PUINT8 data, UINT32 size)
 	else
 	{
 		/* 임시 저장 구조체 메모리 할당 */
-		pstLocal	= (LPG_PPDL)::Alloc(sizeof(STG_PPDL));
+		pstLocal = new STG_PPDL();//(LPG_PPDL)::Alloc(sizeof(STG_PPDL));
 		ASSERT(pstLocal);
 		memcpy(pstLocal, pData, u32Size);
 		pstLocal->SWAP();
@@ -1238,8 +1238,8 @@ VOID CPanelPreparation::SetRecvDynamicFiducials(PUINT8 data, UINT32 size)
 		memcpy(&m_pstPanel->fiducial_local, pstLocal, u32Size);
 	}
 
-	if (pstGlobal)	::Free(pstGlobal);
-	if (pstLocal)	::Free(pstLocal);
+	if (pstGlobal)	delete pstGlobal;
+	if (pstLocal)	delete pstLocal;
 }
 
 /*
@@ -1255,7 +1255,7 @@ VOID CPanelPreparation::SetRecvRegistrationPoints(PUINT8 data, UINT32 size)
 	LPG_PPRP pstRegist	= NULL;
 
 	/* 임시 저장 구조체 메모리 할당 */
-	pstRegist	= (LPG_PPRP)::Alloc(sizeof(STG_PPRP));
+	pstRegist = new STG_PPRP();// (LPG_PPRP)::Alloc(sizeof(STG_PPRP));
 	ASSERT(pstRegist);
 	memcpy(pstRegist, pData, u32Size);
 	pstRegist->SWAP();
@@ -1263,7 +1263,7 @@ VOID CPanelPreparation::SetRecvRegistrationPoints(PUINT8 data, UINT32 size)
 	/* 공유 메모리 영역에 복사 */
 	memcpy(&m_pstPanel->registration_points, pstRegist, u32Size);
 
-	if (pstRegist)	::Free(pstRegist);
+	if (pstRegist)	delete pstRegist;
 }
 
 /*
@@ -1279,7 +1279,7 @@ VOID CPanelPreparation::SetRecvTransformationParams(PUINT8 data, UINT32 size)
 	LPG_PPTP pstParam	= NULL;
 
 	/* 임시 저장 구조체 메모리 할당 */
-	pstParam	= (LPG_PPTP)::Alloc(sizeof(STG_PPTP));
+	pstParam = new STG_PPTP();// (LPG_PPTP)::Alloc(sizeof(STG_PPTP));
 	ASSERT(pstParam);
 	memcpy(pstParam, pData, u32Size);
 	pstParam->SWAP();
@@ -1288,7 +1288,7 @@ VOID CPanelPreparation::SetRecvTransformationParams(PUINT8 data, UINT32 size)
 	memcpy(&m_pstPanel->get_transformation_params, pstParam, u32Size);
 
 	/* 임시 메모리 해제 */
-	::Free(pstParam);
+	delete pstParam;
 }
 
 /*
@@ -1304,7 +1304,7 @@ VOID CPanelPreparation::SetRecvPanelDataSerialNumber(PUINT8 data, UINT32 size)
 	LPG_PPSN pstSerial	= NULL;
 
 	/* 임시 저장 구조체 메모리 할당 */
-	pstSerial	= (LPG_PPSN)::Alloc(sizeof(STG_PPSN));
+	pstSerial = new STG_PPSN(); // (LPG_PPSN)::Alloc(sizeof(STG_PPSN));
 	ASSERT(pstSerial);
 	memcpy(pstSerial, pData, u32Size);
 	pstSerial->SWAP();
@@ -1313,7 +1313,7 @@ VOID CPanelPreparation::SetRecvPanelDataSerialNumber(PUINT8 data, UINT32 size)
 	memcpy(&m_pstPanel->panel_data_serial_number, pstSerial, u32Size);
 
 	/* 임시 메모리 해제 */
-	::Free(pstSerial);
+	delete pstSerial;
 }
 
 /*
@@ -1329,7 +1329,7 @@ VOID CPanelPreparation::SetRecvPanelData(PUINT8 data, UINT32 size)
 	LPG_PPPD pstPanel	= NULL;
 
 	/* 임시 저장 구조체 메모리 할당 */
-	pstPanel	= (LPG_PPPD)::Alloc(sizeof(STG_PPPD));
+	pstPanel = new STG_PPPD();// (LPG_PPPD)::Alloc(sizeof(STG_PPPD));
 	ASSERT(pstPanel);
 	memcpy(pstPanel, pData, u32Size);
 	pstPanel->SWAP();
@@ -1338,7 +1338,7 @@ VOID CPanelPreparation::SetRecvPanelData(PUINT8 data, UINT32 size)
 	memcpy(&m_pstPanel->panel_data, pstPanel, u32Size);
 
 	/* 임시 메모리 해제 */
-	::Free(pstPanel);
+	delete pstPanel;
 }
 
 /*
@@ -1358,7 +1358,7 @@ VOID CPanelPreparation::SetRecvLocalFixedRotation(PUINT8 data, UINT32 size)
 	m_pstPanel->local_fixed_rotation_cnt	= SWAP16(u16Data);
 
 	/* 임시 메모리 할당 */
-	pRotation	= (PINT32)::Alloc(sizeof(INT32) * m_pstPanel->local_fixed_rotation_cnt);
+	pRotation = new INT32[m_pstPanel->local_fixed_rotation_cnt];//  (PINT32)::Alloc(sizeof(INT32) * m_pstPanel->local_fixed_rotation_cnt);
 	ASSERT(pRotation);
 	memcpy(pRotation, pData, u32Size);
 
@@ -1372,7 +1372,7 @@ VOID CPanelPreparation::SetRecvLocalFixedRotation(PUINT8 data, UINT32 size)
 	memcpy(&m_pstPanel->local_fixed_rotation, pRotation, u32Size);
 
 	/* 임시 메모리 해제 */
-	::Free(pRotation);
+	delete pRotation;
 }
 
 /*
@@ -1392,7 +1392,7 @@ VOID CPanelPreparation::SetRecvLocalFixedScaling(PUINT8 data, UINT32 size)
 	m_pstPanel->local_fixed_scaling_cnt	= SWAP16(u16Data);
 
 	/* 임시 메모리 할당 */
-	pstScaling	= (LPG_U4XY)::Alloc(sizeof(STG_U4XY) * m_pstPanel->local_fixed_scaling_cnt);
+	pstScaling = new  STG_U4XY[m_pstPanel->local_fixed_scaling_cnt];// (LPG_U4XY)::Alloc(sizeof(STG_U4XY) * m_pstPanel->local_fixed_scaling_cnt);
 	ASSERT(pstScaling);
 	memcpy(pstScaling, pData, u32Size);
 
@@ -1406,7 +1406,7 @@ VOID CPanelPreparation::SetRecvLocalFixedScaling(PUINT8 data, UINT32 size)
 	memcpy(&m_pstPanel->local_fixed_scaling, pstScaling, u32Size);
 
 	/* 임시 메모리 해제 */
-	::Free(pstScaling);
+	delete pstScaling;
 }
 
 /*
@@ -1426,7 +1426,7 @@ VOID CPanelPreparation::SetRecvLocalFixedOffset(PUINT8 data, UINT32 size)
 	m_pstPanel->local_fixed_offset_cnt	= SWAP16(u16Data);
 
 	/* Allocate the memory */
-	pstOffset	= (LPG_I4XY)::Alloc(sizeof(STG_I4XY) * m_pstPanel->local_fixed_offset_cnt);
+	pstOffset = new STG_I4XY[m_pstPanel->local_fixed_offset_cnt];//(LPG_I4XY)::Alloc(sizeof(STG_I4XY) * m_pstPanel->local_fixed_offset_cnt);
 	ASSERT(pstOffset);
 	memcpy(pstOffset, pData, u32Size);
 	/* SWAP */
@@ -1434,7 +1434,7 @@ VOID CPanelPreparation::SetRecvLocalFixedOffset(PUINT8 data, UINT32 size)
 	/* Copy to shared memory */
 	memcpy(&m_pstPanel->local_fixed_offset, pstOffset, u32Size);
 	/* Release the memory */
-	::Free(pstOffset);
+	delete pstOffset;
 }
 
 /*
@@ -1450,11 +1450,13 @@ VOID CPanelPreparation::SetRecvGetWarpOfLimitsCoordinates(PUINT8 data, UINT32 si
 	PUINT8 pData		= data;
 	LPG_PPWL pstCoord	= NULL;
 
-	memcpy(&u16Data, pData, 2);	pData	+= 2;	u32Size	-= 2;
+	memcpy(&u16Data, pData, 2);	
+	pData	+= 2;	
+	u32Size	-= 2;
 	m_pstPanel->warp_limit_coord_xy_cnt	= SWAP16(u16Data);
 
 	/* Allocate the memory */
-	pstCoord	= (LPG_PPWL)::Alloc(sizeof(STG_PPWL) * m_pstPanel->warp_limit_coord_xy_cnt);
+	pstCoord = new STG_PPWL[m_pstPanel->warp_limit_coord_xy_cnt];// (LPG_PPWL)::Alloc(sizeof(STG_PPWL) * m_pstPanel->warp_limit_coord_xy_cnt);
 	ASSERT(pstCoord);
 	memcpy(pstCoord, pData, u32Size);
 	/* SWAP */
@@ -1462,7 +1464,7 @@ VOID CPanelPreparation::SetRecvGetWarpOfLimitsCoordinates(PUINT8 data, UINT32 si
 	/* Copy to shared memory */
 	memcpy(&m_pstPanel->warp_limits_coord_xy, pstCoord, u32Size);
 	/* Release the memory */
-	::Free(pstCoord);
+	delete pstCoord;
 }
 
 /*

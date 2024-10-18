@@ -137,66 +137,7 @@ PUINT8 CBaseFamily::GetPktBase(ENG_LTCT type, UINT8 cmd,
 	/* Returns the pointer to the next buffer to be stored */
 	return p_data+u32PktSize;
 }
-#if 0
-/*
- desc : <Request : Get or Set> - 1 ~ 8 byte sized packet
- parm : cmd		- [in]  Command
-		flag	- [in]  0x00 : Set, 0x01 : Get
-		data	- [in]  1 ~ 4 bytes data
-		size	- [in]  'data' 크기 (!!! Important !!!) (one of 1, 2, 4)
- retn : NULL or Packet Data
-*/
-PUINT8 CBaseFamily::GetPktCommon(ENG_LCMC cmd, ENG_LPGS flag, UINT64 data, UINT8 size)
-{
-	return GetPktCommon(UINT8(cmd), flag, data, size);
-}
-PUINT8 CBaseFamily::GetPktCommon(UINT8 cmd, ENG_LPGS flag, UINT64 data, UINT8 size)
-{
-	UINT8 u8Data		= UINT8(data);
-	UINT16 u16Data		= (UINT16)htons(UINT16(data));
-	UINT32 u32Data		= (UINT32)htonl(UINT32(data));
-	UINT32 u32PktSize	= 0, u32Size[2] = { size, 0 }, i = 1 /* !!! important !!! */, i32Cnt = 2 /* !!! important !!! */;
-	PUINT8 pPktBase		= NULL, pPktTotal = NULL, pPktNext, pPktData = NULL;
-	ENG_LTCT enType[2]	= { ENG_LTCT::en_write, ENG_LTCT::en_read };
 
-	switch (size)
-	{
-	case 1 : pPktData = (PUINT8)&u8Data;	break;
-	case 2 : pPktData = (PUINT8)&u16Data;	break;
-	case 4 : pPktData = (PUINT8)&u32Data;	break;
-	}
-	/* 송신 데이터의 크기가 유효한지 확인 */
-	if (!pPktData && size > 0)	return NULL;
-
-	/* 전체 송신할 패킷 크기 임의로 할당 */
-	pPktTotal = (PUINT8)::Alloc(sizeof(UINT8) * 128);
-	memset(pPktTotal, 0x00, 128);
-	pPktNext	= pPktTotal;
-
-	/* 오로지 Only write 명령만 존재하는것. 즉, 응답이 없는 명령어는 Read 요청할 필요 없음 */
-	if (ENG_LPGS::en_set == flag)
-	{
-		i = 0 /* !!! important !!! */;
-		i32Cnt = IsWriteOnlyCmd(UINT8(m_enFamily), cmd) ? 1 : 2;	/* Important */
-	}
-
-	/* Get or Set */
-	for (; i<i32Cnt; i++)
-	{
-		pPktBase	= GetPktBase(enType[i], cmd, pPktData, u32Size[i]);
-		memcpy(pPktNext, pPktBase, m_u32PktLastSize);
-		pPktNext	+= m_u32PktLastSize;
-		::Free(pPktBase);
-		/* 총 패킷 크기 저장 */
-		u32PktSize	+= m_u32PktLastSize;
-	}
-	/* 전체 패킷 크기 저장 */
-	m_u32PktLastSize	= u32PktSize;
-
-	/* 전체 패킷 반환 */
-	return pPktTotal;
-}
-#endif
 
 /*
  desc : If it is a lower version after comparing the versions, return an error

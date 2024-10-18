@@ -515,25 +515,25 @@ VOID CMilMain::CloseMilAlloc()
 		m_mAppID = M_NULL;
 	}
 
-	free(rectSearhROI);
-	free(m_mImg);
-	free(m_mOverlay_CALI_STEP);
-	free(m_mDisID_Mark);
-	free(m_mOverlay_Mark);
-	free(m_mImgDisp_Mark);
-	free(m_mImg_Mark);
-	free(m_mImg_Grab);
-	free(MilEdgeResult);
-	free(m_mDisID_CALI_STEP);
-	free(m_mImgDisp_CALI_STEP);
-	free(m_mImg_ACCR);
-	free(m_mImg_CALI_CAMSPEC);
-	free(m_mImg_CALI_STEP);
-	free(m_mImgProc);				// 231027 mhbaek Add 메모리 누수로 인한 해제구문 추가
+	delete rectSearhROI;
+	delete m_mImg;
+	delete m_mOverlay_CALI_STEP;
+	delete m_mDisID_Mark;
+	delete m_mOverlay_Mark;
+	delete m_mImgDisp_Mark;
+	delete m_mImg_Mark;
+	delete m_mImg_Grab;
+	delete MilEdgeResult;
+	delete m_mDisID_CALI_STEP;
+	delete m_mImgDisp_CALI_STEP;
+	delete m_mImg_ACCR;
+	delete m_mImg_CALI_CAMSPEC;
+	delete m_mImg_CALI_STEP;
+	delete m_mImgProc;				// 231027 mhbaek Add 메모리 누수로 인한 해제구문 추가
 
-	free(m_mDisID_EXPO);
-	free(m_mImgDisp_EXPO);
-	free(m_mOverlay_EXPO);
+	delete m_mDisID_EXPO;
+	delete m_mImgDisp_EXPO;
+	delete m_mOverlay_EXPO;
 
 #endif
 	terminated = true;
@@ -1204,7 +1204,7 @@ BOOL CMilMain::SaveGrabbedMarkToFile(UINT8 cam_id, LPRECT area, UINT8 type, TCHA
 	i32Height	= area->bottom - area->top;
 	/* AOI 영역 버퍼 할당 */
 	i32TotalSize= /*sizeof(UINT8) * */i32Width * i32Height;
-	pBufMark	= (PUINT8)::Alloc(i32TotalSize + 1);
+	pBufMark = new UINT8[i32TotalSize + 1];// (PUINT8)::Alloc(i32TotalSize + 1);
 	ASSERT(pBufMark);
 	pBufMark[i32TotalSize]	= 0x00;
 
@@ -1254,7 +1254,7 @@ BOOL CMilMain::SaveGrabbedMarkToFile(UINT8 cam_id, LPRECT area, UINT8 type, TCHA
 	MbufFree(mBufID);
 
 	/* 버퍼 메모리 해제 */
-	if (pBufMark)	Free(pBufMark);
+	if (pBufMark)	delete pBufMark;
 #endif
 	return bSucc;
 }

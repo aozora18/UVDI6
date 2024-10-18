@@ -92,7 +92,7 @@ VOID ClosedSharedMemory()
 	g_pMemStrobeLamp = NULL;
 
 	/* 작업 이름 메모리 해제 */
-	if (g_ptzWorkStepName)	::Free(g_ptzWorkStepName);
+	if (g_ptzWorkStepName)	delete g_ptzWorkStepName;
 	delete optionalWorkstepText;
 }
 
@@ -112,7 +112,7 @@ BOOL OpenSharedMemory(ENG_ERVM e_mode)
 	BOOL bIsEngine	= e_mode != ENG_ERVM::en_monitoring;
 
 	/* 작업 이름 임시 저장을 위해 메모리 할당 */
-	g_ptzWorkStepName	= (PTCHAR)::Alloc(sizeof(TCHAR) * WORK_NAME_LEN);
+	g_ptzWorkStepName = new TCHAR[WORK_NAME_LEN];// (PTCHAR)::Alloc(sizeof(TCHAR) * WORK_NAME_LEN);
 	ASSERT(g_ptzWorkStepName);
 	wmemset(g_ptzWorkStepName, 0x00, WORK_NAME_LEN);
 

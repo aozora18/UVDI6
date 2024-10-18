@@ -362,7 +362,7 @@ VOID CSystem::SetRecvSmartData(PUINT8 data, UINT32 size)
 	LPG_LSSD pstSmart	= {NULL};
 
 	/* 수신된 데이터 임시 저장을 메모리 할당 */
-	pstSmart	= (LPG_LSSD)::Alloc(sizeof(STG_LSSD));
+	pstSmart = new STG_LSSD();// ::Alloc(sizeof(STG_LSSD));
 	ASSERT(pstSmart);
 
 	/* 임시 저장 후 SWAP 수행 */
@@ -372,7 +372,7 @@ VOID CSystem::SetRecvSmartData(PUINT8 data, UINT32 size)
 	/* 공유 메모리 영역에 복사 */
 	memcpy(&m_pstSystem->get_smart_data, pstSmart, sizeof(STG_LSSD));
 
-	::Free(pstSmart);
+	delete pstSmart;
 }
 
 /*

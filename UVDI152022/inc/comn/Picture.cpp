@@ -556,7 +556,7 @@ BOOL CPicture::SaveAsBitmap(CString sFilePathName)
 	RealData.LowPart = 0;
 	RealData.HighPart = 0;
 	RealData.QuadPart = ByteSkip;
-	BufferBytes = (UINT8*)malloc(OutStream);
+	BufferBytes = new UINT8[OutStream];
 	if(BufferBytes == NULL)
 	{
 		Buffer->Release();
@@ -582,7 +582,7 @@ BOOL CPicture::SaveAsBitmap(CString sFilePathName)
 	}
 
 	Buffer->Release();
-	free(BufferBytes);
+	delete BufferBytes;
 
 	return(bResult);
 }

@@ -178,10 +178,10 @@ BOOL CDlgMark::OnInitDlg()
 	SetDlgItemInt(IDC_MARK_EDT_CALIB_R, calib_row);
 	SetDlgItemInt(IDC_MARK_EDT_CALIB_C, calib_col);
 
-	CalibROI_left = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	CalibROI_right = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	CalibROI_top = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	CalibROI_bottom = (int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_left = new int[calib_row * calib_col];// (int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_right =  new int[calib_row * calib_col];;//(int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_top =    new int[calib_row * calib_col];;//(int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_bottom = new int[calib_row * calib_col];;//(int*)malloc(sizeof(int) * (calib_row * calib_col));
 
 	memset(CalibROI_left, 0, sizeof(int) * (calib_row * calib_col));
 	memset(CalibROI_right, 0, sizeof(int) * (calib_row * calib_col));
@@ -233,10 +233,10 @@ VOID CDlgMark::OnExitDlg()
 	delete[] ZoomFlag;
 	delete[] searchROI_CAM;
 
-	free(CalibROI_left);
-	free(CalibROI_right);
-	free(CalibROI_top);
-	free(CalibROI_bottom);
+	delete CalibROI_left;
+	delete CalibROI_right;
+	delete CalibROI_top;
+	delete CalibROI_bottom;
 
 
 	
@@ -2231,8 +2231,8 @@ VOID CDlgMark::OpenSelectMARK()
 {
 	TCHAR tzInit[MAX_PATH_LEN]	= {NULL};
 	PTCHAR ptzFileName	= NULL;
-	PTCHAR tzFileName = (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
-	PTCHAR ptzPathFile	= (PTCHAR)::Alloc(sizeof(TCHAR)*MAX_PATH_LEN);
+	PTCHAR tzFileName = new TCHAR[MAX_PATH_LEN];// (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
+	PTCHAR ptzPathFile = new TCHAR[MAX_PATH_LEN]; // (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
 	
 	/* Reset the file buffer */
 	wmemset(ptzPathFile, 0x00, MAX_PATH_LEN);
@@ -2244,12 +2244,12 @@ VOID CDlgMark::OpenSelectMARK()
 							 MAX_PATH_LEN, ptzPathFile,
 							 L"Please select the MMF&PAT file", tzInit)) 
 	{
-		Free(ptzPathFile);
+		delete ptzPathFile;
 		return;
 	}
 	if (wcslen(ptzPathFile) < 1) 
 	{
-		Free(ptzPathFile);
+		delete ptzPathFile;
 		return;
 	}
 
@@ -2267,8 +2267,8 @@ VOID CDlgMark::OpenSelectMARK()
 #endif
 
 	/* Release the memory of file buffer */
-	Free(ptzPathFile);
-	Free(tzFileName);
+	delete ptzPathFile;
+	delete tzFileName;
 }
 
 /*
@@ -2489,7 +2489,7 @@ void CDlgMark::LoadImageFile()
 	{
 		TCHAR tzInit[MAX_PATH_LEN] = { NULL };
 		PTCHAR ptzFileName = NULL;
-		PTCHAR ptzPathFile = (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
+		PTCHAR ptzPathFile = new TCHAR[MAX_PATH_LEN];// (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
 
 		/* Reset the file buffer */
 		wmemset(ptzPathFile, 0x00, MAX_PATH_LEN);
@@ -2498,7 +2498,7 @@ void CDlgMark::LoadImageFile()
 			MAX_PATH_LEN, ptzPathFile,
 			L"Please select the MMF file", tzInit)) 
 		{
-			::Free(ptzPathFile);
+			delete  ptzPathFile;
 			return;
 		}
 		if (uvEng_Camera_LoadImageFromFile(u8ACamID, ptzPathFile)) {
@@ -2510,7 +2510,7 @@ void CDlgMark::LoadImageFile()
 		}
 
 		::ReleaseDC(pImageWnd->m_hWnd, hDC);
-		::Free(ptzPathFile); 
+		delete ptzPathFile; 
 	}
 }
 
@@ -3196,8 +3196,8 @@ VOID CDlgMark::MarkMerge()
 	// 1. 2개의 mmf 파일 load
 	TCHAR tzInit[MAX_PATH_LEN] = { NULL };
 	PTCHAR ptzFileName = NULL;
-	PTCHAR tzFileName = (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
-	PTCHAR ptzPathFile = (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
+	PTCHAR tzFileName = new TCHAR[MAX_PATH_LEN]; //(PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
+	PTCHAR ptzPathFile = new TCHAR[MAX_PATH_LEN];// (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
 
 	swprintf_s(ptzPathFile, MAX_PATH_LEN, L"%s\\%s\\mmf", g_tzWorkDir, CUSTOM_DATA_CONFIG);
 	///* Reset the file buffer */
@@ -3280,8 +3280,8 @@ VOID CDlgMark::MarkMerge()
 	/* Release the memory of file buffer */
 	//Free(ptzPathFile2);
 	//Free(tzFileName2);
-	Free(ptzPathFile);
-	Free(tzFileName);
+	delete ptzPathFile;
+	delete tzFileName;
 
 
 
@@ -3387,15 +3387,15 @@ VOID CDlgMark::setVisionCalib()
 	SetDlgItemInt(IDC_MARK_EDT_CALIB_R, calib_row);
 	SetDlgItemInt(IDC_MARK_EDT_CALIB_C, calib_col);
 
-	free(CalibROI_left);
-	free(CalibROI_right);
-	free(CalibROI_top);
-	free(CalibROI_bottom);
+	delete CalibROI_left;
+	delete CalibROI_right;
+	delete CalibROI_top;
+	delete CalibROI_bottom;
 
-	CalibROI_left = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	CalibROI_right = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	CalibROI_top = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	CalibROI_bottom = (int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_left = new int[calib_row * calib_col];// (int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_right =  new int[calib_row * calib_col];//(int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_top =    new int[calib_row * calib_col];//(int*)malloc(sizeof(int) * (calib_row * calib_col));
+	CalibROI_bottom = new int[calib_row * calib_col];//(int*)malloc(sizeof(int) * (calib_row * calib_col));
 
 	memset(CalibROI_left, 0, sizeof(int) * (calib_row * calib_col));
 	memset(CalibROI_right, 0, sizeof(int) * (calib_row * calib_col));

@@ -61,9 +61,10 @@ VOID CACamCali::RemoveAlignCaliData()
 	{
 		for (; i<GetConfig()->set_cams.acam_count; i++)
 		{
-			if (m_pstCali[i].pos_xy)	::Free(m_pstCali[i].pos_xy);
+			if (m_pstCali[i].pos_xy)	
+				delete m_pstCali[i].pos_xy;
 		}
-		::Free(m_pstCali);
+		delete m_pstCali;
 		m_pstCali	= NULL;
 	}
 }
@@ -154,7 +155,7 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 	}
 
 	/* Align Calibration XY 데이터 버퍼 생성 */
-	m_pstCali	= (LPM_ACCI)::Alloc(UINT32(GetConfig()->set_cams.acam_count) * sizeof(STM_ACCI));
+	m_pstCali = new STM_ACCI[GetConfig()->set_cams.acam_count];// (LPM_ACCI)::Alloc(UINT32(GetConfig()->set_cams.acam_count) * sizeof(STM_ACCI));
 	ASSERT(m_pstCali);
 	memset(m_pstCali, 0x00, UINT32(GetConfig()->set_cams.acam_count) * sizeof(STM_ACCI));
 	m_pstCali->pos_xy	= NULL;	/* 반드시 초기화 */
@@ -172,7 +173,7 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 			swprintf_s(m_tzErrMsg, LOG_MESG_SIZE,
 					   L"Failed to open the file (calibration_material_thick:%u)", cali_thick);
 			if (0 == eRet)	fclose(fpCali);
-			Free(m_pstCali);
+			delete m_pstCali;
 			m_pstCali	= NULL;
 			RemoveAlignCaliData();
 			return FALSE;
@@ -202,7 +203,7 @@ BOOL CACamCali::LoadFile(UINT16 cali_thick)
 
 		/* 메모리 할당 */
 		i32Total			= UINT32(m_pstCali->col_cnt) * UINT32(m_pstCali->row_cnt);
-		m_pstCali[i].pos_xy	= (LPM_ACCP)::Alloc(i32Total * sizeof(STM_ACCP));
+		m_pstCali[i].pos_xy = new STM_ACCP[i32Total];// (LPM_ACCP)::Alloc(i32Total * sizeof(STM_ACCP));
 		ASSERT(m_pstCali[i].pos_xy);
 		memset(m_pstCali[i].pos_xy, 0x00, sizeof(STM_ACCP) * i32Total);
 		/* 오차 값이 저장될 구조체 포인터 연결 */

@@ -726,7 +726,7 @@ PUINT8 CMachineConfig::GetPktXcorrectionTable(ENG_LPGS flag, UINT8 tbl_no,
 	if (ENG_LPGS::en_set == flag)
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(UINT8) * 4096);
+		pBody = new UINT8[4096];// (PUINT8)::Alloc(sizeof(UINT8) * 4096);
 		PUINT8 pNext	= pBody;
 		UINT16 u16Count	= SWAP16(e_count), i;
 		INT32 i32Value	= 0;
@@ -743,18 +743,18 @@ PUINT8 CMachineConfig::GetPktXcorrectionTable(ENG_LPGS flag, UINT8 tbl_no,
 		u32Body	= UINT32(pNext - pBody);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCMC::en_x_correction_table,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(UINT8) * 8);
+		pBody = new UINT8[8];//(PUINT8)::Alloc(sizeof(UINT8) * 8);
 		memset(pBody, 0x00, 8);
 		pBody[0]= tbl_no;
 		pPktNext = GetPktBase(ENG_LTCT::en_read, ENG_LCMC::en_x_correction_table,
 							  pPktNext, u32Pkts-m_u32PktSize, pBody, 1);
-		::Free(pBody);
+		delete pBody;
 	}
 
 	/* Returns the packet buffer */
@@ -1350,7 +1350,7 @@ PUINT8 CMachineConfig::GetPktYcorrectionTable(ENG_LPGS flag, UINT8 tbl_no,
 	if (ENG_LPGS::en_set == flag)
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(UINT8) * 4096);
+		pBody = new UINT8[4096];// (PUINT8)::Alloc(sizeof(UINT8) * 4096);
 		PUINT8 pNext	= pBody;
 		UINT16 u16Count	= SWAP16(count), i;
 		INT32 i32Value	= 0;
@@ -1366,18 +1366,18 @@ PUINT8 CMachineConfig::GetPktYcorrectionTable(ENG_LPGS flag, UINT8 tbl_no,
 		u32Body	= UINT32(pNext - pBody);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCMC::en_y_correction_table,
 							  pPktNext, u32Pkts, pBody, u32Body);
-		::Free(pBody);
+		delete pBody;
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
 	{
 		/* Set the send packet */
-		pBody	= (PUINT8)::Alloc(sizeof(UINT8) * 8);
+		pBody = new UINT8[8];// (PUINT8)::Alloc(sizeof(UINT8) * 8);
 		memset(pBody, 0x00, 8);
 		pBody[0]= tbl_no;
 		pPktNext = GetPktBase(ENG_LTCT::en_read, ENG_LCMC::en_y_correction_table,
 							  pPktNext, u32Pkts-m_u32PktSize, pBody, 1);
-		::Free(pBody);
+		delete pBody;
 	}
 
 	/* Returns the packet buffer */

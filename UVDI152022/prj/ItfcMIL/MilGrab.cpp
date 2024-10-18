@@ -49,10 +49,10 @@ CMilGrab::CMilGrab(LPG_CIEA config, LPG_VDSM shmem,
 	m_pstGrabResult->Init();
 
 	/* 기타 검색된 정보 저장을 위한 임시 버퍼 (검색된 마크를 그리기 위함) */
-	m_pstResultAll	= (LPG_GMSR)::Alloc(config->mark_find.max_mark_find * sizeof(STG_GMSR));
+	m_pstResultAll = new STG_GMSR[config->mark_find.max_mark_find];// (LPG_GMSR)::Alloc(config->mark_find.max_mark_find * sizeof(STG_GMSR));
 	memset(m_pstResultAll, 0x00, config->mark_find.max_mark_find * sizeof(STG_GMSR));
 	/* 최종 저장될 결과 버퍼 메모리 할당 */
-	m_pstGrabResult->grab_data	= (PUINT8)::Alloc(m_u32ImgSize + 1);
+	m_pstGrabResult->grab_data = new UINT8[m_u32ImgSize + 1];// (PUINT8)::Alloc(m_u32ImgSize + 1);
 	memset(m_pstGrabResult->grab_data, 0x00, m_u32ImgSize+1);
 	m_pstGrabResult->grab_data[m_u32ImgSize]	= 0x00;
 	m_pstGrabResult->grab_size	= m_u32ImgSize;
@@ -72,7 +72,7 @@ CMilGrab::~CMilGrab()
 		delete m_pstGrabResult;
 		m_pstGrabResult	= NULL;
 	}
-	if (m_pstResultAll)	::Free(m_pstResultAll);
+	if (m_pstResultAll)delete m_pstResultAll;
 	m_pstResultAll	= NULL;
 }
 

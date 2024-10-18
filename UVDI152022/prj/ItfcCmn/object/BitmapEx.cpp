@@ -44,7 +44,7 @@ VOID CBitmapEx::BmpDataUpDownChange(UINT32 width, UINT32 height, PUINT8 image)
 	UINT32 i, j;
 
 	/* 임시 버퍼 할당 */
-	PUINT8 pInvert	= (PUINT8)::Alloc(width * height +1);
+	PUINT8 pInvert = new UINT8[width * height + 1];//(PUINT8)::Alloc(width * height +1);
 
 	for (i=0; i<height; i++)
 	{
@@ -58,7 +58,7 @@ VOID CBitmapEx::BmpDataUpDownChange(UINT32 width, UINT32 height, PUINT8 image)
 	memcpy(image, pInvert, width * height);
 
 	/* 메모리 해제 */
-	if (pInvert)	::Free(pInvert);
+	if (pInvert)	delete pInvert;
 }
 
 /*

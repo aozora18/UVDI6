@@ -54,10 +54,10 @@ VOID CLogMesg::LoadFile(PTCHAR file, ENG_LNWE type)
 	/* 현재 열고자 하는 로그 파일의 크기 얻기 */
 	u32Size	= uvCmn_GetFileSize(tzFile);
 	/* 임시 저장할 버퍼 할당 */
-	ptzLogs	= (PTCHAR)::Alloc(u32Size+1);
+	ptzLogs = new TCHAR[u32Size + 1];// (PTCHAR)::Alloc(u32Size + 1);
 	memset(ptzLogs, 0x00, u32Size+1);	/* wmemset 함수 호출하면 안됨. 데이터 크기는 무조건 Bytes 단위이므로 */
 	/* 임시 저장할 버퍼 할당 */
-	ptzMesg	= (PTCHAR)::Alloc(sizeof(TCHAR) * i32Line);
+	ptzMesg = new TCHAR[i32Line];// (PTCHAR)::Alloc(sizeof(TCHAR) * i32Line);
 
 	/* 로그 파일 열기 */
 	errFile = _wfopen_s(&fpLog, tzFile, L"r, ccs=UTF-16LE");
@@ -115,6 +115,6 @@ VOID CLogMesg::LoadFile(PTCHAR file, ENG_LNWE type)
 		Invalidate(FALSE);
 	}
 	/* 메모리 해제 */
-	::Free(ptzMesg);
-	::Free(ptzLogs);
+	delete ptzMesg;
+	delete ptzLogs;
 }

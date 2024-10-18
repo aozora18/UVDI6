@@ -1992,7 +1992,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	/* XML 파일에 등록된 Mark 개수 확인 */
 	u8MarkG = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
 	u8MarkL = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
-	pstMarks = (LPG_I32XY)::Alloc(sizeof(STG_I32XY) * UINT32(u8MarkG + u8MarkL));
+	pstMarks = new STG_I32XY[u8MarkG + u8MarkL];// (LPG_I32XY)::Alloc(sizeof(STG_I32XY) * UINT32(u8MarkG + u8MarkL));
 	ASSERT(pstMarks);
 
 	auto grabFindFunc = [&](int markTgt, CAtlList <LPG_ACGR>* grabPtr, STG_XMXY_RESERVE_FLAG matchingFlags) -> LPG_ACGR
@@ -2300,7 +2300,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 
 	/* 메모리 해제 */
-	::Free(pstMarks);
+	delete pstMarks;
 	/* List 객체 해제 */
 	lstMarks.RemoveAll();
 

@@ -26,7 +26,7 @@ CMarkUVDI15::CMarkUVDI15(PTCHAR work_dir)
 	: CBase(work_dir)
 {
 	m_pstSelected	= NULL;
-	m_pstROI = (LPG_CRD)::Alloc(sizeof(STG_CRD));
+	m_pstROI = new STG_CRD();
 	//for (int i = 0; i < GetConfig()->set_cams.acam_count; i++) { // lk91 UI Cam 3개로 변경시 수정
 	for (int i = 0; i < 2; i++) {
 		m_pstROI->roi_Left[i] = 5;
@@ -62,7 +62,7 @@ VOID CMarkUVDI15::RemoveModelAll()
 	while (pPos)
 	{
 		pstData	= m_lstModel.GetNext(pPos);
-		if (pstData)	::Free(pstData);
+		if (pstData)	delete pstData;
 	}
 	/* 리스트 비움 */
 	m_lstModel.RemoveAll();
@@ -87,7 +87,7 @@ VOID CMarkUVDI15::RemoveAlignRecipeAll()
 		if (pstData)
 		{
 			if (pstData->m_name)	pstData->Close();
-			::Free(pstData);
+			delete pstData;
 		}
 	}
 	/* 리스트 비움 */
@@ -224,7 +224,7 @@ BOOL CMarkUVDI15::ParseModel(PCHAR data, UINT32 size)
 	}
 
 	/* 순서대로 읽어서 구조체에 저장 */
-	pstData	= (LPG_CMPV)::Alloc(sizeof(STG_CMPV));
+	pstData = new STG_CMPV();
 	ASSERT(pstData);
 	/* 메모리 할당 및 초기화 */
 	pstData->Reset();
@@ -304,7 +304,7 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	
 	/* 순서대로 읽어서 구조체에 저장 */
 	stTempRecipe.Init(2);
-	pstRecipe	= (LPG_RAAF)::Alloc(sizeof(STG_RAAF));
+	pstRecipe	= new STG_RAAF();
 	ASSERT(pstRecipe);
 	auto find =  temp.find(token);
 
@@ -440,7 +440,7 @@ BOOL CMarkUVDI15::RemoveModel(PCHAR m_name)
 		pstData	= m_lstModel.GetNext(pPos);
 		if (pstData && 0 == strcmp(m_name, pstData->name))
 		{
-			::Free(pstData);
+			delete pstData;
 			m_lstModel.RemoveAt(pPrePos);
 			return TRUE;
 		}
@@ -474,10 +474,12 @@ BOOL CMarkUVDI15::RemoveAlignRecipe(PCHAR r_name)
 		{
 			if (pstData->m_name)
 			{
-				::Free(pstData->m_name[0]);
-				::Free(pstData->m_name);
+				for (int i=0; i <  pstData->save_count; i++)
+					delete pstData->m_name[i];
+
+				delete[] pstData->m_name;
 			}
-			::Free(pstData);
+			delete pstData;
 			m_lstAlignRecipe.RemoveAt(pPrePos);
 			return TRUE;
 		}
@@ -842,7 +844,7 @@ BOOL CMarkUVDI15::ModelAppend(LPG_CMPV value)
 	}
 
 	/* 맨 마지막 위치에 등록 */
-	pstValue	= (LPG_CMPV)::Alloc(sizeof(STG_CMPV));
+	pstValue = new STG_CMPV();
 	ASSERT(pstValue);
 	pstValue->Reset();
 	memset(pstValue->name, 0x00, MARK_MODEL_NAME_LENGTH);
@@ -885,7 +887,7 @@ BOOL CMarkUVDI15::AlignRecipeAppend(LPG_RAAF recipe)
 	}
 
 	/* 맨 마지막 위치에 등록 */
-	pstRecipe	= (LPG_RAAF)::Alloc(sizeof(STG_RAAF));
+	pstRecipe	= new STG_RAAF();
 	ASSERT(pstRecipe);
 	pstRecipe->Init(recipe->save_count);
 	if (!pstRecipe)	return FALSE;
@@ -1221,7 +1223,7 @@ BOOL CMarkUVDI15::ParseSearchROI(PCHAR data, UINT32 size, UINT8 cnt)
 	}
 
 	if (!m_pstROI)
-		m_pstROI = (LPG_CRD)::Alloc(sizeof(STG_CRD));
+		m_pstROI = new STG_CRD();
 	ASSERT(m_pstROI);
 
 	memset(szValue, 0x00, 32);

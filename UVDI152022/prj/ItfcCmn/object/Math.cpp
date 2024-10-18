@@ -220,7 +220,7 @@ BOOL CMath::GetPolyCentXY(std::vector <STG_DBXY> poly, STG_DBXY &cent)
 	if (poly.size() < 3)	return FALSE;
 	/* 중심점을 찾아가는 과정마다 마지막 중심점 위치를 저장하기 위한 좌표 정보 메모리 할당 */
 	u32Temp	= UINT32(poly.size()-1);
-	pstTemp	= (LPG_DBXY)::Alloc(sizeof(STG_DBXY) * u32Temp);
+	pstTemp = new STG_DBXY[u32Temp];// (LPG_DBXY)::Alloc(sizeof(STG_DBXY) * u32Temp);
 	memset(pstTemp, 0x00, sizeof(STG_DBXY) * u32Temp);
 	/* 초기 2개의 점 사이에서 중심 위치 구함 */
 	pstTemp[0].x	= (poly[0].x + poly[1].x) / 2.0f;
@@ -239,7 +239,7 @@ BOOL CMath::GetPolyCentXY(std::vector <STG_DBXY> poly, STG_DBXY &cent)
 	cent.x	= pstTemp[u32Temp-1].x;
 	cent.y	= pstTemp[u32Temp-1].y;
 	/* 임시 메모리 해제 */
-	::Free(pstTemp);
+	delete pstTemp;
 
 	return TRUE;
 }

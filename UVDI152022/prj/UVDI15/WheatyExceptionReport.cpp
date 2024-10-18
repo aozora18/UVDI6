@@ -720,8 +720,10 @@ void WheatyExceptionReport::GenerateExceptionReport(
 		// Initialize DbgHelp
 		if (!SymInitialize(GetCurrentProcess(), nullptr, TRUE))
 		{
+			LPTSTR errorMsg = ErrorMessage(GetLastError());
 			Log(_T("\n\rCRITICAL ERROR.\n\r Couldn't initialize the symbol handler for process.\n\rError [%s].\n\r\n\r"),
-				ErrorMessage(GetLastError()));
+				errorMsg);
+			LocalFree(errorMsg);  // 메모리 해제 릭있음.
 		}
 
 		if (pExceptionRecord->ExceptionCode == 0xE06D7363 && pExceptionRecord->NumberParameters >= 2)

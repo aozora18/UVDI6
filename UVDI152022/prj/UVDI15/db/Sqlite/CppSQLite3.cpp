@@ -200,7 +200,7 @@ void CppSQLite3Binary::setEncoded(const unsigned char* pBuf)
 	mnEncodedLen = (int)strlen((const char*)pBuf);
 	mnBufferLen = mnEncodedLen + 1; // Allow for NULL terminator
 
-	mpBuf = (unsigned char*)malloc(mnBufferLen);
+	mpBuf = new unsigned char[mnBufferLen];
 
 	if (!mpBuf)
 	{
@@ -218,10 +218,10 @@ const unsigned char* CppSQLite3Binary::getEncoded()
 {
 	if (!mbEncoded)
 	{
-		unsigned char* ptmp = (unsigned char*)malloc(mnBinaryLen);
+		unsigned char* ptmp = new unsigned char[mnBinaryLen];// (unsigned char*)malloc(mnBinaryLen);
 		memcpy(ptmp, mpBuf, mnBinaryLen);
 		mnEncodedLen = sqlite3_encode_binary(ptmp, mnBinaryLen, mpBuf);
-		free(ptmp);
+		delete ptmp;
 		mbEncoded = true;
 	}
 
@@ -267,7 +267,7 @@ unsigned char* CppSQLite3Binary::allocBuffer(int nLen)
 	mnBinaryLen = nLen;
 	mnBufferLen = 3 + (257*nLen)/254;
 
-	mpBuf = (unsigned char*)malloc(mnBufferLen);
+	mpBuf = new unsigned char[mnBufferLen];
 
 	if (!mpBuf)
 	{
@@ -288,7 +288,8 @@ void CppSQLite3Binary::clear()
 	{
 		mnBinaryLen = 0;
 		mnBufferLen = 0;
-		free(mpBuf);
+		delete mpBuf;
+
 		mpBuf = 0;
 	}
 }

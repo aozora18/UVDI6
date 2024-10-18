@@ -23,12 +23,12 @@ CCrypt::CCrypt(PUINT8 k_data, UINT32 k_size)
 {
 	/* 암/복호화 하는데 사용되는 Key 정보 설정 */
 	m_u32KeySize	= k_size;
-	m_pKeyData		= (PUINT8)::Alloc(k_size+1);
+	m_pKeyData		= new UINT8[k_size+1];
 	memcpy(m_pKeyData, k_data, k_size);
 	m_pKeyData[k_size]	= 0x00;
 	/* 암/복호화된 데이터가 저장될 버퍼 생성 */
 	m_dwOutSize		= 0;
-	m_pOutData		= (PUINT8)::Alloc(4096);	/* 충분히 크게 잡자 */
+	m_pOutData = new UINT8[4096];// (PUINT8)::Alloc(4096);	/* 충분히 크게 잡자 */
 	ASSERT(m_pOutData);
 	memset(m_pOutData, 0x00, 4096);
 }
@@ -41,9 +41,9 @@ CCrypt::CCrypt(PUINT8 k_data, UINT32 k_size)
 CCrypt::~CCrypt()
 {
 	/* 암/복호화 Key Data 메모리 해제 */
-	::Free(m_pKeyData);
+	delete m_pKeyData;
 	/* 암/복호화 데이터 메모리 해제 */
-	::Free(m_pOutData);
+	delete m_pOutData;
 }
 
 

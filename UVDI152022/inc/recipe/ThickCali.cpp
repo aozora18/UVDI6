@@ -49,7 +49,7 @@ VOID CThickCali::RemoveAll()
 	while (pPos)
 	{
 		pRecipe	= m_lstRecipe.GetNext(pPos);
-		if (pRecipe)	::Free(pRecipe);
+		if (pRecipe)	delete pRecipe;
 	}
 	/* 리스트 비움 */
 	m_lstRecipe.RemoveAll();
@@ -124,7 +124,7 @@ BOOL CThickCali::ParseAppend(CHAR *data, UINT32 size)
 	}
 
 	/* 순서대로 읽어서 구조체에 저장 */
-	pstRecipe	= (LPG_MACP)::Alloc(sizeof(STG_MACP));
+	pstRecipe = new STG_MACP();// (LPG_MACP)::Alloc(sizeof(STG_MACP));
 	ASSERT(pstRecipe);
 
 	for (i=0; i< u32Find;i++)
@@ -132,7 +132,7 @@ BOOL CThickCali::ParseAppend(CHAR *data, UINT32 size)
 		pFind	= strchr(pData, ',');
 		if (!pFind)
 		{
-			::Free(pstRecipe);
+			delete pstRecipe;
 			return FALSE;
 		}
 

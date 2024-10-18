@@ -129,16 +129,16 @@ VOID CMilModel::CreateMarkResult()
 {
 	// by sys&j : MIL_INT와 INT64 같은 사이즈로 사료됨. 따라서 MIL 미사용 호환성에 따라 INT64로 변환
 	//m_pMilIndex = (PINT64)::Alloc(sizeof(MIL_INT) * m_pstConfig->mark_find.max_mark_find);
-	m_pMilIndex = (PINT64)::Alloc(sizeof(INT64) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindPosX = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindPosY = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindAngle = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindScore = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindScale = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindDist = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindCovg = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindFitErr = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
-	m_pFindCircleRadius = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pMilIndex = new INT64[m_pstConfig->mark_find.max_mark_find]; //  (PINT64)::Alloc(sizeof(INT64) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindPosX = new DOUBLE[m_pstConfig->mark_find.max_mark_find];  // (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindPosY = new DOUBLE[m_pstConfig->mark_find.max_mark_find];   //(DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindAngle = new DOUBLE[m_pstConfig->mark_find.max_mark_find];// *)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindScore = new DOUBLE[m_pstConfig->mark_find.max_mark_find];// *)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindScale = new DOUBLE[m_pstConfig->mark_find.max_mark_find];// *)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindDist = new DOUBLE[m_pstConfig->mark_find.max_mark_find] ;//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindCovg = new DOUBLE[m_pstConfig->mark_find.max_mark_find] ;//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindFitErr = new DOUBLE[m_pstConfig->mark_find.max_mark_find];//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+	m_pFindCircleRadius = new DOUBLE[m_pstConfig->mark_find.max_mark_find];//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
 
 	m_pstMarkModel = m_pstShMemVisi->mod_define[m_u8ACamID - 1];
 	m_pstModelSize = m_pstShMemVisi->mod_size[m_u8ACamID - 1];
@@ -156,16 +156,16 @@ VOID CMilModel::CreateMarkResult()
 */
 VOID CMilModel::ReleaseMarkResult()
 {
-	if (m_pMilIndex)	::Free(m_pMilIndex);
-	if (m_pFindPosX)	::Free(m_pFindPosX);
-	if (m_pFindPosY)	::Free(m_pFindPosY);
-	if (m_pFindAngle)	::Free(m_pFindAngle);
-	if (m_pFindScore)	::Free(m_pFindScore);
-	if (m_pFindScale)	::Free(m_pFindScale);
-	if (m_pFindDist)	::Free(m_pFindDist);
-	if (m_pFindCovg)	::Free(m_pFindCovg);
-	if (m_pFindFitErr)	::Free(m_pFindFitErr);
-	if (m_pFindCircleRadius)	::Free(m_pFindCircleRadius);
+	if (m_pMilIndex)	delete m_pMilIndex;
+	if (m_pFindPosX)	delete m_pFindPosX;
+	if (m_pFindPosY)	delete m_pFindPosY;
+	if (m_pFindAngle)	delete m_pFindAngle;
+	if (m_pFindScore)	delete m_pFindScore;
+	if (m_pFindScale)	delete m_pFindScale;
+	if (m_pFindDist)	delete m_pFindDist;
+	if (m_pFindCovg)	delete m_pFindCovg;
+	if (m_pFindFitErr)	delete m_pFindFitErr;
+	if (m_pFindCircleRadius)	delete m_pFindCircleRadius;
 	
 	m_pMilIndex = NULL;
 	m_pFindPosX = NULL;
@@ -1087,8 +1087,8 @@ VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
 	DOUBLE /*dbX1, dbY1, dbX2, dbY2,*/* dbArrX, * dbArrY;
 
 	/* 임시 버퍼 할당 */
-	dbArrX = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_u8MarkFindGet);
-	dbArrY = (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_u8MarkFindGet);
+	dbArrX = new DOUBLE[m_u8MarkFindGet];
+	dbArrY = new DOUBLE[m_u8MarkFindGet];
 	ASSERT(dbArrX && dbArrY);
 	for (i = 0; i < m_u8MarkFindGet; i++)
 	{
@@ -1124,8 +1124,8 @@ VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
 	}
 
 	/* 메모리 해제 */
-	::Free(dbArrX);
-	::Free(dbArrY);
+	delete dbArrX;
+	delete dbArrY;
 
 	/* 면적 구하기 */
 	area /= 2.0f;
@@ -1344,16 +1344,17 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 	MbufGet2d(m_mlEdgeID, 0, 0, width, height, m_pGrabEdgeImage);
 
 	/* 검색된 결과 값을 저장할 버퍼 할당 */
-	mdEdgeDiameter = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeRadius = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeCircleX = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeCircleY = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeBoxMinX = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeBoxMinY = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeBoxMaxX = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeBoxMaxY = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeStrength = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
-	mdEdgeLength = (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
+	mdEdgeDiameter = new MIL_DOUBLE[miEdgeResults];// (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
+	mdEdgeRadius =   new MIL_DOUBLE[miEdgeResults];
+	mdEdgeCircleX =  new MIL_DOUBLE[miEdgeResults];
+	mdEdgeCircleY =  new MIL_DOUBLE[miEdgeResults];
+	mdEdgeBoxMinX =  new MIL_DOUBLE[miEdgeResults];
+	mdEdgeBoxMinY =  new MIL_DOUBLE[miEdgeResults];
+	mdEdgeBoxMaxX =  new MIL_DOUBLE[miEdgeResults];
+	mdEdgeBoxMaxY =  new MIL_DOUBLE[miEdgeResults];
+	mdEdgeStrength = new MIL_DOUBLE[miEdgeResults];
+	mdEdgeLength =   new MIL_DOUBLE[miEdgeResults];
+
 	/* Sets whether to calculate the extreme left edgel coordinate of each edge. */
 	MedgeGetResult(mlEdgeResult, M_DEFAULT, M_CIRCLE_FIT_RADIUS, mdEdgeRadius, M_NULL);
 	MedgeGetResult(mlEdgeResult, M_DEFAULT, M_CIRCLE_FIT_CENTER_X, mdEdgeCircleX, M_NULL);
@@ -1416,16 +1417,16 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 	if (m_i32EdgeFindGet > 0)	bFinded = TRUE;
 
 	/* 결과 값 메모리 해제 */
-	Free(mdEdgeDiameter);
-	Free(mdEdgeRadius);
-	Free(mdEdgeCircleX);
-	Free(mdEdgeCircleY);
-	Free(mdEdgeBoxMinX);
-	Free(mdEdgeBoxMinY);
-	Free(mdEdgeBoxMaxX);
-	Free(mdEdgeBoxMaxY);
-	Free(mdEdgeStrength);
-	Free(mdEdgeLength);
+	delete mdEdgeDiameter;
+	delete mdEdgeRadius;
+	delete mdEdgeCircleX;
+	delete mdEdgeCircleY;
+	delete mdEdgeBoxMinX;
+	delete mdEdgeBoxMinY;
+	delete mdEdgeBoxMaxX;
+	delete mdEdgeBoxMaxY;
+	delete mdEdgeStrength;
+	delete mdEdgeLength;
 	/* Free MIL objects. */
 	MedgeFree(mlEdgeResult);
 	MedgeFree(mlEdgeContext);
@@ -4319,8 +4320,8 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	int calib_row = row;
 	u32MaxCount = calib_col * calib_row; // lk91 임시!! row * col
 
-	int* Point_x = (int*)malloc(sizeof(int) * (calib_row * calib_col));
-	int* Point_y = (int*)malloc(sizeof(int) * (calib_row * calib_col));
+	int* Point_x = new int[calib_row * calib_col]; //(int*)malloc(sizeof(int) * (calib_row * calib_col));
+	int* Point_y = new int[calib_row * calib_col];// (int*)malloc(sizeof(int) * (calib_row * calib_col));
 
 	memset(Point_x, 0, sizeof(int) * (calib_row * calib_col));
 	memset(Point_y, 0, sizeof(int) * (calib_row * calib_col));
@@ -4418,8 +4419,8 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	}
 	theApp.clMilDisp.DrawOverlayDC(true, dlg_id, m_camid - 1);
 
-	free(Point_x);
-	free(Point_y);
+	delete Point_x;
+	delete Point_y;
 
 	return TRUE;
 }

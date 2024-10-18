@@ -4595,7 +4595,7 @@ API_EXPORT BOOL uvLuria_ReqSetPositionMulti(UINT8 count, PUINT8 ph_no, PDOUBLE p
 	}
 	if (!IsFocusMotorInitialized())	return FALSE;
 
-	pPhPos	= (PINT32)::Alloc(sizeof(UINT32)*UINT32(count));
+	pPhPos = new INT32[count];// (PINT32)::Alloc(sizeof(UINT32) * UINT32(count));
 	ASSERT(pPhPos);
 	for (; i<count; i++)
 	{
@@ -4609,7 +4609,7 @@ API_EXPORT BOOL uvLuria_ReqSetPositionMulti(UINT8 count, PUINT8 ph_no, PDOUBLE p
 	PUINT8 pPktBuff = g_pPktPF->GetPktSetPositionMulti(count, ph_no, pPhPos);
 	bSucc = AddPktSend(pPktBuff, g_pPktPF->GetPktSize(), WFILE);
 	
-	::Free(pPhPos);
+	delete pPhPos;
 
 	return bSucc;
 }

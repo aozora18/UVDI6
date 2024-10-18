@@ -31,10 +31,10 @@ CLogData::CLogData(BOOL saved, UINT8 type, ENG_LNWE mode)
 	m_u8LastError	= 0xff;
 
 	/* 메시지 버퍼 임시 할당 */
-	m_ptzMsgLog	= (PTCHAR)::Alloc(LOG_MESG_SIZE * sizeof(TCHAR) + 1);
-	m_ptzMsgErr	= (PTCHAR)::Alloc(LOG_MESG_SIZE * sizeof(TCHAR) * LAST_MESG_COUNT + sizeof(TCHAR) * LAST_MESG_COUNT /* 종결 문자가 들어갈 버퍼 개수 */);
-	m_ptzMsgPtr	= (PTCHAR*)::Alloc(LAST_MESG_COUNT * sizeof(PTCHAR));
-	m_pLogType	= (PUINT8)::Alloc(LAST_MESG_COUNT);
+	m_ptzMsgLog = new TCHAR[LOG_MESG_SIZE + 1];// (PTCHAR)::Alloc(LOG_MESG_SIZE * sizeof(TCHAR) + 1);
+	m_ptzMsgErr = new TCHAR[LOG_MESG_SIZE * LAST_MESG_COUNT * LAST_MESG_COUNT];// (PTCHAR)::Alloc(LOG_MESG_SIZE * sizeof(TCHAR) * LAST_MESG_COUNT + sizeof(TCHAR) * LAST_MESG_COUNT /* 종결 문자가 들어갈 버퍼 개수 */);
+	m_ptzMsgPtr = new TCHAR*[LAST_MESG_COUNT];// (PTCHAR*)::Alloc(LAST_MESG_COUNT * sizeof(PTCHAR));
+	m_pLogType = new UINT8[LAST_MESG_COUNT];// (PUINT8)::Alloc(LAST_MESG_COUNT);
 	ASSERT(m_ptzMsgLog && m_ptzMsgErr && m_ptzMsgPtr && m_pLogType);
 	ResetErrorMesg();
 
@@ -55,10 +55,10 @@ CLogData::CLogData(BOOL saved, UINT8 type, ENG_LNWE mode)
 CLogData::~CLogData()
 {
 	/* 메시지 버퍼 임시 해제 */
-	if (m_pLogType)		::Free(m_pLogType);
-	if (m_ptzMsgLog)	::Free(m_ptzMsgLog);
-	if (m_ptzMsgErr)	::Free(m_ptzMsgErr);
-	if (m_ptzMsgPtr)	::Free(m_ptzMsgPtr);
+	if (m_pLogType)		delete m_pLogType;
+	if (m_ptzMsgLog)	delete m_ptzMsgLog;
+	if (m_ptzMsgErr)	delete m_ptzMsgErr;
+	if (m_ptzMsgPtr)	delete m_ptzMsgPtr;
 }
 
 /*

@@ -518,31 +518,31 @@ CMemVisi::~CMemVisi()
 	UINT32 i;
 	if (m_pstMemMap)
 	{
-		::Free(m_pstMemMap->mod_define);
-		::Free(m_pstMemMap->mod_size);
-		::Free(m_pstMemMap->mark_result);
-		::Free(m_pstMemMap->edge_result);
-		::Free(m_pstMemMap->line_result);
+		delete m_pstMemMap->mod_define;
+		delete m_pstMemMap->mod_size;
+		delete m_pstMemMap->mark_result;
+		delete m_pstMemMap->edge_result;
+		delete m_pstMemMap->line_result;
 
 		for (i=0; i<m_pstConfig->set_cams.acam_count; i++)
 		{
-			::Free(m_pstMemMap->mark_image[i]);
-			::Free(m_pstMemMap->line_image[i]);
+			delete m_pstMemMap->mark_image[i];
+			delete m_pstMemMap->line_image[i];
 		}
 
 		for (i=0; i<m_pstConfig->set_cams.acam_count; i++)
 		{
-			::Free(m_pstMemMap->cali_global[i]);
-			::Free(m_pstMemMap->cali_local[i]);
+			delete m_pstMemMap->cali_global[i];
+			delete m_pstMemMap->cali_local[i];
 		}
-		::Free(m_pstMemMap->cali_global);
-		::Free(m_pstMemMap->cali_local);
+		delete[] m_pstMemMap->cali_global;
+		delete[] m_pstMemMap->cali_local;
 
-		::Free(m_pstMemMap->mark_image);
-		::Free(m_pstMemMap->edge_image);
-		::Free(m_pstMemMap->line_image);
-		::Free(m_pstMemMap->link);
-		::Free(m_pstMemMap);
+		delete[] m_pstMemMap->mark_image;
+		delete[] m_pstMemMap->edge_image;
+		delete m_pstMemMap->line_image;
+		delete m_pstMemMap->link;
+		delete m_pstMemMap;
 	}
 }
 
@@ -561,21 +561,21 @@ BOOL CMemVisi::LinkMemMap()
 	LPG_ELFR pstLine	= NULL;
 
 	/* 메모리 할당 */
-	m_pstMemMap	= (LPG_VDSM)::Alloc(sizeof(STG_VDSM));
+	m_pstMemMap = new STG_VDSM();// (LPG_VDSM)::Alloc(sizeof(STG_VDSM));
 	ASSERT(m_pstMemMap);
 	/* 공유 메모리 포인터 연결 */
 	pMemNext	= m_pMemMap->GetMemMap();
 	if (!m_pstMemMap)	return FALSE;
 
 	/* ModeDefine 즉, 모델 등록 후 설정된 값 저장 영역 연결 */
-	m_pstMemMap->mod_define	= (STG_CMPV**)::Alloc(sizeof(LPG_CMPV) * u32ACamCnt);
+	m_pstMemMap->mod_define = new LPG_CMPV[u32ACamCnt];//(STG_CMPV**)::Alloc(sizeof(LPG_CMPV) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->mod_define[i]	= (LPG_CMPV)pMemNext;
 		pMemNext	+= sizeof(STG_CMPV) * m_pstConfig->mark_find.max_mark_regist;
 	}
 	/* Model Size 즉, 등록된 모델 크기 */
-	m_pstMemMap->mod_size	= (STG_DBXY**)::Alloc(sizeof(LPG_DBXY) * u32ACamCnt);
+	m_pstMemMap->mod_size = new LPG_DBXY[u32ACamCnt];// ::Alloc(sizeof(LPG_DBXY) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->mod_size[i]	= (LPG_DBXY)pMemNext;
@@ -587,21 +587,21 @@ BOOL CMemVisi::LinkMemMap()
 	/* ----------- */
 
 	/* Model Find */
-	m_pstMemMap->mark_result	= (STG_GMFR**)::Alloc(sizeof(LPG_GMFR) * u32ACamCnt);
+	m_pstMemMap->mark_result = new LPG_GMFR[u32ACamCnt]; // (STG_GMFR**)::Alloc(sizeof(LPG_GMFR) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->mark_result[i]	= (LPG_GMFR)pMemNext;
 		pMemNext	+= sizeof(STG_GMFR) * m_pstConfig->mark_find.max_mark_find;
 	}
 	/* Edge Find */
-	m_pstMemMap->edge_result	= (STG_EDFR**)::Alloc(sizeof(LPG_EDFR) * u32ACamCnt);
+	m_pstMemMap->edge_result = new LPG_EDFR[u32ACamCnt];// (STG_EDFR**)::Alloc(sizeof(LPG_EDFR) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->edge_result[i]	= (LPG_EDFR)pMemNext;
 		pMemNext	+= sizeof(STG_EDFR) * m_pstConfig->edge_find.max_find_count;
 	}
 	/* Line Find */
-	m_pstMemMap->line_result	= (STG_ELFR**)::Alloc(sizeof(LPG_ELFR) * u32ACamCnt);
+	m_pstMemMap->line_result = new LPG_ELFR[u32ACamCnt]; // (STG_ELFR**)::Alloc(sizeof(LPG_ELFR) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->line_result[i]	= (LPG_ELFR)pMemNext;
@@ -609,24 +609,24 @@ BOOL CMemVisi::LinkMemMap()
 	}
 
 	/* Align Camera의 Calibration XY */
-	m_pstMemMap->cali_global	= (STG_ACCE ***)::Alloc(sizeof(LPG_ACCE) * u32ACamCnt);
+	m_pstMemMap->cali_global = new LPG_ACCE*[u32ACamCnt];// (STG_ACCE***)::Alloc(sizeof(LPG_ACCE) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		u8Temp = MAX_GLOBAL_MARKS + 1;/// u32ACamCnt;
 		//u8Temp	//+= (MAX_GLOBAL_MARKS % u32ACamCnt) > 0 ? 0x01 : 0x00;
-		m_pstMemMap->cali_global[i]	= (STG_ACCE **)::Alloc(sizeof(LPG_ACCE) * u8Temp);
+		m_pstMemMap->cali_global[i] = new LPG_ACCE[u8Temp]; // (STG_ACCE**)::Alloc(sizeof(LPG_ACCE) * u8Temp);
 		for (j=0; j<u8Temp; j++)
 		{
 			m_pstMemMap->cali_global[i][j]	= (LPG_ACCE)pMemNext;
 			pMemNext	+= sizeof(STG_ACCE);
 		}
 	}
-	m_pstMemMap->cali_local	= (STG_ACCE ***)::Alloc(sizeof(LPG_ACCE) * u32ACamCnt);
+	m_pstMemMap->cali_local = new LPG_ACCE*[u32ACamCnt];// (STG_ACCE***)::Alloc(sizeof(LPG_ACCE) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		u8Temp = MAX_LOCAL_MARKS + 1;/// u32ACamCnt;
 		//u8Temp	+= (MAX_LOCAL_MARKS % u32ACamCnt) > 0 ? 0x01 : 0x00;// 거지같이도 짜놨네. 
-		m_pstMemMap->cali_local[i]	= (STG_ACCE **)::Alloc(sizeof(LPG_ACCE) * u8Temp);
+		m_pstMemMap->cali_local[i] = new LPG_ACCE[u8Temp];//(STG_ACCE **)::Alloc(sizeof(LPG_ACCE) * u8Temp);
 		for (j=0; j<u8Temp; j++)
 		{
 			m_pstMemMap->cali_local[i][j]	= (LPG_ACCE)pMemNext;
@@ -635,7 +635,7 @@ BOOL CMemVisi::LinkMemMap()
 	}
 
 	/* Camera Link Status */
-	m_pstMemMap->link	= (STG_DLSM**)::Alloc(sizeof(LPG_DLSM) * u32ACamCnt);
+	m_pstMemMap->link = new LPG_DLSM[u32ACamCnt];// (STG_DLSM**)::Alloc(sizeof(LPG_DLSM) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->link[i]	= (LPG_DLSM)pMemNext;
@@ -648,11 +648,13 @@ BOOL CMemVisi::LinkMemMap()
 	/* ------------- */
 	u32Size	= m_pstConfig->set_cams.GetCamSizeBytes();
 
+	UINT8*** mark_image;	/* Model Find 결과 이미지 */
+	
 	/* Mark Find */
-	m_pstMemMap->mark_image	= (UINT8***)::Alloc(sizeof(PUINT8) * u32ACamCnt);
+	m_pstMemMap->mark_image	= m_pstMemMap->mark_image = new PUINT8* [u32ACamCnt];//(UINT8***)::Alloc(sizeof(PUINT8) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
-		m_pstMemMap->mark_image[i]	= (UINT8**)::Alloc(sizeof(PUINT8) * m_pstConfig->mark_find.max_mark_grab);
+		m_pstMemMap->mark_image[i] = new PUINT8[m_pstConfig->mark_find.max_mark_grab]; //(UINT8**)::Alloc(sizeof(PUINT8) * m_pstConfig->mark_find.max_mark_grab);
 		for (j=0; j<m_pstConfig->mark_find.max_mark_grab; j++)
 		{
 			m_pstMemMap->mark_image[i][j]	= (PUINT8)pMemNext;
@@ -660,17 +662,17 @@ BOOL CMemVisi::LinkMemMap()
 		}
 	}
 	/* Edge Find (!!! 주의 !!! 카메라 마다 이미지 버퍼 1개씩만 존재) */
-	m_pstMemMap->edge_image	= (UINT8**)::Alloc(sizeof(PUINT8) * u32ACamCnt);
+	m_pstMemMap->edge_image = new PUINT8[u32ACamCnt];// (UINT8**)::Alloc(sizeof(PUINT8) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
 		m_pstMemMap->edge_image[i]	= (PUINT8)pMemNext;
 		pMemNext	+= sizeof(UINT8) * u32Size/* * m_pstConfig->edge_find.max_find_count*/;
 	}
 	/* Line Find */
-	m_pstMemMap->line_image	= (UINT8***)::Alloc(sizeof(PUINT8) * u32ACamCnt);
+	m_pstMemMap->line_image = new PUINT8*[u32ACamCnt];//(UINT8***)::Alloc(sizeof(PUINT8) * u32ACamCnt);
 	for (i=0; i<u32ACamCnt; i++)
 	{
-		m_pstMemMap->line_image[i]	= (UINT8**)::Alloc(sizeof(PUINT8) * m_pstConfig->line_find.max_find_count);
+		m_pstMemMap->line_image[i] = new PUINT8[m_pstConfig->line_find.max_find_count]; //(UINT8**)::Alloc(sizeof(PUINT8) * m_pstConfig->line_find.max_find_count);
 		for (j=0; j<m_pstConfig->line_find.max_find_count; j++)
 		{
 			m_pstMemMap->line_image[i][j]	= (PUINT8)pMemNext;

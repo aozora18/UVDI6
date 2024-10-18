@@ -45,10 +45,10 @@ CCamMain::CCamMain(LPG_CIEA config, UINT8 cam_id)
 		m_u32ExposeTime	= m_pstConfig->set_basler.step_times[cam_id-1];
 
 	/* Gray Index 개수 저장할 버퍼 할당 */
-	m_pGrayCount		= (PUINT32)Alloc(256 * sizeof(UINT32));
+	m_pGrayCount = new UINT32[256];// (PUINT32)Alloc(256 * sizeof(UINT32));
 	ASSERT(m_pGrayCount);
 	/* Gray Level 개수 저장할 버퍼 할당 */
-	m_pHistLevel		= (PUINT64)Alloc(sizeof(UINT64) * config->GetACamGrabSize(0x00));
+	m_pHistLevel = new UINT64[sizeof(UINT64) * config->GetACamGrabSize(0x00)];// (PUINT64)Alloc(sizeof(UINT64) * config->GetACamGrabSize(0x00));
 	ASSERT(m_pHistLevel);
 
 	// 연결될 카메라의 인스턴스 메모리 할당
@@ -58,15 +58,17 @@ CCamMain::CCamMain(LPG_CIEA config, UINT8 cam_id)
 	// Live Mode 임시 저장용
 	memset(&m_stGrab, 0x00, sizeof(STG_ACGR));
 	/* Basler Camera에서 Grabbed Image의 Format은 256 Grayscale 이므로*/
-	m_stGrab.grab_data	= (PUINT8)Alloc(config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01) + 1); 
+	m_stGrab.grab_data = new UINT8[config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01) + 1];// (PUINT8)Alloc(config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01) + 1);
 	m_stGrab.grab_data[config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01)]	= 0x00;
 
 	/* 1 번 Scan으로 grab 되는 이미지가 저장될 버퍼 메모리 할당 */
-	m_pGrabBuff			= (PUINT8*)Alloc(sizeof(PUINT8) * m_pstConfig->mark_find.max_mark_grab);
-	m_pGrabBuff[0]		= (PUINT8)Alloc(UINT64(m_pstConfig->mark_find.max_mark_grab) *
-										UINT64(config->GetACamGrabSize(0x00)) * 
-										UINT64(config->GetACamGrabSize(0x01)) +
-										m_pstConfig->mark_find.max_mark_grab);
+	m_pGrabBuff = new PUINT8[m_pstConfig->mark_find.max_mark_grab];
+	m_pGrabBuff[0] = new UINT8[
+		UINT64(m_pstConfig->mark_find.max_mark_grab) *
+			UINT64(config->GetACamGrabSize(0x00)) *
+			UINT64(config->GetACamGrabSize(0x01)) +
+			m_pstConfig->mark_find.max_mark_grab];
+
 	for (i=1; i<m_pstConfig->mark_find.max_mark_grab; i++)
 	{
 		m_pGrabBuff[i]	= m_pGrabBuff[i-1] +
@@ -97,17 +99,19 @@ CCamMain::~CCamMain()
 	// Live Mode 임시 저장용 메모리 해제
 	//Free(m_stGrab.grab_data);
 	/* Gray Index 메모리 해제 */
-	if (m_pHistLevel)	Free(m_pHistLevel);
-	if (m_pGrayCount)	Free(m_pGrayCount);
+	if (m_pHistLevel)	delete m_pHistLevel;
+	if (m_pGrayCount)	delete m_pGrayCount;
 
 	// 큐에 저장된 Grabbed 이미지 제거
 	ResetGrabbedImage();
 	/* Grabbed Image Buffer 메모리 해제 */
-	if (m_pGrabBuff)
+	if (m_pGrabBuff) 
 	{
-		Free(m_pGrabBuff[0]);
-		Free(m_pGrabBuff);
+		delete[] m_pGrabBuff[0];
+		delete[] m_pGrabBuff;
+		m_pGrabBuff = nullptr;
 	}
+
 	//delete pstMark;
 	//::Free(pstMark);
 	markPool.Destroy();
@@ -790,13 +794,13 @@ BOOL CCamMain::LoadImageFromFile(PTCHAR file, INT32 cam_id)
 	u32FileSize	= uvCmn_GetFileSize(file);
 	if (u32FileSize < 1)	return FALSE;
 	/* 파일 전체를 저장할 버퍼 생성 */
-	pImgBuff	= (PUINT8)::Alloc(u32FileSize+1);
+	pImgBuff = new UINT8[u32FileSize + 1];// (PUINT8)::Alloc(u32FileSize + 1);
 	ASSERT(pImgBuff);
 	pImgBuff[u32FileSize]	= 0x00;
 	/* 파일 전체 내용 저장 */
 	if (!uvCmn_LoadFile(file, pImgBuff, u32FileSize))
 	{
-		::Free(pImgBuff);
+		delete pImgBuff;
 		return FALSE;
 	}
 	pImgNext	= pImgBuff;
@@ -823,7 +827,7 @@ BOOL CCamMain::LoadImageFromFile(PTCHAR file, INT32 cam_id)
 		m_stGrab.cam_id = m_u8CamID; 
 	}
 	else {
-		::Free(pImgBuff);
+		delete pImgBuff;
 		return FALSE;
 	}
 
@@ -838,7 +842,7 @@ BOOL CCamMain::LoadImageFromFile(PTCHAR file, INT32 cam_id)
 	}
 
 	/* 임시 버퍼 해제 */
-	::Free(pImgBuff); 
+	delete pImgBuff; 
 
 	return TRUE;
 }

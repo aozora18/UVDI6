@@ -2713,8 +2713,8 @@ void CDlgMark::OnLButtonDown(UINT nFlags, CPoint point)
 
 	if (rt.PtInRect(point) && (menuPart == 1 || menuPart == 2 || menuPart == 3 || menuPart == 6))
 	{
-		OldZoomFlag = ZoomFlag[u8ACamID];
-		ZoomFlag[u8ACamID] = false;
+		OldZoomFlag = ZoomFlag[u8ACamID-1];
+		ZoomFlag[u8ACamID-1] = false;
 
 		UpdateData(TRUE);
 
@@ -2739,7 +2739,7 @@ void CDlgMark::OnLButtonDown(UINT nFlags, CPoint point)
 		UpdateData(FALSE);
 	}
 	//else if (rt2.PtInRect(point) && (ZoomFlag[u8ACamID]/*menuPart == 5*/))
-	else if (ZoomFlag[u8ACamID])
+	else if (ZoomFlag[u8ACamID-1])
 	{
 		um_bMoveFlag = true;
 		uvCmn_Camera_SetZoomDownP(DISP_TYPE_MARK_LIVE, u8ACamID, point);
@@ -2884,7 +2884,7 @@ void CDlgMark::OnLButtonUp(UINT nFlags, CPoint point)
 		}
 
 		UpdateData(FALSE);
-		ZoomFlag[u8ACamID] = OldZoomFlag;
+		ZoomFlag[u8ACamID-1] = OldZoomFlag;
 	}
 
 	um_bMoveFlag = false;
@@ -2906,7 +2906,7 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 
 	double dRate = 1.0 / tgt_rate;
 
-	if (um_bMoveFlag && rt.PtInRect(point) && !ZoomFlag[u8ACamID]) 
+	if (um_bMoveFlag && rt.PtInRect(point) && !ZoomFlag[u8ACamID-1]) 
 	{
 		UpdateData(TRUE);
 
@@ -2984,7 +2984,7 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 		}
 		UpdateData(FALSE);
 	}
-	else if (ZoomFlag[u8ACamID] && um_bMoveFlag)
+	else if (ZoomFlag[u8ACamID-1] && um_bMoveFlag)
 	{
 		CWnd* pImageWnd = GetDlgItem(IDC_MARK_PIC_FIND_GRAB);
 		CRect rDraw;
@@ -3005,7 +3005,7 @@ void CDlgMark::MenuZoomIn()
 	CRect rDraw;
 	pImageWnd->GetClientRect(rDraw);
 	uvCmn_Camera_MilZoomIn(DISP_TYPE_MARK_LIVE, u8ACamID, rDraw);
-	ZoomFlag[u8ACamID] = true;
+	ZoomFlag[u8ACamID-1] = true;
 }
 
 /* desc: Zoom Out */
@@ -3018,7 +3018,7 @@ void CDlgMark::MenuZoomOut()
 	pImageWnd->GetClientRect(rDraw);
 	if (!uvCmn_Camera_MilZoomOut(DISP_TYPE_MARK_LIVE, u8ACamID, rDraw)) 
 	{
-		ZoomFlag[u8ACamID] = false;
+		ZoomFlag[u8ACamID-1] = false;
 	}
 }
 
@@ -3028,7 +3028,7 @@ void CDlgMark::MenuZoomFit()
 	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
 	UINT8 u8ACamID = CheckSelectCam();
 	uvCmn_Camera_MilAutoScale(DISP_TYPE_MARK_LIVE, u8ACamID);
-	ZoomFlag[u8ACamID] = false;
+	ZoomFlag[u8ACamID-1] = false;
 }
 
 /* desc: 마우스 휠 이벤트, Zoom In, Out 사용 */
@@ -3052,11 +3052,11 @@ BOOL CDlgMark::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
 	if (zDelta > 0) {
 		uvCmn_Camera_MilZoomIn(DISP_TYPE_MARK_LIVE, u8ACamID, rDraw);
-		ZoomFlag[u8ACamID] = true;
+		ZoomFlag[u8ACamID-1] = true;
 	}
 	else {
 		if(!uvCmn_Camera_MilZoomOut(DISP_TYPE_MARK_LIVE, u8ACamID, rDraw))
-			ZoomFlag[u8ACamID] = false;
+			ZoomFlag[u8ACamID-1] = false;
 	}
 	
 	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);

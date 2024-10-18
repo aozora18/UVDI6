@@ -622,16 +622,18 @@ typedef struct __st_recipe_align_additional_function_
 		mark_area[1] = 0x00;
 
 
-		align_name = (PCHAR)Alloc(RECIPE_NAME_LENGTH);
+
+		align_name = new CHAR[RECIPE_NAME_LENGTH];//(PCHAR)Alloc(RECIPE_NAME_LENGTH);
 		memset(align_name, 0, RECIPE_NAME_LENGTH);
 
 		/* 메모리 할당 */
-		acam_num = (PUINT8)::Alloc(sizeof(UINT8) * save_count);
+		acam_num = new UINT8[save_count];//  (PUINT8)::Alloc(sizeof(UINT8) * save_count);
 		memset(acam_num, 0x00, sizeof(UINT8) * save_count);
-		m_name = (PCHAR*)::Alloc(sizeof(PCHAR) * save_count);
+		m_name = new CHAR*[save_count]; //(PCHAR*)::Alloc(sizeof(PCHAR) * save_count);
+
 		for (; i < cnt; i++)
 		{
-			m_name[i] = (PCHAR)::Alloc(sizeof(CHAR) * MARK_MODEL_NAME_LENGTH);
+			m_name[i] = new CHAR[MARK_MODEL_NAME_LENGTH];// (PCHAR)::Alloc(sizeof(CHAR) * MARK_MODEL_NAME_LENGTH);
 			memset(m_name[i], 0x00, sizeof(CHAR) * MARK_MODEL_NAME_LENGTH);
 		}
 	}
@@ -646,12 +648,15 @@ typedef struct __st_recipe_align_additional_function_
 		UINT8 i = 0x00;
 		if (m_name && save_count)
 		{
-			::Free(acam_num);
-			for (; i < save_count; i++)	::Free(m_name[i]);
-			::Free(m_name);
+			delete acam_num;
+
+			//::Free(acam_num);
+			for (; i < save_count; i++)	::delete m_name[i];
+			delete[] m_name;
 		}
 
-		if (align_name)			Free(align_name);
+		if (align_name)			
+			delete align_name;
 	}
 
 }	STG_RAAF, * LPG_RAAF;

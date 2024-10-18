@@ -40,7 +40,7 @@ VOID CMilDisp::InitMilDisp()
 		clLineList[i] = new CDrawDcLine[theApp.clMilMain.GRABMARK_CNT];// (CDrawDcLine*)malloc(sizeof(CDrawDcLine) * theApp.clMilMain.GRABMARK_CNT);
 	}
 
-	clPixelList = new CDrawDcPixel[PART_CNT]; //(CDrawDcPixel**)malloc(sizeof(CDrawDcPixel*) * PART_CNT);
+	clPixelList = new CDrawDcPixel*[PART_CNT]; //(CDrawDcPixel**)malloc(sizeof(CDrawDcPixel*) * PART_CNT);
 	for (int i = 0; i < PART_CNT; i++) {
 		clPixelList[i] = new CDrawDcPixel[theApp.clMilMain.GRABMARK_CNT];
 	}

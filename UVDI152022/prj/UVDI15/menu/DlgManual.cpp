@@ -1225,6 +1225,7 @@ VOID CDlgManual::MakeMarkOffsetField()
 		stVctParam.clear();
 		int valueCount = values.size();
 		CString temp;
+
 		vector<double> valuesCpy;
 		
 		int localCnt = 0;
@@ -1236,7 +1237,12 @@ VOID CDlgManual::MakeMarkOffsetField()
 		{
 			for (int j = 0; j < MARK_PAIR; j++)
 			{
-				temp.Format(_T("%s_Mark%d offset %s"), values[i]->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "G" : "L", i + 1, (j == 0 ? "x" : "y"));
+
+				const TCHAR* flag = values[i]->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? _T("G") : _T("L");
+				const TCHAR* axis = (j == 0 ? _T("x") : _T("y"));
+				temp.Format(_T("%s_Mark%d offset %s"), flag, i + 1, axis);
+
+				//temp.Format(_T("%s_Mark%d offset %s"), values[i]->GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? "G" : "L", i + 1, (j == 0 ? "x" : "y"));
 				stParam.Init();
 				stParam.strName = temp;
 				stParam.strValue = CStringA(values[i] == nullptr ? "" :  std::to_string( j==0 ? values[i]->mark_x : values[i]->mark_y).c_str());

@@ -45,11 +45,11 @@ typedef struct  __st_recipe_job_additional_function_
 		cali_thick = 960;
 		step_size = 1;
 		frame_rate = 999;
-		job_name = (PCHAR)Alloc(RECIPE_NAME_LENGTH);
-		gerber_path = (PCHAR)Alloc(MAX_PATH_LEN);
-		gerber_name = (PCHAR)Alloc(MAX_GERBER_NAME);
-		align_recipe = (PCHAR)Alloc(RECIPE_NAME_LENGTH);
-		expo_recipe = (PCHAR)Alloc(RECIPE_NAME_LENGTH);
+		job_name = new CHAR[RECIPE_NAME_LENGTH];// (PCHAR)Alloc();
+		gerber_path = new CHAR[MAX_PATH_LEN];//(PCHAR)Alloc(MAX_PATH_LEN);
+		gerber_name = new CHAR[MAX_GERBER_NAME]; //(PCHAR)Alloc(MAX_GERBER_NAME);
+		align_recipe = new CHAR[RECIPE_NAME_LENGTH];//(PCHAR)Alloc(RECIPE_NAME_LENGTH);
+		expo_recipe = new CHAR[RECIPE_NAME_LENGTH];//(PCHAR)Alloc(RECIPE_NAME_LENGTH);
 
 		memset(job_name, 0x00, RECIPE_NAME_LENGTH);
 		memset(gerber_path, 0x00, MAX_PATH_LEN);
@@ -65,11 +65,16 @@ typedef struct  __st_recipe_job_additional_function_
 	*/
 	VOID Close()
 	{
-		if (job_name)			Free(job_name);
-		if (gerber_path)		Free(gerber_path);
-		if (gerber_name)		Free(gerber_name);
-		if (align_recipe)		Free(align_recipe);
-		if (expo_recipe)		Free(expo_recipe);
+		if (job_name)			
+			delete job_name;
+		if (gerber_path)		
+			delete gerber_path;
+		if (gerber_name)		
+			delete gerber_name;
+		if (align_recipe)		
+			delete align_recipe;
+		if (expo_recipe)		
+			delete expo_recipe;
 
 	}
 
@@ -143,12 +148,12 @@ typedef struct __st_recipe_expo_additional_function__
 	DOUBLE				real_scale_range;		/* 거버의 크기 대비 소재 크기의 배율에 대한 오차 범위*/
 	DOUBLE				real_rotaion_range;		/* 소재의 수평 회전에 대한 오차 범위*/
 	DOUBLE				global_mark_dist_rate;	/* Align 후 Global Mark 간의 거리 오차 허용 값 비율 (0.00001~0.0001)	*/
-	PUINT32				global_mark_dist;		/* Align 후 Global Mark 간의 거리 오차 허용 값 (unit: 100 nm or 0.1 um)	*/
+	PUINT32				global_mark_dist = nullptr;		/* Align 후 Global Mark 간의 거리 오차 허용 값 (unit: 100 nm or 0.1 um)	*/
 
 
-	PCHAR				expo_name;				/* expo Recipe Name												*/
-	PCHAR				power_name;				/* Led Power Recipe Name										*/
-	PCHAR				text_string;			/* Head String 부분												*/
+	PCHAR				expo_name = nullptr;				/* expo Recipe Name												*/
+	PCHAR				power_name = nullptr;				/* Led Power Recipe Name										*/
+	PCHAR				text_string = nullptr;			/* Head String 부분												*/
 
 	/*
 	 desc : 메모리 할당
@@ -157,15 +162,15 @@ typedef struct __st_recipe_expo_additional_function__
 	*/
 	VOID Init()
 	{
-		expo_name = (PCHAR)Alloc(RECIPE_NAME_LENGTH);
-		power_name = (PCHAR)Alloc(LED_POWER_NAME_LENGTH);
-		text_string = (PCHAR)Alloc(MAX_PANEL_TEXT_STRING);
+		expo_name = new CHAR[RECIPE_NAME_LENGTH]; //(PCHAR)Alloc();
+		power_name = new CHAR[LED_POWER_NAME_LENGTH];
+		text_string = new CHAR[MAX_PANEL_TEXT_STRING];
 
 		memset(expo_name, 0, RECIPE_NAME_LENGTH);
 		memset(power_name, 0, LED_POWER_NAME_LENGTH);
 		memset(text_string, 0, MAX_PANEL_TEXT_STRING);
 
-		global_mark_dist = (PUINT32)Alloc(sizeof(UINT32) * MAX_GLOBAL_MARK_DIST_CHECK_COUNT);
+		global_mark_dist = new UINT32[MAX_GLOBAL_MARK_DIST_CHECK_COUNT];
 
 		dcode_serial = 12;
 		dcode_scale = 13;
@@ -191,10 +196,10 @@ typedef struct __st_recipe_expo_additional_function__
 	*/
 	VOID Close()
 	{
-		if (expo_name)				Free(expo_name);
-		if (text_string)			Free(text_string);
-		if (global_mark_dist)		Free(global_mark_dist);
-		if (power_name)				Free(power_name);
+		if (expo_name)				delete expo_name;
+		if (text_string)			delete text_string;
+		if (global_mark_dist) delete global_mark_dist;
+		if (power_name)				delete power_name;
 	}
 
 	/*

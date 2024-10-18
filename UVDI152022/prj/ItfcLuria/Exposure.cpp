@@ -65,7 +65,7 @@ PUINT8 CExposure::GetPktLightAmplitude(ENG_LPGS flag, UINT8 count, UINT16 (*amp)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -122,7 +122,7 @@ PUINT8 CExposure::GetPktLightAmplitude(ENG_LPGS flag, UINT8 ph_no, ENG_LLPI led_
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -161,7 +161,7 @@ PUINT8 CExposure::GetPktScrollStepSize(ENG_LPGS flag, UINT8 step)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -200,7 +200,7 @@ PUINT8 CExposure::GetPktFrameRateFactor(ENG_LPGS flag, UINT16 rate)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -241,7 +241,7 @@ PUINT8 CExposure::GetPktLedDutyCycle(ENG_LPGS flag, UINT8 duty)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -282,7 +282,7 @@ PUINT8 CExposure::GetPktPrePrint()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -311,7 +311,7 @@ PUINT8 CExposure::GetPktPrint()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -338,7 +338,7 @@ PUINT8 CExposure::GetPktAbort()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -364,7 +364,7 @@ PUINT8 CExposure::GetPktGetExposureState()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -391,7 +391,7 @@ PUINT8 CExposure::GetPktGetExposureSpeed()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -417,7 +417,7 @@ PUINT8 CExposure::GetPktResetExposureState()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -449,7 +449,7 @@ PUINT8 CExposure::GetPktEnableAfCopyLastStrip(ENG_LPGS flag, UINT8 enable)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -486,7 +486,7 @@ PUINT8 CExposure::GetPktSimulatePrint()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -511,7 +511,7 @@ PUINT8 CExposure::GetPktMoveTableToExposureStartPos()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -537,7 +537,7 @@ PUINT8 CExposure::GetPktGetNumberOfLightSources(UINT8 ph_no)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -565,7 +565,7 @@ PUINT8 CExposure::GetPktGetLightSourceStatus(UINT8 ph_no, ENG_LLPI led_no)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -600,7 +600,7 @@ PUINT8 CExposure::GetPktDisableAfFirstStrip(ENG_LPGS flag, UINT8 disable)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -649,7 +649,7 @@ PUINT8 CExposure::GetPktAFSensor(ENG_LPGS flag, UINT8 type, UINT8 agc, UINT16 pw
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -694,7 +694,7 @@ PUINT8 CExposure::GetPktLightRampUpDown()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -727,7 +727,7 @@ PUINT8 CExposure::GetPktAFSensorMeasureLaserPWM()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -757,7 +757,7 @@ PUINT8 CExposure::GetPktGetLightSourceStatusMulti()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */

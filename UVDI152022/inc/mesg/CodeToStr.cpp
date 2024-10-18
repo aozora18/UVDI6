@@ -63,7 +63,7 @@ BOOL CCodeToStr::LoadFile()
 	TCHAR tzName[7][16]	= { L"mc2", L"luria_reg", L"luria_sys", L"luria_ph",
 							L"luria_sts1", L"luria_sts2", L"plc_z_axis" };
 	UINT16 u16Index	= 0, i, u16Len, u16Start[7] = { 0, 0, 10000, 10000, 0, 0, 0 };
-	PCHAR pszData		= (PCHAR)::Alloc(1024);
+	CHAR pszData[1024];// = new CHAR[1024];// (PCHAR)::Alloc(1024);
 	CHAR *pszNext		= pszData, *pszFind, szCode[8];
 	errno_t eRet		= 0;
 	FILE *fp			= NULL;
@@ -129,7 +129,8 @@ BOOL CCodeToStr::LoadFile()
 	fclose(fp);
 
 	/* 메모리 해제 */
-	if (pszData)	::Free(pszData);
+	/*if (pszData)	delete pszData;
+	pszData = nullptr;*/
 
 	return bSucc;
 }

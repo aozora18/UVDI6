@@ -60,7 +60,7 @@ PUINT8 CSystem::GetPktInitializeHardware()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts]; // new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -88,7 +88,7 @@ PUINT8 CSystem::GetPktSystemStatus()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	=new  UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -116,7 +116,7 @@ PUINT8 CSystem::GetPktSystemShutdown()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -150,7 +150,7 @@ PUINT8 CSystem::GetPktUpgradeFirmware(UINT16 length, PCHAR file)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -186,7 +186,7 @@ PUINT8 CSystem::GetPktLoadInternalTestImage(UINT8 ph_no, UINT8 img_no)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -219,7 +219,7 @@ PUINT8 CSystem::GetPktSetLightIntensity(UINT8 ph_no, ENG_LLPI led_no, UINT16 amp
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -255,7 +255,7 @@ PUINT8 CSystem::GetPktMainboardTemperature()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -283,7 +283,7 @@ PUINT8 CSystem::GetPktOverallErrorStatusMulti()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */

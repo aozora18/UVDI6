@@ -61,7 +61,7 @@ PUINT8 CPhZFocus::GetPktInitializeFocus()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -92,7 +92,7 @@ PUINT8 CPhZFocus::GetPktPosition(ENG_LPGS flag, UINT8 ph_no, INT32 ph_pos)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -135,7 +135,7 @@ PUINT8 CPhZFocus::GetPktAutofocus(ENG_LPGS flag, UINT8 ph_no, UINT8 enable)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -175,7 +175,7 @@ PUINT8 CPhZFocus::GetPktTrim(ENG_LPGS flag, UINT8 ph_no, INT32 trim)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -222,7 +222,7 @@ PUINT8 CPhZFocus::GetPktActiveAreaQualifier(ENG_LPGS flag, UINT8 enable, UINT32 
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -270,7 +270,7 @@ PUINT8 CPhZFocus::GetPktAbsWorkRange(ENG_LPGS flag, UINT8 ph_no, INT32 abs_min, 
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -313,7 +313,7 @@ PUINT8 CPhZFocus::GetPktGetAbsWorkRangeStatus()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -346,7 +346,7 @@ PUINT8 CPhZFocus::GetPktAfEdgeTrigger(ENG_LPGS flag, UINT16 dist, UINT8 enable)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -392,7 +392,7 @@ PUINT8 CPhZFocus::GetPktSetPositionMulti(UINT8 count, PUINT8 ph_no, PINT32 ph_po
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -431,7 +431,7 @@ PUINT8 CPhZFocus::GetPktPositionHiRes(ENG_LPGS flag, UINT8 ph_no, INT32 ph_pos)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -475,7 +475,7 @@ PUINT8 CPhZFocus::GetPktOutsideDOFStatus()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -502,7 +502,7 @@ PUINT8 CPhZFocus::GetPktGetPositionMulti()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -532,7 +532,7 @@ PUINT8 CPhZFocus::GetPktAfGain(ENG_LPGS flag, UINT16 gain)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -577,7 +577,7 @@ PUINT8 CPhZFocus::GetPktScanEthercat()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 

@@ -261,7 +261,7 @@ BOOL CPicture::LoadPictureData(BYTE *pBuffer, int nSize)
 	::FreeResource(hGlobal); // 16Bit Windows Needs This (32Bit - Automatic Release)
 #else
 	pStream->Release();
-	::GlobalFree(hGlobal);	/* Modified by JsKang 2020-01-20 */
+	//::GlobalFree(hGlobal);	/* Modified by JsKang 2020-01-20 */
 #endif
 	return(bResult);
 }

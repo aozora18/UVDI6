@@ -64,7 +64,7 @@ PUINT8 CDirectPhComn::GetPktData(UINT16 msg_size, UINT8 ph_no, UINT16 rec_id, PU
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 

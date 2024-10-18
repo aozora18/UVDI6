@@ -560,7 +560,7 @@ BOOL CLuriaSThread::ReqSystemStatus()
 	pPkt	= m_pPktSS->GetPktSystemStatus();
 	u32Size	= m_pPktSS->GetPktSize();
 	m_pClient->AddPktSend(pPkt, u32Size);
-	::Free(pPkt);
+	delete pPkt;
 
 	return TRUE;
 }
@@ -579,7 +579,7 @@ BOOL CLuriaSThread::ReqAnnouncementStatus()
 	pPkt	= m_pPktCM->GetPktAnnouncementStatus();
 	u32Size	= m_pPktCM->GetPktSize();
 	if (m_pClient)	m_pClient->AddPktSend(pPkt, u32Size);
-	::Free(pPkt);
+	delete pPkt;
 
 	return TRUE;
 }

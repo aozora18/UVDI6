@@ -410,7 +410,7 @@ PUINT8 CMachineConfig::GetPktTotalPhotoheads(ENG_LPGS flag, UINT8 ph_count)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -448,7 +448,7 @@ PUINT8 CMachineConfig::GetPktPhotoheadIpAddr(ENG_LPGS flag, UINT8 ph_no, PUINT8 
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -463,7 +463,7 @@ PUINT8 CMachineConfig::GetPktPhotoheadIpAddr(ENG_LPGS flag, UINT8 ph_no, PUINT8 
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
 	{
 		pPktNext = GetPktBase(ENG_LTCT::en_read, ENG_LCMC::en_photo_head_ip_addr,
-							  pPktNext, u32Pkts, (PUINT8)&ph_no, 1);
+							  pPktNext, u32Pkts-m_u32PktSize, (PUINT8)&ph_no, 1);
 	}
 
 	/* Returns the packet buffer */
@@ -485,7 +485,7 @@ PUINT8 CMachineConfig::GetPktPhotoheadPitch(ENG_LPGS flag, UINT8 pitch)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -522,7 +522,7 @@ PUINT8 CMachineConfig::GetPktPhotoheadRotate(ENG_LPGS flag, UINT8 rotate)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -562,7 +562,7 @@ PUINT8 CMachineConfig::GetPktParallelogramMotionAdjust(ENG_LPGS flag, UINT8 tbl_
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -600,7 +600,7 @@ PUINT8 CMachineConfig::GetPktScrollRate(ENG_LPGS flag, UINT16 scroll)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -638,7 +638,7 @@ PUINT8 CMachineConfig::GetPktMotionControlType(ENG_LPGS flag, UINT8 type)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -675,7 +675,7 @@ PUINT8 CMachineConfig::GetPktMotionControlIpAddr(ENG_LPGS flag, PUINT8 ipv4)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -718,7 +718,7 @@ PUINT8 CMachineConfig::GetPktXcorrectionTable(ENG_LPGS flag, UINT8 tbl_no,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 		
@@ -783,7 +783,7 @@ PUINT8 CMachineConfig::GetPktTablePositionLimits(ENG_LPGS flag, UINT8 tbl_no,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -833,7 +833,7 @@ PUINT8 CMachineConfig::GetPktTableExposureStartPos(ENG_LPGS flag, UINT8 tbl_no,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -874,7 +874,7 @@ PUINT8 CMachineConfig::GetPktMaxYMotionSpeed(ENG_LPGS flag, UINT32 speed)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -914,7 +914,7 @@ PUINT8 CMachineConfig::GetPktXMotionSpeed(ENG_LPGS flag, UINT32 speed)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -954,7 +954,7 @@ PUINT8 CMachineConfig::GetPktYaccelerationDistance(ENG_LPGS flag, UINT32 dist)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -1001,7 +1001,7 @@ PUINT8 CMachineConfig::GetPktHysteresisType1(ENG_LPGS flag, UINT8 scroll, UINT16
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1049,7 +1049,7 @@ PUINT8 CMachineConfig::GetPktPhotoheadOffset(ENG_LPGS flag, UINT8 ph_no,
 	/* Validate the Photohead Number */
 	if (ph_no < 2 || ph_no > MAX_PH)	return NULL;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff = new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1081,7 +1081,7 @@ PUINT8 CMachineConfig::GetPktPhotoHeadOffsetAll()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1113,7 +1113,7 @@ PUINT8 CMachineConfig::GetPktTablePrintDirect(ENG_LPGS flag, UINT8 tbl_no, UINT8
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1150,7 +1150,7 @@ PUINT8 CMachineConfig::GetPktActiveTable(ENG_LPGS flag, UINT8 tbl_no)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1187,7 +1187,7 @@ PUINT8 CMachineConfig::GetPktGetTableMotionStartPosition(UINT8 tbl_no)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1218,7 +1218,7 @@ PUINT8 CMachineConfig::GetPktEmulate(ENG_LPGS flag, UINT8 mc2, UINT8 ph, UINT8 t
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1263,7 +1263,7 @@ PUINT8 CMachineConfig::GetPktDebugPrintLevel(ENG_LPGS flag, UINT8 level)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1301,7 +1301,7 @@ PUINT8 CMachineConfig::GetPktPrintSimulationOutDir(ENG_LPGS flag, PCHAR out_dir,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1342,7 +1342,7 @@ PUINT8 CMachineConfig::GetPktYcorrectionTable(ENG_LPGS flag, UINT8 tbl_no,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -1404,7 +1404,7 @@ PUINT8 CMachineConfig::GetPktLinearZdriveSetting(ENG_LPGS flag, UINT8 ph_no, UIN
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1445,7 +1445,7 @@ PUINT8 CMachineConfig::GetPktZdriveIpAddr(ENG_LPGS flag, PUINT8 addr)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1485,7 +1485,7 @@ PUINT8 CMachineConfig::GetPktXYDriveId(ENG_LPGS flag, UINT8 tbl_no, UINT8 xdrvid
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1530,7 +1530,7 @@ PUINT8 CMachineConfig::GetPktProductId(ENG_LPGS flag, UINT32 pid)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1578,7 +1578,7 @@ PUINT8 CMachineConfig::GetPktArtworkComplexity(ENG_LPGS flag, UINT8 level)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1590,7 +1590,7 @@ PUINT8 CMachineConfig::GetPktArtworkComplexity(ENG_LPGS flag, UINT8 level)
 							  pPktNext, u32Pkts, u8Body, 1);
 	}
 	/* Read */
-	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
+	else if(ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag)
 	{
 		pPktNext = GetPktBase(ENG_LTCT::en_read, ENG_LCMC::en_artwork_complexity,
 							  pPktNext, u32Pkts-m_u32PktSize);
@@ -1621,7 +1621,7 @@ PUINT8 CMachineConfig::GetPktZdriveType(ENG_LPGS flag, UINT8 type)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1662,7 +1662,7 @@ PUINT8 CMachineConfig::GetPktOverPressureMode(ENG_LPGS flag, UINT8 mode)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1705,7 +1705,7 @@ PUINT8 CMachineConfig::GetPktDepthOfFocus(ENG_LPGS flag, UINT16 step)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1748,7 +1748,7 @@ PUINT8 CMachineConfig::GetPktExtraLongStripes(ENG_LPGS flag, UINT8 type)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1790,7 +1790,7 @@ PUINT8 CMachineConfig::GetPktMTCMode(ENG_LPGS flag, UINT8 mode)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1830,7 +1830,7 @@ PUINT8 CMachineConfig::GetPkUseEthercatForAF(ENG_LPGS flag, UINT8 enable)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1870,7 +1870,7 @@ PUINT8 CMachineConfig::GetPktSpxLevel(ENG_LPGS flag, UINT16 level)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1912,7 +1912,7 @@ PUINT8 CMachineConfig::GetPktOcpErrorMask(ENG_LPGS flag, UINT16 mask)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -1960,7 +1960,7 @@ PUINT8 CMachineConfig::GetPktPositionHysteresisType1(ENG_LPGS flag, UINT8 scroll
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Write */
@@ -2008,7 +2008,7 @@ PUINT8 CMachineConfig::GetPktCustomEdgeBlendBitmap(ENG_LPGS flag, PCHAR file, UI
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -2056,7 +2056,7 @@ PUINT8 CMachineConfig::GetPktTableSettings(ENG_LPGS flag, UINT8 num, UINT32 para
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -2067,7 +2067,8 @@ PUINT8 CMachineConfig::GetPktTableSettings(ENG_LPGS flag, UINT8 num, UINT32 para
 	{
 		/* Table Settings - Parallel Ogram Adjust */
 		pPktNext = GetPktBase(enType[i], (UINT8)ENG_LCMC::en_parallelogram_motion_adjust,
-							  pPktNext, u32Pkts, pData[i][0], u32Size[i][0]);
+							  pPktNext, u32Pkts - m_u32PktSize, pData[i][0], u32Size[i][0]);
+
 		/* Table Settings - Start Print In Pos Y Dir */
 		pPktNext = GetPktBase(enType[i], (UINT8)ENG_LCMC::en_table_print_direction,
 							  pPktNext, u32Pkts-m_u32PktSize, pData[i][1], u32Size[i][1]);

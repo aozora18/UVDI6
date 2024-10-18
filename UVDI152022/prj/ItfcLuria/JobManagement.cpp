@@ -62,7 +62,7 @@ PUINT8 CJobManagement::GetPktRootDirectory(ENG_LPGS flag, PCHAR file, UINT32 siz
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -98,7 +98,7 @@ PUINT8 CJobManagement::GetPktJobList()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -129,7 +129,7 @@ PUINT8 CJobManagement::GetPktAssignJob(PCHAR path, UINT32 size)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -157,7 +157,7 @@ PUINT8 CJobManagement::GetPktDeleteSelectedJob()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -185,22 +185,23 @@ PUINT8 CJobManagement::GetPktSelectedJob(ENG_LPGS flag, PCHAR path, UINT32 size)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
 
 	/* Write */
+/* Write */
 	if (ENG_LPGS::en_set == flag)
 	{
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCJM::en_selected_job,
-							  pPktNext, u32Pkts, PUINT8(path), size);
+			pPktNext, u32Pkts, PUINT8(path), size);
 	}
 	/* Read */
-	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
+	if (ENG_LPGS::en_set_only != flag && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
 	{
 		pPktNext = GetPktBase(ENG_LTCT::en_read, ENG_LCJM::en_selected_job,
-							  pPktNext, u32Pkts-m_u32PktSize);
+			pPktNext, u32Pkts - m_u32PktSize);
 	}
 
 	/* Returns the packet buffer */
@@ -224,7 +225,7 @@ PUINT8 CJobManagement::GetPktLoadSelectedJob()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -249,7 +250,7 @@ PUINT8 CJobManagement::GetPktSelectedJobLoadState()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -278,7 +279,7 @@ PUINT8 CJobManagement::GetPktGetFiducials(UINT16 length, PCHAR path)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -311,7 +312,7 @@ PUINT8 CJobManagement::GetPktGetJobParams(UINT8 length, PCHAR path)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -347,7 +348,7 @@ PUINT8 CJobManagement::GetPktGetPanelDataDecodeList(UINT16 length, PCHAR path)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -381,7 +382,7 @@ PUINT8 CJobManagement::GetPktGetPanelDataInfo(UINT32 dcode, UINT16 length, PCHAR
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -412,7 +413,7 @@ PUINT8 CJobManagement::GetPktGetMaxJobs()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */

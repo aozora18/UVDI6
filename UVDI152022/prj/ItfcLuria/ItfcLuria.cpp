@@ -106,7 +106,7 @@ BOOL AddPktSend(PUINT8 buff, UINT32 size, PTCHAR func)
 	/* Luria가 연결되고, 초기화되지 않았다면, 다른 명령 송신은 불가 */
 	if (!g_pLuriaCThread->IsLuriaInited())
 	{
-		::Free(buff);
+		delete buff;
 		return FALSE;
 	}
 	/* 유효성 검사 */
@@ -116,13 +116,13 @@ BOOL AddPktSend(PUINT8 buff, UINT32 size, PTCHAR func)
 		if (!buff)	swprintf_s(tzMesg, 128, L"The send buffer is empty (called_func = %s)", func);
 		else		swprintf_s(tzMesg, 128, L"There is no send buffer size (called_func = %s)", func);
 		LOG_ERROR(ENG_EDIC::en_luria, tzMesg);
-		::Free(buff);
+		delete buff;
 		return FALSE;
 	}
 	/* Luria Server에 송신 */
 	bSucc	= g_pLuriaCThread->AddPktSend(buff, size);
 	/* 송신된 버퍼 메모리 해제 */
-	::Free(buff);
+	delete buff;
 
 	/* 통신 로그 저장 여부에 따라 */
 	if (GetConfig()->set_comn.comm_log_optic)

@@ -480,8 +480,8 @@ VOID CJobSelectXml::ResetData()
 {
 	if (m_pFidGlobal)	delete m_pFidGlobal;
 	if (m_pFidLocal)	delete m_pFidLocal;
-	if (m_pstPanelData)	::Free(m_pstPanelData);
-	if (m_pPhDistX)		::Free(m_pPhDistX);
+	if (m_pstPanelData)	delete m_pstPanelData;
+	if (m_pPhDistX)		delete m_pPhDistX;
 
 	m_pstPanelData = NULL;
 	m_pFidGlobal = NULL;
@@ -780,11 +780,11 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 	m_pFidGlobal = new CFiducialData;
 	m_pFidLocal = new CFiducialData;
 	ASSERT(m_pFidGlobal && m_pFidLocal);
-	m_pstPanelData = (LPG_XDPD)::Alloc(sizeof(STG_XDPD) * MAX_PANEL_STRING_COUNT);
+	m_pstPanelData = new STG_XDPD[MAX_PANEL_STRING_COUNT];
 	ASSERT(m_pstPanelData);
 	memset(m_pstPanelData, 0x00, sizeof(STG_XDPD) * (MAX_PANEL_STRING_COUNT));
 	/* Photohead 간의 X 떨어진 거리 값 임시 저장 */
-	m_pPhDistX = (DOUBLE*)::Alloc(sizeof(DOUBLE) * MAX_PH);
+	m_pPhDistX = new DOUBLE[MAX_PH];
 	ASSERT(m_pPhDistX);
 	memset(m_pPhDistX, 0x00, sizeof(DOUBLE) * MAX_PH);
 	/* job name 절대 경로 설정 */

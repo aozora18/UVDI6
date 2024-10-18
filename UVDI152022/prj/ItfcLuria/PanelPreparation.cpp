@@ -65,7 +65,7 @@ PUINT8 CPanelPreparation::GetPktDynamicFiducials(ENG_LPGS flag, UINT8 type,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -119,7 +119,7 @@ PUINT8 CPanelPreparation::GetPktRegistrationPoints(ENG_LPGS flag, UINT16 count, 
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -175,7 +175,7 @@ PUINT8 CPanelPreparation::GetPktGlobalTransformationRecipe(ENG_LPGS flag,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -212,7 +212,7 @@ PUINT8 CPanelPreparation::GetPktGlobalFixedRotation(ENG_LPGS flag, INT32 rotatio
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -254,7 +254,7 @@ PUINT8 CPanelPreparation::GetPktGlobalFixedScaling(ENG_LPGS flag, UINT32 scale_x
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -296,7 +296,7 @@ PUINT8 CPanelPreparation::GetPktGlobalFixedOffset(ENG_LPGS flag, INT32 offset_x,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -338,7 +338,7 @@ PUINT8 CPanelPreparation::GetPktLocalZoneGeometry(ENG_LPGS flag, UINT16 fid_x, U
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -377,7 +377,7 @@ PUINT8 CPanelPreparation::GetPktGetNumberOfLocalZones()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -405,7 +405,7 @@ PUINT8 CPanelPreparation::GetPktGetTransformationParams(UINT16 zone)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -436,7 +436,7 @@ PUINT8 CPanelPreparation::GetPktRunRegistration()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -462,7 +462,7 @@ PUINT8 CPanelPreparation::GetPktGetRegistrationStatus()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -509,7 +509,7 @@ PUINT8 CPanelPreparation::GetPktSerialNumber(ENG_LPGS flag,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -531,7 +531,7 @@ PUINT8 CPanelPreparation::GetPktSerialNumber(ENG_LPGS flag,
 								 pPktNext, u32Pkts, u8Body, u32Body);
 	}
 	/* Read */
-	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))
+	else if(ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag)
 	{
 		pPktNext	= GetPktBase(ENG_LTCT::en_read, (UINT8)ENG_LCPP::en_panel_data_serial_number,
 								 pPktNext, u32Pkts-m_u32PktSize, u8Body, 4);
@@ -574,7 +574,7 @@ PUINT8 CPanelPreparation::GetPktPanelData(ENG_LPGS flag,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -621,7 +621,7 @@ PUINT8 CPanelPreparation::GetPktUseSharedLocalZones(ENG_LPGS flag, UINT8 use)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -664,7 +664,7 @@ PUINT8 CPanelPreparation::GetPktLocalTransformationRecipe(ENG_LPGS flag, UINT8 i
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -703,7 +703,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedRotation(ENG_LPGS flag, UINT16 count, 
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -757,7 +757,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedScaling(ENG_LPGS flag, UINT16 count,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -811,7 +811,7 @@ PUINT8 CPanelPreparation::GetPktLocalFixedOffset(ENG_LPGS flag, UINT16 count,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -862,7 +862,7 @@ PUINT8 CPanelPreparation::GetPktGlobalRectangleLock(ENG_LPGS flag, UINT8 lock)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -898,7 +898,7 @@ PUINT8 CPanelPreparation::GetPktRemovePanelData(UINT32 dcode)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -936,7 +936,7 @@ PUINT8 CPanelPreparation::GetPktGetWarpOfLimitsCoordinates()
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 
@@ -968,7 +968,7 @@ PUINT8 CPanelPreparation::GetPktSnapToZoneMode(ENG_LPGS flag, UINT8 mode)
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 	/* Set the send packet */
@@ -1011,7 +1011,7 @@ PUINT8 CPanelPreparation::GetPktLocalZoneFidSearchBw(ENG_LPGS flag, UINT32 bw_x,
 	/* It must be initialized */
 	m_u32PktSize= 0;
 	/* Allocates a buffer of packets to be sent */
-	pPktBuff	= (PUINT8)::Alloc(sizeof(UINT8) * u32Pkts);
+	pPktBuff	= new UINT8[u32Pkts];
 	memset(pPktBuff, 0x00, u32Pkts);
 	pPktNext	= pPktBuff;
 

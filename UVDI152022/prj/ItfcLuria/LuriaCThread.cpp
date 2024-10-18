@@ -125,7 +125,7 @@ VOID CLuriaCThread::RemoveAllSendPkt()
 	{
 		pPrePos	= pPos;
 		stPktData	= m_lstPktSend.GetNext(pPos);
-		if (stPktData.pkt_buff)	::Free(stPktData.pkt_buff);
+		if (stPktData.pkt_buff)	delete stPktData.pkt_buff;
 		m_lstPktSend.RemoveAt(pPrePos);
 	}
 }
@@ -235,7 +235,7 @@ VOID CLuriaCThread::ReqGetPeriodPkt(UINT64 tick)
 	if (pPkt)
 	{
 		AddPktSend(pPkt, pBase->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 	}
 
 	/* 다음 패킷 송신을 위해 증가 시킴 */
@@ -269,7 +269,7 @@ VOID CLuriaCThread::ReqGetPeriodPkt(UINT64 tick)
 	if (pPkt)
 	{
 		AddPktSend(pPkt, u32Size);
-		::Free(pPkt);
+		delete pPkt;
 	}
 }
 #endif
@@ -667,7 +667,8 @@ BOOL CLuriaCThread::Connected()
 		uvCmn_GetIPv4Uint32ToBytes(uvCmn_GetIPv4StrToUint32(m_tzSourceIPv4), u8IPv4);
 		pPkt	= m_pPktCM->GetPktAnnounceServerIpAddr(ENG_LPGS::en_set, u8IPv4);
 		/* 패킷 송신 */
-		AddPktSend(pPkt, m_pPktCM->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktCM->GetPktSize());	
+		delete pPkt;
 	}
 
 	/* ----------------------------------------------------------------------------------------- */
@@ -678,13 +679,15 @@ BOOL CLuriaCThread::Connected()
 	if (m_pstConfLuria->use_hw_inited && m_pPktSS)
 	{
 		pPkt = m_pPktSS->GetPktInitializeHardware();
-		AddPktSend(pPkt, m_pPktSS->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktSS->GetPktSize());	
+		delete pPkt;
 	}
 	/* System Status 요청 */
 	if (m_pPktSS)
 	{
 		pPkt = m_pPktSS->GetPktSystemStatus();
-		AddPktSend(pPkt, m_pPktSS->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktSS->GetPktSize());	
+		delete pPkt;
 	}
 
 	if (!m_bInitSend)	return TRUE;
@@ -695,20 +698,23 @@ BOOL CLuriaCThread::Connected()
 
 	/* 광학계 개수 / Pitch (Stripe 개수) / 스크롤 속도 / 광학계 회전 여부 설정 및 얻기 */
 	pPkt = m_pPktMC->GetPktTotalPhotoheads(ENG_LPGS::en_set, m_pstConfLuria->ph_count);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
+
 	pPkt = m_pPktMC->GetPktPhotoheadPitch(ENG_LPGS::en_set, m_pstConfLuria->ph_pitch);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
+
 	pPkt = m_pPktMC->GetPktScrollRate(ENG_LPGS::en_set, m_pstConfLuria->scroll_rate);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
+
 	pPkt = m_pPktMC->GetPktPhotoheadRotate(ENG_LPGS::en_set, m_pstConfLuria->ph_rotate);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 
 	/* 광학계 IPv4 */
 	for (i=0; i<m_pstConfLuria->ph_count; i++)
 	{
 		pPkt	= m_pPktMC->GetPktPhotoheadIpAddr(ENG_LPGS::en_set, i+1, m_pstConfLuria->ph_ipv4[i]);
 		AddPktSend(pPkt, m_pPktMC->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 	}
 	/* 광학계 Offset X / Y 값 설정 (2 번 광학계 부터) */
 	for (i=1; i<m_pstConfLuria->ph_count; i++)
@@ -717,18 +723,18 @@ BOOL CLuriaCThread::Connected()
 												  (UINT32)ROUNDED(m_pstConfLuria->ph_offset_x[i]*1000000.0f, 0),	/* mm -> nm */
 												  (INT32)ROUNDED(m_pstConfLuria->ph_offset_y[i]*1000000.0f, 0));	/* mm -> nm */
 		AddPktSend(pPkt, m_pPktMC->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 	}
 
 	/* Motion Control Type / Motion IPv4 / Motion Speed : Y (Max) / X */
 	pPkt = m_pPktMC->GetPktMotionControlType(ENG_LPGS::en_set, m_pstConfLuria->motion_control_type);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktMC->GetPktMotionControlIpAddr(ENG_LPGS::en_set, m_pstConfLuria->motion_control_ip);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktMC->GetPktMaxYMotionSpeed(ENG_LPGS::en_set, (UINT32)ROUNDED(m_pstConfLuria->max_y_motion_speed*1000.0f, 0));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktMC->GetPktXMotionSpeed(ENG_LPGS::en_set, (UINT32)ROUNDED(m_pstConfLuria->x_motion_speed*1000.0f, 0));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 
 	/* Table Settings */
 	for (i=0; i<m_pstConfLuria->table_count; i++)
@@ -738,11 +744,11 @@ BOOL CLuriaCThread::Connected()
 		u8TableY= (i == 0x00) ? m_pstConfLuria->y_drive_id_1 : m_pstConfLuria->y_drive_id_2;
 		pPkt	= m_pPktMC->GetPktXYDriveId(ENG_LPGS::en_set, i+1, u8TableX, u8TableY);
 		AddPktSend(pPkt, m_pPktMC->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 		/* 모션 기준으로 현재 노광 시작 위치 값 요청 */
 		pPkt	= m_pPktMC->GetPktGetTableMotionStartPosition(i+1);
 		AddPktSend(pPkt, m_pPktMC->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 		/* Table Setting */
 		UINT8 u8Direct	= i == 0 ?
 				m_pstConfLuria->table_1_print_direction : m_pstConfLuria->table_2_print_direction;
@@ -750,39 +756,39 @@ BOOL CLuriaCThread::Connected()
 												m_pstConfLuria->paralleogram_motion_adjust[i],
 												u8Direct);
 		AddPktSend(pPkt, m_pPktMC->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 		/* Table Exposure Start XY */
 		pPkt	= m_pPktMC->GetPktTableExposureStartPos(ENG_LPGS::en_set, i+1,
 														(INT32)ROUNDED(m_pstConfLuria->table_expo_start_xy[i][0]*1000.0f, 0),
 														(INT32)ROUNDED(m_pstConfLuria->table_expo_start_xy[i][1]*1000.0f, 0));
-		AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 		/* Table Position Limits */
 		pPkt	= m_pPktMC->GetPktTablePositionLimits(ENG_LPGS::en_set, i+1,
 													 (INT32)ROUNDED(m_pstConfLuria->table_limit_max_xy[i][0]*1000.0f, 0),
 													 (INT32)ROUNDED(m_pstConfLuria->table_limit_max_xy[i][1]*1000.0f, 0),
 													 (INT32)ROUNDED(m_pstConfLuria->table_limit_min_xy[i][0]*1000.0f, 0),
 													 (INT32)ROUNDED(m_pstConfLuria->table_limit_min_xy[i][1]*1000.0f, 0));
-		AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	}
 	/* Acceleration Distance / Active Table Number */
 	pPkt = m_pPktMC->GetPktYaccelerationDistance(ENG_LPGS::en_set, (UINT32)ROUNDED(m_pstConfLuria->y_acceleration_distance*1000.0f, 0));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktMC->GetPktActiveTable(ENG_LPGS::en_set,  m_pstConfLuria->active_table_no);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 
 	/* Emulater 동작 여부 설정 (Motion / Photohead / Trigger) 및 Debugg Print Level */
 #if 0
 	pPkt = m_pPktMC->GetPktCommon(UINT8(ENG_LCMC::en_emulate_motor_controller));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktMC->GetPktCommon(UINT8(ENG_LCMC::en_emulate_photo_heads));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktMC->GetPktCommon(UINT8(ENG_LCMC::en_emulate_triggers));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 #else
 	pPkt = m_pPktMC->GetPktEmulate(ENG_LPGS::en_get);
 #endif
 	pPkt = m_pPktMC->GetPktDebugPrintLevel(ENG_LPGS::en_get);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 
 #if (USE_SIMULATION_DIR)
 	/* Print Simulation Out Dir */
@@ -792,7 +798,7 @@ BOOL CLuriaCThread::Connected()
 														csCnv1.Uni2Ansi(m_pstConfLuria->print_simulation_out_dir),
 														(UINT32)_tcslen(m_pstConfLuria->print_simulation_out_dir));
 		AddPktSend(pPkt, m_pPktMC->GetPktSize());
-		::Free(pPkt);
+		delete pPkt;
 	}
 #endif
 	/* HysteresisType1 값 요청 */
@@ -800,31 +806,31 @@ BOOL CLuriaCThread::Connected()
 											  m_pstConfLuria->hys_type_1_negative_offset,
 											  (UINT32)ROUNDED(m_pstConfLuria->hys_type_1_delay_offset[0]*1000000.0f, 0),
 											  (UINT32)ROUNDED(m_pstConfLuria->hys_type_1_delay_offset[1]*1000000.0f, 0));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	/* 광학계 Product ID */
 	pPkt = m_pPktMC->GetPktProductId(ENG_LPGS::en_get);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	/* Focus Z Drive Type */
 	pPkt = m_pPktMC->GetPktZdriveType(ENG_LPGS::en_set, m_pstConfLuria->z_drive_type);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	/* Artwork Complexity 설정 */
 	//pPkt = m_pPktMC->GetPktArtworkComplexity(ENG_LPGS::en_set, m_pstConfLuria->artwork_complexity);
-	//AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	//AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	/* If Z Drive Type is the SM (Sieb & Meyer) then ... */
 	if (m_pstConfLuria->z_drive_type == 0x03)
 	{
 		pPkt = m_pPktMC->GetPktZdriveIpAddr(ENG_LPGS::en_set, m_pstConfLuria->z_drive_ip);
-		AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 		for (i=0x00; i<m_pstConfLuria->ph_count; i++)
 		{
 			pPkt = m_pPktMC->GetPktLinearZdriveSetting(ENG_LPGS::en_set, i+1,
 													   m_pstConfLuria->z_drive_sd2s_ph[i]);
-			AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+			AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 		}
 	
 
 		pPkt = m_pPktMC->GetPktDepthOfFocus(ENG_LPGS::en_set, m_pstConfLuria->DOFofPh);
-		AddPktSend(pPkt, m_pPktMC->GetPktSize()); ::Free(pPkt);
+		AddPktSend(pPkt, m_pPktMC->GetPktSize()); delete pPkt;
 	}
 
 	/* ----------------------------------------------------------------------------------------- */
@@ -833,23 +839,23 @@ BOOL CLuriaCThread::Connected()
 
 	/* Get Job List */
 	pPkt = m_pPktJM->GetPktJobList();
-	AddPktSend(pPkt, m_pPktJM->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktJM->GetPktSize());	delete pPkt;
 #if 0
 	/* Selected Job */
 	pPkt	= m_pPktJM->GetPktSelectedJob();
 	AddPktSend(pPkt, m_pPktJM->GetPktSize());
-	::Free(pPkt);
+	delete pPkt;
 #endif
 	/* Get Max Jobs */
 	pPkt = m_pPktJM->GetPktGetMaxJobs();
-	AddPktSend(pPkt, m_pPktJM->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktJM->GetPktSize());	delete pPkt;
 #if 0
 	/* ----------------------------------------------------------------------------------------- */
 	/*                                      Comm. Management                                       */
 	/* ----------------------------------------------------------------------------------------- */
 	/* Announcement Status */
 	pPkt = m_pPktCM->GetPktAnnouncementStatus();
-	AddPktSend(pPkt, m_pPktCM->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktCM->GetPktSize());	delete pPkt;
 #endif
 
 	/* ----------------------------------------------------------------------------------------- */
@@ -860,16 +866,16 @@ BOOL CLuriaCThread::Connected()
 	/*if (m_pstConfLuria->IsRunEmulated())*/
 	{
 		pPkt = m_pPktPF->GetPktInitializeFocus();
-		AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+		AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	}
 
 	/* AF Gain / AF Work Range Min/Max <All> */
 	pPkt = m_pPktPF->GetPktAfGain(ENG_LPGS::en_set, m_pstConfLuria->af_gain);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 	pPkt = m_pPktPF->GetPktAbsWorkRange(ENG_LPGS::en_set, 0x00/*ALL*/,
 										(INT32)ROUNDED(m_pstConfLuria->af_work_range_all[0]*1000.0, 0),
 										(INT32)ROUNDED(m_pstConfLuria->af_work_range_all[1]*1000.0, 0));
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 #endif
 
 	/* ----------------------------------------------------------------------------------------- */
@@ -877,7 +883,8 @@ BOOL CLuriaCThread::Connected()
 	/* ----------------------------------------------------------------------------------------- */
 	/* Initialize the existing errors */
 	pPkt = m_pPktDP->SetPktClearErrorStatus(0xff);
-	AddPktSend(pPkt, m_pPktDP->GetPktSize());	::Free(pPkt);
+	AddPktSend(pPkt, m_pPktDP->GetPktSize());	
+	delete pPkt;
 
 	return TRUE;
 }
@@ -963,25 +970,25 @@ BOOL CLuriaCThread::ReqGetPhLedOnTimeAll()
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 	pPkt	= m_pPktDP->GetPktPhLedOnTimeAll(1);
 	if (bSucc && pPkt)
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 	pPkt	= m_pPktDP->GetPktPhLedOnTimeAll(2);
 	if (bSucc && pPkt)
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 	pPkt	= m_pPktDP->GetPktPhLedOnTimeAll(3);
 	if (bSucc && pPkt)
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 
 	return bSucc;
 }
@@ -998,7 +1005,7 @@ BOOL CLuriaCThread::ReqGetPhLedTempFreqAll(UINT8 freq_no)
 
 	pPkt	= m_pPktDP->GetPktPhLedTempAll(freq_no);
 	if (pPkt)	bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
-	::Free(pPkt);
+	delete pPkt;
 
 	return bSucc;
 }
@@ -1019,25 +1026,25 @@ BOOL CLuriaCThread::ReqGetPhLedTempAll()
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 	pPkt	= m_pPktDP->GetPktPhLedTempAll(1);
 	if (bSucc && pPkt)
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 	pPkt	= m_pPktDP->GetPktPhLedTempAll(2);
 	if (bSucc && pPkt)
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 	pPkt	= m_pPktDP->GetPktPhLedTempAll(3);
 	if (bSucc && pPkt)
 	{
 		bSucc	= AddPktSend(pPkt, m_pPktDP->GetPktSize());
 	}
-	::Free(pPkt);
+	delete pPkt;
 
 	return bSucc;
 }
@@ -1107,7 +1114,7 @@ BOOL CLuriaCThread::AddPktSend(PUINT8 data, UINT32 size)
 		if (m_lstPktSend.GetCount() < MAX_LURIA_PACKET_COUNT)
 		{
 			/* 버퍼 메모리 할당 및 복사 */
-			stPktSend.pkt_buff		= (PUINT8)::Alloc(size+1);
+			stPktSend.pkt_buff = new UINT8[size + 1];
 			stPktSend.pkt_buff[size]= 0x00;
 			memcpy(stPktSend.pkt_buff, data, size);	/* The base size of sending packet */
 			stPktSend.pkt_size		= size;
@@ -1165,18 +1172,20 @@ BOOL CLuriaCThread::AddPktSend(PUINT8 data, UINT32 size)
  parm : None
  retn : TRUE (송신한 데이터가 있다) or FALSE (아무것도 송신한 데이터가 없다)
 */
+#include <sanitizer/asan_interface.h>  
 BOOL CLuriaCThread::ReqPeriodSendPacket()
 {
+	
 	STM_LPSB stPktSend	= {NULL};
 	STG_PCLS stPktData	= {NULL};
-
+	//__asan_disable();
 	/* 기본적으로 리스트에 송신 패킷이 저장되어 있으면, 무조건 먼저 송신 처리 진행 */
 	if (m_lstPktSend.GetCount())
 	{
 		/* 송신될 패킷 1개 가져오기 */
 		stPktSend	= m_lstPktSend.GetHead();
 		/* 송신 패킷 로그 전달 */
-		memcpy(&stPktData, stPktSend.pkt_buff, sizeof(STG_PCLS));
+		memcpy(&stPktData, stPktSend.pkt_buff, sizeof(STG_PCLS)-8);
 		stPktData.SwapNetworkToHost();
 
 		/* 패킷 데이터 전송 */
@@ -1193,6 +1202,8 @@ BOOL CLuriaCThread::ReqPeriodSendPacket()
 			/* Socket Closed */
 			CloseSocket(m_sdClient);
 		}
+
+		//__asan_enable();
 #if 0
 		else
 		{
@@ -1207,7 +1218,7 @@ BOOL CLuriaCThread::ReqPeriodSendPacket()
 		}
 #endif
 		/* 전송 실패건 성공이건, 리스트에서 패킷 데이터 한개 제거 */
-		if (stPktSend.pkt_buff)	::Free(stPktSend.pkt_buff);
+		if (stPktSend.pkt_buff)	delete stPktSend.pkt_buff;
 		m_lstPktSend.RemoveHead();
 	}
 
@@ -1265,7 +1276,7 @@ VOID CLuriaCThread::SetRecvPacket(ENG_TPCS type, PUINT8 data)
 			if (pPkt)
 			{
 				AddPktSend(pPkt, m_pPktJM->GetPktSize());
-				::Free(pPkt);
+				delete pPkt;
 			}
 		}
 

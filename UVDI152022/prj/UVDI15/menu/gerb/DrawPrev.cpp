@@ -295,13 +295,30 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	if (!hDC)	return;
 
 	/* Memory DC 생성 */
-	m_hMemDC	= ::CreateCompatibleDC(hDC);
-	m_hMemBmp	= ::CreateCompatibleBitmap(hDC, rDraw.right, rDraw.bottom);
-	hOldBmp		= (HBITMAP)::SelectObject(m_hMemDC, m_hMemBmp);
-	hPen		= ::CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
-	hOldPen		= (HPEN)::SelectObject(m_hMemDC, hPen);
-	hBrush		= ::CreateSolidBrush(RGB(255, 255, 255));
-	hOldBrush	= (HBRUSH)::SelectObject(m_hMemDC, hBrush);
+	try
+	{
+		m_hMemDC = ::CreateCompatibleDC(hDC);
+		m_hMemBmp = ::CreateCompatibleBitmap(hDC, rDraw.right, rDraw.bottom);
+		hOldBmp = (HBITMAP)::SelectObject(m_hMemDC, m_hMemBmp);
+		hPen = ::CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+		hOldPen = (HPEN)::SelectObject(m_hMemDC, hPen);
+		hBrush = ::CreateSolidBrush(RGB(255, 255, 255));
+		hOldBrush = (HBRUSH)::SelectObject(m_hMemDC, hBrush);
+	}
+	catch (...)
+	{
+		if (!m_hMemBmp || !hOldBmp || !m_hMemDC || !hBrush)
+		{
+			if (m_hMemDC)	::DeleteDC(m_hMemDC);
+			if (m_hMemBmp)	::DeleteObject(m_hMemBmp);
+			if (hBrush)		::DeleteObject(hBrush);
+			if (hPen)		::DeleteObject(hPen);
+			::ReleaseDC(m_hDraw, hDC);	/* DC 핸들 해제 */
+			return;
+		}
+	}
+	
+
 	if (!m_hMemBmp || !hOldBmp || !m_hMemDC || !hBrush)
 	{
 		if (m_hMemDC)	::DeleteDC(m_hMemDC);

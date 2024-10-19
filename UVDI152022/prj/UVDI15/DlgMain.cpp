@@ -712,7 +712,12 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	if (uvEng_Terminated())
 		return 0L;
 
-	STG_PP_PACKET_RECV* pstPhil = (STG_PP_PACKET_RECV*)wparam; 
+
+//	STG_PP_PACKET_RECV* pstPhil = (STG_PP_PACKET_RECV*)wparam; 
+
+
+	STG_PP_PACKET_RECV* pstPhil = reinterpret_cast<STG_PP_PACKET_RECV*>(wparam);
+
 	CUniToChar csCnv1;
 	CString strAxis;
 
@@ -728,17 +733,21 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	try
 	{
 		while (uvEng_uvPhilhmi_IsSyncResultLocked())
-			Sleep(10);
+			Sleep(10);  // 스레드 안전한 대기
 
-		if (pstPhil->st_header.nCommand < 0)
-		{
+		if (pstPhil->st_header.nCommand < 0) {
+			delete pstPhil;  // 사용 후 메모리 해제
 			return 0L;
 		}
 	}
-	catch(exception e)
+	catch (const std::exception& e) 
 	{
+		std::cerr << "Exception: " << e.what() << std::endl;
+		delete pstPhil;  // 예외 발생 시에도 메모리 해제
 		return 0L;
 	}
+
+
 	
 
 	UINT8 u8Offset = 0xff;
@@ -1000,7 +1009,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	{
 		uvEng_Philhmi_DeleteRecvDataFromUniqueID(pstPhil->st_header.ulUniqueID);
 	}
-	
+	delete pstPhil;  // 메모리 해제 (정상 처리 후)
 	/*현재 Philhmi 메세지 저장*/
 	g_u16PhilCommand = tempCommand;
 	

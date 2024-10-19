@@ -428,7 +428,12 @@ BOOL CPhilhmiLib::RecvData(STG_PP_PACKET_RECV& stRecv)
 	if (bIsRequest)
 	{
 		/* Requset 일 경우 MainDlg 쪽으로 Packet을 날린다. */
-		::PostMessage(m_hMainWnd, WM_PHILHMI_MSG_THREAD, (WPARAM)&m_lResultStruct.back(), m_lResultStruct.back().st_header.ulDataLen + sizeof(STG_PPH));
+
+		auto* packetCopy = new STG_PP_PACKET_RECV(m_lResultStruct.back());  // 복사본 생성
+		::PostMessage(m_hMainWnd, WM_PHILHMI_MSG_THREAD, (WPARAM)packetCopy,
+			packetCopy->st_header.ulDataLen + sizeof(STG_PPH));
+
+		//::PostMessage(m_hMainWnd, WM_PHILHMI_MSG_THREAD, (WPARAM)&m_lResultStruct.back(), m_lResultStruct.back().st_header.ulDataLen + sizeof(STG_PPH));
 	}
 	else
 	{

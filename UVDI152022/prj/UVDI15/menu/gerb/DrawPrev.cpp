@@ -204,8 +204,9 @@ VOID CDrawPrev::LoadMark(LPG_RJAF recipe)
 
 	uvEng_Luria_GetGerberSize(m_dGerberSizeX, m_dGerberSizeY);
 
-	m_vGlobalMark.clear();
+	m_vGlobalMark.clear(); m_vGlobalMark.reserve(10);
 	std::vector < STG_XMXY > vMark;
+
 	/* 거버에 대한 마크 정보 얻기 */
 	if (0x00 != uvEng_Luria_GetGlobalMarkJobNameVector(strGerbName.GetBuffer(), vMark, ENG_ATGL(pstAlign->align_type)))
 	{
@@ -222,7 +223,10 @@ VOID CDrawPrev::LoadMark(LPG_RJAF recipe)
 	}
 
 	m_vLocalMark.clear();
+	m_vLocalMark.reserve(100);
+
 	vMark.clear();
+	vMark.reserve(100);
 	if (0x00 != uvEng_Luria_GetLocalMarkJobNameVector(strGerbName.GetBuffer(), vMark, ENG_ATGL(pstAlign->align_type)))
 	{
 		strGerbName.ReleaseBuffer();

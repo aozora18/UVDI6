@@ -9,6 +9,8 @@
 
 #include "../mesg/DlgMesg.h"
 #include "./logs/GridFile.h"	/* Grid Control */
+#include <thread>
+
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -43,7 +45,7 @@ CDlgLogs::CDlgLogs(UINT32 id, CWnd* parent)
 
 CDlgLogs::~CDlgLogs()
 {
-	
+	StopLogThread();
 }
 
 /*
@@ -711,38 +713,31 @@ VOID CDlgLogs::InitListFirstLine()
 	}
 }
 
-UINT CDlgLogs::LogThreadProc(LPVOID pParam)
+UINT CDlgLogs::LogThreadProc()
 {
-	CDlgLogs* pDlg = (CDlgLogs*)pParam;
-
-	while (!pDlg->m_bStopThread)
+	while (m_bStopThread.load() == false)
 	{
+		CDlgLogs* pDlg = (CDlgLogs*)this;
 		// 로그 업데이트 주기 (0.1초)
 		Sleep(100);
-
 		pDlg->UpdateLogContents();
 	}
-
-	pDlg->m_bStopThread = FALSE;
-	pDlg->m_pLogThread = NULL;
-
 	return 0;
 }
 
 void CDlgLogs::StartLogThread()
 {
-	m_bStopThread = FALSE;
-	m_pLogThread = AfxBeginThread(LogThreadProc, this);
+	m_bStopThread.store(false);
+	m_pLogThread = std::thread([=]() {LogThreadProc(); });  //AfxBeginThread(LogThreadProc, this);
 }
 
 void CDlgLogs::StopLogThread()
 {
-	if (m_pLogThread != nullptr)
-	{
-		m_bStopThread = FALSE;
-		WaitForSingleObject(m_pLogThread->m_hThread, 1000);
-		m_pLogThread = nullptr;
-	}
+	m_bStopThread.store(true);
+	Sleep(200);
+	if (m_pLogThread.joinable())
+		m_pLogThread.join();
+
 }
 
 EN_LOG_STEP CDlgLogs::GetLogStep()

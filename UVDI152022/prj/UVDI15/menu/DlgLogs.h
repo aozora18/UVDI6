@@ -151,8 +151,8 @@ protected:
 	CCriticalSection	m_csLogs;
 
 
-	CWinThread*			m_pLogThread;
-	BOOL				m_bStopThread;
+	thread			m_pLogThread;
+	atomic<bool>	m_bStopThread = false;
 
 	UINT8				m_nChecked;
 
@@ -188,7 +188,7 @@ protected:
 
 	VOID				InitListFirstLine();
 
-	static UINT			LogThreadProc(LPVOID pParam);
+	UINT			LogThreadProc();
 
 /* 공용 함수 */
 public:

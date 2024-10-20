@@ -20,9 +20,12 @@ protected:
 protected:
 
 	HWND				m_hDraw;
-
+	UINT8 buff1[20];
 	HDC					m_hMemDC;
+	UINT8 buff2[20];
 	HBITMAP				m_hMemBmp;
+	UINT8 buff3[20];
+
 
 	CRect				m_rcDrawSize;
 	RECT				m_rDraw;

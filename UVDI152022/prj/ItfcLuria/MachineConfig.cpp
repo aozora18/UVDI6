@@ -1227,11 +1227,11 @@ PUINT8 CMachineConfig::GetPktEmulate(ENG_LPGS flag, UINT8 mc2, UINT8 ph, UINT8 t
 	if (ENG_LPGS::en_set == flag)
 	{
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCMC::en_emulate_motor_controller,
-							  pPktNext, u32Pkts, &mc2, 1);
+							  pPktNext, u32Pkts - m_u32PktSize, &mc2, 1);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCMC::en_emulate_photo_heads,
-							  pPktNext, u32Pkts, &ph, 1);
+							  pPktNext, u32Pkts - m_u32PktSize, &ph, 1);
 		pPktNext = GetPktBase(ENG_LTCT::en_write, ENG_LCMC::en_emulate_triggers,
-							  pPktNext, u32Pkts, &trig, 1);
+							  pPktNext, u32Pkts - m_u32PktSize, &trig, 1);
 	}
 	/* Read */
 	if (ENG_LPGS::en_set_only != flag  && (ENG_LPGS::en_set == flag || ENG_LPGS::en_get == flag))

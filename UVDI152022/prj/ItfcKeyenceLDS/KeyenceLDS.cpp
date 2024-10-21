@@ -16,12 +16,14 @@ CKeyenceLDS::CKeyenceLDS() : CSocketCComm()
 	m_dDecimalPos = 0.001;
 
 	InitializeCriticalSection(&m_csSend);
+	InitializeCriticalSection(&m_csRecv);
 }
 
 CKeyenceLDS::~CKeyenceLDS(void)
 {
 	NetClose();
 	DeleteCriticalSection(&m_csSend);
+	DeleteCriticalSection(&m_csRecv);
 }
 
 bool CKeyenceLDS::Connect()

@@ -77,8 +77,8 @@ typedef struct __st_config_system_base_path__
 	*/
 	BOOL Init()
 	{
-		gfss	= (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
-		gfsc	= (PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
+		gfss	= new TCHAR[MAX_PATH_LEN];//(PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
+		gfsc	= new TCHAR[MAX_PATH_LEN];//(PTCHAR)::Alloc(sizeof(TCHAR) * MAX_PATH_LEN);
 		ASSERT(gfss && gfsc);
 		return TRUE;
 	}
@@ -89,8 +89,8 @@ typedef struct __st_config_system_base_path__
 	*/
 	VOID Close()
 	{
-		if (gfss)	::Free(gfss);
-		if (gfsc)	::Free(gfsc);
+		if (gfss)	delete gfss;
+		if (gfsc)	delete gfsc;
 	}
 
 	/*
@@ -122,11 +122,11 @@ typedef struct __st_config_system_info_data__
 	*/
 	BOOL Init()
 	{
-		common		= (LPG_CPCI)::Alloc(sizeof(STG_CPCI));
-		gerber_path	= (LPG_CSBP)::Alloc(sizeof(STG_CSBP));
-		recipe_path	= (LPG_CSBP)::Alloc(sizeof(STG_CSBP));
-		server		= (LPG_CTSS)::Alloc(sizeof(STG_CTSS));
-		client		= (LPG_CTCS)::Alloc(sizeof(STG_CTCS));
+		common		=  new STG_CPCI();//(LPG_CPCI)::Alloc(sizeof(STG_CPCI));
+		gerber_path	=  new STG_CSBP();//(LPG_CSBP)::Alloc(sizeof(STG_CSBP));
+		recipe_path	=  new STG_CSBP();//(LPG_CSBP)::Alloc(sizeof(STG_CSBP));
+		server		=  new STG_CTSS();//(LPG_CTSS)::Alloc(sizeof(STG_CTSS));
+		client =		new STG_CTCS();//(LPG_CTCS)::Alloc(sizeof(STG_CTCS));
 		ASSERT(gerber_path && recipe_path && server && client);
 		if (!(gerber_path->Init() && recipe_path->Init()))	return FALSE;
 		
@@ -140,13 +140,13 @@ typedef struct __st_config_system_info_data__
 	*/
 	VOID Close()
 	{
-		::Free(common);
+		delete common;
 		gerber_path->Close();
 		recipe_path->Close();
-		::Free(gerber_path);
-		::Free(recipe_path);
-		::Free(server);
-		::Free(client);
+		delete gerber_path;
+		delete recipe_path;
+		delete server;
+		delete client;
 	}
 
 	/*

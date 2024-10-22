@@ -1047,7 +1047,8 @@ typedef struct __st_cim_library_log_message__
 	*/
 	VOID Init()
 	{
-		mesg	= (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_LOG_MESG_SIZE+sizeof(TCHAR));
+		//mesg	= (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_LOG_MESG_SIZE+ sizeof(TCHAR));
+		mesg = new TCHAR[CIM_LOG_MESG_SIZE + 1];
 		ASSERT(mesg);
 		wmemset(mesg, 0x00, CIM_LOG_MESG_SIZE+1);
 	}
@@ -1059,7 +1060,7 @@ typedef struct __st_cim_library_log_message__
 	*/
 	VOID Release()
 	{
-		if (mesg)	::Free(mesg);
+		if (mesg)	delete mesg;//::Free(mesg);
 	}
 
 }	STG_CLLM,	*LPG_CLLM;
@@ -1412,10 +1413,11 @@ typedef struct __st_cim300_epj_variable_information__
 		default_val.u64_value	= 0;
 
 		/* 메모리 할당 */
-		var_name	= (PTCHAR)::Alloc(sizeof(TCHAR)*CIM_CMD_NAME_SIZE+sizeof(TCHAR));
-		var_desc	= (PTCHAR)::Alloc(sizeof(TCHAR)*CIM_CMD_DESC_SIZE+sizeof(TCHAR));
-		cur_val_str	= (PTCHAR)::Alloc(sizeof(TCHAR)*CIM_VAL_ASCII_SIZE+sizeof(TCHAR));
-		def_val_str	= (PTCHAR)::Alloc(sizeof(TCHAR)*CIM_VAL_ASCII_SIZE+sizeof(TCHAR));
+		var_name	= new TCHAR[CIM_CMD_NAME_SIZE+1];			//(PTCHAR)::Alloc(sizeof(TCHAR)*CIM_CMD_NAME_SIZE+sizeof(TCHAR));
+		var_desc	= new TCHAR[CIM_CMD_DESC_SIZE+1];			//(PTCHAR)::Alloc(sizeof(TCHAR)*CIM_CMD_DESC_SIZE+sizeof(TCHAR));
+		cur_val_str	= new TCHAR[CIM_VAL_ASCII_SIZE+1];			//(PTCHAR)::Alloc(sizeof(TCHAR)*CIM_VAL_ASCII_SIZE+sizeof(TCHAR));
+		def_val_str	= new TCHAR[CIM_VAL_ASCII_SIZE+1];			//(PTCHAR)::Alloc(sizeof(TCHAR)*CIM_VAL_ASCII_SIZE+sizeof(TCHAR));
+		
 		wmemset(var_name,	0x00, CIM_CMD_NAME_SIZE+1);
 		wmemset(var_desc,	0x00, CIM_CMD_DESC_SIZE+1);
 		wmemset(cur_val_str,0x00, CIM_VAL_ASCII_SIZE+1);
@@ -1429,10 +1431,10 @@ typedef struct __st_cim300_epj_variable_information__
 	*/
 	VOID Delete()
 	{
-		::Free(var_name);
-		::Free(var_desc);
-		::Free(cur_val_str);
-		::Free(def_val_str);
+		delete var_name;
+		delete var_desc;
+		delete cur_val_str;
+		delete def_val_str;
 	}
 
 	/*
@@ -1550,14 +1552,16 @@ typedef struct __st_cim300_host_carrier_tag__
 	{
 		data_len= CIM_CARRIER_ID_SIZE;
 		transaction_id	= 0;
-		loc_id	= (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_CARRIER_LOC_SIZE+sizeof(TCHAR));
+		loc_id = new TCHAR[CIM_CARRIER_LOC_SIZE+1]; // (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_CARRIER_LOC_SIZE+sizeof(TCHAR));
 		ASSERT(loc_id);
 		wmemset(loc_id, 0x00, CIM_CARRIER_LOC_SIZE+1);
-		carr_id	= (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_CARRIER_ID_SIZE+sizeof(TCHAR));
+
+		carr_id = new TCHAR[CIM_CARRIER_ID_SIZE+1]; //(PTCHAR)::Alloc(sizeof(TCHAR) * CIM_CARRIER_ID_SIZE+sizeof(TCHAR));
 		ASSERT(carr_id);
 		wmemset(carr_id, 0x00, CIM_CARRIER_ID_SIZE+1);
-		data_seg= (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_DATA_SEGMENT_SIZE+sizeof(TCHAR));
+		data_seg = new TCHAR[CIM_DATA_SEGMENT_SIZE+1];// (PTCHAR)::Alloc(sizeof(TCHAR) * CIM_DATA_SEGMENT_SIZE+sizeof(TCHAR));
 		ASSERT(data_seg);
+
 		wmemset(data_seg, 0x00, CIM_DATA_SEGMENT_SIZE+1);
 
 		return TRUE;
@@ -1570,9 +1574,9 @@ typedef struct __st_cim300_host_carrier_tag__
 	*/
 	VOID Close()
 	{
-		if (loc_id)		::Free(loc_id);		loc_id	= NULL;
-		if (carr_id)	::Free(carr_id);	carr_id	= NULL;
-		if (data_seg)	::Free(data_seg);	data_seg= NULL;
+		if (loc_id)		delete loc_id;		loc_id	= NULL;
+		if (carr_id)	delete carr_id;	carr_id	= NULL;
+		if (data_seg)	delete data_seg;	data_seg= NULL;
 		transaction_id	= 0;
 		data_len		= 0;
 	}

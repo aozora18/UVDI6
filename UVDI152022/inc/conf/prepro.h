@@ -88,13 +88,14 @@ typedef struct __st_prepro_rlt_setting_file__
 	*/
 	VOID Init()
 	{
-		main_gerber_input_path = (PCHAR)Alloc(MAX_PATH_LEN);
+		main_gerber_input_path		 = new CHAR[MAX_PATH_LEN];
+		main_gerber_output_path		 = new CHAR[MAX_PATH_LEN];
+		main_work_dir_path			 = new CHAR[MAX_PATH_LEN];
+		main_suffix					 = new CHAR[MAX_FILE_LEN];
+		
 		memset(main_gerber_input_path, 0x00, MAX_PATH_LEN);
-		main_gerber_output_path = (PCHAR)Alloc(MAX_PATH_LEN);
 		memset(main_gerber_output_path, 0x00, MAX_PATH_LEN);
-		main_work_dir_path = (PCHAR)Alloc(MAX_PATH_LEN);
 		memset(main_work_dir_path, 0x00, MAX_PATH_LEN);
-		main_suffix = (PCHAR)Alloc(MAX_FILE_LEN);
 		memset(main_suffix, 0x00, MAX_FILE_LEN);
 
 // 		lot_number			= (PCHAR)Alloc(MAX_LOT_NUM_LENGTH);
@@ -119,10 +120,10 @@ typedef struct __st_prepro_rlt_setting_file__
 	*/
 	VOID Close()
 	{
- 		if (main_gerber_input_path)			Free(main_gerber_input_path);
- 		if (main_gerber_output_path)		Free(main_gerber_output_path);
- 		if (main_work_dir_path)				Free(main_work_dir_path);
- 		if (main_suffix)					Free(main_suffix);
+ 		if (main_gerber_input_path)			delete main_gerber_input_path;
+ 		if (main_gerber_output_path)		delete main_gerber_output_path;
+ 		if (main_work_dir_path)				delete main_work_dir_path;
+ 		if (main_suffix)					delete main_suffix;
 	}
 
 	/*
@@ -229,7 +230,7 @@ typedef struct __st_prepro_auto_run_data__
 	*/
 	VOID Init()
 	{
-		gds_file_path = (PCHAR)Alloc(MAX_PATH_LEN);
+		gds_file_path = new CHAR[MAX_PATH_LEN];//(PCHAR)Alloc(MAX_PATH_LEN);
 		memset(gds_file_path, 0x00, MAX_PATH_LEN);
 	}
 	/*
@@ -239,7 +240,7 @@ typedef struct __st_prepro_auto_run_data__
 	*/
 	VOID Close()
 	{
-		if (gds_file_path)			Free(gds_file_path);
+		if (gds_file_path)			delete gds_file_path;
 	}
 	/*
 	 desc : gds file name √ ±‚»≠

@@ -87,9 +87,9 @@ typedef struct __st_recipe_info_gerber_printing__
 		expo_speed			= 0.0f;	/* mm/sec */
 		
 		/* PCHAR */
-		recipe_name			= (PCHAR)::Alloc(MAX_RECIPE_NAME_LEN);
+		recipe_name			= new CHAR[MAX_RECIPE_NAME_LEN];//(PCHAR)::Alloc(MAX_RECIPE_NAME_LEN);
+		gerber_name =			new CHAR[MAX_GERBER_NAME];//(PCHAR)::Alloc(MAX_GERBER_NAME);
 		memset(recipe_name, 0x00, MAX_RECIPE_NAME_LEN);
-		gerber_name			= (PCHAR)::Alloc(MAX_GERBER_NAME);
 		memset(gerber_name, 0x00, MAX_GERBER_NAME);
 
 		/* PFLOAT */
@@ -97,23 +97,29 @@ typedef struct __st_recipe_info_gerber_printing__
 		memset(expo_energy, 0x00, sizeof(FLOAT) * MAX_PH);
 
 		/* PUINT16 (이중 배열 할당인 경우, 첫 번째 배열은 포인터 크기로 할당 */
-		led_power_index		= (PUINT16 *)::Alloc(sizeof(PUINT16) * MAX_PH);
-		led_power_index[0]	= (PUINT16)::Alloc(sizeof(UINT16) * MAX_PH * MAX_LED);
-		memset(led_power_index[0], 0x00, sizeof(UINT16) * MAX_PH * MAX_LED);
-		for (i=1; i<MAX_PH; i++)
+
+		led_power_index = new PUINT16[MAX_PH]; //(PUINT16 *)::Alloc(sizeof(PUINT16) * MAX_PH);
+
+		
+		for (i=0; i<MAX_PH; i++)
 		{
+			led_power_index[i] = new UINT16[MAX_LED];//(PUINT16)::Alloc(sizeof(UINT16) * MAX_PH * MAX_LED);
+			memset(led_power_index[i], 0x00, sizeof(UINT16) * MAX_LED);
+
 			/* 각 헤드 마다 4개씩 LED 값 저장하기 위한 포인터 연결 */
-			led_power_index[i]	= led_power_index[i-1] + 4;
+		//	led_power_index[i]	= led_power_index[i-1] + 4;
 		}
 
 		/* PUINT16 (이중 배열 할당인 경우, 첫 번째 배열은 포인터 크기로 할당 */
-		led_power_watt		= (PFLOAT *)::Alloc(sizeof(PFLOAT) * MAX_PH);
-		led_power_watt[0]	= (PFLOAT)::Alloc(sizeof(FLOAT) * MAX_PH * MAX_LED);
-		memset(led_power_watt[0], 0x00, sizeof(FLOAT) * MAX_PH * MAX_LED);
-		for (i=1; i<MAX_PH; i++)
+		led_power_watt = new PFLOAT[MAX_PH]; //(PFLOAT *)::Alloc(sizeof(PFLOAT) * MAX_PH);
+
+		
+		for (i=0; i<MAX_PH; i++)
 		{
+			led_power_watt[i] = new FLOAT[MAX_LED];//(PFLOAT)::Alloc(sizeof(FLOAT) * MAX_PH * MAX_LED);
+			memset(led_power_watt[i], 0x00, sizeof(FLOAT) * MAX_LED);
 			/* 각 헤드 마다 4개씩 LED 값 저장하기 위한 포인터 연결 */
-			led_power_watt[i]	= led_power_watt[i-1] + 4;
+			//led_power_watt[i]	= led_power_watt[i-1] + 4;
 		}
 	}
 
@@ -124,18 +130,28 @@ typedef struct __st_recipe_info_gerber_printing__
 	*/
 	VOID Close()
 	{
-		if (recipe_name)	::Free(recipe_name);
-		if (gerber_name)	::Free(gerber_name);
-		if (expo_energy)	::Free(expo_energy);
+		if (recipe_name)	delete recipe_name;
+		if (gerber_name)	delete gerber_name;
+		if (expo_energy)	delete expo_energy;
+
 		if (led_power_index)
 		{
-			if (led_power_index[0])	::Free(led_power_index[0]);
-			::Free(led_power_index);
+			for (int i = 0; i < MAX_PH; i++)
+			{
+				delete led_power_index[i];
+			}
+			delete[] led_power_index;
+			//if (led_power_index[0])	::Free([0]);
+			//::Free(led_power_index);
 		}
 		if (led_power_watt)
 		{
-			if (led_power_watt[0])	::Free(led_power_watt[0]);
-			::Free(led_power_watt);
+
+			for (int i = 0; i < MAX_PH; i++)
+			{
+				delete led_power_watt[i];
+			}
+			delete[] led_power_watt;
 		}
 	}
 

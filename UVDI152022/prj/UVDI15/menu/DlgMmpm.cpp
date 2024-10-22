@@ -151,12 +151,10 @@ BOOL CDlgMmpm::OnInitDlg()
 	/* 현재 가장 첫번째 실패한 정보 얻기 */
 	FindData(0x00);
 
-	
 	uvEng_GetModelRadius(1, modelWidth, modelHeight, true);
 	modelWidth = modelWidth / 2;
 	modelHeight = modelHeight / 2;
 	
-
 	return TRUE;
 }
 

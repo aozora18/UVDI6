@@ -38,25 +38,29 @@ typedef struct __st_photohead_led_power_info__
 	{
 		UINT16 i;
 		/* PCHAR */
-		led_name		= (PCHAR)Alloc(LED_POWER_NAME_LENGTH);
+		led_name = new CHAR[LED_POWER_NAME_LENGTH];//   (PCHAR)Alloc(LED_POWER_NAME_LENGTH);
 		memset(led_name, 0x00, LED_POWER_NAME_LENGTH);
 		/* PUINT16 (이중 배열 할당인 경우, 첫 번째 배열은 포인터 크기로 할당 */
-		led_index		= (PUINT16 *)Alloc(sizeof(PUINT16) * MAX_PH);
-		led_index[0]	= (PUINT16)Alloc(sizeof(UINT16) * MAX_PH * 4);
-		memset(led_index[0], 0x00, sizeof(UINT16) * MAX_PH * 4);
-		for (i=1; i<MAX_PH; i++)
+		
+		led_index = new PUINT16[MAX_PH];//  (PUINT16*)Alloc(sizeof(PUINT16) * MAX_PH);
+		for (int i = 0; i < MAX_PH; i++)
 		{
-			/* 각 헤드 마다 4개씩 LED 값 저장하기 위한 포인터 연결 */
-			led_index[i]	= led_index[i-1] + 4;
+			led_index[i] = new UINT16[4]; // (PUINT16)Alloc(sizeof(UINT16) * MAX_PH * 4);
+			memset(led_index[i], 0x00, sizeof(UINT16) * 4);
 		}
+		//for (i=1; i<MAX_PH; i++)
+		//{
+		//	/* 각 헤드 마다 4개씩 LED 값 저장하기 위한 포인터 연결 */
+		//	led_index[i]	= led_index[i-1] + 4;
+		//}
 		/* PUINT16 (이중 배열 할당인 경우, 첫 번째 배열은 포인터 크기로 할당 */
-		led_watt		= (PFLOAT *)Alloc(sizeof(PFLOAT) * MAX_PH);
-		led_watt[0]		= (PFLOAT)Alloc(sizeof(FLOAT) * MAX_PH * 4);
-		memset(led_watt[0], 0x00, sizeof(FLOAT) * MAX_PH * 4);
-		for (i=1; i<MAX_PH; i++)
+		led_watt = new PFLOAT[MAX_PH];// (PFLOAT*)Alloc(sizeof(PFLOAT) * MAX_PH)
+		for (i=0; i<MAX_PH; i++)
 		{
+			led_watt[i] = new FLOAT[4];// (PFLOAT)Alloc(sizeof(FLOAT) * MAX_PH * 4);
+			memset(led_watt[i], 0x00, sizeof(FLOAT) * 4);
 			/* 각 헤드 마다 4개씩 LED 값 저장하기 위한 포인터 연결 */
-			led_watt[i]	= led_watt[i-1] + 4;
+			//led_watt[i]	= led_watt[i-1] + 4;
 		}
 	}
 
@@ -67,16 +71,20 @@ typedef struct __st_photohead_led_power_info__
 	*/
 	VOID Close()
 	{
-		if (led_name)	Free(led_name);
+		if (led_name)	delete led_name;
 		if (led_index)
 		{
-			if (led_index[0])		Free(led_index[0]);
-			Free(led_index);
+			for (int i = 0; i < MAX_PH; i++)
+				delete led_index[i];
+
+			delete []led_index;
 		}
 		if (led_watt)
 		{
-			if (led_watt[0])		Free(led_watt[0]);
-			Free(led_watt);
+			for (int i = 0; i < MAX_PH;i++)
+				delete led_watt[i];
+			
+			delete[] led_watt;
 		}
 	}
 

@@ -1719,8 +1719,10 @@ VOID CDlgMain::UpdateLDSMeasure()
 	if (uvEng_GetConfig()->measure_flat.bThieckOnOff == false)
 		return;
 	
-	if (dCurY < uvEng_GetConfig()->measure_flat.dStartYPos ||
-		dCurY > uvEng_GetConfig()->measure_flat.dEndYPos)
+	//if (dCurY < uvEng_GetConfig()->measure_flat.dStartYPos ||
+	//	dCurY > uvEng_GetConfig()->measure_flat.dEndYPos)
+	if (dCurY > uvEng_GetConfig()->measure_flat.dStartYPos &&
+		dCurY < uvEng_GetConfig()->measure_flat.dEndYPos)
 	{
 		if (uvEng_GetConfig()->measure_flat.GetThickMeasure() != 0)
 			uvEng_GetConfig()->measure_flat.bThieckOnOff = FALSE;

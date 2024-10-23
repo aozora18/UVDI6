@@ -283,11 +283,12 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 
 
 
-	if (!bLoaded || !bSelect)
+	/*if (!bLoaded || !bSelect)
 	{
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 	}
-	else if(is_busy)
+	else i*/
+	if(is_busy)
 	{
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
 		//return;

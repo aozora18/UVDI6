@@ -45,8 +45,8 @@ typedef struct __st_photohead_led_power_info__
 		led_index = new PUINT16[MAX_PH];//  (PUINT16*)Alloc(sizeof(PUINT16) * MAX_PH);
 		for (int i = 0; i < MAX_PH; i++)
 		{
-			led_index[i] = new UINT16[4]; // (PUINT16)Alloc(sizeof(UINT16) * MAX_PH * 4);
-			memset(led_index[i], 0x00, sizeof(UINT16) * 4);
+			led_index[i] = new UINT16[MAX_LED]; // (PUINT16)Alloc(sizeof(UINT16) * MAX_PH * 4);
+			memset(led_index[i], 0x00, sizeof(UINT16) * MAX_LED);
 		}
 		//for (i=1; i<MAX_PH; i++)
 		//{
@@ -57,8 +57,8 @@ typedef struct __st_photohead_led_power_info__
 		led_watt = new PFLOAT[MAX_PH];// (PFLOAT*)Alloc(sizeof(PFLOAT) * MAX_PH)
 		for (i=0; i<MAX_PH; i++)
 		{
-			led_watt[i] = new FLOAT[4];// (PFLOAT)Alloc(sizeof(FLOAT) * MAX_PH * 4);
-			memset(led_watt[i], 0x00, sizeof(FLOAT) * 4);
+			led_watt[i] = new FLOAT[MAX_LED];// (PFLOAT)Alloc(sizeof(FLOAT) * MAX_PH * 4);
+			memset(led_watt[i], 0x00, sizeof(FLOAT) * MAX_LED);
 			/* 각 헤드 마다 4개씩 LED 값 저장하기 위한 포인터 연결 */
 			//led_watt[i]	= led_watt[i-1] + 4;
 		}

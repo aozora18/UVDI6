@@ -2220,13 +2220,15 @@ VOID CDlgMain::PhilSendMove(STG_PP_PACKET_RECV* stRecv, int AxisCount)
 #endif
 		else                                    drv_id = ENG_MMDI::en_axis_none;
 
-		if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, L"EFEM_POS", DEF_MAX_POSITION_NAME_LENGTH))
+		memset(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, 0, DEF_MAX_POSITION_NAME_LENGTH);
+
+		if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, "EFEM_POS", strlen("EFEM_POS")))
 		{
 			if (drv_id == ENG_MMDI::en_stage_x)				dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][0];
 			else if (drv_id == ENG_MMDI::en_stage_y)		dTargetPos = uvEng_GetConfig()->set_align.table_unloader_xy[0][1];
 			else                                            ErrorCode = ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT;
 		}
-		else if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, L"MANUAL_POS", DEF_MAX_POSITION_NAME_LENGTH))
+		else if (memcmp(stRecv->st_c2p_char_move.stMoveTeach[AxisCount].szPositionName, "MANUAL_POS", strlen("MANUAL_POS")))
 		{
 			if (drv_id == ENG_MMDI::en_stage_x)				dTargetPos = uvEng_GetConfig()->mc2b_svc.max_dist[(UINT8)drv_id] - 10;
 			else if (drv_id == ENG_MMDI::en_stage_y)		dTargetPos = uvEng_GetConfig()->mc2b_svc.max_dist[(UINT8)drv_id] - 10;

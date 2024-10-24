@@ -860,9 +860,11 @@ API_EXPORT UINT8 uvLuria_GetGlobalMarkJobNameVector(PCHAR job,
 		AfxMessageBox(L"Four or more marks are not registered [ Global ]", MB_ICONSTOP|MB_TOPMOST);
 		return 0x02;
 	}
-
+	
+	UINT8 count = csJobXml.GetMarkCount(ENG_AMTF::en_global);
+	vstXMXY.reserve(count);
 	/* 등록된 마크 가져오기 */
-	for (; i<csJobXml.GetMarkCount(ENG_AMTF::en_global); i++)
+	for (; i < count; i++)
 	{
 		if (!csJobXml.GetGlobalMark(i, stData))	return 0x03;	/* Unit : mm */
 		vstXMXY.push_back(stData);
@@ -931,8 +933,11 @@ API_EXPORT UINT8 uvLuria_GetLocalMarkJobNameVector(PCHAR job,
 		AfxMessageBox(L"The mark is not event numbered [ Local ]", MB_ICONSTOP|MB_TOPMOST);
 		return 0x02;
 	}
+	UINT8 count = csJobXml.GetMarkCount(ENG_AMTF::en_local);
+
+	vstXMXY.reserve(count);
 	/* 등록된 마크 가져오기 */
-	for (; i<csJobXml.GetMarkCount(ENG_AMTF::en_local); i++)
+	for (; i< count; i++)
 	{
 		if (!csJobXml.GetLocalMark(i, stData))	return 0x03;	/* Unit : mm */
 		vstXMXY.push_back(stData);

@@ -37,6 +37,8 @@ static char THIS_FILE[] = __FILE__;
 CMainThread::CMainThread(HWND parent)
 	: CThinThread()
 {
+	const int poolsize = 20;
+
 	m_hParent		= parent;
 	m_pWorkJob		= NULL;
 	m_bAppExit		= FALSE;
@@ -45,6 +47,10 @@ CMainThread::CMainThread(HWND parent)
 	m_u64TickExit	= 0;
 	m_u64TickHotMon	= GetTickCount64();
 	m_u64TickHotCtrl=m_u64TickHotMon;
+	paramPool.reserve(poolsize);
+	paramPool = vector< LparamExtension>(poolsize, LparamExtension());
+	poolItor = paramPool.begin();
+	
 }
 
 /*
@@ -419,7 +425,10 @@ VOID CMainThread::SendMesgParent(ENG_BWOK msg_id, UINT32 timeout , UINT32 lParam
 	DWORD_PTR dwResult	= 0;
 	LRESULT lResult		= 0;
 
-	LparamExtension* lParamExt = new LparamExtension(IsBusyWorkJob() ? 1 : 0, lParamExtenstion);
+
+	LparamExtension* lParamExt = &(*poolItor);
+	lParamExt->Set(IsBusyWorkJob() ? 1 : 0, lParamExtenstion);
+
 	/* 부모에게 이벤트 메시지 전달 */
 	lResult	= ::SendMessageTimeout(m_hParent, WM_MAIN_THREAD, WPARAM(msg_id), LPARAM(lParamExt),
 								   SMTO_NORMAL, timeout, &dwResult);
@@ -434,9 +443,8 @@ VOID CMainThread::SendMesgParent(ENG_BWOK msg_id, UINT32 timeout , UINT32 lParam
 		
 	}
 	
-	if (lParamExt != nullptr)
-		delete lParamExt; lParamExt = nullptr;
-
+	++poolItor;
+	if (poolItor == paramPool.end()) {poolItor = paramPool.begin();}
 }
 
 /*

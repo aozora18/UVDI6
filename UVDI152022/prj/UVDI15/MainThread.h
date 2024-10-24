@@ -7,7 +7,12 @@
 class LparamExtension
 {
 public:
+	LparamExtension() = default;
 	LparamExtension(LONG lParam, INT32 extensions)
+	{
+		Set(lParam, extensions);
+	}
+	void Set(LONG lParam, INT32 extensions)
 	{
 		this->lParam = lParam;
 		this->extenstion = extensions;
@@ -50,6 +55,8 @@ protected:
 
 /* 로컬 함수 */
 protected:
+	vector<LparamExtension> paramPool;
+	vector<LparamExtension>::iterator poolItor;
 
 	VOID				SendMesgParent(ENG_BWOK msg_id, UINT32 timeout=100, UINT32 lParamExtenstion=0);
 

@@ -35,6 +35,8 @@ CDlgConf::CDlgConf(UINT32 id, CWnd* parent)
 
 CDlgConf::~CDlgConf()
 {
+	delete m_pDlgMenu;
+		m_pDlgMenu = NULL;
 }
 
 /*
@@ -127,7 +129,7 @@ BOOL CDlgConf::CreateMenu(UINT32 id)
 
 	/* 기존 실행된 자식 윈도가 있다면 메모리 해제 */
 	DeleteMenu();
-
+	
 	/* 생성하고자 하는 윈도 (메뉴 다이얼로그) ID 설정 */
 	u32DlgID = IDD_CONF_SETTING + (id - IDC_CONF_SETTING_BTN);
 	/* 해당 자식 (메뉴) 윈도 메모리 할당 */

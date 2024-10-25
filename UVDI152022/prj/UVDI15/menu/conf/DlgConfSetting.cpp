@@ -24,6 +24,7 @@ CDlgConfSetting::CDlgConfSetting(UINT32 id, CWnd* parent)
 
 CDlgConfSetting::~CDlgConfSetting()
 {
+	DeleteMenu();
 }
 
 /*

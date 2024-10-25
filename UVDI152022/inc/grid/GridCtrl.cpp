@@ -2204,7 +2204,7 @@ void CGridCtrl::OnDraw(CDC* pDC)
 	}
 
     pDC->SelectStockObject(NULL_PEN);
-
+    pen.DeleteObject();
     // Let parent know it can discard it's data if it needs to.
     if (GetVirtualMode())
        SendCacheHintToParent(CCellRange(-1,-1,-1,-1));
@@ -2328,6 +2328,7 @@ BOOL CGridCtrl::RedrawCell(int nRow, int nCol, CDC* pDC /* = NULL */)
                 pDC->LineTo(rect.right, rect.bottom + 1);
             }
             pDC->SelectObject(pOldPen);
+            pen.DeleteObject();
         }
     } else
         InvalidateRect(rect, TRUE);     // Could not get a DC - invalidate it anyway

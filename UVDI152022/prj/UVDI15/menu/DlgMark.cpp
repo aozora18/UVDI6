@@ -56,6 +56,7 @@ CDlgMark::CDlgMark(UINT32 id, CWnd* parent)
 
 CDlgMark::~CDlgMark()
 {
+	
 }
 
 /*
@@ -597,6 +598,7 @@ BOOL CDlgMark::InitGrid()
 // 	ASSERT(m_pGridMark);
 // 	if (!m_pGridMark->Init(FALSE, TRUE))	return FALSE;
 	/* Model Grid */
+	
 	m_pGridModel = new CGridModel(m_hWnd, m_grp_ctl[eMARK_GRP_MODEL_LIST].GetSafeHwnd(), IDC_GRID_MARK_MODEL_LIST);
 	ASSERT(m_pGridModel);
 	if (!m_pGridModel->Init(FALSE, TRUE))	return FALSE;
@@ -622,7 +624,7 @@ VOID CDlgMark::CloseGrid()
 {
 	//if (m_pGridMark)		delete m_pGridMark;
 	if (m_pGridModel)		delete m_pGridModel;
-	//if (m_pGridModelInMark)	delete m_pGridModelInMark;
+	if (m_pGridModelInMark)	delete m_pGridModelInMark;
 	//if (m_pGridMotor)		delete m_pGridMotor;
 }
 

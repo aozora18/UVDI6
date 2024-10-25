@@ -576,14 +576,22 @@ VOID CDlgCalbUVPowerCheck::MakeRecipe()
 		for (int nLed = 1; nLed <= uvEng_GetConfig()->luria_svc.led_count; nLed++)
 		{
 			fWatt = (float)_ttof(stVctParam[nLed].strValue);
-			u16Index = CPowerMeasureMgr::GetInstance()->GetPowerIndex(nPH + 1, nLed, (double)fWatt);
-			if (u16Index == -1)
+			if (fWatt<0.002)
 			{
-				AfxMessageBox(_T("저장 실패!현재 측정된 power index내에서 범위를 유추할수 없는 출력값입니다."));
-				return;
+				stData.led_watt[nPH][nLed - 1] = fWatt;
+				stData.led_index[nPH][nLed - 1] = 0;
 			}
-			stData.led_watt[nPH][nLed - 1] = fWatt;
-			stData.led_index[nPH][nLed - 1] = u16Index;
+			else
+			{
+				u16Index = CPowerMeasureMgr::GetInstance()->GetPowerIndex(nPH + 1, nLed, (double)fWatt);
+				if (u16Index == -1)
+				{
+					AfxMessageBox(_T("저장 실패!현재 측정된 power index내에서 범위를 유추할수 없는 출력값입니다."));
+					return;
+				}
+				stData.led_watt[nPH][nLed - 1] = fWatt;
+				stData.led_index[nPH][nLed - 1] = u16Index;
+			}
 		}
 	}
 

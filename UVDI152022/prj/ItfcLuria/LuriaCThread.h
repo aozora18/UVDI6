@@ -15,7 +15,8 @@ class CComManagement;
 class CPhZFocus;
 
 #ifdef _DEBUG
-#define MAX_LURIA_PACKET_COUNT	64	/* 최소한 32개 이상이어야 됨 */
+//#define MAX_LURIA_PACKET_COUNT	64	/* 최소한 32개 이상이어야 됨 */
+#define MAX_LURIA_PACKET_COUNT	128	/* 최소한 32개 이상이어야 됨 */
 #define	REQ_LURIA_PERIOD_TIME	250
 #else
 #define MAX_LURIA_PACKET_COUNT	128

@@ -140,7 +140,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	CUniToChar	csCnv;
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
-
+	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	/*레시피 정보 가져오기*/
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
 
@@ -173,11 +173,14 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			L"score_4,scale_4,mark_move_x4(mm),mark_move_y4(mm),"
 			L"led_recipe,read_thick(mm),\n");
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
+		
+		webMonitor.AddLog(tzResult);
 	}
 
 	/* 발생 시간 */
 	swprintf_s(tzResult, 1024, L"%02d:%02d:%02d,", stTm.wHour, stTm.wMinute, stTm.wSecond);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	webMonitor.AddLog(tzResult);
 	/*ExpoLog 기록*/
 	memcpy(m_stExpoLog.data, tzResult, 40);
 
@@ -192,7 +195,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02),
 		tzState[state], pstJobRecipe->gerber_name, pstJobRecipe->material_thick, pstJobRecipe->expo_energy);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-
+	webMonitor.AddLog(tzResult);
 	/*ExpoLog 기록*/
 	m_stExpoLog.expo_time = uvEng_GetJobWorkTime();
 	m_stExpoLog.expo_succ = state;
@@ -206,7 +209,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		pstMarkDiff->result[0].diff * 100.0f, pstMarkDiff->result[1].diff * 100.0f, pstMarkDiff->result[2].diff * 100.0f,
 		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-
+	webMonitor.AddLog(tzResult);
 	m_stExpoLog.global_dist[0] = pstMarkDiff->result[0].diff * 100.0f;
 	m_stExpoLog.global_dist[1] = pstMarkDiff->result[1].diff * 100.0f;
 	m_stExpoLog.global_dist[2] = pstMarkDiff->result[2].diff * 100.0f;
@@ -222,6 +225,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		webMonitor.AddLog(tzResult);
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x01);
 	if (pstMark)
@@ -230,6 +234,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		webMonitor.AddLog(tzResult);
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x00);
 	if (pstMark)
@@ -238,6 +243,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		webMonitor.AddLog(tzResult);
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
 	if (pstMark)
@@ -246,6 +252,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		webMonitor.AddLog(tzResult);
 	}
 
 	swprintf_s(tzResult, 1024, L"%S,", pstExpoRecipe->power_name);
@@ -263,6 +270,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		RealThick = mean + dmater + LDSToThickOffset;
 		swprintf_s(tzResult, 1024, L"%.3f,", RealThick);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		webMonitor.AddLog(tzResult);
 	}
 
 	///* 마크 간의 6 곳 길이 측정 오차 값 과 전체 노광하는데 소요된 시간 저장 */
@@ -303,7 +311,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
-
+	webMonitor.AddLog("COMPLETE.");
 
 }
 

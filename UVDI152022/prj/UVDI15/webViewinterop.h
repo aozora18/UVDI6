@@ -134,7 +134,24 @@ public:
 		{
 			int debug = 0;
 		}
-		
+	}
+
+	void AddLog(TCHAR* tStr)
+	{
+		std::wstring wstr = tStr;
+		std::string str(wstr.begin(), wstr.end());
+
+		std::lock_guard<std::mutex> lock(mtx);
+		try
+		{
+			logBuffer.push_back(str);
+			if (logBuffer.size() > 200)
+				logBuffer.erase(logBuffer.begin());
+		}
+		catch (exception e)
+		{
+			int debug = 0;
+		}
 	}
 
 	void Update()

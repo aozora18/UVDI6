@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Monitoring</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        #outputText {
+            font-weight: bold;
+            color: #555;
+            white-space: pre; /* 추가: 공백과 줄 바꿈을 유지 */
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        div {
+            margin-bottom: 15px;
+        }
+    </style>
+    <script src="/lib/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/monitoringhub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // 서버에서 값이 전송될 때마다 DOM 업데이트
+            connection.on("ReceiveValues", (str) => {
+                document.getElementById("outputText").innerText = str;
+            });
+
+            // SignalR 연결 시작
+            connection.start()
+                .then(() => {
+                    console.log('Connected to server');
+                    // 연결 성공 후 서버에 초기 데이터 요청
+                    connection.invoke("RequestRefreshValues")
+                        .catch(err => console.error('Failed to request values:', err));
+                })
+                .catch(err => console.error('Could not connect to server:', err));
+
+            // 버튼 클릭 시 서버의 ClearLogs 호출
+            document.getElementById("clearLogsButton").addEventListener("click", function () {
+                connection.invoke("ClearLogs")
+                    .then(() => console.log('Logs cleared.'))
+                    .catch(err => console.error('Failed to clear logs:', err));
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Web Monitoring</h1>
+    <div>
+        <pre id="outputText">여기에 서버에서 전달된 데이터가 표시됩니다.</pre>
+    </div>
+    <div>
+        <button id="clearLogsButton">Clear Logs</button>
+    </div>
+</body>
+</html>

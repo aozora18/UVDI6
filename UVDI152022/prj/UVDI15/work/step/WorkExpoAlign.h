@@ -100,6 +100,7 @@ protected:
 
 	VOID				SetWorkNext();
 	VOID				SaveExpoResult(UINT8 state);
+	VOID	WriteWebLogForExpoResult(UINT8 state);
 
 	CString				m_strLog;
 	VOID				txtWrite(CString msg);

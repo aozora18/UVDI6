@@ -128,9 +128,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	//UINT8 i;
 	TCHAR tzResult[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
 	TCHAR tzDrv[8] = { NULL };
-	//UINT64 u64Temp[2]	= {NULL};
-	//UINT16 (*pLed)[8]	= uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_led;
-	//UINT16 (*pBoard)[8]	= uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_board;
+	 
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
 	LPG_ACGR pstMark = NULL;
@@ -140,7 +138,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	CUniToChar	csCnv;
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
-	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
+	 
 	/*레시피 정보 가져오기*/
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
 
@@ -153,16 +151,6 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	if (!uvCmn_FindFile(tzFile))
 	{
 		wcscpy_s(tzResult, 1024,
-			//L"date,recipe,gerber,succ,hot_air,temp_di_1,temp_di_2,temp_di_3,temp_di_4,"
-			//L"hdd_free(GB),mem_free(GB),"
-			//L"led(1:1),led(1:2),led(1:3),led(1:4),board(1:1),board(1:2),board(1:3),board(1:4),"
-			//L"led(2:1),led(2:2),led(2:3),led(2:4),board(2:1),board(2:2),board(2:3),board(2:4),"
-			//L"horz_dist_13(mm),horz_dist_24(mm),vert_dist_12(mm),vert_dist_34(mm),"
-			//L"diag_dist_14(mm),diag_dist_23(mm),expo_time(ms),"
-			//L"score_1,scale_1,scale_size_1,mark_move_x1(mm),mark_move_y1(mm),"
-			//L"score_2,scale_2,scale_size_2,mark_move_x2(mm),mark_move_y2(mm),"
-			//L"score_3,scale_3,scale_size_3,mark_move_x3(mm),mark_move_y3(mm),"
-			//L"score_4,scale_4,scale_size_4,mark_move_x4(mm),mark_move_y4(mm),\n");
 			L"time,tack,succ,"
 			L"gerber_name,material_thick(um),expo_eneray(mj),"
 			L"horz_dist_13(mm),horz_dist_24(mm),vert_dist_12(mm),vert_dist_34(mm),"
@@ -174,28 +162,22 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			L"led_recipe,read_thick(mm),\n");
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
 		
-		webMonitor.AddLog(tzResult);
+ 
 	}
 
 	/* 발생 시간 */
 	swprintf_s(tzResult, 1024, L"%02d:%02d:%02d,", stTm.wHour, stTm.wMinute, stTm.wSecond);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	webMonitor.AddLog(tzResult);
+ 
 	/*ExpoLog 기록*/
 	memcpy(m_stExpoLog.data, tzResult, 40);
 
-
-	/* 온도 / 노광 시간 / 노광 성공 / 노광 모드 / 소재 배율 / 소재 회전 */
-	//swprintf_s(tzResult, 1024, L"\%llu,%s,%.2f,%.2f,",
-	//	uvEng_GetJobWorkTime(), tzState[state], pstExpoRecipe->real_scale_range, pstExpoRecipe->real_rotaion_range);
-	//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	/* 노광 Tack / 노광 성공 여부 / 거버 이름 / 소재 두께/ 광량 */
 	UINT64 u64JobTime = uvEng_GetJobWorkTime();
 	swprintf_s(tzResult, 1024, L"%um%02us,%s,%S,%dum,%.1fmj,",
 		uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02),
 		tzState[state], pstJobRecipe->gerber_name, pstJobRecipe->material_thick, pstJobRecipe->expo_energy);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	webMonitor.AddLog(tzResult);
+ 
 	/*ExpoLog 기록*/
 	m_stExpoLog.expo_time = uvEng_GetJobWorkTime();
 	m_stExpoLog.expo_succ = state;
@@ -225,7 +207,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-		webMonitor.AddLog(tzResult);
+ 
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x01);
 	if (pstMark)
@@ -234,7 +216,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-		webMonitor.AddLog(tzResult);
+ 
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x00);
 	if (pstMark)
@@ -243,7 +225,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-		webMonitor.AddLog(tzResult);
+ 
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
 	if (pstMark)
@@ -252,7 +234,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-		webMonitor.AddLog(tzResult);
+ 
 	}
 
 	swprintf_s(tzResult, 1024, L"%S,", pstExpoRecipe->power_name);
@@ -270,28 +252,10 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		RealThick = mean + dmater + LDSToThickOffset;
 		swprintf_s(tzResult, 1024, L"%.3f,", RealThick);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-		webMonitor.AddLog(tzResult);
+ 
 	}
 
-	///* 마크 간의 6 곳 길이 측정 오차 값 과 전체 노광하는데 소요된 시간 저장 */
-	//swprintf_s(tzResult, 1024, L"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,",
-	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz),
-	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz),
-	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert),
-	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert),
-	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag),
-	//	uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag));
-	//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	///*ExpoLog 기록*/
-	//m_stExpoLog.global_dist[0] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz);
-	//m_stExpoLog.global_dist[1] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz);
-	//m_stExpoLog.global_dist[2] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert);
-	//m_stExpoLog.global_dist[3] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert);
-	//m_stExpoLog.global_dist[4] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag);
-	//m_stExpoLog.global_dist[5] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag);
-
-	/*ExpoLog 기록*/
-	//memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);
+ 
 	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
 	m_stExpoLog.material_thick = pstJobRecipe->material_thick;
 	m_stExpoLog.expo_energy = pstJobRecipe->expo_energy;
@@ -311,9 +275,146 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
-	webMonitor.AddLog("COMPLETE.");
+ 
 
+	WriteWebLogForExpoResult(state);
 }
+
+
+
+VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
+{
+	//UINT8 i;
+	TCHAR tempStr[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
+	TCHAR tzDrv[8] = { NULL };
+ 
+	SYSTEMTIME stTm = { NULL };
+	MEMORYSTATUSEX stMem = { NULL };
+	LPG_ACGR pstMark = NULL;
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	CUniToChar csCnv1, csCnv2;
+
+	CUniToChar	csCnv;
+	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
+	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
+	/*레시피 정보 가져오기*/
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	 
+ 
+
+	TCHAR title[1024] = { NULL };
+
+	vector<wstring> temps;
+
+	/* 발생 시간 */
+	swprintf_s(tempStr, 1024, L"time = %02d:%02d:%02d\n", stTm.wHour, stTm.wMinute, stTm.wSecond);
+	temps.push_back(wstring(tempStr));
+ 
+	UINT64 u64JobTime = uvEng_GetJobWorkTime();
+	swprintf_s(tempStr, 1024, L"tact = %um%02us\n", uvCmn_GetTimeToType(u64JobTime, 0x01));
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"succ = %s\n", tzState[state]);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"gerber_name = %s\n", pstJobRecipe->gerber_name);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"material_thick(um) = %d\n", pstJobRecipe->material_thick);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"expo_eneray(mj) = %.1f\n", pstJobRecipe->expo_energy);
+	temps.push_back(wstring(tempStr));
+
+	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
+	swprintf_s(tempStr, 1024, L"horz_dist_13(mm) = %.4f\n", pstMarkDiff->result[0].diff * 100.0f);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"horz_dist_24(mm) = %.4f\n", pstMarkDiff->result[1].diff * 100.0f);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"vert_dist_12(mm) = %.4f\n", pstMarkDiff->result[2].diff * 100.0f);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"vert_dist_34(mm) = %.4f\n", pstMarkDiff->result[3].diff * 100.0f);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"diag_dist_14(mm) = %.4f\n", pstMarkDiff->result[4].diff * 100.0f);
+	temps.push_back(wstring(tempStr));
+	swprintf_s(tempStr, 1024, L"diag_dist_23(mm) = %.4f\n", pstMarkDiff->result[5].diff * 100.0f);
+	temps.push_back(wstring(tempStr));
+	 
+	/* 얼라인 마크 검색 결과 값 저장 */
+	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x00);
+	if (pstMark)
+	{
+		swprintf_s(tempStr, 1024, L"score_1 = %.3f\n", pstMark->score_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"scale_1 = %.3f\n", pstMark->scale_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_x1(mm) = %.4f\n", pstMark->move_mm_x);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_y1(mm) = %.4f\n", pstMark->move_mm_y);
+		temps.push_back(wstring(tempStr));
+	}
+
+	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x01);
+	if (pstMark)
+	{
+		swprintf_s(tempStr, 1024, L"score_2 = %.3f\n", pstMark->score_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"scale_2 = %.3f\n", pstMark->scale_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_x2(mm) = %.4f\n", pstMark->move_mm_x);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_y2(mm) = %.4f\n", pstMark->move_mm_y);
+		temps.push_back(wstring(tempStr));
+	}
+	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x00);
+	if (pstMark)
+	{
+		swprintf_s(tempStr, 1024, L"score_3 = %.3f\n", pstMark->score_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"scale_3 = %.3f\n", pstMark->scale_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_x3(mm) = %.4f\n", pstMark->move_mm_x);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_y3(mm) = %.4f\n", pstMark->move_mm_y);
+		temps.push_back(wstring(tempStr));
+		
+	}
+	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
+	if (pstMark)
+	{
+		swprintf_s(tempStr, 1024, L"score_4 = %.3f\n", pstMark->score_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"scale_4 = %.3f\n", pstMark->scale_rate);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_x4(mm) = %.4f\n", pstMark->move_mm_x);
+		temps.push_back(wstring(tempStr));
+		swprintf_s(tempStr, 1024, L"mark_move_y4(mm) = %.4f\n", pstMark->move_mm_y);
+		temps.push_back(wstring(tempStr));
+	}
+	
+	swprintf_s(tempStr, 1024, L"led_recipe = %s\n", pstExpoRecipe->power_name);
+	temps.push_back(wstring(tempStr));
+
+	auto& measureFlat = uvEng_GetConfig()->measure_flat;
+	if (measureFlat.u8UseThickCheck)
+	{
+		auto mean = measureFlat.GetThickMeasureMean();
+
+		DOUBLE RealThick;
+		DOUBLE LDSToThickOffset = 0;
+		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
+		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+
+		RealThick = mean + dmater + LDSToThickOffset;
+		swprintf_s(tempStr, 1024, L"read_thick(mm) = %.3f\n", RealThick);
+		temps.push_back(wstring(tempStr));
+	}
+	else
+	{
+		swprintf_s(tempStr, 1024, L"read_thick(mm) = -\n\n");
+		temps.push_back(wstring(tempStr));
+	}
+	std::wstring result = std::accumulate(temps.begin(), temps.end(), std::wstring(L""));
+	webMonitor.AddLog(string(result.begin(), result.end()));
+}
+
 
 
 void CWorkExpoAlign::DoInitOnthefly2cam()

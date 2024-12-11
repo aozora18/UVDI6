@@ -262,7 +262,7 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	STG_PP_C2P_PROCESS_EXECUTE_ACK stProcessExecute;
 	stProcessExecute.Reset();
 	stProcessExecute.ulUniqueID = stRecv->st_c2p_process_execute.ulUniqueID;
-
+	TCHAR tzMesg[256] = { NULL };
 
 	callerInst->m_stExpoLog.Init();
 	//callerInst->m_stExpoLog.phil_mode = 1;
@@ -282,30 +282,37 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	BOOL bMarked = uvEng_Luria_IsMarkGlobal();
 
 
-
-	/*if (!bLoaded || !bSelect)
+	//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
+	if (0 == strcmp(callerInst->m_stExpoLog.host_recipe_name, callerInst->m_stExpoLog.recipe_name))
 	{
-		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
-	}
-	else i*/
-	if(is_busy)
-	{
-		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
-		//return;
-	}
-	else
-	{
-		if (uvEng_GetConfig()->set_comn.use_auto_align)
+		if (is_busy)
 		{
-			/*자동화 동작시 얼라인 동작 후 노광*/
-			callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
+			stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+			//return;
 		}
 		else
 		{
-			/*자동화 동작시 얼라인 동작 없이 노광*/
-			callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+			if (uvEng_GetConfig()->set_comn.use_auto_align)
+			{
+				/*자동화 동작시 얼라인 동작 후 노광*/
+				callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
+			}
+			else
+			{
+				/*자동화 동작시 얼라인 동작 없이 노광*/
+				callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+			}
 		}
 	}
+	else
+	{
+		swprintf_s(tzMesg, 128, L"A Recipe different from the Reicpe sent form the Host is selected ");
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
+		//   주 공정, 진행 불가
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	}
+
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }
 

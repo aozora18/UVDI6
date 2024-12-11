@@ -323,7 +323,8 @@ UINT16					align_motion;					//얼라인모션
 	UINT8				gain_level[2];					/* Align Camera에 대한 Gain Level 값 (0 ~ 255)      */
 	UINT8				led_duty_cycle;					/* Led Duty Cycle (0 ~ 90%)	*/
 
-	CHAR				power_name[LED_POWER_NAME_LENGTH];				// Led Power Recipe Name	
+	CHAR				power_name[LED_POWER_NAME_LENGTH];				// Led Power Recipe Name
+	CHAR				host_recipe_name[DEF_MAX_RECIPE_NAME_LENGTH];
 	CHAR				recipe_name[DEF_MAX_RECIPE_NAME_LENGTH];		// Recipe 명은 최대 40자		
 	CHAR				glassID[DEF_MAX_GLASS_NAME_LENGTH];				// Glass ID는 최대 40자	
 

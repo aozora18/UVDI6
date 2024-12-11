@@ -7,6 +7,7 @@
 #include "../../MainApp.h"
 #include "WorkFEMExpo.h"
 
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -22,11 +23,11 @@ static char THIS_FILE[]	= __FILE__;
 						Hysterisys의 Negative Pixel 값
  retn : None
 */
-CWorkFEMExpo::CWorkFEMExpo(HWND hHwnd)
+CWorkFEMExpo::CWorkFEMExpo()
 	: CWorkStep()
 {
 	m_enWorkJobID	= ENG_BWOK::en_gerb_expofem;
-	m_hHwnd = hHwnd;
+	//m_hHwnd = GlobalVariables::GetInstance()->femRunState.GetHwnd(false);
 	InitParameter();
 }
 
@@ -62,6 +63,19 @@ BOOL CWorkFEMExpo::InitWork()
 */
 VOID CWorkFEMExpo::DoWork()
 {
+
+
+	
+
+	if (GlobalVariables::GetInstance()->femRunState.IsNew())
+	{
+		auto hwnd = GlobalVariables::GetInstance()->femRunState.GetHwnd(true);
+		if (hwnd != nullptr)
+		{
+			::SendMessageTimeout(hwnd, eMSG_EXPO_FEM_PRINT_SET_POINT, (WPARAM)m_u8PritCntX, (LPARAM)m_u8PritCntY, SMTO_NORMAL, 100, NULL);
+		}	
+	}
+
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
@@ -238,9 +252,11 @@ ENG_JWNS CWorkFEMExpo::SetExposeStartXY()
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Expose.Start.XY");
 
-	if (NULL != m_hHwnd)
+	auto hwnd = GlobalVariables::GetInstance()->femRunState.GetHwnd(false);
+
+	if (NULL != hwnd)
 	{
-		::SendMessageTimeout(m_hHwnd, eMSG_EXPO_FEM_PRINT_SET_POINT, (WPARAM)m_u8PritCntX, (LPARAM)m_u8PritCntY, SMTO_NORMAL, 100, NULL);
+		::SendMessageTimeout(hwnd, eMSG_EXPO_FEM_PRINT_SET_POINT, (WPARAM)m_u8PritCntX, (LPARAM)m_u8PritCntY, SMTO_NORMAL, 100, NULL);
 	}
 	
 	/*노광 횟수에 따라 시작위치 설정*/
@@ -516,9 +532,11 @@ ENG_JWNS CWorkFEMExpo::IsStepDutyFrame()
 */
 ENG_JWNS CWorkFEMExpo::CheckMeasCount()
 {
-	if (NULL != m_hHwnd)
+
+	auto hwnd = GlobalVariables::GetInstance()->femRunState.GetHwnd(false);
+	if (NULL != hwnd)
 	{
-		::SendMessageTimeout(m_hHwnd, eMSG_EXPO_FEM_PRINT_PRINT_COMP, NULL, NULL, SMTO_NORMAL, 100, NULL);
+		::SendMessageTimeout(hwnd, eMSG_EXPO_FEM_PRINT_PRINT_COMP, NULL, NULL, SMTO_NORMAL, 100, NULL);
 	}
 
 	/*X축 횟수 확인*/

@@ -730,10 +730,6 @@ public:
 	void DoInitial(LPG_CIEA pstCfg);
 };
 
-
-
-
-
 class Environmental //환경요소.
 {
 public:
@@ -773,6 +769,41 @@ private:
 	tuple<double, double> prevCalibOffset; //<- 기존의 캘리브레이션 옵셋
 };
 
+class FEMRunState
+{
+	std::mutex lockMutex;
+
+	HWND uiHwnd = nullptr;
+	bool newInst = false;
+public:
+
+	void SetUIhandle(HWND hwnd)
+	{
+		lock_guard<mutex> locked(lockMutex);
+		this->uiHwnd = hwnd;
+		newInst = hwnd != nullptr ? true : newInst;
+	}
+
+	HWND GetHwnd(bool reset = false)
+	{
+		lock_guard<mutex> locked(lockMutex);
+		if (reset && uiHwnd != nullptr)
+			ResetFlag();
+
+		return uiHwnd;
+	}
+	
+	bool IsNew()
+	{
+		return newInst;
+	}
+
+	void ResetFlag()
+	{
+		newInst = false;
+	}
+
+};
 
 //인라인클래스 
 class GlobalVariables
@@ -797,6 +828,7 @@ private:
 	unique_ptr<Environmental> environmental;
 
 	
+	
 	template <typename MapType>
 	bool IsKeyExist(const MapType& map, string key)
 	{
@@ -808,6 +840,7 @@ public:
 	void StartWebMonitor();
 
 public:
+	FEMRunState femRunState;
 
 	AlignMotion& GetAlignMotion()
 	{

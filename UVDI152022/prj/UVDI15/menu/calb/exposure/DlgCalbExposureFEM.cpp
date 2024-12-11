@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 
+#include "../../../GlobalVariables.h"
 /*
  desc : 생성자
  parm : id		- [in]  자신의 윈도 ID
@@ -28,10 +29,12 @@ CDlgCalbExposureFEM::CDlgCalbExposureFEM(UINT32 id, CWnd* parent)
 	m_nPrintRow = -1;
 	m_nPrintCol = -1;
 	m_bPrinting = FALSE;
+	
 }
 
 CDlgCalbExposureFEM::~CDlgCalbExposureFEM()
 {
+	GlobalVariables::GetInstance()->femRunState.SetUIhandle(nullptr);
 }
 
 /*
@@ -125,7 +128,7 @@ BOOL CDlgCalbExposureFEM::OnInitDlg()
 	SetTimer(eCALB_EXPOSURE_FEM_TIMER_UPDATE_VALUE, 100, NULL);
 	SetTimer(eCALB_EXPOSURE_FEM_TIMER_REQ_LURIA_LOAD_STATE, 250, NULL);
 	SetTimer(eCALB_EXPOSURE_FEM_TIMER_PRINT_PROGRESS, 500, NULL);
-
+	GlobalVariables::GetInstance()->femRunState.SetUIhandle(this->GetSafeHwnd());
 	return TRUE;
 }
 
@@ -1611,7 +1614,10 @@ VOID CDlgCalbExposureFEM::StartPrint()
 	}
 
 	RefreshResultCell();
-	pMainDlg->RunWorkJob(ENG_BWOK::en_gerb_expofem, (PUINT64)this->GetSafeHwnd());
+
+	
+
+	pMainDlg->RunWorkJob(ENG_BWOK::en_gerb_expofem);
 }
 
 
@@ -1717,9 +1723,26 @@ LRESULT CDlgCalbExposureFEM::InputSetPoint(WPARAM wParam, LPARAM lParam)
 {
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_EXPOSURE_FEM_GRD_RESULT];
 
+
 	m_nPrintRow = (pGrid->GetRowCount()) - (int)lParam;
 	m_nPrintCol = (pGrid->GetColumnCount()) - (int)wParam;
 	m_bPrinting = TRUE;
+
+
+	for (int i = pGrid->GetRowCount() - 1; i > m_nPrintRow; i--)
+	{
+		for (int j = 0; j <= pGrid->GetColumnCount() - 1 ; j++)
+		{
+			pGrid->SetItemBkColour(i, j, GREEN_);
+		}
+	}
+
+
+	for (int j = pGrid->GetColumnCount() - 1; j > m_nPrintCol; j--)
+	{
+		pGrid->SetItemBkColour(m_nPrintRow, j, GREEN_);
+	}
+
 
 	return 0;
 }

@@ -349,7 +349,7 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 			break;
 			//case ENG_BWOK::en_expo_align: m_pWorkJob = new CWorkExpoAlign(LPG_CELA(data));
 
-			case ENG_BWOK::en_gerb_expofem	: m_pWorkJob = new CWorkFEMExpo(HWND(data));		break;
+			case ENG_BWOK::en_gerb_expofem	: m_pWorkJob = new CWorkFEMExpo();		break;
 			}
 
 			if (!m_pWorkJob)	bSucc = FALSE;

@@ -8,7 +8,7 @@ class CWorkFEMExpo : public CWorkStep
 /* 생성자 & 파괴자 */
 public:
 
-	CWorkFEMExpo(HWND hHwnd);
+	CWorkFEMExpo();
 	virtual ~CWorkFEMExpo();
 
 /* 가상함수 재정의 */
@@ -22,7 +22,7 @@ public:
 /* 로컬 변수 */
 protected:
 
-	HWND				m_hHwnd;
+	//HWND				m_hHwnd;
 
 	UINT8				m_u8WaitLoaded;
 

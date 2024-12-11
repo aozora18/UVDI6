@@ -191,7 +191,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		pstMarkDiff->result[0].diff * 100.0f, pstMarkDiff->result[1].diff * 100.0f, pstMarkDiff->result[2].diff * 100.0f,
 		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	webMonitor.AddLog(tzResult);
+	
 	m_stExpoLog.global_dist[0] = pstMarkDiff->result[0].diff * 100.0f;
 	m_stExpoLog.global_dist[1] = pstMarkDiff->result[1].diff * 100.0f;
 	m_stExpoLog.global_dist[2] = pstMarkDiff->result[2].diff * 100.0f;
@@ -306,7 +306,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	TCHAR title[1024] = { NULL };
 
 	vector<wstring> temps;
-
+	GetLocalTime(&stTm);
 	/* 발생 시간 */
 	swprintf_s(tempStr, 1024, L"time = %02d:%02d:%02d\n", stTm.wHour, stTm.wMinute, stTm.wSecond);
 	temps.push_back(wstring(tempStr));
@@ -316,7 +316,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	temps.push_back(wstring(tempStr));
 	swprintf_s(tempStr, 1024, L"succ = %s\n", tzState[state]);
 	temps.push_back(wstring(tempStr));
-	swprintf_s(tempStr, 1024, L"gerber_name = %s\n", pstJobRecipe->gerber_name);
+	swprintf_s(tempStr, 1024, L"gerber_name = %S\n", pstJobRecipe->gerber_name);
 	temps.push_back(wstring(tempStr));
 	swprintf_s(tempStr, 1024, L"material_thick(um) = %d\n", pstJobRecipe->material_thick);
 	temps.push_back(wstring(tempStr));
@@ -389,7 +389,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 		temps.push_back(wstring(tempStr));
 	}
 	
-	swprintf_s(tempStr, 1024, L"led_recipe = %s\n", pstExpoRecipe->power_name);
+	swprintf_s(tempStr, 1024, L"led_recipe = %S\n", pstExpoRecipe->power_name);
 	temps.push_back(wstring(tempStr));
 
 	auto& measureFlat = uvEng_GetConfig()->measure_flat;

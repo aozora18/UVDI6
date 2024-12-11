@@ -15,6 +15,13 @@
 #include "pops/DlgLoginAdmin.h"
 #include "pops/DlgLoginManager.h"
 
+
+class MsgRecver
+{
+public:
+	virtual bool ProcessAction(UINT32 action) { return true; }
+};
+
 // by sys&j : 가독성을 위해 enum 추가
 enum EnMainGrp
 {

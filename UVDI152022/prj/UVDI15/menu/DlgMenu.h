@@ -42,11 +42,6 @@ enum EN_MSG_BOX_TYPE
 	eQUEST,
 };
 
-class MsgRecver
-{
-public:
-	virtual bool ProcessAction(UINT32 action) { return true; }
-};
 
 class CDlgMenu : public CMyDialog , public MsgRecver
 {

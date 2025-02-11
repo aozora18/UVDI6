@@ -2205,7 +2205,7 @@ API_EXPORT VOID uvMIL_DrawImageBitmapFlip(int dispType, int Num, LPG_ACGR grab, 
 		}
 	}
 	
-	theApp.clMilDisp.DrawOverlayDC(true, dispType, Num);
+	theApp.clMilDisp.DrawOverlayDC(true, dispType, Num, (FlipDir)flipOption);
 
 	//theApp.clMilDisp.DrawBase(dispType, Num);
 	//theApp.clMilDisp.DrawOverlayDC(true, dispType, Num);
@@ -2500,9 +2500,9 @@ API_EXPORT VOID uvMIL_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP
 	fi_iDispType : 0:Expo, 1:mark, 2 : Live, 3 : mark set
 	fi_iNo : Cam Num 혹은 Grab Mark Num (각자 Disp Type 에 맞춰서 사용)
 */
-API_EXPORT VOID uvMIL_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
+API_EXPORT VOID uvMIL_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo,UINT8 dir)
 {
-	theApp.clMilDisp.DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo);
+	theApp.clMilDisp.DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo, (FlipDir)dir);
 }
 
 

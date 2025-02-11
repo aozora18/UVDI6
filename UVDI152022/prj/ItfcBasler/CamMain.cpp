@@ -746,7 +746,7 @@ PUINT64 CCamMain::GetGrabHistLevel()
  parm : level	- [in] 0 ~ 255 (값이 클수록 밝게 처리)
  retn : TRUE or FALSE
 */
-BOOL CCamMain::SetGainLevel(UINT8 level)
+BOOL CCamMain::SetGainLevel(int level)
 {
 	BOOL bIsGrab	= FALSE;
 
@@ -759,6 +759,7 @@ BOOL CCamMain::SetGainLevel(UINT8 level)
 		m_pCamera->GainAuto.SetValue(GainAuto_Off);
 		m_pCamera->GainSelector.SetValue(GainSelector_All);
 		m_pCamera->GainRaw.SetValue(level);
+		
 	}
 	catch (const GenericException &e)
 	{

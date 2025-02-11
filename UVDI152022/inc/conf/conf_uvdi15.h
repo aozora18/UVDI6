@@ -55,6 +55,7 @@ typedef struct __st_config_setup_camera_info__
 
 	DOUBLE				safety_pos[MAX_ALIGN_CAMERA];			/* 얼라인 카메라 X 축 안전 위치 값 (단위: mm) */
 
+	UINT8 trigMode; //0 = sw trig , 1= trigger board
 	/*
 	 desc : 카메라 최대 해상도 크기에 따른 버퍼 크기 반환 (단위: Bytes)
 	 parm : None

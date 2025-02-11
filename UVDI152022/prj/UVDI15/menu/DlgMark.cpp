@@ -2,6 +2,7 @@
 /*
  desc : Mark Model
 */
+using namespace std;
 
 #include "pch.h"
 #include "../MainApp.h"
@@ -17,6 +18,9 @@
 
 #include "../mesg/DlgMesg.h"
 #include "../GlobalVariables.h"
+#include <utility>
+#include <math.h>
+
 
 
 #ifdef	_DEBUG
@@ -25,6 +29,28 @@
 static char THIS_FILE[]	= __FILE__;
 #endif
 
+
+
+std::pair<int, int> FlipX(int width, int x) 
+{
+	return { width - x, x }; // 반전된 x 좌표 반환
+}
+
+std::pair<std::pair<int, int>, std::pair<int, int>> ConvertFlippedRect(
+	int width, int height,
+	int x1, int y1, int x2, int y2)
+{
+	// 좌우 반전된 x 좌표 변환
+	auto flipped_x1 = FlipX(width, x1).first;
+	auto flipped_x2 = FlipX(width, x2).first;
+
+	
+	// 정렬 (좌상단이 항상 작은 값이 되도록)
+	int new_x1 = min(flipped_x1, flipped_x2);
+	int new_x2 = max(flipped_x1, flipped_x2);
+
+	return { {new_x1, y1}, {new_x2, y2} };
+}
 
 /*
  desc : 생성자
@@ -96,7 +122,10 @@ VOID CDlgMark::DoDataExchange(CDataExchange* dx)
 	for (i=0; i< eMARK_EDT_OUT_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_edt_out[i]);
 	/* button - normal */
 	u32StartID	= IDC_MARK_BTN_MODEL_APPEND;
-	for (i=0; i< eMARK_BTN_CTL_MAX; i++)	DDX_Control(dx, u32StartID+i,	m_btn_ctl[i]); 
+	for (i=0; i< eMARK_BTN_MARK_TEST_GRAB; i++)	DDX_Control(dx, u32StartID+i,	m_btn_ctl[i]);
+
+	DDX_Control(dx, IDC_TEST_GRAB, m_btn_ctl[eMARK_BTN_MARK_TEST_GRAB]); //신규 추가. 
+
 	/* button - mark set */
 	u32StartID	= IDC_MARK_BTN_MARK_SET_11;
 	for (i=0; i< eMARK_BTN_SET_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_btn_set[i]);
@@ -728,6 +757,13 @@ VOID CDlgMark::OnBtnClick(UINT32 id)
 	case IDC_MARK_BTN_MARK_MODE		:	SetMarkFindMode(true);	break;
 	case IDC_MARK_BTN_MARK_MERGE: MarkMerge(); 
 		break;
+
+	case IDC_TEST_GRAB:
+	{
+		SetTestGrab();
+	}
+	break;
+
 	case IDC_MARK_BTN_CALIB_SET: setVisionCalib();
 		break;
 	case IDC_MARK_BTN_CALIB: VisionCalib();
@@ -2016,6 +2052,47 @@ VOID CDlgMark::UpdateLiveView()
 	}
 }
 
+VOID CDlgMark::SetTestGrab()
+{
+	
+	UINT8 u8ACamID = CheckSelectCam();
+	TCHAR tzVal[64] = { NULL };
+	UINT64 u64Tick = GetTickCount64();
+	LPG_ACGR pstGrab = NULL;
+	CDlgMesg dlgMesg;
+
+	/* 기존 결과 값 초기화 */
+	m_edt_out[eMARK_EDT_OUT_CENT_ERR_X].SetWindowTextW(L"0.0000 ");
+	m_edt_out[eMARK_EDT_OUT_CENT_ERR_Y].SetWindowTextW(L"0.0000 ");
+	m_edt_out[eMARK_EDT_OUT_SCALE_RATE].SetWindowTextW(L"0.0000 ");	/* Scale */
+	m_edt_out[eMARK_EDT_OUT_SCORE_RATE].SetWindowTextW(L"0.0000 ");	/* Score */
+
+	if (uvEng_Camera_GetCamMode() != ENG_VCCM::en_image_mode) 
+	{
+		/* Live 동작 유무 */
+		if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck())
+		{
+			dlgMesg.MyDoModal(L"Live Mode is currently on", 0x01);
+			return;
+		}
+		
+		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
+		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
+	
+		if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID,true) == false)
+			return;
+
+		LPG_ACGR grab = nullptr;
+
+		if (GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvEng_Camera_GetLastGrab(u8ACamID, grab);
+			}, 1000))
+			uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, 0, u8ACamID, 0, 0);
+	}
+	
+}
+
 /*
  desc : Mark 검색 (Geomatric) 수행
  parm : None
@@ -2038,7 +2115,7 @@ VOID CDlgMark::SetMatchModel()
 
 	if (uvEng_Camera_GetCamMode() != ENG_VCCM::en_image_mode) {
 		/* Live 동작 유무 */
-		if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck()) 
+		if (m_chk_cam[eMARK_CHK_CAM_LIVE].GetCheck())
 		{
 			dlgMesg.MyDoModal(L"Live Mode is currently on", 0x01);
 			return;
@@ -2051,31 +2128,9 @@ VOID CDlgMark::SetMatchModel()
 		}
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
-		
-		
-		//uvEng_Camera_SetCamMode(ENG_VCCM::en_edge_mode);
-		
-		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
 
-		uvEng_Camera_TriggerMode((int)u8ACamID,ENG_TRGM::en_line_mode);
-
-		auto triggerMode = uvEng_Camera_GetTriggerMode(u8ACamID);
-
-		vector<function<bool()>> trigAction =
-		{
-			[&]() {return uvEng_Camera_SWGrab(u8ACamID); },
-			[&]() 
-			{
-				if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
-				{
-					dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
-					return false;
-				}
-				return true;
-			},
-		};
-		
-		if (trigAction[triggerMode == ENG_TRGM::en_Sw_mode ? 0 : 1]() == false) return;
+		if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID, true) == false)
+			return;
 	}
 	//uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
 
@@ -2180,12 +2235,9 @@ VOID CDlgMark::SetEdgeDetect()
 
 	/* Align Camera is Edge Detection Mode */
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_edge_mode);
-	/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-	if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
-	{
-		dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
+	if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID, true) == false)
 		return;
-	}
+
 	/* Grabbed Image의 매칭 결과가 존재하는지 여부 확인 */
 	do {
 
@@ -2412,11 +2464,8 @@ VOID CDlgMark::RegistMarkImage()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
-		{
-			dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
+		if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID, true) == false)
 			return;
-		}
 	}
 
 	//uvEng_Camera_SetCamMode(ENG_VCCM::en_image_mode);// lk91!! 240202 tmp
@@ -2808,6 +2857,7 @@ void CDlgMark::OnLButtonUp(UINT nFlags, CPoint point)
 		um_rectArea.right = right;
 		um_rectArea.top = top;
 		um_rectArea.bottom = bottom;
+		 
 
 		//0:imageload, 1:markroi, 2:searchroi1, 3:searchroi2, 4:measure, 5:zoom, 6. Calib Part
 		if (menuPart == 1) {
@@ -2818,6 +2868,13 @@ void CDlgMark::OnLButtonUp(UINT nFlags, CPoint point)
 			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, PS_SOLID, eM_COLOR_GREEN);
 			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.right - 50, um_rectArea.bottom, sTmp, eM_COLOR_GREEN, 6, 12, VISION_FONT_TEXT, true);
 			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MARK_LIVE, u8ACamID - 1);
+
+			auto cvrptr = ConvertFlippedRect(rt.Width() * dRate, rt.Height() * dRate, left, top, right, bottom);
+
+			um_rectArea.left = cvrptr.first.first;
+			um_rectArea.right = cvrptr.second.first;
+			um_rectArea.top = cvrptr.first.second;
+			um_rectArea.bottom = cvrptr.second.second;
 		}
 		else if (menuPart == 2) {
 			CString sTmp;
@@ -2920,11 +2977,15 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 		iTmpP.x = (int)(iTmpP.x * dRate);
 		iTmpP.y = (int)(iTmpP.y * dRate);
 
-		if (iTmpP.x < um_rectArea.left + 5)	um_rectArea.right = um_rectArea.left + 5;
-		else								um_rectArea.right = (LONG)iTmpP.x;
+		if (iTmpP.x < um_rectArea.left + 5)	
+			um_rectArea.right = um_rectArea.left + 5;
+		else								
+			um_rectArea.right = (LONG)iTmpP.x;
 
-		if (iTmpP.y < um_rectArea.top + 5)	um_rectArea.bottom = um_rectArea.top + 5;
-		else								um_rectArea.bottom = (LONG)iTmpP.y;
+		if (iTmpP.y < um_rectArea.top + 5)	
+			um_rectArea.bottom = um_rectArea.top + 5;
+		else								
+			um_rectArea.bottom = (LONG)iTmpP.y;
 
 		um_rectArea.right =  (LONG)iTmpP.x;
 		um_rectArea.bottom = (LONG)iTmpP.y;
@@ -2935,8 +2996,14 @@ void CDlgMark::OnMouseMove(UINT nFlags, CPoint point)
 		if (menuPart == 1) {
 			CString sTmp;
 			sTmp = "Mark";
-			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MARK_LIVE, u8ACamID-1);
+			
+			uvEng_Camera_DrawOverlayDC(false, DISP_TYPE_MARK_LIVE, u8ACamID - 1, 2);
+
+			auto cvrptr = ConvertFlippedRect(rt.Width() * dRate, rt.Height() * dRate , um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom);
+
+			//uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, cvrptr.first.first, cvrptr.first.second, cvrptr.second.first, cvrptr.second.second, iBrushStyle, eM_COLOR_GREEN);
 			uvEng_Camera_OverlayAddBoxList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.left, um_rectArea.top, um_rectArea.right, um_rectArea.bottom, iBrushStyle, eM_COLOR_GREEN);
+			
 			uvEng_Camera_OverlayAddTextList(DISP_TYPE_MARK_LIVE, u8ACamID - 1, um_rectArea.right - 50, um_rectArea.bottom, sTmp, eM_COLOR_GREEN, 6, 12, VISION_FONT_TEXT, true);
 			uvEng_Camera_DrawOverlayDC(true, DISP_TYPE_MARK_LIVE, u8ACamID - 1);
 		}
@@ -3435,11 +3502,9 @@ VOID CDlgMark::VisionCalib()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
-		{
-			dlgMesg.MyDoModal(L"Failed to send the Trigger Event", 0x01);
+
+		if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID, true) == false)
 			return;
-		}
 	}
 	uvEng_Camera_DrawImageBitmap(DISP_TYPE_MARK_LIVE, u8ACamID - 1, u8ACamID);
 

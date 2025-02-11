@@ -2097,10 +2097,10 @@ BOOL CMilModel::RegistPat(PUINT8 img_src, CRect fi_rectArea, CString fi_filename
 	/* Define a unique model*/
 	//MpatDefine(m_mlPATID, M_REGULAR_MODEL, theApp.clMilMain.m_mImg[0], fi_rectArea.left, fi_rectArea.top, width, height, M_DEFAULT); 
 	MpatDefine(m_mlPATID[mark_no], M_REGULAR_MODEL, theApp.clMilMain.m_mImgProc[m_camid - 1], fi_rectArea.left, fi_rectArea.top, width, height, M_DEFAULT);
-	MbufSave(_T("D:\\klk\\1_pat.bmp"), theApp.clMilMain.m_mImgProc[m_camid - 1]); //lk91 tmp
-	if (m_mlPATID[mark_no]) {
-		MpatSave(fi_filename, m_mlPATID[mark_no], M_DEFAULT);
-	}
+	//MbufSave(_T("D:\\klk\\1_pat.bmp"), theApp.clMilMain.m_mImgProc[m_camid - 1]); //lk91 tmp
+	//if (m_mlPATID[mark_no]) {
+	//	MpatSave(fi_filename, m_mlPATID[mark_no], M_DEFAULT);
+	//}
 #endif
 	return TRUE;
 }
@@ -3223,7 +3223,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		if (bSucc)
 		{
 
-			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid-1); //lk91 임시, fi_No인데.. m_camid 넣음
+			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid-1,FlipDir::X); //lk91 임시, fi_No인데.. m_camid 넣음
 			for (i = 0; i < miModResults; i++) {
 				CRect	rectArea;
 				rectArea.left = (int)(m_pFindPosX[i] - m_pstMarkModel[mark_no].iOffsetP.x);
@@ -3269,7 +3269,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 			//MgraColor(M_DEFAULT, M_COLOR_RED);
 			////MmodDraw(M_DEFAULT, mlResult, theApp.clMilMain.m_mOverlay_Mark_Live, miOperation, 0, M_DEFAULT);
 			//MmodDraw(M_DEFAULT, mlResult, theApp.clMilMain.m_mImgDisp_Mark_Live, miOperation, 0, M_DEFAULT);
-			theApp.clMilDisp.DrawOverlayDC(true, dlg_id, m_camid - 1);
+			theApp.clMilDisp.DrawOverlayDC(true, dlg_id, m_camid - 1,FlipDir::X);
 		}
 		else {
 			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid - 1);

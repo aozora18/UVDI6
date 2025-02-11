@@ -761,7 +761,7 @@ API_EXPORT VOID uvEng_Camera_SetMoveStateDirect(BOOL direct)
 		level	- [in] 0 ~ 255 (값이 클수록 밝게 처리)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvEng_Camera_SetGainLevel(UINT8 cam_id, UINT8 level)
+API_EXPORT BOOL uvEng_Camera_SetGainLevel(UINT8 cam_id, int level)
 {
 	if (GetConfig()->IsRunDemo())	return TRUE;
 	return uvBasler_SetGainLevel(cam_id, level);
@@ -846,6 +846,14 @@ API_EXPORT VOID uvEng_Camera_DrawImageBitmap(int dispType, int Num, UINT8 cam_id
 {
 	uvBasler_DrawImageBitmap(dispType, Num, cam_id, save,flipDir);
 }
+
+
+API_EXPORT BOOL uvEng_Camera_GetLastGrab(UINT8 cam_id , LPG_ACGR grab)
+{
+	grab = uvBasler_GetLastGrab(cam_id);
+	return grab == nullptr ? FALSE : TRUE;
+}
+
 
 /* desc : Set Live Disp Size */
 API_EXPORT VOID uvEng_Camera_SetMarkLiveDispSize(CSize fi_size)
@@ -1069,9 +1077,9 @@ API_EXPORT VOID uvEng_Camera_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iT
 	fi_iDispType : 0:Expo, 1:mark, 2 : Live, 3 : mark set
 	fi_iNo : Cam Num 혹은 Grab Mark Num (각자 Disp Type 에 맞춰서 사용)
 */
-API_EXPORT VOID uvEng_Camera_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
+API_EXPORT VOID uvEng_Camera_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo, UINT8 dir)
 {
-	uvBasler_DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo);
+	uvBasler_DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo,dir);
 }
 
 

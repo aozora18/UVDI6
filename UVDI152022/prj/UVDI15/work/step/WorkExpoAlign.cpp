@@ -1050,7 +1050,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 						motions.Refresh();
 
-						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM,false) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 							throw exception();
 
 						auto found = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(CENTER_CAM, &grabOffsetX, &grabOffsetY);
@@ -1062,7 +1062,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 								if (motions.MovetoGerberPos(CENTER_CAM, *currPath) == false)//오리지널 포지션으로 이동.
 									throw exception();
 
-								if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+								if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM,false) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 									throw exception();
 
 								tuple<double, double> refindOffset,grabOffset;

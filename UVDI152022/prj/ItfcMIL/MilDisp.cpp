@@ -341,6 +341,8 @@ void CMilDisp::OverlayDC_Flip(MIL_ID fi_MilBuf, FlipDir dir)
 /* desc : Overlay 관련 함수 - Box List DC 출력 */
 void CMilDisp::OverlayDC_Box(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY)
 {
+
+
 #ifndef _NOT_USE_MIL_
 	MbufControl(fi_MilBuf, M_DC_ALLOC, M_DEFAULT);
 	HDC	OverlayDC = (HDC)MbufInquire(fi_MilBuf, M_DC_HANDLE, M_NULL);
@@ -354,11 +356,13 @@ void CMilDisp::OverlayDC_Box(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, dou
 		CDC NewDC;
 
 		NewDC.Attach(OverlayDC);
+		
 		NewDC.SetBkMode(TRANSPARENT);
 		NewDC.SelectStockObject(NULL_BRUSH);
 
 		CPen     m_pen;
 		CPen* m_penOld;
+		
 
 		for (iCnt = 0; iCnt < clBoxList[fi_iDispType][fi_iNo].cnt; iCnt++)
 		{
@@ -676,7 +680,7 @@ void CMilDisp::ClearShapes(int fi_iDispType)
 	= clCircleList[fi_iDispType][i].cnt = clLineList[fi_iDispType][i].cnt = clTextList[fi_iDispType][i].cnt = 0;
 }
 
-void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
+void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo, FlipDir dir)
 {
 	MIL_ID	MilBufTmp[2];
 	CDPoint	rateP;
@@ -753,7 +757,7 @@ void CMilDisp::DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
 
 	if (fi_iDispType == DISP_TYPE_MARK_LIVE)
 	{
-		OverlayDC_Flip(theApp.clMilMain.m_mOverlay_Mark_Live, FlipDir::X);
+		OverlayDC_Flip(theApp.clMilMain.m_mOverlay_Mark_Live, dir);
 		MbufControl(theApp.clMilMain.m_mOverlay_Mark_Live, M_MODIFIED, M_DEFAULT);
 	}
 

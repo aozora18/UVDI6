@@ -553,7 +553,7 @@ public:
 	
 	tuple<double, double> GetCurrStagePos();
 
-	bool SingleGrab(int camIndex);
+	bool SingleGrab(int camIndex, bool successIfNotNull);
 
 	bool IsMarkFindInLastGrab();
 	int GetGrabCnt(int camIdx);

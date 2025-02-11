@@ -6,6 +6,9 @@
 #include "afxdialogex.h"
 #include <iostream>
 #include <string>
+#include <functional>
+#include <vector>
+#include "../../../GlobalVariables.h"
 
 /*
  desc : 생성자
@@ -1323,16 +1326,9 @@ VOID CDlgCalbCameraSpec::MarkGrabbedResult()
 		/* 카메라 Grabbed Mode를 Calibration Mode로 동작 */
 		uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
 
-		/* 기존 검색된 Grabbed Data & Image 제거 */
-		// uvEng_Camera_ResetGrabbedImage();
-
-		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
-		{
-			uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
-			AfxMessageBox(L"Failed to send the event for trigger", MB_ICONSTOP | MB_TOPMOST);
+		if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID,true) == false)
 			return;
-		}
+
 	}
 
 	/* 타이머 초기화 및 시작 */

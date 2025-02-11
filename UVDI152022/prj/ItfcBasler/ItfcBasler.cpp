@@ -898,7 +898,7 @@ API_EXPORT UINT64 uvBasler_GetGrabHistMax(UINT8 cam_id)
 		level	- [in] 0 ~ 255 (값이 클수록 밝게 처리)
  retn : TRUE or FALSE
 */
-API_EXPORT BOOL uvBasler_SetGainLevel(UINT8 cam_id, UINT8 level)
+API_EXPORT BOOL uvBasler_SetGainLevel(UINT8 cam_id, int level)
 {
 	if (!g_pCamMain)	return FALSE;
 	if (!g_pCamMain[cam_id-1]->IsConnected())	return FALSE;
@@ -1532,6 +1532,17 @@ API_EXPORT VOID uvBasler_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BOOL s
 	}
 }
 
+
+
+API_EXPORT LPG_ACGR uvBasler_GetLastGrab(UINT8 cam_id)
+{
+	if (!g_pCamThread)	return nullptr;
+	if (cam_id < 1 || g_pstConfig->set_cams.acam_count < cam_id)	return nullptr;
+
+	return g_pCamMain[cam_id - 1]->GetGrabbedImage();
+	
+}
+
 /* desc : MIL ID 로 저장된 이미지 화면 출력 */
 API_EXPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save,int flipDir)
 {
@@ -1769,9 +1780,9 @@ API_EXPORT VOID uvBasler_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSi
 	fi_iDispType : 0:Expo, 1:mark, 2 : Live, 3 : mark set
 	fi_iNo : Cam Num 혹은 Grab Mark Num (각자 Disp Type 에 맞춰서 사용)
 */
-API_EXPORT VOID uvBasler_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo)
+API_EXPORT VOID uvBasler_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo, UINT8 dir)
 {
-	uvMIL_DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo);
+	uvMIL_DrawOverlayDC(fi_bDrawFlag, fi_iDispType, fi_iNo,dir);
 }
 
 

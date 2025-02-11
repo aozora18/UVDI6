@@ -383,7 +383,7 @@ API_IMPORT UINT64 uvBasler_GetGrabHistMax(UINT8 cam_id);
 		level	- [in] 0 ~ 255 (값이 클수록 밝게 처리)
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvBasler_SetGainLevel(UINT8 cam_id, UINT8 level);
+API_IMPORT BOOL uvBasler_SetGainLevel(UINT8 cam_id, int level);
 /*
  desc : 수동으로 이미지를 불러와서 데이터를 적재 합니다. (데모 모드에서 주로 사용 됨)
  parm : cam_id	- [in]  Camera Index (1 or 2)
@@ -707,6 +707,7 @@ API_IMPORT BOOL uvBasler_SetModelDefineMMF(UINT8 cam_id, PTCHAR name, PTCHAR mmf
 API_IMPORT BOOL uvBasler_SetModelDefinePAT(UINT8 cam_id, PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no);
 API_IMPORT VOID uvBasler_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BOOL save);
 API_IMPORT VOID uvBasler_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save ,int flipDir=-1);
+API_IMPORT LPG_ACGR uvBasler_GetLastGrab(UINT8 cam_id);
 API_IMPORT VOID uvBasler_SetMarkLiveDispSize(CSize fi_size);
 API_IMPORT VOID uvBasler_SetCalbCamSpecDispSize(CSize fi_size);
 API_IMPORT VOID uvBasler_SetAccuracyMeasureDispSize(CSize fi_size);
@@ -744,7 +745,7 @@ API_EXPORT VOID uvBasler_SetDispMMPM_AutoCenter(CWnd* pWnd);
 API_EXPORT VOID uvBasler_SetDisp(CWnd** pWnd, UINT8 fi_Mode);
 API_EXPORT VOID uvBasler_SetDispMMPM(CWnd* pWnd);
 API_EXPORT VOID uvBasler_SetDispExpo(CWnd* pWnd[4]);
-API_EXPORT VOID uvBasler_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
+API_EXPORT VOID uvBasler_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo, UINT8 dir);
 API_EXPORT VOID uvBasler_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color);
 API_EXPORT VOID uvBasler_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, int fi_iWdt1, int fi_iWdt2, int fi_color);
 API_EXPORT VOID uvBasler_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag);

@@ -122,6 +122,7 @@ enum EnMarkBtnCtl
 	eMARK_BTN_CTL_MARK_IMG		,
 	eMARK_BTN_CTL_MARK_FIND_MODE	,
 	eMARK_BTN_MARK_MERGE	,
+	eMARK_BTN_MARK_TEST_GRAB,
 	eMARK_BTN_CTL_MAX,
 };
 
@@ -290,6 +291,7 @@ protected:
 
 	VOID				SelectMarkRecipe();
 	VOID				SetMatchModel();
+	VOID SetTestGrab();
 	VOID				SetEdgeDetect();
 	VOID				RegistMarkImage();
 

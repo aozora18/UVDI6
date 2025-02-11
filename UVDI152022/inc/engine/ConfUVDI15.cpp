@@ -319,6 +319,8 @@ BOOL CConfUvdi15::LoadConfigSetupCamera()
 		swprintf_s(tzKey, MAX_KEY_STRING, L"CAM%d_SAFETY_POS", i);
 		m_pstCfg->set_cams.safety_pos[i] = GetConfigDouble(tzKey);
 	}
+	
+	m_pstCfg->set_cams.trigMode = GetConfigUint8(L"TRIGGER_MODE"); //0 - LINE MODE (TRIGGER BOARD) , 1 = SW TRIGGER
 
 	/* 카메라 크기보다 FOV 크기가 크면 안됨 */
 	if (!m_pstCfg->set_cams.IsCamSizeValid())

@@ -1080,7 +1080,7 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 			if (CommonMotionStuffs::GetInstance().NowOnMoving() == true)
 				return false;
 			/*Align Camera Grab 동작 실행 및 실패시 종료*/
-			if (CommonMotionStuffs::GetInstance().SingleGrab(centerCam) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+			if (CommonMotionStuffs::GetInstance().SingleGrab(centerCam,false) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 				throw exception();
 
 			
@@ -1232,7 +1232,7 @@ bool RefindMotion::ProcessRefind(int centerCam, std::tuple<double, double>* refi
 
 			this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 
-			sutable = CommonMotionStuffs::GetInstance().SingleGrab(centerCam);
+			sutable = CommonMotionStuffs::GetInstance().SingleGrab(centerCam,false);
 
 			if (sutable == false) //그랩실패
 				break;
@@ -1278,9 +1278,12 @@ tuple<double, double> CommonMotionStuffs::GetCurrStagePos()
 	return make_tuple(motions.GetAxises()["stage"]["x"].currPos, motions.GetAxises()["stage"]["y"].currPos);
 }
 
-bool CommonMotionStuffs::SingleGrab(int camIndex)
+bool CommonMotionStuffs::SingleGrab(int camIndex, bool successIfNotNull)
 {
-	auto triggerMode = uvEng_Camera_GetTriggerMode(camIndex);
+	ENG_TRGM triggerMode = uvEng_GetConfig()->set_cams.trigMode == 0 ? ENG_TRGM::en_line_mode : ENG_TRGM::en_Sw_mode;
+
+	uvEng_Camera_TriggerMode((int)camIndex, triggerMode);
+
 	vector<function<bool()>> trigAction =
 	{
 		[&]() {return uvEng_Camera_SWGrab(camIndex); },
@@ -1294,9 +1297,10 @@ retry:
 	if (res)
 	{
 		this_thread::sleep_for(chrono::microseconds(200));
+		LPG_ACGR grabPtr = nullptr;
 		res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			return cnt + 1 == GetGrabCnt(camIndex);
+			return successIfNotNull ? uvEng_Camera_GetLastGrab(camIndex, grabPtr) : cnt + 1 == GetGrabCnt(camIndex);
 		}, 3000);
 	}
 

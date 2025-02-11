@@ -11,7 +11,7 @@
 
 enum class FlipDir
 {
-	X,Y
+	X,Y,NO,
 };
 
 //----------Point----------//
@@ -83,7 +83,7 @@ public:
 
 	void ClearShapes(int fi_iDispType);
 	void DrawBase(int fi_iDispType, int fi_iNo);
-	void DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
+	void DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo, FlipDir dir = FlipDir::NO);
 
 	void OverlayDC_Text(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY);
 	void OverlayDC_Pixel(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY);

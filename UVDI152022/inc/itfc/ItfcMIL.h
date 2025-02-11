@@ -475,7 +475,7 @@ API_EXPORT VOID uvMIL_SetDispMMPM(CWnd* pWnd);
 API_EXPORT VOID uvMIL_SetDispExpo(CWnd* pWnd[4]);
 API_EXPORT BOOL uvMIL_RegistMILImg(INT32 cam_id, INT32 width, INT32 height, PUINT8 image);
 API_EXPORT BOOL uvMIL_RegistMILGrabImg(INT32 fi_No, INT32 width, INT32 height, PUINT8 image);
-API_EXPORT VOID uvMIL_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
+API_EXPORT VOID uvMIL_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo,UINT8 dir);
 API_EXPORT VOID uvMIL_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color);
 API_EXPORT VOID uvMIL_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, int fi_iWdt1, int fi_iWdt2, int fi_color);
 API_EXPORT VOID uvMIL_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag);

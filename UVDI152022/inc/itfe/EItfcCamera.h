@@ -460,7 +460,7 @@ API_IMPORT VOID uvEng_Camera_SetMoveStateDirect(BOOL direct);
 		level	- [in] 0 ~ 255 (값이 클수록 밝게 처리)
  retn : TRUE or FALSE
 */
-API_IMPORT BOOL uvEng_Camera_SetGainLevel(UINT8 cam_id, UINT8 level);
+API_IMPORT BOOL uvEng_Camera_SetGainLevel(UINT8 cam_id, int level);
 /*
  desc : 수동으로 이미지를 불러와서 데이터를 적재 합니다. (데모 모드에서 주로 사용 됨)
  parm : cam_id	- [in]  Camera Index (1 or 2)
@@ -500,6 +500,7 @@ API_IMPORT BOOL uvCmn_Camera_IsZPosUpDownLimit(DOUBLE pos);
 /* ----------------------------------------------------------------------------------------- */
 API_IMPORT VOID uvEng_Camera_DrawLiveBitmap(HDC hdc, RECT draw, UINT8 cam_id, BOOL save = FALSE);
 API_EXPORT VOID uvEng_Camera_DrawImageBitmap(int dispType, int Num, UINT8 cam_id, BOOL save = FALSE, int flipDir=-1);
+API_EXPORT BOOL uvEng_Camera_GetLastGrab(UINT8 cam_id, LPG_ACGR grab);
 API_EXPORT VOID uvEng_Camera_SetMarkLiveDispSize(CSize fi_size);
 API_EXPORT VOID uvEng_Camera_SetCalbCamSpecDispSize(CSize fi_size);
 API_EXPORT VOID uvEng_Camera_SetAccuracyMeasureDispSize(CSize fi_size);
@@ -551,7 +552,7 @@ API_EXPORT VOID uvEng_Camera_SetDispMMPM(CWnd* pWnd);
 API_EXPORT VOID uvEng_Camera_SetDispExpo(CWnd* pWnd[4]);
 
 API_IMPORT VOID uvEng_Camera_ClearShapes(int fi_iDispType);
-API_EXPORT VOID uvEng_Camera_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo);
+API_EXPORT VOID uvEng_Camera_DrawOverlayDC(bool fi_bDrawFlag, int fi_iDispType, int fi_iNo, UINT8 dir = 2);
 API_EXPORT VOID uvEng_Camera_OverlayAddBoxList(int fi_iDispType, int fi_iNo, int fi_iLeft, int fi_iTop, int fi_iRight, int fi_iBottom, int fi_iStyle, int fi_color);
 API_EXPORT VOID uvEng_Camera_OverlayAddCrossList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, int fi_iWdt1, int fi_iWdt2, int fi_color);
 API_EXPORT VOID uvEng_Camera_OverlayAddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag);

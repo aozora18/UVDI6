@@ -159,7 +159,7 @@ public:
 	UINT64				GetGrabHistTotal()		{	return m_u64HistTotal;	}
 	UINT64				GetGrabHistMax()		{	return m_u64HistMax;	}
 
-	BOOL				SetGainLevel(UINT8 level);
+	BOOL				SetGainLevel(int level);
 	BOOL				LoadImageFromFile(PTCHAR file, INT32 cam_id = 0);
 	UINT8				GetDispType() { return m_uDispType; }
 	VOID				SetDispType(UINT8 dispType) { m_uDispType = dispType; }

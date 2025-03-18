@@ -159,7 +159,10 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			L"score_2,scale_2,mark_move_x2(mm),mark_move_y2(mm),"
 			L"score_3,scale_3,mark_move_x3(mm),mark_move_y3(mm),"
 			L"score_4,scale_4,mark_move_x4(mm),mark_move_y4(mm),"
-			L"led_recipe,read_thick(mm),\n");
+			L"led_recipe,read_thick(mm),"
+			L"led_recipe,LDS_BaseHeight(um),"
+			L"led_recipe,LDS_Threshold(um),\n");
+			
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
 		
  
@@ -247,14 +250,27 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		DOUBLE RealThick;
 		DOUBLE LDSToThickOffset = 0;
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+
+		LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f;  //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 		RealThick = mean + dmater + LDSToThickOffset;
+
 		swprintf_s(tzResult, 1024, L"%.3f,", RealThick);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+
+		
+		//여기다 추가된거 2개 넣어줘야하네.
+
+		swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsBaseHeight);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+
+		swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsThreshold);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		
+		
  
 	}
-
+	
  
 	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
 	m_stExpoLog.material_thick = pstJobRecipe->material_thick;
@@ -400,11 +416,20 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 		DOUBLE RealThick;
 		DOUBLE LDSToThickOffset = 0;
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+		LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f; //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 		RealThick = mean + dmater + LDSToThickOffset;
+		
 		swprintf_s(tempStr, 1024, L"read_thick(mm) = %.3f\n", RealThick);
 		temps.push_back(wstring(tempStr));
+
+		
+		swprintf_s(tempStr, 1024, L"LDS_BaseHeight(um) = %d\n", pstRecipe->ldsBaseHeight);
+		temps.push_back(wstring(tempStr));
+
+		swprintf_s(tempStr, 1024, L"LDS_Threshold(um) = %d\n", pstRecipe->ldsThreshold);
+		temps.push_back(wstring(tempStr));
+
 	}
 	else
 	{

@@ -523,9 +523,20 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				case EN_RECIPE_JOB::GERBER_NAME:
 					strcpy_s(stRecipe.gerber_name, MAX_GERBER_NAME, csCnv.Uni2Ansi(strValue.GetBuffer())); strValue.ReleaseBuffer();
 					break;
+				
 				case EN_RECIPE_JOB::MATERIAL_THICK:
 					stRecipe.material_thick = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
+
+				case EN_RECIPE_JOB::LDS_THRESHOLD:
+					stRecipe.ldsThreshold = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+					break;
+
+				case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+					stRecipe.ldsBaseHeight = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+					break;
+
+
 				case EN_RECIPE_JOB::EXPO_ENERGY:
 					stRecipe.expo_energy = (float)GetRecipe(eRecipeMode)->GetDouble(nCntTab, nCntParam);
 					break;
@@ -710,6 +721,16 @@ BOOL CRecipeManager::UpdateRecipe(STG_RJAF &stRecipe, EN_RECIPE_MODE eRecipeMode
 			case EN_RECIPE_JOB::MATERIAL_THICK:
 				stRecipe.material_thick = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 				break;
+
+			case EN_RECIPE_JOB::LDS_THRESHOLD:
+				stRecipe.ldsThreshold = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+			break;
+
+			case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+				stRecipe.ldsBaseHeight = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+			break;
+
+			
 			case EN_RECIPE_JOB::EXPO_ENERGY:
 				stRecipe.expo_energy = (float)GetRecipe(eRecipeMode)->GetDouble(nCntTab, nCntParam);
 				break;
@@ -959,8 +980,18 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 					stParam.SetValue(pstRecipe->gerber_name);
 					break;
 				case EN_RECIPE_JOB::MATERIAL_THICK:
+
 					stParam.SetValue(pstRecipe->material_thick);
 					break;
+
+				case EN_RECIPE_JOB::LDS_THRESHOLD:
+						stParam.SetValue(pstRecipe->ldsThreshold);
+				break;
+
+				case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+					stParam.SetValue(pstRecipe->ldsBaseHeight);
+				break;
+
 				case EN_RECIPE_JOB::EXPO_ENERGY:
 					stParam.SetValue(pstRecipe->expo_energy);
 					break;
@@ -1153,6 +1184,15 @@ BOOL CRecipeManager::LoadRecipe(CString strJobName, CString strExpoName, CString
 				case EN_RECIPE_JOB::MATERIAL_THICK:
 					stParam.SetValue(pstRecipe->material_thick);
 					break;
+
+				case EN_RECIPE_JOB::LDS_THRESHOLD:
+					stParam.SetValue(pstRecipe->ldsThreshold);
+					break;
+
+				case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+					stParam.SetValue(pstRecipe->ldsBaseHeight);
+				break;
+
 				case EN_RECIPE_JOB::EXPO_ENERGY:
 					stParam.SetValue(pstRecipe->expo_energy);
 					break;

@@ -1112,7 +1112,7 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 			DOUBLE LDSToThickOffset = 0;
 			//LDSToThickOffset = 1.3;
-			LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+			LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f; //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 			//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
@@ -1123,9 +1123,9 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 			DOUBLE RealThick = mean + LDSToThickOffset;
 #endif
-			DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
-			DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
-			DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
+			DOUBLE LimitZPos = pstRecipe->ldsThreshold / 1000.0f; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
+			DOUBLE MaxZPos = LimitZPos;   //uvEng_GetConfig()->measure_flat.dLimitZPOS;
+			DOUBLE MinZPos = LimitZPos * -1.0f;   //uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
 
 			TCHAR tzMsg[256] = { NULL };
 			swprintf_s(tzMsg, 256, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);

@@ -808,13 +808,13 @@ void CDlgManual::UpdateGridInformation()
 
 
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-	DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
+	DOUBLE LimitZPos = pstRecipe->ldsThreshold / 1000.0f; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
 
 	auto& measureFlat = uvEng_GetConfig()->measure_flat;
 	auto mean = measureFlat.GetThickMeasureMean();
 
 	//DOUBLE LDSToThickOffset = 1.3;
-	DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+	DOUBLE LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f; //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 	DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
 	//auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure(); //	DOUBLE LDSMeasure = uvEng_GetConfig()->measure_flat.dAlignMeasure;
 	//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
@@ -827,8 +827,8 @@ void CDlgManual::UpdateGridInformation()
 #endif
 
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-	DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
-	DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
+	DOUBLE MaxZPos = LimitZPos; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
+	DOUBLE MinZPos = LimitZPos * -1.0f; //uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
 
 	/*LDS Thick*/
 	//m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::REAL_THICK, 1, L"Real Thick :%.3f > LimitZ Pos : %.3f", RealThick, LimitZPos);
@@ -1824,7 +1824,7 @@ VOID CDlgManual::ErrorThick()
 	{
 		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-		DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+		DOUBLE LDSToThickOffset = m_stJob.ldsBaseHeight /1000.0f ; //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
@@ -1833,9 +1833,9 @@ VOID CDlgManual::ErrorThick()
 		DOUBLE RealThick = mean + LDSToThickOffset;
 #endif
 
-		DOUBLE LimitZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
-		DOUBLE MaxZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS;
-		DOUBLE MinZPos = uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
+		DOUBLE LimitZPos = m_stJob.ldsThreshold / 1000.0f; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
+		DOUBLE MaxZPos = LimitZPos;    //uvEng_GetConfig()->measure_flat.dLimitZPOS;
+		DOUBLE MinZPos = LimitZPos * -1.0f;   //uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;
 
 		TCHAR tzMsg[256] = { NULL };
 		swprintf_s(tzMsg, 256, L"Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f", RealThick, dmater, LimitZPos);

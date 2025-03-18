@@ -43,6 +43,7 @@ CMarkUVDI15::CMarkUVDI15(PTCHAR work_dir)
 */
 CMarkUVDI15::~CMarkUVDI15()
 {
+	delete m_pstROI;
 	RemoveModelAll();
 	RemoveAlignRecipeAll();
 }

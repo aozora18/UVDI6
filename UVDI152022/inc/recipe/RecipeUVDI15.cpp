@@ -3,6 +3,7 @@
  desc : Gerber Recipe Data 적재 및 관리
 */
 
+
 #include "pch.h"
 #include "RecipeUVDI15.h"	/* job, expo Recipe */
 
@@ -222,6 +223,7 @@ BOOL CRecipeUVDI15::LoadFile()
 	return TRUE;
 }
 
+
 /*
  desc : Job Recipe 기본 분석 및 등록 진행
  parm : data	- [in]  Recipe 정보가 저장된 문자열 버퍼
@@ -230,7 +232,9 @@ BOOL CRecipeUVDI15::LoadFile()
 */
 BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 {
-	UINT8 u8Div			= 8;
+
+	UINT8 u8Div = 8; //최하 레시피 아이템 8개임. 더 늘어나는건 괜찮지만 이것보다 적으면 안됨 
+	
 	UINT32 u32Find		= 0;
 	UINT32 i;
 	BOOL bIsLoop		= TRUE;
@@ -242,7 +246,7 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 	{
 		if (',' == data[i])	u32Find++;
 	}
-	if (u32Find != u8Div)
+	if (u32Find < u8Div)
 	{
 		AfxMessageBox(L"Failed to analyse the value from <job recipe base> file", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
@@ -272,7 +276,30 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 		memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
 		pstRecipe->material_thick = (UINT32)atoi(szValue);
 	}
-
+	
+	if (u32Find == u8Div)
+	{
+		pstRecipe->ldsThreshold = uvEng_GetConfig()->measure_flat.dLimitZPOS * 1000.0f;
+		pstRecipe->ldsBaseHeight = uvEng_GetConfig()->measure_flat.dOffsetZPOS * 1000.0f;
+	}
+	else
+	{
+		pFind = strchr(pData, ',');
+		if (pFind)
+		{
+			memset(szValue, 0x00, _countof(szValue));
+			memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
+			pstRecipe->ldsThreshold = (UINT32)atoi(szValue);
+		}
+		pFind = strchr(pData, ',');
+		if (pFind) 
+		{
+			memset(szValue, 0x00, _countof(szValue));
+			memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
+			pstRecipe->ldsBaseHeight = (UINT32)atoi(szValue);
+		}
+	}
+	
 	pFind = strchr(pData, ',');
 	if (pFind) {
 		memset(szValue, 0x00, _countof(szValue));
@@ -472,8 +499,15 @@ BOOL CRecipeUVDI15::SaveJobFile()
 		fputs(szData, fp);
 		
 		/* material_thick, calibration_thick */
-		sprintf_s(szData, MAX_PATH_LEN, "%u,%.4f,%.4f,", pstRecipe->material_thick, pstRecipe->expo_energy, pstRecipe->expo_speed);
+		sprintf_s(szData, MAX_PATH_LEN, "%u,%u,%u,%.4f,%.4f,"
+			, pstRecipe->material_thick
+			, pstRecipe->ldsThreshold
+			, pstRecipe->ldsBaseHeight
+			, pstRecipe->expo_energy
+			, pstRecipe->expo_speed);
 		fputs(szData, fp);
+
+
 
 		/* align recipe */
 		sprintf_s(szData, MAX_PATH_LEN, "%s,", pstRecipe->align_recipe);
@@ -760,6 +794,11 @@ BOOL CRecipeUVDI15::CopyJobRecipe(LPG_RJAF source, LPG_RJAF target)
 	//memcpy(target, source, sizeof(STG_RBGF) - sizeof(PUINT8) * 8);
 
 	target->material_thick	= source->material_thick;
+
+	target->ldsThreshold = source->ldsThreshold;
+	target->ldsBaseHeight = source->ldsBaseHeight;
+
+
 	target->expo_energy		= source->expo_energy;
 	target->expo_speed		= source->expo_speed;
 	target->step_size		= source->step_size;

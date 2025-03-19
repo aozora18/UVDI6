@@ -75,9 +75,9 @@ BOOL CWorkExpoAlign::InitWork()
 	 m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
 
 
-	 SetAlignMode();
+	 return SetAlignMode();
 
-	return TRUE;
+	
 }
 
 /*
@@ -115,7 +115,7 @@ bool CWorkExpoAlign::SetAlignMode()
 
 	const int INIT_STEP = 0;
 	alignCallback[alignMotion][INIT_STEP]();
-	
+	return TRUE;
 }
 
 /*

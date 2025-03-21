@@ -301,6 +301,11 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	/* Memory DC »ý¼º */
 	try
 	{
+		if (m_hMemBmp)	::DeleteObject(m_hMemBmp);
+		if (m_hMemDC)	::DeleteDC(m_hMemDC);
+		m_hMemBmp = NULL;
+		m_hMemDC = NULL;
+
 		m_hMemDC = ::CreateCompatibleDC(hDC);
 		m_hMemBmp = ::CreateCompatibleBitmap(hDC, rDraw.right, rDraw.bottom);
 		hOldBmp = (HBITMAP)::SelectObject(m_hMemDC, m_hMemBmp);

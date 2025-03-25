@@ -1853,8 +1853,9 @@ VOID CDlgManual::ErrorThick()
 			if (IDOK == result)
 			{
 				//pstRecipe->material_thick = RealThick * 1000.0f;
-				m_stJob.material_thick = RealThick * 1000.0f;
-				if (uvEng_JobRecipe_RecipeModify(&m_stJob))
+				m_stJob.material_thick = RealThick * 1000.0f; //임시로 변경.
+				
+				if (uvEng_Philhmi_IsConnected() && uvEng_JobRecipe_RecipeModify(&m_stJob))
 				{
 					/*포커스, 에너지만 다시 세팅*/
 					m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_onlyfem);
@@ -1865,7 +1866,7 @@ VOID CDlgManual::ErrorThick()
 
 					UpdateGridInformation();
 					UpdateGridParameter();
-
+					CRecipeManager::GetInstance()->PhilSendModifyRecipe(pstRecipe);
 				}
 			}
 			else if (IDIGNORE == result)

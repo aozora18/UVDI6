@@ -1112,7 +1112,7 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 			DOUBLE LDSToThickOffset = 0;
 			//LDSToThickOffset = 1.3;
-			LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f; //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+			LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 			//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;

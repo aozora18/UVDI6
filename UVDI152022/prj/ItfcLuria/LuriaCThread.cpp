@@ -786,9 +786,11 @@ BOOL CLuriaCThread::Connected()
 	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
 #else
 	pPkt = m_pPktMC->GetPktEmulate(ENG_LPGS::en_get);
+	delete pPkt;
 #endif
 	pPkt = m_pPktMC->GetPktDebugPrintLevel(ENG_LPGS::en_get);
-	AddPktSend(pPkt, m_pPktMC->GetPktSize());	delete pPkt;
+	AddPktSend(pPkt, m_pPktMC->GetPktSize());	
+	delete pPkt;
 
 #if (USE_SIMULATION_DIR)
 	/* Print Simulation Out Dir */

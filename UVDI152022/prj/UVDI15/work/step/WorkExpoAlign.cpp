@@ -15,7 +15,7 @@
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
 #undef THIS_FILE
-static char THIS_FILE[]	= __FILE__;
+static char THIS_FILE[] = __FILE__;
 #endif
 
 //extern CACamCali* g_pACamCali;
@@ -28,7 +28,7 @@ static char THIS_FILE[]	= __FILE__;
 CWorkExpoAlign::CWorkExpoAlign()
 	: CWorkStep()
 {
-	m_enWorkJobID	= ENG_BWOK::en_expo_align;
+	m_enWorkJobID = ENG_BWOK::en_expo_align;
 	m_u32ExpoCount = 1;
 	m_u8StepIt = 0;
 	m_stExpoLog.Init();
@@ -69,13 +69,13 @@ BOOL CWorkExpoAlign::InitWork()
 	/* 내부 멤버 변수 값 초기화 */
 	if (!CWork::InitWork())	return FALSE;
 
-	 globalMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	 localMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+	globalMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
+	localMarkCnt = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
 
-	 m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
+	m_u8MarkCount = globalMarkCnt + (IsMarkTypeOnlyGlobal() == true ? 0 : localMarkCnt);
 
 
-	 return SetAlignMode();
+	return SetAlignMode();
 
 	
 }
@@ -105,7 +105,7 @@ bool CWorkExpoAlign::SetAlignMode()
 {
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 
-	
+
 
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
@@ -128,7 +128,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	//UINT8 i;
 	TCHAR tzResult[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
 	TCHAR tzDrv[8] = { NULL };
-	 
+
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
 	LPG_ACGR pstMark = NULL;
@@ -138,7 +138,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	CUniToChar	csCnv;
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
-	 
+
 	/*레시피 정보 가져오기*/
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
 
@@ -160,18 +160,18 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			L"score_3,scale_3,mark_move_x3(mm),mark_move_y3(mm),"
 			L"score_4,scale_4,mark_move_x4(mm),mark_move_y4(mm),"
 			L"led_recipe,read_thick(mm),"
-			L"led_recipe,LDS_BaseHeight(um),"
+			/*L"led_recipe,LDS_BaseHeight(um),"*/
 			L"led_recipe,LDS_Threshold(um),\n");
-			
+
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
-		
- 
+
+
 	}
 
 	/* 발생 시간 */
 	swprintf_s(tzResult, 1024, L"%02d:%02d:%02d,", stTm.wHour, stTm.wMinute, stTm.wSecond);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
+
 	/*ExpoLog 기록*/
 	memcpy(m_stExpoLog.data, tzResult, 40);
 
@@ -180,7 +180,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02),
 		tzState[state], pstJobRecipe->gerber_name, pstJobRecipe->material_thick, pstJobRecipe->expo_energy);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
+
 	/*ExpoLog 기록*/
 	m_stExpoLog.expo_time = uvEng_GetJobWorkTime();
 	m_stExpoLog.expo_succ = state;
@@ -194,7 +194,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		pstMarkDiff->result[0].diff * 100.0f, pstMarkDiff->result[1].diff * 100.0f, pstMarkDiff->result[2].diff * 100.0f,
 		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	
+
 	m_stExpoLog.global_dist[0] = pstMarkDiff->result[0].diff * 100.0f;
 	m_stExpoLog.global_dist[1] = pstMarkDiff->result[1].diff * 100.0f;
 	m_stExpoLog.global_dist[2] = pstMarkDiff->result[2].diff * 100.0f;
@@ -210,7 +210,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
+
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x01);
 	if (pstMark)
@@ -219,7 +219,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
+
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x00);
 	if (pstMark)
@@ -228,7 +228,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
+
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
 	if (pstMark)
@@ -237,7 +237,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			pstMark->score_rate, pstMark->scale_rate,
 			pstMark->move_mm_x, pstMark->move_mm_y);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
- 
+
 	}
 
 	swprintf_s(tzResult, 1024, L"%S,", pstExpoRecipe->power_name);
@@ -251,27 +251,27 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 		DOUBLE LDSToThickOffset = 0;
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
 
-		LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f;  //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 		RealThick = mean + dmater + LDSToThickOffset;
 
 		swprintf_s(tzResult, 1024, L"%.3f,", RealThick);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
-		
+
 		//여기다 추가된거 2개 넣어줘야하네.
 
-		swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsBaseHeight);
-		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		//swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsBaseHeight);
+		//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
 		swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsThreshold);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-		
-		
- 
+
+
+
 	}
-	
- 
+
+
 	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
 	m_stExpoLog.material_thick = pstJobRecipe->material_thick;
 	m_stExpoLog.expo_energy = pstJobRecipe->expo_energy;
@@ -291,7 +291,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
- 
+
 
 	WriteWebLogForExpoResult(state);
 }
@@ -303,7 +303,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	//UINT8 i;
 	TCHAR tempStr[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
 	TCHAR tzDrv[8] = { NULL };
- 
+
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
 	LPG_ACGR pstMark = NULL;
@@ -316,8 +316,8 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	/*레시피 정보 가져오기*/
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	 
- 
+
+
 
 	TCHAR title[1024] = { NULL };
 
@@ -326,7 +326,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	/* 발생 시간 */
 	swprintf_s(tempStr, 1024, L"time = %02d:%02d:%02d\n", stTm.wHour, stTm.wMinute, stTm.wSecond);
 	temps.push_back(wstring(tempStr));
- 
+
 	UINT64 u64JobTime = uvEng_GetJobWorkTime();
 	swprintf_s(tempStr, 1024, L"tact = %um%02us\n", uvCmn_GetTimeToType(u64JobTime, 0x01));
 	temps.push_back(wstring(tempStr));
@@ -352,7 +352,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	temps.push_back(wstring(tempStr));
 	swprintf_s(tempStr, 1024, L"diag_dist_23(mm) = %.4f\n", pstMarkDiff->result[5].diff * 100.0f);
 	temps.push_back(wstring(tempStr));
-	 
+
 	/* 얼라인 마크 검색 결과 값 저장 */
 	pstMark = uvEng_Camera_GetGrabbedMark(0x01, 0x00);
 	if (pstMark)
@@ -390,7 +390,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 		temps.push_back(wstring(tempStr));
 		swprintf_s(tempStr, 1024, L"mark_move_y3(mm) = %.4f\n", pstMark->move_mm_y);
 		temps.push_back(wstring(tempStr));
-		
+
 	}
 	pstMark = uvEng_Camera_GetGrabbedMark(0x02, 0x01);
 	if (pstMark)
@@ -404,7 +404,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 		swprintf_s(tempStr, 1024, L"mark_move_y4(mm) = %.4f\n", pstMark->move_mm_y);
 		temps.push_back(wstring(tempStr));
 	}
-	
+
 	swprintf_s(tempStr, 1024, L"led_recipe = %S\n", pstExpoRecipe->power_name);
 	temps.push_back(wstring(tempStr));
 
@@ -416,20 +416,19 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 		DOUBLE RealThick;
 		DOUBLE LDSToThickOffset = 0;
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-		LDSToThickOffset = pstRecipe->ldsBaseHeight / 1000.0f; //uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
 		RealThick = mean + dmater + LDSToThickOffset;
-		
+
 		swprintf_s(tempStr, 1024, L"read_thick(mm) = %.3f\n", RealThick);
 		temps.push_back(wstring(tempStr));
 
-		
-		swprintf_s(tempStr, 1024, L"LDS_BaseHeight(um) = %d\n", pstRecipe->ldsBaseHeight);
-		temps.push_back(wstring(tempStr));
+
+		/*swprintf_s(tempStr, 1024, L"LDS_BaseHeight(um) = %d\n", pstRecipe->ldsBaseHeight);
+		temps.push_back(wstring(tempStr));*/
 
 		swprintf_s(tempStr, 1024, L"LDS_Threshold(um) = %d\n", pstRecipe->ldsThreshold);
 		temps.push_back(wstring(tempStr));
-
 	}
 	else
 	{
@@ -453,7 +452,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
-	case 0x01: 
+	case 0x01:
 	{
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		offsetPool.clear();
@@ -466,7 +465,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		}
 	}
 	break;
-	
+
 	case 0x02:
 	{
 		m_enWorkState = SetPhZAxisMovingAll();
@@ -492,7 +491,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 	}break;
 
-	case 0x07: 
+	case 0x07:
 	{
 		m_enWorkState = IsLoadedGerberCheck();
 
@@ -516,7 +515,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	}
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 
-	case 0x08: 
+	case 0x08:
 	{
 
 		///////////////////////////////////////////////////////////////
@@ -582,13 +581,13 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x09: //m_enWorkState = IsTrigEnabled(FALSE);						
 		m_enWorkState = ENG_JWNS::en_next;
 		break;	/* Trigger Event - 빌활성화 확인  */
-	case 0x0a: 
+	case 0x0a:
 	{
 		m_enWorkState = ENG_JWNS::en_next; //m_enWorkState = SetAlignMovingInit();
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Global) 시작 위치로 이동 */
 
-	case 0x0b: 
+	case 0x0b:
 		m_enWorkState = ENG_JWNS::en_next;//m_enWorkState = SetTrigPosCalcSaved();						
 		break;	/* Trigger 발생 위치 계산 및 임시 저장 */
 	case 0x0c:
@@ -599,11 +598,11 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		//m_enWorkState = SetTrigRegistGlobal();	
 		m_enWorkState = ENG_JWNS::en_next;
 		break;	/* Trigger 발생 위치 - 트리거 보드에 Global Mark 위치 등록 */
-	case 0x0e: 
+	case 0x0e:
 		//m_enWorkState = IsTrigRegistGlobal();						
 		m_enWorkState = ENG_JWNS::en_next;
 		break;	/* Trigger 발생 위치 등록 확인 */
-	case 0x0f: 
+	case 0x0f:
 		//m_enWorkState = SetAlignMeasMode();							
 		m_enWorkState = ENG_JWNS::en_next;
 		break;
@@ -614,7 +613,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		m_enWorkState = ENG_JWNS::en_next;
 	}
 	break;
-	case 0x11: 
+	case 0x11:
 	{
 		bundleAction[1].join();
 		bundleAction[0].join();
@@ -624,7 +623,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 			m_enWorkState = ENG_JWNS::en_error;
 			return;
 		}
-		m_enWorkState = SetAlignMovingGlobal();						
+		m_enWorkState = SetAlignMovingGlobal();
 	}
 	break;	/* Global Mark 4 군데 위치 확인 */
 
@@ -633,7 +632,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	{
 		//여기까지 왔으면 로컬얼라인이 있는것. 먼저 글로벌이 몇장찍혔나 확인해야함.
 		CameraSetCamMode(ENG_VCCM::en_none);
-		
+
 		m_enWorkState = SetAlignMovingLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);	break;	/* Stage X/Y, Camera 1/2 - Align (Local:역방향) 시작 위치로 이동 */
 	}
 
@@ -642,14 +641,14 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x16:
 	{
 		m_enWorkState = IsAlignMovedLocal((UINT8)AlignMotionMode::toInitialMoving, scanCount);
-		
+
 	}
 	break;	/* Stage X/Y, Camera 1/2 - Align (Local) 시작 위치 도착 여부 */
 
 	case 0x17:
 	{
 		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_grab_mode);
-		
+
 	}
 	break;	/* Cam None 모드로 변경 */
 
@@ -664,7 +663,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 		break;
 
 	case 0x1b:
-		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none);break;	/* Cam None 모드로 변경 */
+		m_enWorkState = CameraSetCamMode(ENG_VCCM::en_none); break;	/* Cam None 모드로 변경 */
 
 	case 0x1c: m_enWorkState = SetTrigEnable(FALSE);						break;
 	case 0x1d:
@@ -675,7 +674,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	break;
 	case 0x1e:
 	{
-		
+
 		m_enWorkState = IsSetMarkValidAll(0x01);
 	}
 	break;
@@ -689,16 +688,16 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	case 0x20:
 	{
 		m_enWorkState = IsAlignMarkRegist();
-		if(m_enWorkState == ENG_JWNS::en_next)
+		if (m_enWorkState == ENG_JWNS::en_next)
 			motions.SetAlignComplete(true);
-		
+
 	}
 	break;
 	case 0x21: m_enWorkState = IsTrigEnabled(FALSE);						break;
 
 	case 0x22: m_enWorkState = SetPrePrinting();							break;	/* Luria Control - PrePrinting */
 	case 0x23: m_enWorkState = IsPrePrinted();								break;	/* Luria Control - PrePrinted 확인 */
-	
+
 	case 0x24:
 	{
 		m_enWorkState = SetPrinting();
@@ -714,8 +713,8 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 
 	}
-	
-	
+
+
 }
 
 void CWorkExpoAlign::SetWorkNextOnthefly2cam()
@@ -764,9 +763,9 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		/* 필요에 따라 분기 처리 */
 		switch (m_u8StepIt)
 		{
-		/* Local Mark 존재 여부 확인 */
-		//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
-		//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x17;	break;
+			/* Local Mark 존재 여부 확인 */
+			//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x19;	break;
+			//case 0x0d:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x17;	break;
 		case 0x12:	if (!uvEng_Luria_IsMarkLocal())	m_u8StepIt = 0x1c;	break;
 			/* 노광 작업이 완료된 이후, 바로 광학계 내 온도 값 요청 */
 		case 0x29: uvEng_Luria_ReqGetPhLedTempAll();	break;
@@ -797,7 +796,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
 				if (g_u8Romote == en_menu_phil_mode_auto)
-				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+					//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
@@ -806,7 +805,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 			{
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
 				if (g_u8Romote == en_menu_phil_mode_auto)
-				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+					//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
@@ -839,7 +838,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		m_u64DelayTime = GetTickCount64();
 	}
 }
-	 
+
 void CWorkExpoAlign::DoInitOnthefly3cam()
 {
 
@@ -854,7 +853,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly3cam()
 {
 
 }
-	 
+
 void CWorkExpoAlign::DoInitStatic2cam()
 {
 
@@ -869,18 +868,18 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 {
 
 }
-	 
+
 void CWorkExpoAlign::DoInitStaticCam()
 {
-	
+
 	m_u8StepIt = 0;
 
-	
+
 }
 
 void CWorkExpoAlign::DoAlignStaticCam()
 {
-	
+
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	RefindMotion& refindMotion = GlobalVariables::GetInstance()->GetRefindMotion();
 
@@ -1075,7 +1074,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 						this_thread::sleep_for(chrono::milliseconds(STABLE_TIME));
 						motions.Refresh();
 
-						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM,false) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+						if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 							throw exception();
 
 						auto found = CommonMotionStuffs::GetInstance().IsMarkFindInLastGrab(CENTER_CAM, &grabOffsetX, &grabOffsetY);
@@ -1087,7 +1086,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 								if (motions.MovetoGerberPos(CENTER_CAM, *currPath) == false)//오리지널 포지션으로 이동.
 									throw exception();
 
-								if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM,false) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
+								if (CommonMotionStuffs::GetInstance().SingleGrab(CENTER_CAM) == false || CWork::GetAbort()) //그랩실패. 작업 외부종료
 									throw exception();
 
 								tuple<double, double> refindOffset,grabOffset;
@@ -1174,7 +1173,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 			{
 				bool manualFixed = false;
 				m_enWorkState = IsSetMarkValidAll(0x01,&manualFixed, &CENTER_CAM);
-				if(m_enWorkState == ENG_JWNS::en_next && manualFixed == true )
+				if (m_enWorkState == ENG_JWNS::en_next && manualFixed == true)
 				for (auto& v : offsetPool[OffsetType::refind]) //수동보정이 발생했다면 옵셋을 다시 변경해준다. 
 				{
 					auto grab = uvEng_GetGrabUseMark(CENTER_CAM, v.srcFid);
@@ -1263,7 +1262,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 				offsetPool[OffsetType::align].push_back(alignOffset); //얼라인 옵셋을 추가. 
 				uvEng_ACamCali_AddMarkPosForce(CENTER_CAM, v.srcFid.GetFlag(STG_XMXY_RESERVE_FLAG::GLOBAL) ? ENG_AMTF::en_global : ENG_AMTF::en_local, alignOffset.offsetX, alignOffset.offsetY);
 
-				if(CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, v.offsetX, v.offsetY) == false)
+				if (CommonMotionStuffs::GetInstance().GetOffsetsUseMarkPos(CENTER_CAM, v.srcFid, nullptr, &expoOffset, v.offsetX, v.offsetY) == false)
 				{
 					m_enWorkState = ENG_JWNS::en_error;
 					return;
@@ -1271,7 +1270,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 				offsetPool[OffsetType::expo].push_back(expoOffset);   //익스포 옵셋을 추가. 
 
-				
+
 			}
 
 			m_enWorkState = ENG_JWNS::en_next;
@@ -1333,13 +1332,13 @@ void CWorkExpoAlign::DoAlignStaticCam()
 	try
 	{
 		stepWork[m_u8StepIt]();
-		
+
 	}
 	catch (const std::exception&)
 	{
 
 	}
-	 
+
 }
 
 void CWorkExpoAlign::SetWorkNextStaticCam()
@@ -1357,11 +1356,11 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 	}
 
 	if (ENG_JWNS::en_error == m_enWorkState)
-	{	
+	{
 		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
-		
+
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		SaveExpoResult(0x00);
 		m_enWorkState = ENG_JWNS::en_comp;
@@ -1403,7 +1402,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
 				if (g_u8Romote == en_menu_phil_mode_auto)
-				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+					//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
@@ -1413,7 +1412,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 			{
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
 				if (g_u8Romote == en_menu_phil_mode_auto)
-				//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
+					//if (g_u16PhilCommand == (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE)
 				{
 					SetPhilProcessCompelet();
 				}
@@ -1425,10 +1424,10 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 				CWork::EndWork();
 			}
 		}
-		
+
 		m_u64DelayTime = GetTickCount64();
 	}
-	
+
 }
 
 

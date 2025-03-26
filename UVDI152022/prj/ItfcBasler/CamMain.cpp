@@ -56,7 +56,8 @@ CCamMain::CCamMain(LPG_CIEA config, UINT8 cam_id)
 	ASSERT(m_pCamera);
 
 	// Live Mode 임시 저장용
-	memset(&m_stGrab, 0x00, sizeof(STG_ACGR));
+	//memset(&m_stGrab, 0x00, sizeof(STG_ACGR));
+	m_stGrab.Init();
 	/* Basler Camera에서 Grabbed Image의 Format은 256 Grayscale 이므로*/
 	m_stGrab.grab_data = new UINT8[config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01) + 1];// (PUINT8)Alloc(config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01) + 1);
 	m_stGrab.grab_data[config->GetACamGrabSize(0x00) * config->GetACamGrabSize(0x01)]	= 0x00;
@@ -759,7 +760,6 @@ BOOL CCamMain::SetGainLevel(int level)
 		m_pCamera->GainAuto.SetValue(GainAuto_Off);
 		m_pCamera->GainSelector.SetValue(GainSelector_All);
 		m_pCamera->GainRaw.SetValue(level);
-		
 	}
 	catch (const GenericException &e)
 	{

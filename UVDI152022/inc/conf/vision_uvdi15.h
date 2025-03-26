@@ -213,6 +213,9 @@ typedef struct __st_align_camera_grab_result__
 	
 	void Release()
 	{
+		if (grab_data == nullptr) return;
+		delete[]grab_data;
+		grab_data = nullptr;
 		/*if (IsEmpty() == false)
 		{
 			::free(grab_data);
@@ -224,6 +227,7 @@ typedef struct __st_align_camera_grab_result__
 	{
 		Release();
 	}
+
 
 }	STG_ACGR,	*LPG_ACGR;
 
@@ -581,10 +585,10 @@ typedef struct __st_recipe_align_additional_function_
 	//UINT8				u8_reserved[3];
 
 	UINT32				mark_area[2];					/* 얼라인 마크 (Mixed Type인 경우)를 포함하고 있는 가로 /세로 영역 크기 (unit: um) */
-	PUINT8				acam_num;						/* Align Camera Number (1 or 2) */
-	CHAR				**m_name;						/* type == 0x00 -> 모델 (Model) 이름, type == 0x01 -> 파일 이름 */
+	UINT8				acam_num[2];						/* Align Camera Number (1 or 2) */
+	CHAR				m_name[2][MARK_MODEL_NAME_LENGTH];						/* type == 0x00 -> 모델 (Model) 이름, type == 0x01 -> 파일 이름 */
 
-	PCHAR				align_name;						/* align recipe Name								*/
+	CHAR				align_name[RECIPE_NAME_LENGTH];						/* align recipe Name								*/
 
 
 
@@ -606,9 +610,10 @@ typedef struct __st_recipe_align_additional_function_
 	*/
 	VOID Init(UINT8 cnt)
 	{
+		//cnt = 2
 		UINT8 i = 0x00;
 		mark_type	= 0x01;
-		save_count	= cnt;	/* 등록된 모델 개수 저장 */
+		save_count	= 2;	/* 등록된 모델 개수 저장 */
 		align_type	= 0x01;
 		lamp_type	= 0x01;
 #ifdef USE_ALIGNMOTION
@@ -623,17 +628,17 @@ typedef struct __st_recipe_align_additional_function_
 
 
 
-		align_name = new CHAR[RECIPE_NAME_LENGTH];//(PCHAR)Alloc(RECIPE_NAME_LENGTH);
+		//align_name = new CHAR[RECIPE_NAME_LENGTH];//(PCHAR)Alloc(RECIPE_NAME_LENGTH);
 		memset(align_name, 0, RECIPE_NAME_LENGTH);
 
 		/* 메모리 할당 */
-		acam_num = new UINT8[save_count];//  (PUINT8)::Alloc(sizeof(UINT8) * save_count);
+		//acam_num = new UINT8[save_count];//  (PUINT8)::Alloc(sizeof(UINT8) * save_count);
 		memset(acam_num, 0x00, sizeof(UINT8) * save_count);
-		m_name = new CHAR*[save_count]; //(PCHAR*)::Alloc(sizeof(PCHAR) * save_count);
+		//m_name = new CHAR*[save_count]; //(PCHAR*)::Alloc(sizeof(PCHAR) * save_count);
 
 		for (; i < cnt; i++)
 		{
-			m_name[i] = new CHAR[MARK_MODEL_NAME_LENGTH];// (PCHAR)::Alloc(sizeof(CHAR) * MARK_MODEL_NAME_LENGTH);
+			//m_name[i] = new CHAR[MARK_MODEL_NAME_LENGTH];// (PCHAR)::Alloc(sizeof(CHAR) * MARK_MODEL_NAME_LENGTH);
 			memset(m_name[i], 0x00, sizeof(CHAR) * MARK_MODEL_NAME_LENGTH);
 		}
 	}
@@ -646,17 +651,17 @@ typedef struct __st_recipe_align_additional_function_
 	VOID Close()
 	{
 		UINT8 i = 0x00;
-		if (m_name && save_count)
-		{
-			delete acam_num;
+		//if (m_name && save_count)
+		//{
+			//delete acam_num;
 
 			//::Free(acam_num);
-			for (; i < save_count; i++)	::delete m_name[i];
-			delete[] m_name;
-		}
+			//for (; i < save_count; i++)	::delete m_name[i];
+			//delete[] m_name;
+		//}
 
-		if (align_name)			
-			delete align_name;
+	/*	if (align_name)			
+			delete align_name;*/
 	}
 
 }	STG_RAAF, * LPG_RAAF;

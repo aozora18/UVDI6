@@ -101,9 +101,11 @@ VOID CFlushErrorMgr::Terminate()
 	for (int i = 0; i < u8CamCount; i++)
 	{
 		delete[] m_pstGrabData[i].grab_data;
+		m_pstGrabData[i].grab_data = nullptr;
 	}
 
 	delete[] m_pstGrabData;
+	m_pstGrabData = nullptr;
 }
 
 BOOL CFlushErrorMgr::SetRegistModel()

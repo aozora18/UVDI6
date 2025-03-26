@@ -3,7 +3,6 @@
  desc : Gerber Recipe Data 적재 및 관리
 */
 
-
 #include "pch.h"
 #include "RecipeUVDI15.h"	/* job, expo Recipe */
 
@@ -223,7 +222,6 @@ BOOL CRecipeUVDI15::LoadFile()
 	return TRUE;
 }
 
-
 /*
  desc : Job Recipe 기본 분석 및 등록 진행
  parm : data	- [in]  Recipe 정보가 저장된 문자열 버퍼
@@ -234,26 +232,26 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 {
 
 	UINT8 u8Div = 8; //최하 레시피 아이템 8개임. 더 늘어나는건 괜찮지만 이것보다 적으면 안됨 
-	
-	UINT32 u32Find		= 0;
+
+	UINT32 u32Find = 0;
 	UINT32 i;
-	BOOL bIsLoop		= TRUE;
-	CHAR *pData			= data, *pFind, szValue[1024];
-	LPG_RJAF pstRecipe	= NULL;
+	BOOL bIsLoop = TRUE;
+	CHAR* pData = data, * pFind, szValue[1024];
+	LPG_RJAF pstRecipe = NULL;
 
 	/* 일단, 주어진 문자열 중에서 콤마(',') 개수가 xxx 개인지 확인 */
-	for (i=0; i<size; i++)
+	for (i = 0; i < size; i++)
 	{
 		if (',' == data[i])	u32Find++;
 	}
 	if (u32Find < u8Div)
 	{
-		AfxMessageBox(L"Failed to analyse the value from <job recipe base> file", MB_ICONSTOP|MB_TOPMOST);
+		AfxMessageBox(L"Failed to analyse the value from <job recipe base> file", MB_ICONSTOP | MB_TOPMOST);
 		return FALSE;
 	}
 
 	/* 레시피 객체 임시 생성 */
-	pstRecipe	= new STG_RJAF();
+	pstRecipe = new STG_RJAF();
 	ASSERT(pstRecipe);
 
 	/* 메모리 할당 및 초기화 */
@@ -261,14 +259,14 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 	pstRecipe->ResetMemData();
 
 	/* job recipe name */
-	pFind	= strchr(pData, ',');
-	if (pFind)	{	memcpy(pstRecipe->job_name, pData, pFind - pData);	pData = ++pFind;		}
+	pFind = strchr(pData, ',');
+	if (pFind) { memcpy(pstRecipe->job_name, pData, pFind - pData);	pData = ++pFind; }
 	/* gerber path */
-	pFind	= strchr(pData, ',');
-	if (pFind)	{	memcpy(pstRecipe->gerber_path, pData, pFind - pData);	pData = ++pFind;	}
+	pFind = strchr(pData, ',');
+	if (pFind) { memcpy(pstRecipe->gerber_path, pData, pFind - pData);	pData = ++pFind; }
 	/* gerber name */
-	pFind	= strchr(pData, ',');
-	if (pFind) {	memcpy(pstRecipe->gerber_name, pData, pFind - pData);	pData = ++pFind;	}
+	pFind = strchr(pData, ',');
+	if (pFind) { memcpy(pstRecipe->gerber_name, pData, pFind - pData);	pData = ++pFind; }
 
 	pFind = strchr(pData, ',');
 	if (pFind) {
@@ -276,11 +274,11 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 		memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
 		pstRecipe->material_thick = (UINT32)atoi(szValue);
 	}
-	
+
 	if (u32Find == u8Div)
 	{
 		pstRecipe->ldsThreshold = uvEng_GetConfig()->measure_flat.dLimitZPOS * 1000.0f;
-		pstRecipe->ldsBaseHeight = uvEng_GetConfig()->measure_flat.dOffsetZPOS * 1000.0f;
+		//pstRecipe->ldsBaseHeight = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 	}
 	else
 	{
@@ -291,15 +289,9 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 			memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
 			pstRecipe->ldsThreshold = (UINT32)atoi(szValue);
 		}
-		pFind = strchr(pData, ',');
-		if (pFind) 
-		{
-			memset(szValue, 0x00, _countof(szValue));
-			memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
-			pstRecipe->ldsBaseHeight = (UINT32)atoi(szValue);
-		}
+		
 	}
-	
+
 	pFind = strchr(pData, ',');
 	if (pFind) {
 		memset(szValue, 0x00, _countof(szValue));
@@ -462,47 +454,47 @@ BOOL CRecipeUVDI15::ParseExpoRecipe(PCHAR data, UINT32 size)
 */
 BOOL CRecipeUVDI15::SaveJobFile()
 {
-	CHAR szData[MAX_PATH_LEN]	= {NULL};
-	TCHAR tzFile[MAX_PATH_LEN]	= {NULL};
-	errno_t eRet		= 0;
-	FILE *fp			= NULL;
-	POSITION pPos		= NULL;
-	LPG_RJAF pstRecipe	= NULL;
+	CHAR szData[MAX_PATH_LEN] = { NULL };
+	TCHAR tzFile[MAX_PATH_LEN] = { NULL };
+	errno_t eRet = 0;
+	FILE* fp = NULL;
+	POSITION pPos = NULL;
+	LPG_RJAF pstRecipe = NULL;
 	CUniToChar csCnv;
 
 	/* Recipe File 설정 */
 	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\%s\\recipe\\%s.dat",
-			   m_tzWorkDir, CUSTOM_DATA_CONFIG, GetConfig()->file_dat.job_recipe);
+		m_tzWorkDir, CUSTOM_DATA_CONFIG, GetConfig()->file_dat.job_recipe);
 	/* 파일 열기 */
 	eRet = fopen_s(&fp, csCnv.Uni2Ansi(tzFile), "wt");
 	if (0 != eRet)	return TRUE;
 
-// 	fputs("; recipe_name,gerber_path,gerber_name,led_power_name,lot_date,text_string,serial_decode,"
-// 		  "scale_decode,serial_flip_h,v,scale_flip_h,v,text_flip_h,v,global_mark_dist_1,2,3,4,5,6,"
-// 		  "material_thick,cali_thick,step_size,led_duty_cycle,frame_rate,score_accept,scale_range,align_type,"
-// 		  "mark_model,align_method,mark_count,mark_area_w,h\n", fp);
+	// 	fputs("; recipe_name,gerber_path,gerber_name,led_power_name,lot_date,text_string,serial_decode,"
+	// 		  "scale_decode,serial_flip_h,v,scale_flip_h,v,text_flip_h,v,global_mark_dist_1,2,3,4,5,6,"
+	// 		  "material_thick,cali_thick,step_size,led_duty_cycle,frame_rate,score_accept,scale_range,align_type,"
+	// 		  "mark_model,align_method,mark_count,mark_area_w,h\n", fp);
 	fputs("; job_name,gerber_path,gerber_name,material_thick,expo_energy,expo_speed,align_recipe,expo_recipe\n", fp);
 
-	pPos	= m_lstJobRecipe.GetHeadPosition();
+	pPos = m_lstJobRecipe.GetHeadPosition();
 	while (pPos)
 	{
 		/* 값 가져오기 */
-		pstRecipe	= (LPG_RJAF)m_lstJobRecipe.GetNext(pPos);
+		pstRecipe = (LPG_RJAF)m_lstJobRecipe.GetNext(pPos);
 		/* recipe name*/
-		sprintf_s(szData, MAX_PATH_LEN,	"%s,", pstRecipe->job_name);
+		sprintf_s(szData, MAX_PATH_LEN, "%s,", pstRecipe->job_name);
 		fputs(szData, fp);
 		/* gerber path */
-		sprintf_s(szData, MAX_PATH_LEN,	"%s,", pstRecipe->gerber_path);
+		sprintf_s(szData, MAX_PATH_LEN, "%s,", pstRecipe->gerber_path);
 		fputs(szData, fp);
 		/* gerber_name */
-		sprintf_s(szData, MAX_PATH_LEN,	"%s,", pstRecipe->gerber_name);
+		sprintf_s(szData, MAX_PATH_LEN, "%s,", pstRecipe->gerber_name);
 		fputs(szData, fp);
-		
+
 		/* material_thick, calibration_thick */
-		sprintf_s(szData, MAX_PATH_LEN, "%u,%u,%u,%.4f,%.4f,"
+		sprintf_s(szData, MAX_PATH_LEN, "%u,%u,%.4f,%.4f,"
 			, pstRecipe->material_thick
 			, pstRecipe->ldsThreshold
-			, pstRecipe->ldsBaseHeight
+			
 			, pstRecipe->expo_energy
 			, pstRecipe->expo_speed);
 		fputs(szData, fp);
@@ -782,7 +774,7 @@ BOOL CRecipeUVDI15::SelJobRecipePathName(PCHAR recipe)
 */
 BOOL CRecipeUVDI15::CopyJobRecipe(LPG_RJAF source, LPG_RJAF target)
 {
-	UINT8 i	= 0x00, j = 0;
+	UINT8 i = 0x00, j = 0;
 
 	/* 기존 메모리 버퍼 초기화 */
 	target->ResetMemData();
@@ -793,26 +785,27 @@ BOOL CRecipeUVDI15::CopyJobRecipe(LPG_RJAF source, LPG_RJAF target)
 	/* 기본 구조체 멤버 변수 복사 */
 	//memcpy(target, source, sizeof(STG_RBGF) - sizeof(PUINT8) * 8);
 
-	target->material_thick	= source->material_thick;
+	target->material_thick = source->material_thick;
 
 	target->ldsThreshold = source->ldsThreshold;
-	target->ldsBaseHeight = source->ldsBaseHeight;
+	//target->ldsBaseHeight = source->ldsBaseHeight;
 
 
-	target->expo_energy		= source->expo_energy;
-	target->expo_speed		= source->expo_speed;
-	target->step_size		= source->step_size;
-	target->frame_rate		= source->frame_rate;
+	target->expo_energy = source->expo_energy;
+	target->expo_speed = source->expo_speed;
+	target->step_size = source->step_size;
+	target->frame_rate = source->frame_rate;
 
-	strcpy_s(target->job_name,		RECIPE_NAME_LENGTH,		source->job_name);
-	strcpy_s(target->gerber_path,	MAX_PATH_LEN,			source->gerber_path);
-	strcpy_s(target->gerber_name,	MAX_GERBER_NAME,		source->gerber_name);
-	strcpy_s(target->align_recipe,	RECIPE_NAME_LENGTH,		source->align_recipe);
-	strcpy_s(target->expo_recipe,	RECIPE_NAME_LENGTH,		source->expo_recipe);
+	strcpy_s(target->job_name, RECIPE_NAME_LENGTH, source->job_name);
+	strcpy_s(target->gerber_path, MAX_PATH_LEN, source->gerber_path);
+	strcpy_s(target->gerber_name, MAX_GERBER_NAME, source->gerber_name);
+	strcpy_s(target->align_recipe, RECIPE_NAME_LENGTH, source->align_recipe);
+	strcpy_s(target->expo_recipe, RECIPE_NAME_LENGTH, source->expo_recipe);
 
 
 	return TRUE;
 }
+
 
 
 /*

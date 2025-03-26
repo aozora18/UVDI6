@@ -155,8 +155,8 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* calle
 		if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
 		{
 			//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
-			memset(callerInst->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
-			memcpy(callerInst->m_stExpoLog.host_recipe_name, stRecv->st_c2p_rcp_select.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
+			/*memset(callerInst->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
+			memcpy(callerInst->m_stExpoLog.host_recipe_name, stRecv->st_c2p_rcp_select.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);*/
 
 
 			UINT8 u8Offset = 0xff;
@@ -288,8 +288,8 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 
 
 	//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
-	if (0 == strcmp(callerInst->m_stExpoLog.host_recipe_name, callerInst->m_stExpoLog.recipe_name))
-	{
+	//if (0 == strcmp(callerInst->m_stExpoLog.host_recipe_name, callerInst->m_stExpoLog.recipe_name))
+	//{
 		if (is_busy)
 		{
 			stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
@@ -308,15 +308,15 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 				callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
 			}
 		}
-	}
-	else
-	{
-		swprintf_s(tzMesg, 128, L"A Recipe different from the Reicpe sent form the Host is selected ");
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+	//}
+	//else
+	//{
+	//	swprintf_s(tzMesg, 128, L"A Recipe different from the Reicpe sent form the Host is selected ");
+	//	LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
-		//   주 공정, 진행 불가
-		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
-	}
+	//	//   주 공정, 진행 불가
+	//	stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	//}
 
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }

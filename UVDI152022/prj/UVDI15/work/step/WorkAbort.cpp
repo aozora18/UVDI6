@@ -7,6 +7,7 @@
 #include "../../MainApp.h"
 #include "WorkAbort.h"
 
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -72,7 +73,13 @@ VOID CWorkAbort::DoWork()
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-		case 0x01 : m_enWorkState = StopPrinting();							break;
+		case 0x01 : 
+		{
+			AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+			motions.SetAlignComplete(true);
+			m_enWorkState = StopPrinting();
+		}
+		break;
 		/* GetExposeState 요청에 대한 응답이 올 때까지 일정 시간 대기 */
 		case 0x02 : m_enWorkState = SetWorkWaitTime(1000);					break;
 		case 0x03 : m_enWorkState = IsWorkWaitTime();						break;

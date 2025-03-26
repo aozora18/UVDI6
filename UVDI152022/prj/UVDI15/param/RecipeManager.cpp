@@ -253,7 +253,9 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 	/* ±¤·® °è»ê */
 	for (; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
-		for (j = 0; j < MAX_LED; j++)	dbPowerWatt[j] = pstPowerI->led_watt[i][j];
+		for (j = 0; j < MAX_LED; j++)	
+			dbPowerWatt[j] = pstPowerI->led_watt[i][j];
+
 		dbTotal += uvCmn_Luria_GetEnergyToSpeed(pstRecipe->step_size, pstRecipe->expo_energy,
 			pstExpoRecipe->led_duty_cycle, dbPowerWatt);
 		
@@ -532,9 +534,9 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 					stRecipe.ldsThreshold = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
 
-				case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+				/*case EN_RECIPE_JOB::LDS_BASEHEIGHT:
 					stRecipe.ldsBaseHeight = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
-					break;
+					break;*/
 
 
 				case EN_RECIPE_JOB::EXPO_ENERGY:
@@ -677,8 +679,7 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 	stAlignRecipe.Close();
 	return TRUE;
 }
-
-BOOL CRecipeManager::UpdateRecipe(STG_RJAF &stRecipe, EN_RECIPE_MODE eRecipeMode)
+BOOL CRecipeManager::UpdateRecipe(STG_RJAF& stRecipe, EN_RECIPE_MODE eRecipeMode)
 {
 	CString strGroup;
 	CString strParam;
@@ -724,13 +725,13 @@ BOOL CRecipeManager::UpdateRecipe(STG_RJAF &stRecipe, EN_RECIPE_MODE eRecipeMode
 
 			case EN_RECIPE_JOB::LDS_THRESHOLD:
 				stRecipe.ldsThreshold = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
-			break;
+				break;
 
-			case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+			/*case EN_RECIPE_JOB::LDS_BASEHEIGHT:
 				stRecipe.ldsBaseHeight = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
-			break;
+				break;*/
 
-			
+
 			case EN_RECIPE_JOB::EXPO_ENERGY:
 				stRecipe.expo_energy = (float)GetRecipe(eRecipeMode)->GetDouble(nCntTab, nCntParam);
 				break;
@@ -746,6 +747,7 @@ BOOL CRecipeManager::UpdateRecipe(STG_RJAF &stRecipe, EN_RECIPE_MODE eRecipeMode
 
 	return TRUE;
 }
+
 
 BOOL CRecipeManager::UpdateExpoRecipe(STG_REAF& stRecipe, EN_RECIPE_MODE eRecipeMode)
 {
@@ -985,12 +987,12 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 					break;
 
 				case EN_RECIPE_JOB::LDS_THRESHOLD:
-						stParam.SetValue(pstRecipe->ldsThreshold);
-				break;
+					stParam.SetValue(pstRecipe->ldsThreshold);
+					break;
 
-				case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+				/*case EN_RECIPE_JOB::LDS_BASEHEIGHT:
 					stParam.SetValue(pstRecipe->ldsBaseHeight);
-				break;
+					break;*/
 
 				case EN_RECIPE_JOB::EXPO_ENERGY:
 					stParam.SetValue(pstRecipe->expo_energy);
@@ -1035,43 +1037,43 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				case EN_RECIPE_EXPOSE::MARK_ERR_DIST_RGT_DIAG:
 					stParam.SetValue(pstExpoRecipe->global_mark_dist[5]);
 					break;
-				case EN_RECIPE_EXPOSE::LED_DUTY_CYCLE	:
+				case EN_RECIPE_EXPOSE::LED_DUTY_CYCLE:
 					stParam.SetValue(pstExpoRecipe->led_duty_cycle);
 					break;
-				case EN_RECIPE_EXPOSE::SCORE_ACCEPT		:
+				case EN_RECIPE_EXPOSE::SCORE_ACCEPT:
 					stParam.SetValue(pstExpoRecipe->mark_score_accept);
 					break;
-				case EN_RECIPE_EXPOSE::SCALE_RANGE		:
+				case EN_RECIPE_EXPOSE::SCALE_RANGE:
 					stParam.SetValue(pstExpoRecipe->mark_scale_range);
 					break;
-				case EN_RECIPE_EXPOSE::SERIAL_DECODE		:
+				case EN_RECIPE_EXPOSE::SERIAL_DECODE:
 					stParam.SetValue(pstExpoRecipe->dcode_serial);
 					break;
-				case EN_RECIPE_EXPOSE::SCALE_DECODE		:
+				case EN_RECIPE_EXPOSE::SCALE_DECODE:
 					stParam.SetValue(pstExpoRecipe->dcode_scale);
 					break;
-				case EN_RECIPE_EXPOSE::TEXT_DECODE		:
+				case EN_RECIPE_EXPOSE::TEXT_DECODE:
 					stParam.SetValue(pstExpoRecipe->dcode_text);
 					break;
-				case EN_RECIPE_EXPOSE::TEXT_STRING		:
+				case EN_RECIPE_EXPOSE::TEXT_STRING:
 					stParam.SetValue(pstExpoRecipe->text_string);
 					break;
-				case EN_RECIPE_EXPOSE::SERIAL_FLIP_HORZ	:
+				case EN_RECIPE_EXPOSE::SERIAL_FLIP_HORZ:
 					stParam.SetValue(pstExpoRecipe->serial_flip_h);
 					break;
-				case EN_RECIPE_EXPOSE::SERIAL_FLIP_VERT	:
+				case EN_RECIPE_EXPOSE::SERIAL_FLIP_VERT:
 					stParam.SetValue(pstExpoRecipe->serial_flip_v);
 					break;
-				case EN_RECIPE_EXPOSE::SCALE_FLIP_HORZ	:
+				case EN_RECIPE_EXPOSE::SCALE_FLIP_HORZ:
 					stParam.SetValue(pstExpoRecipe->scale_flip_h);
 					break;
-				case EN_RECIPE_EXPOSE::SCALE_FLIP_VERT	:
+				case EN_RECIPE_EXPOSE::SCALE_FLIP_VERT:
 					stParam.SetValue(pstExpoRecipe->scale_flip_v);
 					break;
-				case EN_RECIPE_EXPOSE::TEXT_FLIP_HORZ	:
+				case EN_RECIPE_EXPOSE::TEXT_FLIP_HORZ:
 					stParam.SetValue(pstExpoRecipe->text_flip_h);
 					break;
-				case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT	:
+				case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT:
 					stParam.SetValue(pstExpoRecipe->text_flip_v);
 					break;
 				}
@@ -1082,38 +1084,38 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 
 				switch (nCntParam)
 				{
-				case EN_RECIPE_ALIGN::ALIGN_NAME			: stParam.SetValue(pstAlignRecipe->align_name);
+				case EN_RECIPE_ALIGN::ALIGN_NAME: stParam.SetValue(pstAlignRecipe->align_name);
 					break;
-				case EN_RECIPE_ALIGN::MARK_TYPE				: stParam.SetValue(pstAlignRecipe->mark_type);
+				case EN_RECIPE_ALIGN::MARK_TYPE: stParam.SetValue(pstAlignRecipe->mark_type);
 					break;
-				case EN_RECIPE_ALIGN::ALIGN_TYPE			: stParam.SetValue(pstAlignRecipe->align_type);
+				case EN_RECIPE_ALIGN::ALIGN_TYPE: stParam.SetValue(pstAlignRecipe->align_type);
 					break;
-				case EN_RECIPE_ALIGN::LAMP_TYPE				: stParam.SetValue(pstAlignRecipe->lamp_type);
+				case EN_RECIPE_ALIGN::LAMP_TYPE: stParam.SetValue(pstAlignRecipe->lamp_type);
 					break;
 
-				case EN_RECIPE_ALIGN::ALIGN_MOTION:			
+				case EN_RECIPE_ALIGN::ALIGN_MOTION:
 					stParam.SetValue(pstAlignRecipe->align_motion);
 					break;
 
-				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1		:
-				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2		:	
+				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
+				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2:
 					stParam.SetValue(pstAlignRecipe->gain_level[nCntParam - EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1]);
 					break;
-				case EN_RECIPE_ALIGN::SEARCH_TYPE			: stParam.SetValue(pstAlignRecipe->search_type);
+				case EN_RECIPE_ALIGN::SEARCH_TYPE: stParam.SetValue(pstAlignRecipe->search_type);
 					break;
-				case EN_RECIPE_ALIGN::SEARCH_COUNT			: stParam.SetValue(pstAlignRecipe->search_count);
+				case EN_RECIPE_ALIGN::SEARCH_COUNT: stParam.SetValue(pstAlignRecipe->search_count);
 					break;
-				case EN_RECIPE_ALIGN::MARK_AREA_WIDTH		: stParam.SetValue(pstAlignRecipe->mark_area[0]);
+				case EN_RECIPE_ALIGN::MARK_AREA_WIDTH: stParam.SetValue(pstAlignRecipe->mark_area[0]);
 					break;
-				case EN_RECIPE_ALIGN::MARK_AREA_HEIGHT		: stParam.SetValue(pstAlignRecipe->mark_area[1]);
+				case EN_RECIPE_ALIGN::MARK_AREA_HEIGHT: stParam.SetValue(pstAlignRecipe->mark_area[1]);
 					break;
-				case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER1	: stParam.SetValue(pstAlignRecipe->acam_num[0]);
+				case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER1: stParam.SetValue(pstAlignRecipe->acam_num[0]);
 					break;
-				case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER2	: stParam.SetValue(pstAlignRecipe->acam_num[1]);
+				case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER2: stParam.SetValue(pstAlignRecipe->acam_num[1]);
 					break;
-				case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME		: stParam.SetValue(pstAlignRecipe->m_name[0]);
+				case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[0]);
 					break;
-				case EN_RECIPE_ALIGN::LOCAL_MARK_NAME		: stParam.SetValue(pstAlignRecipe->m_name[1]);
+				case EN_RECIPE_ALIGN::LOCAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[1]);
 					break;
 				}
 			}
@@ -1189,9 +1191,9 @@ BOOL CRecipeManager::LoadRecipe(CString strJobName, CString strExpoName, CString
 					stParam.SetValue(pstRecipe->ldsThreshold);
 					break;
 
-				case EN_RECIPE_JOB::LDS_BASEHEIGHT:
+				/*case EN_RECIPE_JOB::LDS_BASEHEIGHT:
 					stParam.SetValue(pstRecipe->ldsBaseHeight);
-				break;
+					break;*/
 
 				case EN_RECIPE_JOB::EXPO_ENERGY:
 					stParam.SetValue(pstRecipe->expo_energy);

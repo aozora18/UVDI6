@@ -604,6 +604,7 @@ BOOL CDlgManual::InitObject()
 		m_stJob.expo_energy = pJob->expo_energy;
 		m_stJob.expo_speed = pJob->expo_speed;
 		m_stJob.step_size = pJob->step_size;
+		m_stJob.ldsThreshold = pJob->ldsThreshold;
 
 		CUniToChar	csCnv;
 		UINT8 i = 0, j = 0;

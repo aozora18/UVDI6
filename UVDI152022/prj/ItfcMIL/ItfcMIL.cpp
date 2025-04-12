@@ -1591,8 +1591,8 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 // 							::LineTo(hDC, ptLine[2].x, ptLine[0].y + div * (i + 1));
 // 						}
 // 
-// 						::SelectObject(hDC, hOldPen);
-// 						::DeleteObject(hPen);
+ 						::SelectObject(hDC, hOldPen);
+ 						::DeleteObject(hPen);
 
 						hPen = ::CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
 						hOldPen = (HPEN)::SelectObject(hDC, hPen);

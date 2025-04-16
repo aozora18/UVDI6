@@ -1,0 +1,176 @@
+# If you are to modify this file
+#
+# Be sure to
+#
+# 1. maintain <PROGRAM_HEADER> and <PROGRAM_NAME> tokens in the same order, i.e.
+#    the token <PROGRAM_HEADER> needs to appear before <PROGRAM_NAME>
+#
+# 2. maintain alignment/spacing with existing text/instructions using existing
+#    tab and spaces
+
+<PROGRAM_HEADER>
+
+<PROGRAM_NAME> <input_gbr> [Options]
+
+Options:
+
+
+<<< Output Controls >>>
+
+-out:<file>		Specify <file> to be output filename.
+				(default: derived from <input_gbr> and working dir.)
+-wdir:<dir>		Specify <dir> to be working directory.
+				(default: current working directory).
+-outputtype:<type>	Specify type of output where <type> is.
+				rs274x, dxf, gds_stream, gds_cshape, or egs.
+				(default: rs274x).
+
+<<< Gerber RS274X Input/Output Controls >>>
+
+-aptin:<apt_file>		Specify <apt_file> as aperture file to be used to format RS274d files into RS274X.
+-no_g36			Suppresses G36 and G37 codes in Gerber outputs.
+-diameter:<dia.>[<unit>]	Specify <dia.> as diameter of trace data to replace G36/G37 polygon data in %LPD% layers.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+				(used with -no_g36).
+-diameter_lpc:<dia.>[<unit>] Specify <dia.> as diameter of trace data to replace G36/G37 polygon data in %LPC% layers.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+				(used with -no_g36).
+-dcode:<num>		Specify <num> as dcode to use for trace data in %LPD% layers.
+				(used with -no_g36).
+-dcode_lpc:<num>		Specify <num> as dcode to use for trace data in %LPC% layers.
+				(used with -no_g36).
+-no_lpx			Suppress %LPD% and %LPC% layer polarity statements
+-fmt<auto|best>		Tells Gerber preconditioner, split274x, to push format
+				to best format, 2.6 inch or 3.5 mm, if -fmtbest is called.
+				Otherwise, it uses auto mode to correct: bad format, mult-defined apt., high dcode.
+				(Default -fmtbest).
+-macro_tol:<val>[<unit>]	Set Gerber preconditioner, split274x, macro tolerance
+				into value, <val>, used for identifying similar aperture macros.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+				(Default 0.001 MM or 0.00004 Inch).
+-mesh_adjust		Handle mesh draws barely touching edges.
+-nosplit			Prevent Gerber preconditioner, split274x, from running.
+-bgn_split_args <args> <e_arg>	Add additional arguments, <args>, to split274x and end these additions with <e_arg>
+				where <e_arg> stands for -end_split_args 
+
+<<< DXF Output Controls >>>
+
+-basename:<name>	Specify <name> to be used for layer name(s) in DXF output.
+
+<<< Conversion Settings and Parameter Controls >>>
+
+-arcres:<degrees>		Specify arc resolution in degrees.
+				(default: 9.0).
+-arcsag:<value>[<unit>]	Specify chord error in Gerber input units or <units> specified.
+				<unit> can be: INCH, MIL, CM, MM, or UM.
+				(default: 0.0).
+-useotherunits:<unit>	Specify output unit where <unit> can be:
+				INCH, MIL, CM, MM, or UM.
+				(default: <Input_Gerber_Unit>).
+-outscale:<value>		Scale output data by <value>.
+-offset:<x[<unit>],y[<unit>]> Offset data by (x,y).
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+-xform:<xform_parms>	Set transformation settings (comma separated).
+				<xform_parms> is <rotation_parms>,<mirror_parms>,<scale_parms>,<offset_parms>
+				<rotation_parms> are anchor_x[<units>],anchor_y[<units>],rotation
+				<mirror_parms> are mirror_x,mirror_y
+				<scale_parms> are scale_x,scale_y
+				<offset_parms> are offset_x[<units],offset_y[<unit>]
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+
+<<< Output Geometry Controls >>>
+
+-emblevel			Generates embedding level output.
+				(-polyformat:<fmt> is ignored).
+-polyformat:<fmt>		Specify polygon format where <fmt> can be.
+				(1) leonov
+				(2) cutlines
+				(3) butting
+				(default: cutlines).
+-overlapvalue:<value>[<unit>] Generates an overlap of <value> in butting mode.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+				(use it with -polyformat:butting).
+-outputgrid:<value>	Specifies <value> of what output grid the data snaps to.
+-maxpoints:<vertex_num>	Limit polygon vertex count to <vertex_num>.
+				Do not use with leonov polyformat.
+-circularize[:<chord_err>[<unit>]] Specify to detect line segments fitting in <chord_err>..
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+				(Only works with rs274x and dxf outputs.)
+				(default <chord_err>: If <chord_err> is absent, one is computed.)
+-no_ar			Disable arc recovery functionality.
+				This is on by default when sizing is nonzero.
+-force3pt			Force three point sizing when arc recovery is used.
+				Arc recovery uses five point sizing by default.
+-reversal:<marginx[<unit>],marginy[<unit>]> Specify image reversal.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+				marginx increases background on leftt and right.
+				marginy does it on top and bottom.
+				Do not use with leonov polyformat.
+
+<<< Data Partitioning Controls >>>
+
+-single_part		Turns off data partitioning (not recommended).
+				Enforces single threaded operation.  
+				Negatively affects throughput.
+				To be used for special cases.
+-joinpart			Turns on data partition joining.
+-manpart			Specifies that data partitioning is user specified.
+-partition_nx:<number>	Specifies the <number> of vertical stripes for data partitioning.
+				(used with -manpart).
+-partition_ny:<number>	Specifies the <number> of horizontal stripes for data partitioning.
+				(used with -manpart).
+-autopartrcarray		Partition data in a rectangular array.
+
+<<< Data Sizing and Smoothing Controls >>>
+
+-sizingvalue:<value>[<unit>] Grow data by positive <value>.  Shrink data by negative <value>.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+-sizingvalue:<x direction value>[<unit>],<y direction value>[<unit>] Grow data by positive <value>.  
+        Shrink data by negative <value>.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+-slivervalue:<value>[<unit>] Remove data narrower than <value>.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+-smoothingvalue:<value>[<unit>] Specifies <value> for removing consecutive points closer than <value>.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+-dirtydata				Remove sloppy data by growing data slightly and then size to target size.
+
+<<< Clipping Controls >>>
+
+-window:<xmin[<unit>],ymin[<unit>],xmax[<unit>],ymax[<unit>]> Clip data to specified window.
+				<unit> can be: INCH, MIL, CM, MM, or UM.  No <unit> implies Gerber input units.
+-polywin:<file>		Clip data to <file> containing polygonal clipping windows in the following form:
+				    <No. of polygons == N>
+				    <polygon 1>
+				        ...
+				    <polygon N>
+				Each <polygon m> where m is [1-N] is in form of:
+				    <No. of vertices == n>
+				    <xy 1>
+				        ...
+				    <xy n>
+				Each <xy m> where m is [1-n] is in form of:
+				    <x> <y> which is a pair of XY data in input Gerber units.
+
+<<< Flow Controls >>>
+
+-force32bit		Force use of 32 bit executables instead of 64 bit.
+				(default: Use 64 bit in 64 bit OS and 32 bit in 32 bit OS).
+-skip_gdscompact		Skip using gdscompact program, optimization for RS274X SR data.
+-passthru			This flattens incoming Gerber data without unionizing (i.e. no flashes or SR data).
+-thrnum:<n>		Specify the number of threads to be used is <n>.
+-silent			Suppresses individual program displays.
+-singledlg		Display Gbrunion's progress through a single dialog box.
+				(default: off). (Windows Only)
+
+<<< Diagnostic Controls >>>
+
+-dbg			Keep intermediate files.
+-no_warnings		Suppress warning messages.
+-no_errors		Suppress error messages.
+
+<<< Engine Arguments >>>
+
+-bgn_gdscomp_args <args>  <e_arg>	Add additional arguments, <args>, to gdscompact engine and end these additions with <e_arg>
+				where <e_arg> stands for -end_gdscomp_args
+-engargs <args> 		Add additional arguments, <args>, to boolean engine.  This must be placed at the end of the command
+			line.

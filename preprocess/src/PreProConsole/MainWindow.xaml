@@ -1,0 +1,1487 @@
+﻿<mah:MetroWindow
+    x:Class="PreProConsole.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="metroWindow"
+    Width="663"
+    Height="910"
+    MinWidth="618"
+    MinHeight="910"
+    BorderBrush="#5e4a8a"
+    WindowStartupLocation="CenterScreen">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.Style>
+                <Style>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsActive, ElementName=metroWindow}" Value="True">
+                            <Setter Property="DockPanel.Background" Value="{DynamicResource MahApps.Brushes.WindowTitle}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsActive, ElementName=metroWindow}" Value="False">
+                            <Setter Property="DockPanel.Background" Value="{DynamicResource MahApps.Brushes.WindowTitle.NonActive}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+
+            </Grid.RowDefinitions>
+
+            <Image
+                Grid.Row="0"
+                Grid.Column="0"
+                Height="30"
+                Margin="{StaticResource XSmallLeftRightBottomMargin}"
+                HorizontalAlignment="Left"
+                SnapsToDevicePixels="True"
+                Source="/Resources/VisitechLogoWhite.png">
+                <Image.Style>
+                    <Style>
+                        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+                    </Style>
+                </Image.Style>
+            </Image>
+
+            <StackPanel
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Orientation="Horizontal">
+                <Button
+                    Name="ClearButton"
+                    Margin="{StaticResource SmallLeftMargin}"
+                    Click="OnClearClick"
+                    Content="Init"
+                    FontSize="18"
+                    Foreground="White"
+                    Style="{StaticResource MahApps.Styles.Button.Calendar.Header}" />
+
+                <Button
+                    Name="SaveButton"
+                    Margin="{StaticResource SmallLeftMargin}"
+                    Click="OnSaveClick"
+                    Content="Save"
+                    FontSize="18"
+                    Foreground="White"
+                    Style="{StaticResource MahApps.Styles.Button.Calendar.Header}" />
+                <Button
+                    Name="LoadButton"
+                    Margin="{StaticResource SmallLeftMargin}"
+                    Click="OnLoadClick"
+                    Content="Load"
+                    FontSize="18"
+                    Foreground="White"
+                    Style="{StaticResource MahApps.Styles.Button.Calendar.Header}" />
+                <Button
+                    Name="UpdateFidsButton"
+                    Margin="{StaticResource SmallLeftRightMargin}"
+                    Click="OnUpdateFidsClick"
+                    Content="UpdFids"
+                    FontSize="18"
+                    Foreground="White"
+                    Style="{StaticResource MahApps.Styles.Button.Calendar.Header}" />
+            </StackPanel>
+
+            <TextBlock
+                x:Name="ProductNameTextBox"
+                Grid.Row="0"
+                Grid.Column="1"
+                Grid.ColumnSpan="2"
+                Margin="{StaticResource SmallRightMargin}"
+                HorizontalAlignment="Right"
+                FontSize="25"
+                FontWeight="ExtraBold"
+                Foreground="White"
+                Text="PreProcess Console" />
+
+
+        </Grid>
+        <Separator Grid.Row="1" Margin="0">
+            <Separator.Effect>
+                <DropShadowEffect
+                    BlurRadius="4"
+                    ShadowDepth="1"
+                    Color="Black" />
+            </Separator.Effect>
+        </Separator>
+        <Border Grid.Row="2" Margin="0">
+
+            <Grid Margin="{StaticResource SmallLeftTopRightBottomMargin}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    Margin="10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+                            <RadioButton
+                                Name="GerberButton"
+                                Margin="5"
+                                Checked="GerberButton_Checked"
+                                Content="Gerber"
+                                IsChecked="True" />
+                            <RadioButton
+                                Name="GdsButton"
+                                Margin="5"
+                                Checked="GdsButton_Checked"
+                                Content="GDSII" />
+                            <RadioButton
+                                Name="OdbButton"
+                                Margin="5"
+                                Checked="OdbButton_Checked"
+                                Content="ODB++" />
+
+                        </StackPanel>
+                        <Button
+                            Name="PreConvertButton"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="5"
+                            HorizontalAlignment="Right"
+                            Click="OnPrepareClick"
+                            Content="PreConvert"
+                            IsEnabled="false" />
+                        <Label
+                            Grid.Row="1"
+                            Margin="5"
+                            HorizontalAlignment="Left"
+                            Content="Input file:" />
+                        <TextBox
+                            x:Name="GerberInput"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="5,5,0,5" />
+                        <Button
+                            Grid.Row="1"
+                            Grid.Column="2"
+                            Width="28"
+                            Height="28"
+                            Margin="0,5,5,5"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Click="OnGerberBrowsClick"
+                            Style="{StaticResource BrowseButton}" />
+
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Margin="5"
+                            HorizontalAlignment="Left"
+                            Content="Output dir:" />
+                        <TextBox
+                            x:Name="OutputDir"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Margin="5,5,0,5" />
+                        <Button
+                            Grid.Row="2"
+                            Grid.Column="2"
+                            Width="28"
+                            Height="28"
+                            Margin="0,5,5,5"
+                            HorizontalAlignment="Left"
+                            Click="OnOutputBrowsClick"
+                            Style="{StaticResource BrowseButton}" />
+
+                        <Label
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            Margin="5"
+                            HorizontalAlignment="Left"
+                            Content="Work dir:" />
+                        <TextBox
+                            x:Name="WorkDir"
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            Margin="5,5,0,5" />
+                        <Button
+                            Grid.Row="3"
+                            Grid.Column="2"
+                            Width="28"
+                            Height="28"
+                            Margin="0,5,5,5"
+                            HorizontalAlignment="Left"
+                            Click="OnWorkBrowsClick"
+                            Style="{StaticResource BrowseButton}" />
+
+                        <Label
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Margin="5"
+                            HorizontalAlignment="Left"
+                            Content="Suffix:" />
+                        <TextBox
+                            x:Name="SuffixEdit"
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="5" />
+
+                        <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" x:Name="OdbGrid">
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Label
+                                Margin="5"
+                                Content="ODB Step:" 
+                                Grid.Column="0"/>
+                            <TextBox
+                                x:Name="OdbStepEdit"
+                                Height="23"
+                                Margin="9,5,5,5"
+                                TextWrapping="Wrap" 
+                                Grid.Column="1"/>
+
+                            <Label
+                                Margin="5"
+                                Content="ODB Layer:" 
+                                Grid.Column="2"/>
+                            <TextBox
+                                x:Name="OdbLayerEdit"
+                                Height="23"
+                                Margin="5"
+                                TextWrapping="Wrap" 
+                                Grid.Column="3"/>
+                            <Button
+                                Width="28"
+                                Height="28"
+                                Margin="0,5,5,5"
+                                HorizontalAlignment="Left"
+                                Name="ODBScannerButton"
+                                Click="OnODBScannerClick"
+                                Style="{StaticResource BrowseButton}"
+                                Grid.Column="4"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+                <TabControl
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="10,20,10,0"
+                    Style="{x:Null}">
+                    <TabItem Header="Image">
+                        <StackPanel Margin="10,10,10,0" Orientation="Horizontal">
+                            <StackPanel Margin="10,10,10,0" Orientation="Vertical">
+                                <StackPanel Margin="5" Orientation="Vertical">
+                                    <RadioButton
+                                        Name="AutoWindowRadioButton"
+                                        Margin="5"
+                                        Checked="OnAutoWindowChecked"
+                                        Content="AutoWindow"
+                                        GroupName="GerberConvertWindowGroup" />
+                                    <RadioButton
+                                        Name="FixedWindowRadioButton"
+                                        Margin="5"
+                                        Checked="OnFixedWindowChecked"
+                                        Content="FixedWindow"
+                                        GroupName="GerberConvertWindowGroup" />
+                                </StackPanel>
+                                <StackPanel Margin="5,5,5,0" Orientation="Vertical">
+                                    <CheckBox
+                                        x:Name="InverseCheckBox"
+                                        Margin="5"
+                                        Content="InvertColors" />
+                                    <CheckBox
+                                        x:Name="InverseFrameCheckBox"
+                                        Margin="5"
+                                        Content="InvertFrame" />
+                                    <CheckBox
+                                        x:Name="FlipHCheckBox"
+                                        Margin="5"
+                                        Content="HorizontalFlip" />
+                                    <CheckBox
+                                        x:Name="FlipVCheckBox"
+                                        Margin="5"
+                                        Content="VerticalFlip" />
+                                    <CheckBox
+                                        x:Name="MakePreviewCheckBox"
+                                        Margin="5"
+                                        Content="MakePreview(old)" />
+                                    <CheckBox
+                                        x:Name="NegativeYDirectionCheckBox"
+                                        Margin="5"
+                                        Content="NegativeYDirection" />
+                                    <CheckBox
+                                        x:Name="EdgeBlendingCheckBox"
+                                        Margin="5"
+                                        Content="EdgeBlending" />
+                                    <CheckBox
+                                        x:Name="MTCCheckBox"
+                                        Margin="5"
+                                        Content="MTC" />
+                                    <CheckBox
+                                        x:Name="SmoothingCheckBox"
+                                        Margin="5"
+                                        Content="Smoothing" />
+                                </StackPanel>
+                            </StackPanel>
+                            <WrapPanel Margin="10" Orientation="Vertical">
+                                <StackPanel
+                                    x:Name="OffX"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="OffsetX (mm):" />
+                                    <TextBox
+                                        x:Name="OffsetX"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel
+                                    x:Name="OffY"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="OffsetY (mm):" />
+                                    <TextBox
+                                        x:Name="OffsetY"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel
+                                    x:Name="Llx"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="WindowLLx (mm):" />
+                                    <TextBox
+                                        x:Name="WindowLLx"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel
+                                    x:Name="Lly"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="WindowLLy (mm):" />
+                                    <TextBox
+                                        x:Name="WindowLLy"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel
+                                    x:Name="Urx"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="WindowURx (mm):" />
+                                    <TextBox
+                                        x:Name="WindowURx"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel
+                                    x:Name="Ury"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="WindowURy (mm):" />
+                                    <TextBox
+                                        x:Name="WindowURy"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="ErosionX (mm):" />
+                                    <TextBox
+                                        x:Name="ErosionX"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="ErosionY (mm):" />
+                                    <TextBox
+                                        x:Name="ErosionY"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Name="GlobalFiducialSP" HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="GlobalFiducial:" />
+                                    <TextBox
+                                        x:Name="GlobalFiducial"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Name="LocalFiducialSP" HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="LocalFiducial:" />
+                                    <TextBox
+                                        x:Name="LocalFiducial"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Name="RotationSP" HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="RotationCCW (deg):" />
+                                    <TextBox
+                                        x:Name="Rotation"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="TableLimitX (mm):" />
+                                    <TextBox
+                                        x:Name="TableLimitXEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="WhiteLines" />
+                                    <TextBox
+                                        x:Name="WhiteLinesEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="109"
+                                        Margin="5"
+                                        Content="ImageFrame:" />
+                                    <ComboBox
+                                        Name="ImageFrameComboBox"
+                                        Margin="5"
+                                        ItemsSource="{Binding Path=ImageFrameList}" />
+                                </StackPanel>
+                            </WrapPanel>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Photoheads">
+                        <StackPanel Margin="10" Orientation="Horizontal">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <CheckBox
+                                    x:Name="PhotoheadRotatedCheckBox"
+                                    Grid.Row="0"
+                                    Grid.ColumnSpan="2"
+                                    Margin="10"
+                                    Content="PhotoheadRotated" />
+                                <Label
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="NumberOfPhotoheads:" />
+                                <ComboBox
+                                    Name="NumberOfPhotoheadsCB"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Margin="5"
+                                    ItemsSource="{Binding Path=NumberOfPhotoheadsList}"
+                                    SelectionChanged="NumPHSelectionChanged" />
+                                <Label
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="PhotoheadPitch:" />
+                                <ComboBox
+                                    Name="PhotoheadPitchCB"
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Margin="5"
+                                    ItemsSource="{Binding Path=PhotoheadPitchList}"
+                                    SelectionChanged="PhPitchSelectionChanged" />
+                                <Label
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="ProductID:" />
+                                <ComboBox
+                                    Name="ProductIDComboBox"
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    Margin="5"
+                                    ItemsSource="{Binding Path=ProductIDList}"
+                                    SelectionChanged="ProductIDChangedChanged" />
+                            </Grid>
+                            <WrapPanel Margin="10" Orientation="Vertical">
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist2Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #2 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist2Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist3Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #3 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist3Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist4Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #4 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist4Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist5Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #5 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist5Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist6Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #6 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist6Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist7Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #7 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist7Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Label
+                                        x:Name="NominalPhotoheadDist8Label"
+                                        Margin="5"
+                                        Content="NominalPHDist #8 (mm):" />
+                                    <TextBox
+                                        x:Name="NominalPhotoheadDist8Edit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </WrapPanel>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Preview" Name="PreviewTab">
+                        <StackPanel Margin="10" Orientation="Horizontal">
+                            <StackPanel Margin="10" Orientation="Vertical">
+                                <CheckBox
+                                    x:Name="EnableAdvPreviewCheckBox"
+                                    Margin="5"
+                                    Content="EnableAdvPreview" />
+                                <CheckBox
+                                    x:Name="FastModeCheckBox"
+                                    Margin="5"
+                                    Content="FastMode" />
+                                <CheckBox
+                                    x:Name="ShowPaneldataCheckBox"
+                                    Margin="5"
+                                    Content="ShowPaneldata" />
+                                <CheckBox
+                                    x:Name="ShowLinesCheckBox"
+                                    Margin="5"
+                                    Content="ShowLines" />
+                                <CheckBox
+                                    x:Name="VerticalFlipCheckBox"
+                                    Margin="5"
+                                    Content="VerticalFlip" />
+                                <CheckBox
+                                    x:Name="DrawFilledRectanglesCheckBox"
+                                    Margin="5"
+                                    Content="DrawFilledRectangles" />
+                                <CheckBox
+                                    x:Name="CollisionDetectionCheckBox"
+                                    Margin="5"
+                                    Content="CollisionDetection (Beta)" />
+                                <CheckBox
+                                    x:Name="SaveAsPngCheckBox"
+                                    Margin="5"
+                                    Content="SaveAsPng (slower)" />
+                            </StackPanel>
+                            <StackPanel Margin="10" Orientation="Vertical" />
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Label
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="PreDrawFactor:" />
+                                <TextBox
+                                    x:Name="PreDrawFactorEdit"
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5" />
+                                <Label
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="PostDrawFactor:" />
+                                <TextBox
+                                    x:Name="PostDrawFactorEdit"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5" />
+                                <Label
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="DrawLineWidth:" />
+                                <TextBox
+                                    x:Name="DrawLineWidthEdit"
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5" />
+                                <Label
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="MaxMemory (MB):" />
+                                <TextBox
+                                    x:Name="MaxMemoryEdit"
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5" />
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Static PanelData" Name="StaticPaneldataTab">
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                Gerber file:
+                            </TextBlock>
+                            <TextBox
+                                x:Name="LogoFileEdit"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Grid.ColumnSpan="3"
+                                MinWidth="150"
+                                Margin="5,5,33,5" />
+                            <Button
+                                Grid.Row="0"
+                                Grid.Column="4"
+                                Width="28"
+                                Margin="-33,5,5,5"
+                                HorizontalAlignment="Left"
+                                Click="OnLogoBrowsClick"
+                                Style="{StaticResource BrowseButton}" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                D-code:
+                            </TextBlock>
+                            <TextBox
+                                x:Name="LogoDcodeEdit"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Margin="5" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                Rotation:
+                            </TextBlock>
+                            <TextBox
+                                x:Name="RotationSPDEdit"
+                                Grid.Row="1"
+                                Grid.Column="3"
+                                Margin="5" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                ScaleX:
+                            </TextBlock>
+                            <TextBox
+                                x:Name="ScaleXSPDEdit"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Margin="5" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="2"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                ScaleY:
+                            </TextBlock>
+                            <TextBox
+                                x:Name="ScaleYSPDEdit"
+                                Grid.Row="2"
+                                Grid.Column="3"
+                                Margin="5" />
+                            <StackPanel
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="4"
+                                Margin="5"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    x:Name="InverseSPDCheckBox"
+                                    Margin="5"
+                                    Content="Inverse" />
+                                <CheckBox
+                                    x:Name="FlipXSPDCheckBox"
+                                    Margin="5"
+                                    Content="FlipH" />
+                                <CheckBox
+                                    x:Name="FlipYSPDCheckBox"
+                                    Margin="5"
+                                    Content="FlipV" />
+                            </StackPanel>
+                            <ListView
+                                Name="LogoListView"
+                                Grid.Row="5"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="4"
+                                MinHeight="100"
+                                Margin="10"
+                                ItemsSource="{Binding Path=LogoListStr}"
+                                Style="{x:Null}" />
+                            <StackPanel
+                                Grid.Row="5"
+                                Grid.Column="4"
+                                Margin="5"
+                                Orientation="Vertical">
+                                <Button
+                                    Margin="5"
+                                    Click="OnLogoAddClick"
+                                    Content="Add" />
+                                <Button
+                                    Margin="5"
+                                    Click="OnLogoRemoveClick"
+                                    Content="Remove" />
+                                <Button
+                                    Margin="5"
+                                    Click="OnClearLogoListClick"
+                                    Content="Clear" />
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Dynamic PanelData">
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                DCODE/ID:
+                            </TextBlock>
+                            <TextBox
+                                x:Name="DcodeDPDEdit"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Margin="5" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Margin="10,5,5,5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                Rotation (deg):
+                            </TextBlock>
+                            <TextBox
+                                x:Name="RotationDPDEdit"
+                                Grid.Row="1"
+                                Grid.Column="3"
+                                Margin="5" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="2"
+                                Margin="10,5,5,5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                SizeX (mm):
+                            </TextBlock>
+                            <TextBox
+                                x:Name="SizeXDPDEdit"
+                                Grid.Row="2"
+                                Grid.Column="3"
+                                Margin="5" />
+                            <TextBlock
+                                Grid.Row="3"
+                                Grid.Column="2"
+                                Margin="10,5,5,5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                SizeY (mm):
+                            </TextBlock>
+                            <TextBox
+                                x:Name="SizeYDPDEdit"
+                                Grid.Row="3"
+                                Grid.Column="3"
+                                Margin="5" />
+                            <CheckBox
+                                x:Name="InverseDPDCheckBox"
+                                Grid.Row="3"
+                                Grid.Column="4"
+                                Margin="10,5"
+                                Content="Inverse" />
+
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                Content:
+                            </TextBlock>
+                            <ComboBox
+                                Name="ContentPDComboBox"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Margin="5"
+                                ItemsSource="{Binding Path=DPDContentList}" />
+
+                            <TextBlock
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                Type:
+                            </TextBlock>
+                            <ComboBox
+                                Name="TypeDPDComboBox"
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                Margin="5"
+                                ItemsSource="{Binding Path=DPDTypeList}" />
+
+                            <ListView
+                                Name="DynamicPDListView"
+                                Grid.Row="5"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="4"
+                                MinHeight="100"
+                                Margin="10"
+                                ItemsSource="{Binding Path=DynamicPDListStr}"
+                                Style="{x:Null}" />
+                            <StackPanel
+                                Grid.Row="5"
+                                Grid.Column="4"
+                                Margin="5"
+                                Orientation="Vertical">
+                                <Button
+                                    Name="AddDynamicPDDcodeButton"
+                                    Margin="5"
+                                    Click="OnDynamicPDAddClick"
+                                    Content="AddDcode" />
+                                <Button
+                                    Margin="5"
+                                    Click="OnDynamicPDAddCoordsClick"
+                                    Content="AddCoords" />
+                                <Button
+                                    Margin="5"
+                                    Click="OnDynamicPDRemoveClick"
+                                    Content="Remove" />
+                                <Button
+                                    Margin="5"
+                                    Click="OnClearDynamicPDListClick"
+                                    Content="ClearAll" />
+                                <Button
+                                    Margin="5"
+                                    Click="OnLoadPanelDataClick"
+                                    Content="LoadFile" />
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="OPC" Name="OPCTab">
+                        <StackPanel Margin="10" Orientation="Horizontal">
+                            <StackPanel Margin="10" Orientation="Horizontal">
+                                <StackPanel Margin="10" Orientation="Vertical">
+                                    <CheckBox
+                                        x:Name="EnableOPCCheckBox"
+                                        Margin="5"
+                                        Content="EnableOPC"
+                                        ToolTip="Optical Proximity Correction (OPC): &#x0a; &#x0a; Enable or Disable the OPC feature. This feature manipulates the features in the design to compensate for unwanted optical effects on exposure. &#x0a; Note that this is quite time consuming process and require high end CUDA compliant Nvidia GPU. &#x0a;"
+                                        ToolTipService.ShowDuration="30000" />
+                                    <StackPanel Margin="0,10" Visibility="Collapsed">
+                                        <Button
+                                            Width="80"
+                                            Margin="5"
+                                            Click="OnLoadConvolutionMatrixClick"
+                                            Content="LoadSimFile" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        Margin="5"
+                                        Content="CuringThreshold:" />
+                                    <TextBox
+                                        x:Name="CuringThreshold"
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Width="56"
+                                        Height="23"
+                                        Margin="5"
+                                        ToolTip="Curing Treshold: &#x0a; &#x0a; A parameter which is relative to maximum exposure power (255).&#x0a; Lower curing_threshold indicates higher chance to get over-exposed.&#x0a; Set lower (higher) value for curing_threshold when over-exposure (under-exposure) is encountered.&#x0a;"
+                                        ToolTipService.ShowDuration="30000" />
+                                    <Label
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Margin="5"
+                                        Content="RangeLow:" />
+                                    <TextBox
+                                        x:Name="RangeLow"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Width="56"
+                                        Height="23"
+                                        Margin="5"
+                                        ToolTip="Range low/high:&#x0a; &#x0a; On the basis of curing threshold, two parameters, range_low and range_high, are set to allow for separate adjustment of under- and over- exposed areas: &#x0a; &#x0a; For under-exposed area, only pixels with exposure level below 'curing threshold – range_low' will be corrected. &#x0a; Lower range_low value leads to stronger correction on under-exposed area. Vice versa. &#x0a; &#x0a; For over-exposed area, only pixels with exposure level over 'curing threshould + range_high' will be corrected. &#x0a; Lower range_high value leads to stronger correction for over-exposed area. Vice versa. &#x0a; &#x0a; Default value for both range_low and range_high are 25. Since over-exposure is a more common problem than under-exposure, range_low can then be kept default for most cases. &#x0a;"
+                                        ToolTipService.ShowDuration="30000" />
+                                    <Label
+                                        Grid.Row="2"
+                                        Grid.Column="0"
+                                        Margin="5"
+                                        Content="RangeHigh:" />
+                                    <TextBox
+                                        x:Name="RangeHigh"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        Width="56"
+                                        Height="23"
+                                        Margin="10"
+                                        ToolTip="Range low/high:&#x0a; &#x0a; On the basis of curing threshold, two parameters, range_low and range_high, are set to allow for separate adjustment of under- and over- exposed areas: &#x0a; &#x0a; For under-exposed area, only pixels with exposure level below 'curing threshold – range_low' will be corrected. &#x0a; Lower range_low value leads to stronger correction on under-exposed area. Vice versa. &#x0a; &#x0a; For over-exposed area, only pixels with exposure level over 'curing threshould + range_high' will be corrected. &#x0a; Lower range_high value leads to stronger correction for over-exposed area. Vice versa. &#x0a; &#x0a; Default value for both range_low and range_high are 25. Since over-exposure is a more common problem than under-exposure, range_low can then be kept default for most cases. &#x0a;"
+                                        ToolTipService.ShowDuration="30000" />
+                                    <StackPanel
+                                        Grid.Row="4"
+                                        Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Left"
+                                        Orientation="Horizontal"
+                                        Visibility="Collapsed">
+                                        <Label Margin="5" Content="MaxImgDeltaSize:" />
+                                        <TextBox
+                                            x:Name="MaxImgDeltaSize"
+                                            Width="56"
+                                            Height="23"
+                                            Margin="5" />
+                                    </StackPanel>
+                                    <Label
+                                        Grid.Row="3"
+                                        Grid.Column="0"
+                                        Margin="5"
+                                        Content="Sigma:" />
+                                    <TextBox
+                                        x:Name="GausSigma"
+                                        Grid.Row="3"
+                                        Grid.Column="1"
+                                        Width="56"
+                                        Height="23"
+                                        Margin="5"
+                                        ToolTip="Sigma: &#x0a; &#x0a; A Gaussian blur is performed during OPC process, and sigma is the standard deviation in the Gaussian distribution equation. Larger value means stronger blur and smaller value gives sharper image. &#x0a; Sigma turns to have more effect on the corners than on line width. &#x0a;"
+                                        ToolTipService.ShowDuration="30000" />
+                                </Grid>
+                            </StackPanel>
+                            <Expander
+                                Margin="15"
+                                Header="Advanced debug options"
+                                Style="{x:Null}">
+                                <WrapPanel Margin="5" Orientation="Vertical">
+                                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                        <Label Margin="10" Content="GausKernelRadius:" />
+                                        <TextBox
+                                            x:Name="GausKernelRadius"
+                                            Width="56"
+                                            Height="23"
+                                            Margin="10" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                        <Label
+                                            Width="107"
+                                            Margin="10"
+                                            Content="ImageDeltaDim:" />
+                                        <TextBox
+                                            x:Name="ImageDeltaDim"
+                                            Width="56"
+                                            Height="23"
+                                            Margin="10" />
+                                    </StackPanel>
+                                </WrapPanel>
+                            </Expander>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Advanced">
+                        <StackPanel Margin="10" Orientation="Horizontal">
+                            <StackPanel Margin="10" Orientation="Vertical">
+                                <CheckBox
+                                    x:Name="ShapeCompensationCheckBox"
+                                    Margin="5"
+                                    Content="ShapeCompensation" />
+                                <CheckBox
+                                    x:Name="ErrorAsWarningCheckBox"
+                                    Margin="5"
+                                    Content="ErrorAsWarning" />
+                                <CheckBox
+                                    x:Name="IgnoreODBLayerStepInSuffixCheckBox"
+                                    Margin="5"
+                                    Content="IgnoreODBLayerStepInSuffix" />
+                            </StackPanel>
+                            <StackPanel Margin="10" Orientation="Vertical" />
+                            <WrapPanel Orientation="Vertical">
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="Spx:" />
+                                    <TextBox
+                                        x:Name="Spx"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="CpuThreads:" />
+                                    <TextBox
+                                        x:Name="Threads"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" x:Name="BufferSizeSP">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="MaxMemory (MB):" />
+                                    <TextBox
+                                        x:Name="Ram"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="ErrorThreshold:" />
+                                    <TextBox
+                                        x:Name="ErrorThresholdEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="GbrFixRetryCount:" />
+                                    <TextBox
+                                        x:Name="GbrFixRetryCountEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="ArcRes (deg):" />
+                                    <TextBox
+                                        x:Name="ArcResolutionEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="ChordError (mm):" />
+                                    <TextBox
+                                        x:Name="ChordErrorEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Label
+                                        Width="105"
+                                        Margin="5"
+                                        Content="GdsNestingLevel:" />
+                                    <TextBox
+                                        x:Name="GdsNestingLevelEdit"
+                                        Width="80"
+                                        Height="23"
+                                        Margin="5" />
+                                </StackPanel>
+                            </WrapPanel>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Name="DebugTab" Header="Debug">
+                        <StackPanel Margin="10,10,10,0" Orientation="Horizontal">
+                            <StackPanel Margin="10,10,10,0" Orientation="Vertical">
+                                <CheckBox
+                                    x:Name="BlackRestBottom"
+                                    Margin="10"
+                                    Content="BlackRestBottom"
+                                    Visibility="Collapsed" />
+                                <CheckBox
+                                    x:Name="BlackRestTop"
+                                    Margin="10"
+                                    Content="BlackRestTop"
+                                    Visibility="Collapsed" />
+                                <CheckBox
+                                    x:Name="MakeBinCheckBox"
+                                    Margin="10"
+                                    Content="MakeBin" />
+                                <CheckBox
+                                    x:Name="RegDebugCheckBox"
+                                    Margin="10"
+                                    Content="RegDebug" />
+                                <CheckBox
+                                    x:Name="KeepTiffCheckBox"
+                                    Margin="10"
+                                    Content="KeepTiff" />
+                                <CheckBox
+                                    x:Name="SaveBitmapCheckBox"
+                                    Margin="10"
+                                    Content="SaveBitmap" />
+                                <CheckBox
+                                    x:Name="SilentCheckBox"
+                                    Margin="10"
+                                    Content="Silent" />
+                                <CheckBox
+                                    x:Name="KeepTmpCheckBox"
+                                    Margin="10"
+                                    Content="KeepTmp" />
+                                <CheckBox
+                                    x:Name="DisableBmpFrameCheckBox"
+                                    Margin="10"
+                                    Content="DisableBmpFrame" />
+                            </StackPanel>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Label
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="FadeIn:" />
+                                <TextBox
+                                    x:Name="BlackBottom"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5"
+                                    TextWrapping="Wrap" />
+                                <Label
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="FadeOut:" />
+                                <TextBox
+                                    x:Name="BlackTop"
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5" />
+                                <Label
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    Margin="5"
+                                    Content="ImageFrameOverride:" />
+                                <TextBox
+                                    x:Name="ImageFrameOverrideEdit"
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="23"
+                                    Margin="5" />
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
+
+        <WrapPanel
+            Grid.Row="3"
+            MaxWidth="823"
+            Margin="{StaticResource SmallLeftTopRightBottomMargin}"
+            HorizontalAlignment="Center">
+
+            <StackPanel
+                Margin="5"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <TextBlock Margin="5" VerticalAlignment="Center">Progress:</TextBlock>
+                <mah:MetroProgressBar
+                    x:Name="ProcessProgressBar"
+                    Height="20"
+                    MinWidth="370"
+                    Margin="5"
+                    Background="Gray"
+                    Foreground="Black"
+                    Maximum="100"
+                    Minimum="0"
+                    Value="{Binding Path=Progress}" />
+                <Label
+                    x:Name="StatusLabel"
+                    Margin="5"
+                    Content="Status:" />
+                <TextBox
+                    x:Name="Status"
+                    Width="74"
+                    Height="23"
+                    Margin="5"
+                    IsReadOnly="True"
+                    Text="READY"
+                    TextWrapping="NoWrap" />
+            </StackPanel>
+            <StackPanel
+                Margin="5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <Button
+                    Name="PreAnalyzeButton"
+                    Margin="5"
+                    Click="OnPreAnalyzeClick"
+                    Content="Analyze"
+                    FontSize="14"
+                    FontWeight="Normal" />
+                <Button
+                    Name="AsyncButton"
+                    Margin="5"
+                    Click="OnAsyncClick"
+                    Content="START"
+                    FontSize="14"
+                    FontWeight="Bold" />
+                <Button
+                    Name="AbortButton"
+                    Margin="5"
+                    Click="OnAbortClick"
+                    Content="Abort"
+                    FontSize="14" />
+                <Button
+                    Name="OpenButton"
+                    Margin="20,5"
+                    Click="OnOpenClick"
+                    Content="OpenResult"
+                    FontSize="14" />
+            </StackPanel>
+        </WrapPanel>
+    </Grid>
+</mah:MetroWindow>

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<Settings>
+	<Photohead>
+		<Number total="6" />
+		<Pitch number="4" />
+		<Product id="117502" />
+		<Rotated value="true" />
+		<NegativeYDirection value="false" />
+		<ExtraLongStripes value="true" />
+		<NominalDistance>
+			<PH number="1" distance="0" />
+			<PH number="2" distance="90.64" />
+			<PH number="3" distance="180.51" />
+			<PH number="4" distance="271.03" />
+			<PH number="5" distance="360.99" />
+			<PH number="6" distance="451.47" />
+			<PH number="7" distance="0" />
+			<PH number="8" distance="0" />
+		</NominalDistance>
+	</Photohead>
+	<Image>
+		<Spx value="36" />
+		<Inverse value="true" />
+		<InverseFrame value="false" />
+		<Rotation degrees="0" />
+		<ImageFrame level="2" />
+		<Mirror x="false" y="false" />
+		<Preview make="true" />
+		<Offset x="0" y="0" />
+		<Erosion x="0" y="0" />
+		<Window LLx="0" LLy="0" URx="510" URy="515" />
+		<Fiducial global="42" local="0" />
+		<Input file="D:\Gerber\CAM00056_00_1F.gbr" />
+		<Output dir="D:\output\v360" />
+		<Work dir="D:\work" />
+		<Suffix text="Test_Gen3_PN3" />
+		<ShapeCompensation value="false" />
+		<GbrFixRetry count="0" />
+		<ArcRes value="45" />
+		<ChordError value="0.001" />
+		<EdgeBlending value="false" />
+		<TripleExposure value="false" />
+		<AdvPreview value="false" />
+		<WhiteLines number="0" />
+		<Dither value="false" />
+	</Image>
+	<System>
+		<Threads number="8" />
+		<Ram buffer="2000" />
+		<ErrorAsWarning value="false" />
+		<TableLimit x="800" />
+		<ErrorThreshold number="0" />
+	</System>
+	<OPC>
+		<Enabled value="false" />
+		<CuringTreshold value="80" />
+		<RangeLow value="25" />
+		<RangeHigh value="15" />
+		<Sigma value="2" />
+	</OPC>
+	<Debug>
+		<Bitmap save="false" />
+		<Tiff keep="false" />
+		<Bin make="false" />
+		<Tmp keep="false" />
+		<RegChess make="false" />
+		<Silent value="true" />
+	</Debug>
+</Settings>

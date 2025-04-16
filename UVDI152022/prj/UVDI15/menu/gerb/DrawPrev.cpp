@@ -365,7 +365,28 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	int nIndex = 0;
 
 	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	
+	auto doRelease = [&]()
+	{
+		::DeleteObject(hBrush);
+		::DeleteObject(hPen);
+		::ReleaseDC(m_hDraw, hDC);
+	};
+
+	if (pstJobRecipe == nullptr)
+	{
+		doRelease();
+		return;
+	}
+
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
+
+	if (pstExpoRecipe == nullptr)
+	{
+		doRelease();
+		return;
+	}
+
 	for (auto& mark : m_vGlobalMark)
 	{
 		mark.rtArea.left	= (LONG)(rDraw.CenterPoint().x + ((mark.stMark.mark_x - (m_dGerberSizeX / 2)) * dScaleX) - nGlobalMarkSize);

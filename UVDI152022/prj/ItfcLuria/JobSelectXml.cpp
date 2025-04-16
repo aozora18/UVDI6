@@ -582,6 +582,9 @@ BOOL CJobSelectXml::SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
 	//auto x = mx.size();
 	//auto y = my.size();
 
+	if (row * col != mark_xy.GetCount())
+		return false;
+
 	if (shared)
 	{
 		i32Count = row * col;	/* Shared 방식의 Stripe의 Block 마다 2개씩 Fiducial이 있지만, 전체 Mark 개수 계산할 때는 0 으로 취급 */

@@ -621,6 +621,8 @@ void CDlgPhilhmi::OnClickGridPhilParameter(NMHDR* pNotifyStruct, LRESULT* pResul
 			sprintf_s(stSend3.stVar[0].szParameterName, DEF_MAX_RECIPE_PARAM_NAME_LENGTH, "Glass");
 			sprintf_s(stSend3.stVar[0].szParameterValue, DEF_MAX_RECIPE_PARAM_VALUE_LENGTH, "1000");
 
+			stSend3.usProgress = 1; // DONE
+
 			uvEng_Philhmi_Send_P2C_PROCESS_COMP(stSend3, stRecv3);
 
 			AddListBox(_T("P2C Process Complete"));

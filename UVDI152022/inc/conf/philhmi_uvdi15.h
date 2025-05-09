@@ -18,7 +18,9 @@
 #define		DEF_MAX_RECIPE_PARAM_TYPE_LENGTH	10
 #define		DEF_MAX_RECIPE_PARAM_NAME_LENGTH	40
 #define		DEF_MAX_RECIPE_PARAM_VALUE_LENGTH	512
-#define		DEF_MAX_RECIPE_PARAM_COUNT			100
+#define		DEF_MAX_RECIPE_PARAM_COUNT			200
+#define		DEF_MAX_ECM_PARAM_COUNT				100
+#define		DEF_MAX_PROCESS_PARAM_COUNT			100
 #define		DEF_MAX_POSITION_AXIS_LENGTH		40
 #define		DEF_MAX_POSITION_NAME_LENGTH		20
 #define		DEF_MAX_GLASS_NAME_LENGTH			40
@@ -120,6 +122,7 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_STATUS_BUSY					= 30003,	//	주 공정 혹은 보조 공정 진행 중
 	ePHILHMI_ERR_STATUS_COMPLETE				= 30004,	//	주 공정 시퀀스 비정상 완료
 	ePHILHMI_ERR_STATUS_FAILED					= 30005,	//	주 공정, 진행 불가
+	ePHILHMI_ERR_RECIPE_VALIDATE_FAILED			= 30006,	//	레시피불일치
 	ePHILHMI_ERR_STATUS_CHANGE					= 30010,	//	모드 변경 불가
 	ePHILHMI_ERR_STATUS_INIT					= 30011,	//	초기화 실패
 	ePHILHMI_ERR_STATUS_INIT_NEED				= 30012,	//	초기화 필요
@@ -1009,13 +1012,15 @@ typedef struct __st_phil_packet_p2c_process_complete__ : public __st_phil_packet
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 		memset(szGlassID, 0, sizeof(szGlassID));
 		usCount = 0;
-		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_RECIPE_PARAM_COUNT);
+		usProgress = 0;
+		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_PROCESS_PARAM_COUNT);
 	}
 
 	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe 명은 최대 40자		
-	char			szGlassID[DEF_MAX_GLASS_NAME_LENGTH];						// Glass ID는 최대 40자		
+	char			szGlassID[DEF_MAX_GLASS_NAME_LENGTH];						// Glass ID는 최대 40자	
+	unsigned short usProgress;              // Glass 진행사항 0:None, 1:Done, 2:NG		
 	unsigned short	usCount;													// DV Parameter 개수		
-	STG_PP_STATE		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
+	STG_PP_STATE		stVar[DEF_MAX_PROCESS_PARAM_COUNT];
 
 
 }	STG_PP_P2C_PROCESS_COMP, * LPG_PP_P2C_PROCESS_COMP;
@@ -1455,12 +1460,12 @@ typedef struct __st_phil_packet_c2p_status_value_ack__ : public __st_phil_packet
 
 		usCount = 0;
 
-		memset(stVar, 0, sizeof(STG_PP_STATE)* DEF_MAX_RECIPE_PARAM_COUNT);
+		memset(stVar, 0, sizeof(STG_PP_STATE)* DEF_MAX_STATE_PARAM_VALUE_LENGTH);
 
 	}
 
 	unsigned short	usCount;																				// DV Parameter 개수		
-	STG_PP_STATE		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
+	STG_PP_STATE		stVar[DEF_MAX_STATE_PARAM_VALUE_LENGTH];
 
 
 }	STG_PP_C2P_STATUS_VALUE_ACK, * LPG_PP_C2P_STATUS_VALUE_ACK;
@@ -1475,11 +1480,11 @@ typedef struct __st_phil_packet_p2c_ec_modify__ : public __st_phil_packet_header
 		usErrorCode = ePHILHMI_ERR_OK;
 
 		usCount = 0;
-		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_RECIPE_PARAM_COUNT);
+		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_ECM_PARAM_COUNT);
 	}
 
 	unsigned short	usCount;																				// DV Parameter 개수		
-	STG_PP_STATE		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
+	STG_PP_STATE		stVar[DEF_MAX_ECM_PARAM_COUNT];
 
 }	STG_PP_P2C_EC_MODIFY, * LPG_PP_P2C_EC_MODIFY;
 

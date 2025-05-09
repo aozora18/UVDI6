@@ -1443,7 +1443,7 @@ VOID CWorkExpoAlign::SetPhilProcessCompelet()
 	/*Process Execute으로 받은 정보*/
 	sprintf_s(stProcessComp.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, m_stExpoLog.recipe_name);
 	sprintf_s(stProcessComp.szGlassID, DEF_MAX_GLASS_NAME_LENGTH, m_stExpoLog.glassID);
-
+	stProcessComp.usProgress = 1; // DONE
 	stProcessComp.usCount = 15;
 	sprintf_s(stProcessComp.stVar[0].szParameterType, DEF_MAX_STATE_PARAM_TYPE_LENGTH, "STRING");
 	sprintf_s(stProcessComp.stVar[0].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Data");

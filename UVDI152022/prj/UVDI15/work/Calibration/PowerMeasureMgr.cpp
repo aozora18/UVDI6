@@ -40,7 +40,7 @@ CPowerMeasureMgr::CPowerMeasureMgr()
 	m_dPitchXY = 0.;
 	m_dPitchZ = 0.;
 
-	m_pMeasureThread = NULL;
+	m_pMeasureThread = nullptr;
 	m_bRunnigThread = FALSE;
 
 	m_u16Index = 0;
@@ -61,8 +61,9 @@ CPowerMeasureMgr::~CPowerMeasureMgr()
 	m_stVctPowerTable.clear();
 	m_stVctPowerTable.shrink_to_fit();
 
-	m_pMeasureThread = NULL;
-	delete m_pMeasureThread;
+	
+	m_pMeasureThread = nullptr;
+	
 }
 
 /*

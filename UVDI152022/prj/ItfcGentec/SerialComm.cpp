@@ -51,10 +51,10 @@ BOOL CSerialComm::PortOpen(ST_SERIAL_PARAM *stParam)
 	{
 		SetSerialParam(*stParam);
 	}
-	else
+	/*else
 	{
 		stParam = &GetSerialParam();
-	}
+	}*/
 
 	memset(&m_osRead, 0, sizeof(OVERLAPPED));
 	m_osRead.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -72,8 +72,8 @@ BOOL CSerialComm::PortOpen(ST_SERIAL_PARAM *stParam)
 		return FALSE;
 	}
 
-	TCHAR chPort[32] = { 0, };
-	_stprintf_s(chPort, 32, _T("\\\\.\\COM%d"), stParam->byPort);
+	
+	_stprintf_s(chPort, 32, _T("\\\\.\\COM%d"), GetSerialParam().byPort);
 
 	m_hComm = CreateFile(chPort, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
 	if (m_hComm == INVALID_HANDLE_VALUE)
@@ -100,11 +100,12 @@ BOOL CSerialComm::PortOpen(ST_SERIAL_PARAM *stParam)
 	PortClear();
 
 	// timeout setting
-	COMMTIMEOUTS timeouts;
+	
+	ZeroMemory(&timeouts, sizeof(COMMTIMEOUTS));
 	timeouts.ReadIntervalTimeout = __SERIAL_INTERVAL_TIMEOUT_;
 	timeouts.ReadTotalTimeoutMultiplier = __SIZE_OF_COMM_BUFFER_;
 	timeouts.ReadTotalTimeoutConstant = __SERIAL_INTERVAL_TIMEOUT_;
-	timeouts.WriteTotalTimeoutMultiplier = 2 * CBR_9600 / stParam->dwBaud;
+	timeouts.WriteTotalTimeoutMultiplier = 2 * CBR_9600 / GetSerialParam().dwBaud;
 	timeouts.WriteTotalTimeoutConstant = 0;
 	if (SetCommTimeouts(m_hComm, &timeouts) == FALSE)
 	{
@@ -113,13 +114,14 @@ BOOL CSerialComm::PortOpen(ST_SERIAL_PARAM *stParam)
 	}
 
 	//// dcb setting
-	DCB	dcb;
+	ZeroMemory(&dcb, sizeof(DCB));
 	dcb.DCBlength = sizeof(DCB);
+
 	GetCommState(m_hComm, &dcb);
-	dcb.BaudRate = stParam->dwBaud;
-	dcb.ByteSize = stParam->byByteSize;
-	dcb.Parity = stParam->byParity;
-	dcb.StopBits = stParam->byStopBits;
+	dcb.BaudRate = GetSerialParam().dwBaud;
+	dcb.ByteSize = GetSerialParam().byByteSize;
+	dcb.Parity = GetSerialParam().byParity;
+	dcb.StopBits = GetSerialParam().byStopBits;
 	dcb.fInX = FALSE;
 	dcb.fOutX = FALSE;
 	dcb.fRtsControl = RTS_CONTROL_ENABLE;

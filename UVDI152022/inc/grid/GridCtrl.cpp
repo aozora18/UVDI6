@@ -8073,6 +8073,45 @@ void CGridCtrl::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 
 BOOL CGridCtrl::Save(LPCTSTR filename, TCHAR chSeparator/*=_T(',')*/)
 {
+	CStdioFile File;
+	CFileException ex;
+	CString strSeparator(chSeparator);
+
+	if (!File.Open(filename, CFile::modeWrite | CFile::modeCreate | CFile::typeText, &ex))
+	{
+		ex.ReportError();
+		return FALSE;
+	}
+
+	TRY
+	{
+		int nNumColumns = GetColumnCount();
+		for (int i = 0; i < GetRowCount(); i++)
+		{
+			for (int j = 0; j < nNumColumns; j++)
+			{
+				auto itemText = GetItemText(i, j);
+				File.WriteString(itemText);
+				File.WriteString((j == (nNumColumns - 1)) ? _T("\n") : strSeparator);
+			}
+		}
+
+		File.Close();
+	}
+
+		CATCH(CFileException, e)
+	{
+		AfxMessageBox(_T("Unable to save grid list"));
+		return FALSE;
+	}
+	END_CATCH
+
+		return TRUE;
+}
+
+
+BOOL CGridCtrl::Save(LPCTSTR filename, TCHAR chSeparator/*=_T(',')*/, map<int, string>& timeMap)
+{
     CStdioFile File;
     CFileException ex;
 	CString strSeparator(chSeparator);
@@ -8090,9 +8129,18 @@ BOOL CGridCtrl::Save(LPCTSTR filename, TCHAR chSeparator/*=_T(',')*/)
         {
             for (int j = 0; j < nNumColumns; j++)
             {
-                File.WriteString(GetItemText(i,j));
-                File.WriteString((j==(nNumColumns-1))? _T("\n"): strSeparator);
+				auto itemText = GetItemText(i, j);
+				File.WriteString(itemText);
+                File.WriteString(strSeparator);
+            } 
+            if (i >= 1)
+            {
+                std::wstring wstr(timeMap[i-1].begin(), timeMap[i-1].end());
+                File.WriteString(wstr.c_str());
             }
+
+			File.WriteString(_T("\n"));
+            
         }
 
         File.Close();

@@ -278,7 +278,6 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 	if (u32Find == u8Div)
 	{
 		pstRecipe->ldsThreshold = uvEng_GetConfig()->measure_flat.dLimitZPOS * 1000.0f;
-		pstRecipe->ldsBaseHeight = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 	}
 	else
 	{

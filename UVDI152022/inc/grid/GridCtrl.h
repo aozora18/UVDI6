@@ -43,7 +43,7 @@
 #include "GridCell.h"
 #include <afxtempl.h>
 #include <vector>
-
+#include <map>
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Defines - these determine the features (and the final size) of the final code
@@ -592,6 +592,7 @@ public:
     BOOL RedrawColumn(int col);
 
 #ifndef _WIN32_WCE
+    BOOL Save(LPCTSTR filename, TCHAR chSeparator, map<int, string>& timeMap);
     BOOL Save(LPCTSTR filename, TCHAR chSeparator = _T(','));
     BOOL Load(LPCTSTR filename, TCHAR chSeparator = _T(','));
 #endif

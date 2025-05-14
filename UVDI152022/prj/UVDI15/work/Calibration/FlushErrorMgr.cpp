@@ -37,9 +37,9 @@ CFlushErrorMgr::CFlushErrorMgr()
 CFlushErrorMgr::~CFlushErrorMgr()
 {
 	m_dVctStripeWidth.clear();
-
+	
 	m_pMeasureThread = NULL;
-	delete m_pMeasureThread;
+	
 }
 
 /*

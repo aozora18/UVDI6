@@ -213,9 +213,9 @@ typedef struct __st_align_camera_grab_result__
 	
 	void Release()
 	{
-		if (grab_data == nullptr) return;
-		delete[]grab_data;
-		grab_data = nullptr;
+		//if (grab_data == nullptr) return;
+		//delete[]grab_data;
+		//grab_data = nullptr;
 		/*if (IsEmpty() == false)
 		{
 			::free(grab_data);

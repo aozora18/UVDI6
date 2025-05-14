@@ -653,7 +653,7 @@ public:
 
 	void SetAlignComplete(bool res) { alignComplete = res; }
 	bool IsAlignComplete() { return alignComplete; }
-
+	bool IsLoadingComplete() { return caliCalcInst.caliInfoLoadComplete;}
 	ENG_MFOR IsNeedManualFixOffset(int* camNum = nullptr);
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
@@ -907,7 +907,6 @@ public:
 	{
 		const int CHECKTERM = 100; int elapsedMS = 0;
 		bool res = false;
-		this_thread::sleep_for(chrono::milliseconds(CHECKTERM));
 		while (res == false && elapsedMS < timeoutDelay)
 		{
 			try

@@ -34,8 +34,9 @@ CCamSpecMgr::CCamSpecMgr()
 */
 CCamSpecMgr::~CCamSpecMgr()
 {
+	
 	m_pMeasureThread = NULL;
-	delete m_pMeasureThread;
+	
 }
 
 /*

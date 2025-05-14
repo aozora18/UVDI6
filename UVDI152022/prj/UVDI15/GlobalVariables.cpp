@@ -118,8 +118,9 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 
 	
 
-	auto tokenize = [&](string str, regex re) -> vector<double>
+	auto tokenize = [](string str) -> vector<double>
 		{
+			const std::regex re(R"([\s|,]+)");
 			std::sregex_token_iterator it{ str.begin(), str.end(), re, -1 };
 			std::vector<string> tokenized{ it, {} };
 
@@ -142,7 +143,7 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 		{
 			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
 			const int DATACOUNT = 4; //x,y, offsetx,offsety
-			const std::regex re(R"([\s|,]+)");
+			
 			
 			dataList.clear();
 			featureStored.clear();
@@ -156,7 +157,8 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 
 				for (std::string line; std::getline(file, line);)
 				{
-					const std::vector<double> tokens = tokenize(line, re);
+					std::string lineCopy = line;
+					const std::vector<double> tokens = tokenize(lineCopy);
 					if (tokens.empty()) continue;
 
 					if (tokens.size() != DATACOUNT)

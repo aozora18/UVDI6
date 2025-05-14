@@ -66,13 +66,14 @@ public:
 
 private:
 	ST_SERIAL_PARAM m_stSerialParam;
-
+	DCB	dcb;
+	COMMTIMEOUTS timeouts;
 	BOOL		m_bOpen;				
 	HANDLE		m_hComm;				
 	OVERLAPPED	m_osRead;		
 	OVERLAPPED	m_osWrite;		
 	DWORD		m_dwEventData;
-
+	TCHAR chPort[32] = { 0, };
 	BOOL		m_bUseThread;			
 	BOOL		m_bExitThread;			
 

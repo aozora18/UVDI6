@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../../inc/conf/vision_uvdi15.h"
-
+#include <map>
 #define DEF_DIFF_POINTS	2.0F
 
 typedef struct stAccuracyMeasureParam
@@ -65,7 +65,9 @@ public:
 	/* 생성자 & 파괴자 */
 	CAccuracyMgr();
 	virtual ~CAccuracyMgr();
-
+	map<int, string> timeMap;
+	STG_ACGR stGrab;
+	
 	/* Singleton pattern */
 	static CAccuracyMgr* GetInstance()
 	{

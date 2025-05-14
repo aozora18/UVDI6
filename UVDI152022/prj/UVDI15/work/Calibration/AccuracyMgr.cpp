@@ -41,6 +41,7 @@ CAccuracyMgr::CAccuracyMgr()
 	m_bUseCamDrv = FALSE;
 	m_u8ACamID = 1;
 	m_nStartIndex = 0;
+	timeMap.clear();
 }
 
 /*
@@ -50,8 +51,8 @@ CAccuracyMgr::CAccuracyMgr()
 */
 CAccuracyMgr::~CAccuracyMgr()
 {
+	
 	m_pMeasureThread = NULL;
-	delete m_pMeasureThread;
 }
 
 /*
@@ -184,6 +185,13 @@ ST_FIELD CAccuracyMgr::ClacField(VCT_ACCR_TABLE stVctField)
 
 BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 {
+
+	if (GlobalVariables::GetInstance()->GetAlignMotion().IsLoadingComplete() == false)
+	{
+		AfxMessageBox(_T("calibration data now on loading..."), MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
+
 	CStdioFile sFile;
 	CString strLine;
 	CString strValue;
@@ -192,6 +200,7 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 
 	m_stVctTable.clear();
 	m_stVctTable.shrink_to_fit();
+	timeMap.clear();
 
 	const int MOTOR_ONLY = 2;
 	const int WITH_GERBER = 4;
@@ -490,10 +499,10 @@ bool CAccuracyMgr::MoveTillArrive(double x, double y, double spd)
 
 BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 {
+	stGrab.Init();
 	LPG_CIEA pstCfg = uvEng_GetConfig();
 	TCHAR tzMesg[128] = { NULL };
-	STG_ACGR stGrab;
-	stGrab.Init();
+	
 	BOOL bRunState = TRUE;
 
 	m_bStop = FALSE;
@@ -809,6 +818,14 @@ BOOL CAccuracyMgr::SetRegistModel()
 	return TRUE;
 }
 
+string GetNow()
+{
+	time_t n = time(0); tm t; localtime_s(&t, &n);
+	std::ostringstream oss;
+	oss << (t.tm_mon + 1) << "-" << t.tm_mday << " " << t.tm_hour << ":" << t.tm_min << ":" << t.tm_sec;
+	return oss.str();
+}
+
 BOOL CAccuracyMgr::SetPointErrValue(int nIndex, double dX, double dY)
 {
 	if (nIndex >= (int)m_stVctTable.size() || nIndex < 0)
@@ -818,6 +835,7 @@ BOOL CAccuracyMgr::SetPointErrValue(int nIndex, double dX, double dY)
 
 	m_stVctTable[nIndex].dValueX = dX;
 	m_stVctTable[nIndex].dValueY = dY;
+	timeMap[nIndex] = GetNow();
 	return TRUE;
 }
 
@@ -1170,6 +1188,12 @@ VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/)
 	if (m_bRunnigThread || CommonMotionStuffs::GetInstance().NowOnMoving())
 	{
 		AfxMessageBox(_T("Measureing still run. wait for finish or terminate"), MB_ICONSTOP | MB_TOPMOST);
+		return;
+	}
+
+	if (GlobalVariables::GetInstance()->GetAlignMotion().IsLoadingComplete() == false)
+	{
+		AfxMessageBox(_T("calibration data now on loading..."), MB_ICONSTOP | MB_TOPMOST);
 		return;
 	}
 

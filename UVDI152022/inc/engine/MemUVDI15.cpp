@@ -555,7 +555,7 @@ CMemVisi::~CMemVisi()
 BOOL CMemVisi::LinkMemMap()
 {
 	UINT32 i, j, u32Size= 0, u8Temp;
-	UINT32 u32ACamCnt	= m_pstConfig->set_cams.acam_count;
+	UINT32 u32ACamCnt	= m_pstConfig->set_cams.acam_count+1;
 	PUINT8 pMemNext		= NULL;
 	LPG_EDFR pstEdge	= NULL;
 	LPG_ELFR pstLine	= NULL;

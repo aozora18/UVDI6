@@ -25,6 +25,7 @@ CDlgCalbAccuracyMeasure::CDlgCalbAccuracyMeasure(UINT32 id, CWnd* parent)
 	m_u32IndexNum = 0;
 	m_ullTimeMove = 0;
 	m_bHoldCtrl = FALSE;
+	
 }
 
 CDlgCalbAccuracyMeasure::~CDlgCalbAccuracyMeasure()
@@ -1146,7 +1147,7 @@ VOID CDlgCalbAccuracyMeasure::SaveAsExcelFile()
 		strFileName = fileSaveDialog.GetPathName();
 
 		/* 파일로 저장 */
-		pGrid->Save(strFileName);
+		pGrid->Save(strFileName, _T(','), CAccuracyMgr::GetInstance()->timeMap);
 
 		/* 저장된 파일 열기 */
 		ShellExecute(NULL, _T("open"), _T("excel.exe"), _T("\"") + strFileName + _T("\""), NULL, SW_SHOW);
@@ -1419,6 +1420,7 @@ VOID CDlgCalbAccuracyMeasure::PointMoveStart()
 }
 
 
+
 VOID CDlgCalbAccuracyMeasure::Remeasurement()
 {
 	double dErrX = 0., dErrY = 0.;
@@ -1447,10 +1449,12 @@ VOID CDlgCalbAccuracyMeasure::Remeasurement()
 
 	pGrid->SetItemDouble(m_u32IndexNum, eRESULT_COL_VALUE_X, dErrX, 4);
 	pGrid->SetItemDouble(m_u32IndexNum, eRESULT_COL_VALUE_Y, dErrY, 4);
-
+	
 	pGrid->Refresh();
 
 	HoldControl(FALSE);
+
+	
 }
 
 LRESULT CDlgCalbAccuracyMeasure::RefreshGrabView(WPARAM wParam, LPARAM lParam)

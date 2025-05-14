@@ -56,6 +56,10 @@ CMilModel::CMilModel(LPG_CIEA config, LPG_VDSM shmem,
 	m_i32EdgeFindGet = 0;	/* Edge Detection 검색 후 저장될 결과 */
 	m_camid = cam_id;
 	
+	m_pstModelSize = nullptr;
+	m_pstModResult = nullptr;
+	m_pstMarkModel  = nullptr;
+
 	/* 계산 결과 임시로 저장하기 위한 버퍼 */
 	CreateMarkResult();
 }
@@ -139,6 +143,7 @@ VOID CMilModel::CreateMarkResult()
 	m_pFindCovg = new DOUBLE[m_pstConfig->mark_find.max_mark_find] ;//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
 	m_pFindFitErr = new DOUBLE[m_pstConfig->mark_find.max_mark_find];//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
 	m_pFindCircleRadius = new DOUBLE[m_pstConfig->mark_find.max_mark_find];//*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
+
 
 	m_pstMarkModel = m_pstShMemVisi->mod_define[m_u8ACamID - 1];
 	m_pstModelSize = m_pstShMemVisi->mod_size[m_u8ACamID - 1];

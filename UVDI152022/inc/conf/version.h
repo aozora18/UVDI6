@@ -212,7 +212,7 @@
 #define	NUM_VERSION_APP_HOLE_SIZE		2.3.22.0622
 #define STR_VERSION_APP_HOLE_SIZE		"2.3.22.0622\0"
 
-/* Application VSLineV (스테이지 직진도 검사) */
-#define	NUM_VERSION_APP_UVDI15			2.3.22.0622
-#define	STR_VERSION_APP_UVDI15			"2.3.22.0622\0"
+//현재버전
+#define	NUM_VERSION_APP_UVDI15			25.05.12
+#define	STR_VERSION_APP_UVDI15		"25.05.12 (RMS fix)\0"
 

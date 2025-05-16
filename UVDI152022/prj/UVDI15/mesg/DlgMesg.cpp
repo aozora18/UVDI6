@@ -164,7 +164,7 @@ BOOL CDlgMesg::InitCtrl()
 	{
 		m_btn_ctl[eMESG_BTN_APPLY].ShowWindow(SW_SHOW);
 		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_SHOW);
-		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_HIDE);
+		m_btn_ctl[eMESG_BTN_MIDDLE].ShowWindow(SW_HIDE);
 		m_btn_ctl[eMESG_BTN_APPLY].SetWindowTextW(m_tzApply);
 		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(m_tzCancel);
 	}

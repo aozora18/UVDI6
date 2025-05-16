@@ -2444,6 +2444,14 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 
 	CString strRecipeName = m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], 1);
 
+	TCHAR tzMsg[256] = { NULL };
+	swprintf_s(tzMsg, 256, L"--warning-- Do you want to recipe %s?" ,(mode == 0x01 ? L"modifying" : mode == 0x02 ? L"delete" : L"add"));
+
+	if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x02))
+	{
+		return;
+	}
+	
 
 	/* 레시피 등록/수정/삭제 진행 */
 	switch (mode)
@@ -2563,7 +2571,19 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 VOID CDlgJob::RecipeSelect()
 {
 	CUniToChar csCnv;
+	CString strReicpe, strExpo, strAlign;
+	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+
 	CString strRecipeName	= m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], eJOB_GRD_COL_RECIPE_LIST_NAME);
+	
+	TCHAR tzMsg[256] = { NULL };
+	swprintf_s(tzMsg, 256, L"--warning-- Do you want to change recipe select?\n %s => %s",strReicpe, strRecipeName);
+
+	CDlgMesg dlgMesg;
+	if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x02))
+	{
+		return;
+	}
 	
 	/* 전역 메모리에 항목 선택 설정 진행 */
 	if (!CRecipeManager::GetInstance()->SelectRecipe(strRecipeName))
@@ -2577,7 +2597,7 @@ VOID CDlgJob::RecipeSelect()
 		CRecipeManager::GetInstance()->PhilSendSelectRecipe(strRecipeName);
 	}
 
-	CString strReicpe, strExpo, strAlign;
+	
 	strReicpe	= CRecipeManager::GetInstance()->GetRecipeName();
 	strExpo		= CRecipeManager::GetInstance()->GetExpoRecipeName();
 	strAlign	= CRecipeManager::GetInstance()->GetAlignRecipeName();

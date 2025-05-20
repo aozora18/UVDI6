@@ -120,6 +120,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	afx_msg VOID		OnSysColorChange();
 	afx_msg VOID		OnLButtonDblClk(UINT32 nFlags, CPoint point);
+	afx_msg VOID OnLButtonUp(UINT32 nFlags, CPoint point);
 };
 
 class CMacCheckBox : public CMacButton

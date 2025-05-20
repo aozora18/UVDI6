@@ -165,6 +165,7 @@ CMacButton::~CMacButton()
 BEGIN_MESSAGE_MAP(CMacButton, CButton)
 	ON_WM_SYSCOLORCHANGE()
 	ON_WM_LBUTTONDBLCLK()
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 VOID CMacButton::PreSubclassWindow() 
@@ -660,7 +661,28 @@ VOID CMacButton::DrawRadioButton(CDC *pDC, CRect rect, UINT32 nStyle, UINT32 nSt
 
 	pDC->SelectObject(pOldPen);
 }
-	
+
+
+
+void LogButtonClick(CWnd* pButton)
+{
+	CString caption;
+	pButton->GetWindowText(caption);
+
+	CString log;
+	log.Format(_T("button pressed: %s"), caption);
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, (const PTCHAR)log.GetString());
+
+	OutputDebugString(log);
+}
+
+void CMacButton::OnLButtonUp(UINT32 nFlags, CPoint point)
+{
+	LogButtonClick(this);
+	GetParent()->SendMessage(WM_COMMAND, MAKEWPARAM(GetDlgCtrlID(), BN_CLICKED), (LPARAM)m_hWnd);
+	CButton::OnLButtonUp(nFlags, point);  // 반드시 마지막에
+}
+
 VOID CMacButton::OnLButtonDblClk(UINT32 /*nFlags*/, CPoint point) 
 {
 	SendMessage(WM_LBUTTONDOWN, 0, MAKELPARAM(point.x, point.y));	

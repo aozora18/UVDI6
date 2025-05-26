@@ -1,37 +1,136 @@
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<html lang="ko">
 <head>
-    <meta charset="utf-8" />
-    <title>웹 모니터링</title>
-    <script src="/lib/signalr.min.js"></script> <!-- 로컬에서 호스팅하는 SignalR JS 파일 -->
-</head>
-<body>
-    <h1>DI 15,6um 웹 모니터링</h1>
-    <div>
-        <p><span id="outputText"> </span></p>
-    </div>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Monitoring</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ccc;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #e0e0e0;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 2px solid #fff;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #outputText {
+            font-weight: bold;
+            color: #555;
+            white-space: pre;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="/lib/signalr.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
+            // 탭 기능
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, index) => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    contents[index].classList.add('active');
+                });
+            });
+
+            // SignalR 연결
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/monitoringhub")
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
-            // 서버에서 값이 전송될 때마다 DOM 업데이트
             connection.on("ReceiveValues", (str) => {
-                document.getElementById("outputText").innerText = str;
+                document.getElementById("MonValText").innerText = str;
             });
 
-            // SignalR 연결 시작
+            connection.on("ReceiveLogs", (str) => {
+                document.getElementById("LogText").innerText = str;
+            });
+            });
+
             connection.start()
                 .then(() => {
                     console.log('Connected to server');
-                    // 연결 성공 후 서버에 초기 데이터 요청
                     connection.invoke("RequestRefreshValues")
                         .catch(err => console.error('Failed to request values:', err));
                 })
                 .catch(err => console.error('Could not connect to server:', err));
+
+            document.getElementById("clearLogsButton").addEventListener("click", function () {
+                connection.invoke("ClearLogs")
+                    .then(() => console.log('Logs cleared.'))
+                    .catch(err => console.error('Failed to clear logs:', err));
+            });
         });
     </script>
+</head>
+<body>
+    <h1>Web Monitoring</h1>
+
+    <div class="tabs">
+        <div class="tab active">Log</div>
+        <div class="tab active">Monitoring Values</div>
+        <div class="tab">Control</div>
+    </div>
+
+    <div class="tab-content active">
+        <!-- Log 탭 -->
+        <pre id="LogText">실시간 로그가 출력됩니다.</pre>
+    </div>
+
+    <div class="tab-content active">
+        <!-- 모니터링값 탭 -->
+        <pre id="MonValText">모니터링 대상 변수들이 출력됩니다. </pre>
+    </div>
+
+    <div class="tab-content">
+        <!-- Control 탭 -->
+        <p>여기에 제어용 버튼 등을 추가할 수 있습니다.</p>
+        <button onclick="alert('Control 동작 예시')">예시 버튼</button>
+    </div>
 </body>
 </html>

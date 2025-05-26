@@ -15,10 +15,37 @@
             text-align: center;
             color: #007bff;
         }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ccc;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #e0e0e0;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 2px solid #fff;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
         #outputText {
             font-weight: bold;
             color: #555;
-            white-space: pre; /* 추가: 공백과 줄 바꿈을 유지 */
+            white-space: pre;
         }
         button {
             background-color: #007bff;
@@ -27,38 +54,47 @@
             padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
+            margin: 5px 0;
         }
         button:hover {
             background-color: #0056b3;
-        }
-        div {
-            margin-bottom: 15px;
         }
     </style>
     <script src="/lib/signalr.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // 탭 기능
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, index) => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    contents[index].classList.add('active');
+                });
+            });
+
+            // SignalR 연결
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/monitoringhub")
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
-            // 서버에서 값이 전송될 때마다 DOM 업데이트
             connection.on("ReceiveValues", (str) => {
                 document.getElementById("outputText").innerText = str;
             });
 
-            // SignalR 연결 시작
             connection.start()
                 .then(() => {
                     console.log('Connected to server');
-                    // 연결 성공 후 서버에 초기 데이터 요청
                     connection.invoke("RequestRefreshValues")
                         .catch(err => console.error('Failed to request values:', err));
                 })
                 .catch(err => console.error('Could not connect to server:', err));
 
-            // 버튼 클릭 시 서버의 ClearLogs 호출
             document.getElementById("clearLogsButton").addEventListener("click", function () {
                 connection.invoke("ClearLogs")
                     .then(() => console.log('Logs cleared.'))
@@ -69,11 +105,22 @@
 </head>
 <body>
     <h1>Web Monitoring</h1>
-    <div>
-        <pre id="outputText">여기에 서버에서 전달된 데이터가 표시됩니다.</pre>
+
+    <div class="tabs">
+        <div class="tab active">Log</div>
+        <div class="tab">Control</div>
     </div>
-    <div>
+
+    <div class="tab-content active">
+        <!-- Log 탭 -->
+        <pre id="outputText">여기에 서버에서 전달된 데이터가 표시됩니다.</pre>
         <button id="clearLogsButton">Clear Logs</button>
+    </div>
+
+    <div class="tab-content">
+        <!-- Control 탭 -->
+        <p>여기에 제어용 버튼 등을 추가할 수 있습니다.</p>
+        <button onclick="alert('Control 동작 예시')">예시 버튼</button>
     </div>
 </body>
 </html>

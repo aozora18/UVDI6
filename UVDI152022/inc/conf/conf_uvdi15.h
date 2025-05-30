@@ -318,7 +318,73 @@ typedef struct __st_config_environmental_info__
 
 }	STG_ENVI, * LPG_ENVI;
 
+struct Headoffset
+{
+	string offsetName;
+	vector<double> offsetVals;
+	int idx = 0;
+	Headoffset() {}
+	Headoffset(string name, vector<double> values, int idx)
+	{
+		offsetName = name;
+		offsetVals = values;
+		this->idx = idx;
+	}
 
+	Headoffset(const Headoffset&) = default;
+	Headoffset& operator=(const Headoffset&) = default;
+
+};
+
+typedef struct __st_config_headOffsets
+{
+	__st_config_headOffsets(const __st_config_headOffsets&) = delete;
+	__st_config_headOffsets& operator=(const __st_config_headOffsets&) = delete;
+
+public:
+	vector<Headoffset> GetOffsets()
+	{
+		return offsets;
+	}
+
+	bool GetOffsets(string name, Headoffset& ref)
+	{
+		for (int i = 0; i < offsets.size(); i++)
+		{
+			if (offsets[i].offsetName == name)
+			{
+				ref = offsets[i];
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool GetOffsets(int idx, Headoffset& ref)
+	{
+		if (offsets.size()  < idx + 1)
+			return false;
+
+		ref = offsets[idx];
+		return true;
+	}
+
+
+	void AddOffsets(string name, vector<double> values)
+	{
+		offsets.push_back(Headoffset(name, values, offsets.size()));
+	}
+
+	void Clear()
+	{
+		offsets.clear();
+	}
+
+
+private:
+	vector<Headoffset> offsets;
+
+}STG_CHO, * LPG_CHO;
 
 /* Vision Camera로부터 Grabbed Image에 대한 전처리 정보 */
 typedef struct __st_config_grab_image_preprocess__
@@ -1081,6 +1147,7 @@ typedef struct __st_config_info_engine_all__
 	STG_KLSP			set_keyence_lds;	// 230919 mhbaek Add keyence lds 관련 파라메터
 	STG_CMAF			measure_flat;		// 230919 mhbaek Add
 	STG_ENVI environmental;
+	STG_CHO headOffsets;
 	/*
 	 desc : Align Camera의 Grabbed Image의 넓이 or 높이 반환
 	 parm : flag	- [in]  0x00: Width, 0x01: Height

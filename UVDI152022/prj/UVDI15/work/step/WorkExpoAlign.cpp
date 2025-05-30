@@ -18,6 +18,11 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#include "../../../../inc/comn/UniToChar.h"
+
+
+
+
 //extern CACamCali* g_pACamCali;
 
 /*
@@ -161,7 +166,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 			L"score_4,scale_4,mark_move_x4(mm),mark_move_y4(mm),"
 			L"led_recipe,read_thick(mm),"
 			/*L"led_recipe,LDS_BaseHeight(um),"*/
-			L"led_recipe,LDS_Threshold(um),\n");
+			L"LDS_Threshold(um),materialType\n");
 
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
 
@@ -266,9 +271,30 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 
 		swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsThreshold);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
+	else
+	{
+		swprintf_s(tzResult, 1024, L"-,-,");
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
 
 
 
+
+	Headoffset offset;
+	
+//	LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+	bool getOffset = uvEng_GetConfig()->headOffsets.GetOffsets(pstExpoRecipe->headOffset, offset);
+
+	if (getOffset)
+	{
+		swprintf_s(tzResult, 1024, L"%s,", offset.offsetName);
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	}
+	else
+	{
+		swprintf_s(tzResult, 1024, L"-,");
+		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 	}
 
 
@@ -280,6 +306,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 #ifdef USE_ALIGNMOTION
 	m_stExpoLog.align_motion = pstAlignRecipe->align_motion;
 #endif
+	m_stExpoLog.headOffset = pstExpoRecipe->headOffset;
 	m_stExpoLog.mark_type = pstAlignRecipe->mark_type;
 	m_stExpoLog.lamp_type = pstAlignRecipe->lamp_type;
 	m_stExpoLog.gain_level[0] = pstAlignRecipe->gain_level[0];
@@ -405,7 +432,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 		temps.push_back(wstring(tempStr));
 	}
 
-	swprintf_s(tempStr, 1024, L"led_recipe = %S\n", pstExpoRecipe->power_name);
+	swprintf_s(tempStr, 1024, L"led_recipe = %s\n", pstExpoRecipe->power_name);
 	temps.push_back(wstring(tempStr));
 
 	auto& measureFlat = uvEng_GetConfig()->measure_flat;
@@ -434,7 +461,16 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	{
 		swprintf_s(tempStr, 1024, L"read_thick(mm) = -\n\n");
 		temps.push_back(wstring(tempStr));
+
+		swprintf_s(tempStr, 1024, L"LDS_Threshold(um) = -\n");
+		temps.push_back(wstring(tempStr));
 	}
+
+	Headoffset offset;
+	bool getOffset = uvEng_GetConfig()->headOffsets.GetOffsets(pstExpoRecipe->headOffset, offset);
+	swprintf_s(tempStr, 1024, L"materialType = %s\n", (getOffset ? offset.offsetName.c_str() : "-"));
+	temps.push_back(wstring(tempStr));
+
 	std::wstring result = std::accumulate(temps.begin(), temps.end(), std::wstring(L""));
 	webMonitor.AddLog(string(result.begin(), result.end()));
 }

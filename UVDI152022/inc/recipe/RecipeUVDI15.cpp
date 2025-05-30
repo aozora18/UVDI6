@@ -334,7 +334,7 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 */
 BOOL CRecipeUVDI15::ParseExpoRecipe(PCHAR data, UINT32 size)
 {
-	UINT8 u8Div = 23;
+	UINT8 u8Div = 24;
 	UINT32 u32Find = 0, i;
 	BOOL bIsLoop = TRUE;
 	CHAR* pData = data, * pFind, szValue[1024];
@@ -439,6 +439,14 @@ BOOL CRecipeUVDI15::ParseExpoRecipe(PCHAR data, UINT32 size)
 		pData = ++pFind;
 	}
 
+	pFind = strchr(pData, ',');
+	if (pFind)
+	{
+		memset(szValue, 0x00, 1024);
+		memcpy(szValue, pData, pFind - pData);
+		pData = ++pFind;
+		pstRecipe->headOffset = (UINT8)atoi(szValue);
+	}
 
 	/* 메모리에 분석된 레시피 데이터 등록 */
 	m_lstExpoRecipe.AddTail(pstRecipe);
@@ -577,9 +585,9 @@ BOOL CRecipeUVDI15::SaveExpoFile()
 		fputs(szData, fp);
 
 		/*  */
-		sprintf_s(szData, MAX_PATH_LEN, "%d,%d,%d,%d,%d,%d,",
+		sprintf_s(szData, MAX_PATH_LEN, "%d,%d,%d,%d,%d,%d,%d,",
 			pstRecipe->serial_flip_h, pstRecipe->serial_flip_v, pstRecipe->scale_flip_h,
-			pstRecipe->scale_flip_v, pstRecipe->text_flip_h, pstRecipe->text_flip_v);
+			pstRecipe->scale_flip_v, pstRecipe->text_flip_h, pstRecipe->text_flip_v, pstRecipe->headOffset);
 		fputs(szData, fp);
 
 		fputs("\n", fp);
@@ -794,7 +802,7 @@ BOOL CRecipeUVDI15::CopyJobRecipe(LPG_RJAF source, LPG_RJAF target)
 	target->expo_speed = source->expo_speed;
 	target->step_size = source->step_size;
 	target->frame_rate = source->frame_rate;
-
+	
 	strcpy_s(target->job_name, RECIPE_NAME_LENGTH, source->job_name);
 	strcpy_s(target->gerber_path, MAX_PATH_LEN, source->gerber_path);
 	strcpy_s(target->gerber_name, MAX_GERBER_NAME, source->gerber_name);
@@ -832,7 +840,7 @@ BOOL CRecipeUVDI15::CopyExpoRecipe(LPG_REAF source, LPG_REAF target)
 	target->scale_flip_v	= source->scale_flip_v;
 	target->text_flip_h		= source->text_flip_h;
 	target->text_flip_v		= source->text_flip_v;
-
+	target->headOffset = source->headOffset;
 	target->led_duty_cycle	= source->led_duty_cycle;
 
 	target->dcode_serial	= source->dcode_serial;

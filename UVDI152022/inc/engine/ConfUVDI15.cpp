@@ -82,6 +82,12 @@ BOOL CConfUvdi15::LoadConfig()
 		return FALSE;
 	}
 
+	if (!LoadConfigHeadOffsets())	/* [헤드옵셋] */
+	{
+		AfxMessageBox(L"Failed to load the config for head offset", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
+
 	if (!LoadConfigEnvirnomental())	/* [SETUP_enviroment] */
 	{
 		AfxMessageBox(L"Failed to load the config for envirimental features", MB_ICONSTOP | MB_TOPMOST);
@@ -381,7 +387,31 @@ BOOL CConfUvdi15::SaveConfigSetupCamera()
 	return TRUE;
 }
 
+template <typename T>
+void ParseAndFillVector(const TCHAR* str, TCHAR splitToken, vector<T>& destVec)
+{
+	destVec.clear();
 
+	if (!str) throw invalid_argument("입력 문자열이 null입니다.");
+
+	basic_string<TCHAR> input(str);
+	basic_stringstream<TCHAR> ss(input);
+	basic_string<TCHAR> token;
+
+	while (getline(ss, token, splitToken))
+	{
+		if (token.empty()) continue;
+
+		basic_stringstream<TCHAR> convertStream(token);
+		T value;
+		convertStream >> value;
+
+		if (convertStream.fail())
+			throw runtime_error("변환 실패: " + string(token.begin(), token.end()));
+
+		destVec.push_back(value);
+	}
+}
 
 void ParseAndFillVector(const TCHAR* str, std::vector<std::tuple<bool,int, double, double>>& vec)
 {
@@ -524,6 +554,48 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 
 	return TRUE;
 }
+
+BOOL CConfUvdi15::LoadConfigHeadOffsets()
+{
+	m_pstCfg->headOffsets.Clear();
+	TCHAR tzKey[64] = { NULL };
+	TCHAR temp[MAX_PATH] = { 0, };
+
+	swprintf_s(m_tzSubj, MAX_SUBJ_STRING, L"HEAD_OFFSET");
+
+	GetConfigStr(L"OFFSET_TYPE", temp, MAX_PATH);
+
+	int itemNum = 0;
+
+	const int txtLength = 2048;
+
+	vector<wstring> sep = {};  // wstring으로 변경
+
+	ParseAndFillVector<basic_string<TCHAR>>(temp, _T(','), sep);
+
+
+	itemNum = sep.size();
+	for (const auto& v : sep)
+	{
+		basic_string<TCHAR> title = _T("OFFSET_") + v;
+		vector<double> values = {};
+		GetConfigStr(const_cast<TCHAR*>(title.c_str()), temp, MAX_PATH, _T(""));
+
+		if (wcslen(temp) == 0)
+			continue;
+
+		ParseAndFillVector<double>(temp, _T(','), values);
+
+		if (values.empty())
+			continue;
+
+		m_pstCfg->headOffsets.AddOffsets(std::string(v.begin(), v.end()), values);
+	}
+
+
+	return TRUE;
+}
+
 
 BOOL CConfUvdi15::LoadConfigEnvirnomental()
 {

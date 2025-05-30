@@ -22,7 +22,8 @@ typedef struct  __st_recipe_job_additional_function_
 {
 	UINT32				material_thick;			/* Exposure Material Thickness (unit: um)						*/
 	UINT32 ldsThreshold;
-	//UINT32 ldsBaseHeight;
+	UINT32 ldsBaseHeight;
+	//UINT32 materialType;
 	UINT32				cali_thick;				/* Cail Thickness (unit: um)									*/
 	UINT16				frame_rate;				/* Frame Rate (1 ~ 999) (실제 값은 나누기 1000)					*/
 	UINT8				step_size : 4;			/* Step Size (1 ~ 7)											*/
@@ -156,7 +157,7 @@ typedef struct __st_recipe_expo_additional_function__
 	CHAR				expo_name[RECIPE_NAME_LENGTH];// = nullptr;				/* expo Recipe Name												*/
 	CHAR				power_name[LED_POWER_NAME_LENGTH]; //= nullptr;				/* Led Power Recipe Name										*/
 	CHAR				text_string[MAX_PANEL_TEXT_STRING];// = nullptr;			/* Head String 부분												*/
-
+	UINT32 headOffset;
 	/*
 	 desc : 메모리 할당
 	 parm : None

@@ -612,6 +612,10 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT:
 					stExpoRecipe.text_flip_v = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
+
+				case EN_RECIPE_EXPOSE::MATERIAL_TYPE:
+					stExpoRecipe.headOffset = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+					break;
 				}
 			}
 			break;
@@ -839,6 +843,10 @@ BOOL CRecipeManager::UpdateExpoRecipe(STG_REAF& stRecipe, EN_RECIPE_MODE eRecipe
 				break;
 			case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT:
 				stRecipe.text_flip_v = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				break;
+
+			case EN_RECIPE_EXPOSE::MATERIAL_TYPE:
+				stRecipe.headOffset = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 				break;
 			}
 		}
@@ -1076,6 +1084,10 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT:
 					stParam.SetValue(pstExpoRecipe->text_flip_v);
 					break;
+
+				case EN_RECIPE_EXPOSE::MATERIAL_TYPE:
+					stParam.SetValue(pstExpoRecipe->headOffset);
+					break;
 				}
 			}
 			break;
@@ -1277,6 +1289,11 @@ BOOL CRecipeManager::LoadRecipe(CString strJobName, CString strExpoName, CString
 				case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT:
 					stParam.SetValue(pstExpoRecipe->text_flip_v);
 					break;
+
+
+				case EN_RECIPE_EXPOSE::MATERIAL_TYPE:
+					stParam.SetValue(pstExpoRecipe->headOffset);
+					break;
 				}
 			}
 			break;
@@ -1435,6 +1452,10 @@ BOOL CRecipeManager::LoadExpoRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				break;
 			case EN_RECIPE_EXPOSE::TEXT_FLIP_VERT:
 				stParam.SetValue(pstExpoRecipe->text_flip_v);
+				break;
+
+			case EN_RECIPE_EXPOSE::MATERIAL_TYPE:
+				stParam.SetValue(pstExpoRecipe->headOffset);
 				break;
 			}
 

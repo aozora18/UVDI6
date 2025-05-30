@@ -165,7 +165,7 @@ CMacButton::~CMacButton()
 BEGIN_MESSAGE_MAP(CMacButton, CButton)
 	ON_WM_SYSCOLORCHANGE()
 	ON_WM_LBUTTONDBLCLK()
-	ON_WM_LBUTTONUP()
+
 END_MESSAGE_MAP()
 
 VOID CMacButton::PreSubclassWindow() 

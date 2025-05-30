@@ -500,6 +500,7 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 #ifdef USE_ALIGNMOTION
 	m_stExpoLog.align_motion = pstAlignRecipe->align_motion;
 #endif
+	m_stExpoLog.headOffset = pstExpoRecipe->headOffset;
 	m_stExpoLog.mark_type		= pstAlignRecipe->mark_type;
 	m_stExpoLog.lamp_type		= pstAlignRecipe->lamp_type;
 	m_stExpoLog.gain_level[0]	= pstAlignRecipe->gain_level[0];

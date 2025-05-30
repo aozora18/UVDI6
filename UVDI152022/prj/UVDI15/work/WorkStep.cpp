@@ -9,7 +9,7 @@
 #include "../menu/DlgMmpm.h"
 #include "../GlobalVariables.h"
 #include "../mesg/DlgMesg.h"
-//#include <fmt/core.h>
+#include "../../../inc/comn/UniToChar.h"
 
 namespace fs = std::filesystem;
 
@@ -173,6 +173,9 @@ ENG_JWNS CWorkStep::SetMovingUnloader()
 	/* Check if it is operating in demo mode */
 	if (uvEng_GetConfig()->IsRunDemo())	return ENG_JWNS::en_next;
 
+	if (IsMC2ErrorCheck())
+		return ENG_JWNS::en_error;
+
 	/* 스테이지가 완전히 멈춘 상태인지 확인 */
 	if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
 		pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
@@ -251,6 +254,10 @@ ENG_JWNS CWorkStep::IsMovedUnloader()
 	/* 현재 작업 Step Name 설정 */
 	if (!IsWorkRepeat())	SetStepName(L"Is.Moved.Stage.Unload");
 #if 1
+
+	if (IsMC2ErrorCheck())
+		return ENG_JWNS::en_error;
+
 	/* 현재 위치와 벡터로 이동하고자 하는 위치가 동일한 경우인지 */
 	if (ENG_MMDI::en_axis_none == m_enVectMoveDrv ||
 		uvCmn_MC2_IsDrvDoneToggled(m_enVectMoveDrv))
@@ -2395,6 +2402,18 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 	/* 가장 최근의 설정한 광학계 Z 축 높이 조절 값 초기화 */
 	memset(m_dbPhZAxisSet, 0x00, sizeof(DOUBLE) * MAX_PH);
 
+	
+	Headoffset headOffset;
+	
+	CUniToChar csCnv;
+	LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+
+	if (pstRecipe == nullptr || pstRecipeExpo == nullptr || uvEng_GetConfig()->headOffsets.GetOffsets(pstRecipeExpo->headOffset, headOffset) == false)
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"headOffset not found.");
+		return ENG_JWNS::en_error;
+	}
+
 	/* 모든 광학계 높이 조절 */
 	if (uvEng_GetConfig()->luria_svc.z_drive_type == 0x01)
 	{
@@ -2403,8 +2422,9 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 
 		for (i = 0x00; i < pstLuria->ph_count; i++)
 		{
+			double offset = headOffset.offsetVals[i] / 1000;
 			/* mm -> um 변환 */
-			m_dbPhZAxisSet[i] = pstLuria->ph_z_focus[i] + dbPhDiffZ;
+			m_dbPhZAxisSet[i] = (pstLuria->ph_z_focus[i] + offset) + dbPhDiffZ;
 			/* Photohead Z Axis의 Min or Max 값 범위 안에 있는지 여부 */
 			if (pstLuria->ph_z_move_min > m_dbPhZAxisSet[i] ||
 				pstLuria->ph_z_move_max < m_dbPhZAxisSet[i])
@@ -2428,9 +2448,10 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 
 		for (i = 0x00; i < pstLuria->ph_count; i++)
 		{
+			double offset = headOffset.offsetVals[i] / 1000;
 			/* mm -> um 변환 */
 			//m_dbPhZAxisSet[i]	= pstLuria->ph_z_focus[i] * 1000.0f, 0 + dbPhDiffZ;
-			m_dbPhZAxisSet[i] = pstLuria->ph_z_focus[i] + dbPhDiffZ;
+			m_dbPhZAxisSet[i] = (pstLuria->ph_z_focus[i] + offset) + dbPhDiffZ;
 			/* Photohead Z Axis의 Min or Max 값 범위 안에 있는지 여부 */
 			if (pstMC2->min_dist[i] > m_dbPhZAxisSet[i] ||
 				pstMC2->max_dist[i] < m_dbPhZAxisSet[i])
@@ -2716,7 +2737,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 
 	TCHAR tzTitle[128] = { NULL };
 	BOOL bSucc = FALSE, bMultiMark = FALSE;
-	
+
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
 	auto* config = uvEng_GetConfig();
@@ -2725,14 +2746,14 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 	SetStepName(L"Is.SetMark.Valid.All");
 
 	auto result = motions.IsNeedManualFixOffset(camNum);
-	
+
 	if (config->IsRunDemo())
 	{
 		bSucc = TRUE;
 	}
 	else
 	{
-		
+
 		if (result == ENG_MFOR::noNeedToFix)
 		{
 			bSucc = TRUE;
@@ -2745,7 +2766,7 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 				SetStepName(L"Not all marks are grabbed.");
 				return ENG_JWNS::en_error;
 			}
-				
+
 			if (!config->set_align.use_invalid_mark_cali)  //교정하지 않겠다.
 			{
 				bSucc = FALSE;
@@ -2757,18 +2778,18 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 					CDlgMmpm dlgMmpm;
 					bSucc = (IDOK == dlgMmpm.DoModal());
 					SetManualFix(bSucc);
-							
+
 					UpdateWaitingTime();
 				}
 				else //아니다 다음에 하겠다. 
 				{
 					LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
 					bSucc = FALSE;
-				}	
+				}
 			}
 		}
 	}
-	
+
 	auto u8Global = motions.status.globalMarkCnt;
 	auto u8Local = motions.markParams.alignType == ENG_ATGL::en_global_4_local_0_point ? 0 : motions.status.localMarkCnt;
 

@@ -916,6 +916,36 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 					}
 
 				}
+				else if (stParam.strName == _T("MATERIAL_TYPE"))
+				{
+					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
+
+					auto& offsets = uvEng_GetConfig()->headOffsets.GetOffsets();
+
+					CStringArray options;
+
+					for_each(offsets.begin(), offsets.end(), [&](Headoffset& v)
+						{
+							options.Add(CString(v.offsetName.c_str()));
+						});
+
+
+					CGridCellCombo* pComboCell2 = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
+
+					pGrid->SetListMode(FALSE);
+					pGrid->EnableDragAndDrop(TRUE);
+					pGrid->SetItemState(nRow, eJOB_GRD_COL_PARAMETER_VALUE, 0x00);
+
+					pComboCell2->SetOptions(options);
+					pComboCell2->SetStyle(CBS_DROPDOWN);
+
+					Headoffset offset;
+
+					USES_CONVERSION;
+					if (uvEng_GetConfig()->headOffsets.GetOffsets(stParam.GetInt(), offset))
+						pComboCell2->SetText(A2W((char*)offset.offsetName.c_str()));
+
+				}
 				else if (stParam.strName == _T("ALIGN_TYPE"))
 				{
 					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
@@ -1344,26 +1374,7 @@ void CDlgJob::OnClickGridJobParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 			{
 				if (PopupKBDN(ENM_DITM::en_int16, strInput, strOutput, dMin, dMax))
 				{
-#if 0
-					/*각 레시피 조건에 따른 노광 속도 계산*/
-					LPG_PLPI	pstPowerI = uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
 
-					if (NULL == pstPowerI)
-					{
-						AfxMessageBox(L"The LED Power file registered in the recipe does not exist", 0x01);
-					}
-					UINT8 i = 0, j = 0;
-					DOUBLE dbTotal = 0.0f, dbPowerWatt[MAX_LED] = { NULL }, dbSpeed = 0.0f;
-					/* 광량 계산 */
-					for (; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
-					{
-						for (j = 0; j < MAX_LED; j++)	dbPowerWatt[j] = pstPowerI->led_watt[i][j];
-						dbTotal += uvCmn_Luria_GetEnergyToSpeed(pstRecipe->step_size, pstRecipe->expo_energy,
-							pstExpoRecipe->led_duty_cycle, dbPowerWatt);
-
-					}
-					pstRecipe->frame_rate = (float)(dbTotal / DOUBLE(i));
-#endif
 
 
 					stParam.SetValue(strOutput);
@@ -1624,6 +1635,11 @@ void CDlgJob::OnClickGridExposeParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 			}
 			else if (DEF_DATA_TYPE_INT == stParam.strDataType)
 			{
+				if (stParam.strName == _T("MATERIAL_TYPE"))
+				{
+					return;
+				}
+
 				if (PopupKBDN(ENM_DITM::en_int16, strInput, strOutput, dMin, dMax))
 				{
 					stParam.SetValue(strOutput);
@@ -2030,6 +2046,23 @@ void CDlgJob::OnClickGridExposeParameterChanged(NMHDR* pNotifyStruct, LRESULT* p
 
 		stParam.SetValue(bIsTrue);
 	}
+	else if (DEF_DATA_TYPE_INT == stParam.strDataType)
+	{
+		USES_CONVERSION;
+		if (stParam.strName == _T("MATERIAL_TYPE"))
+		{
+			int options = 0;
+			Headoffset find;
+
+
+
+			if (uvEng_GetConfig()->headOffsets.GetOffsets(string(CW2A(strValue)), find) != false)
+				options = find.idx;
+
+			stParam.SetValue(options);
+		}
+	}
+
 	else if (DEF_DATA_TYPE_COMBO == stParam.strDataType)
 	{
 		CStringArray strArrValue;

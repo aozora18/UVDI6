@@ -35,7 +35,7 @@ public:
 
 	BOOL LoadConfigEnvirnomental();
 	BOOL SaveConfigEnvirnomental();
-
+	BOOL LoadConfigHeadOffsets();
 	LPG_CIEA			GetConfig()	{	return m_pstCfg;	}
 
 	BOOL				LoadConfigSetupAlign();

@@ -335,7 +335,7 @@ UINT16					align_motion;					//얼라인모션
 	UINT32				expo_count;						/* 노광 반복 횟수 (최소 1 이상 값) */
 	UINT32				u32_reserved;
 	UINT16				includeAddAlignOffset; //이동시에 얼라인옵셋까지 추가해서 움직일지
-
+	UINT32 headOffset;
 		/*
 	 desc : 초기화
 	 parm : None

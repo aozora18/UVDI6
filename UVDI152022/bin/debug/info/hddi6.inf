@@ -538,7 +538,7 @@ MAX_AXIS_5_VELO         = 200.0000
 ; 2022-03-21
 MOVE_VELO               = 200.0000
 MARK_VELO               = 100.0000
-STEP_VELO               = 20.0000
+STEP_VELO               = 200.0000
 MOVE_DIST               = 1.0000
 
 PH_VER                  = 1
@@ -675,7 +675,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= Min_Wafer_Align_R0_Test
+RECIPE_NAME= 6um_FEM
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -1758,3 +1758,11 @@ MOVE_OFFSET_X = 2
 MOVE_OFFSET_Y = 2
 RETRY_COUNT = 1
 THREASHOLD_DIST = 1.3
+
+
+;단위는 UM
+[HEAD_OFFSET]
+OFFSET_TYPE = DEFAULT,DFSR,DFR
+OFFSET_DEFAULT = 0,0,0,0,0,0
+OFFSET_DFSR = 1000,1000,1000,1000,1000,1000
+OFFSET_DFR = -1000,-1000,-1000,-1000,-1000,-1000

@@ -2610,10 +2610,10 @@ VOID CDlgJob::RecipeSelect()
 	CString strRecipeName	= m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], eJOB_GRD_COL_RECIPE_LIST_NAME);
 	
 	TCHAR tzMsg[256] = { NULL };
-	swprintf_s(tzMsg, 256, L"--warning-- Do you want to change recipe select?\n %s => %s",strReicpe, strRecipeName);
+	swprintf_s(tzMsg, 256, L"--warning-- Cancel recipe change?\n %s => %s", strReicpe, strRecipeName);
 
 	CDlgMesg dlgMesg;
-	if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x02))
+	if (IDOK == dlgMesg.MyDoModal(tzMsg, 0x04))
 	{
 		return;
 	}

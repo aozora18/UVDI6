@@ -1,6 +1,8 @@
 #pragma once
 #include "Recipe.h"
 
+class CDlgMain;
+
 enum EN_RECIPE_MODE
 {
 	eRECIPE_MODE_SEL = 0,
@@ -34,10 +36,11 @@ private:
 	CStringArray			m_strArrRecipeList;
 	CString					m_strRecipePath;
 	HWND					m_hMainWnd;
+	CDlgMain* mainDlgPtr = nullptr;
 public:
 	//Save & Load 관련 함수
 	CRecipe*			GetRecipe(EN_RECIPE_MODE eRecipeMode = eRECIPE_MODE_SEL);
-	void				Init(HWND hWnd);
+	void				Init(HWND hWnd, CDlgMain* maindlgPtr);
 	void				Destroy();
 	CString				GetRecipePath();
 	void				LoadRecipeList();

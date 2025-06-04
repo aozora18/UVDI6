@@ -13,6 +13,7 @@
 static char THIS_FILE[]	= __FILE__;
 #endif
 
+#define ID_ENABLE_BUTTON_TIMER 31832
 
 /*
  desc : »ý¼ºÀÚ
@@ -53,6 +54,7 @@ VOID CDlgMesg::DoDataExchange(CDataExchange* dx)
 
 BEGIN_MESSAGE_MAP(CDlgMesg, CMyDialog)
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_MESG_BTN_APPLY, IDC_MESG_BTN_MIDDLE, OnBtnClicked)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 /*
@@ -174,6 +176,18 @@ BOOL CDlgMesg::InitCtrl()
 		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(m_tzCancel);
 		m_btn_ctl[eMESG_BTN_MIDDLE].SetWindowTextW(m_tzMiddle);
 	}
+
+	else if (0x04 == m_u8BtnType)
+	{
+		m_btn_ctl[eMESG_BTN_APPLY].ShowWindow(SW_HIDE);
+		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_HIDE);
+		m_btn_ctl[eMESG_BTN_MIDDLE].ShowWindow(SW_HIDE);
+		m_btn_ctl[eMESG_BTN_APPLY].SetWindowTextW(m_tzApply);
+		m_btn_ctl[eMESG_BTN_CANCEL].SetWindowTextW(m_tzCancel);
+
+		SetTimer(ID_ENABLE_BUTTON_TIMER, 3000, NULL);
+
+	}
 	else
 	{
 		m_btn_ctl[eMESG_BTN_APPLY].SetWindowTextW(m_tzApply);
@@ -185,6 +199,27 @@ BOOL CDlgMesg::InitCtrl()
 
 
 	return TRUE;
+}
+
+void CDlgMesg::OnTimer(UINT_PTR nIDEvent)
+{
+	if (nIDEvent == ID_ENABLE_BUTTON_TIMER)
+	{
+		KillTimer(ID_ENABLE_BUTTON_TIMER);
+
+		m_btn_ctl[eMESG_BTN_APPLY].ShowWindow(SW_SHOW);
+		m_btn_ctl[eMESG_BTN_CANCEL].ShowWindow(SW_SHOW);
+
+		m_btn_ctl[eMESG_BTN_APPLY].Invalidate();
+		m_btn_ctl[eMESG_BTN_APPLY].UpdateWindow();
+
+
+		m_btn_ctl[eMESG_BTN_CANCEL].Invalidate();
+		m_btn_ctl[eMESG_BTN_CANCEL].UpdateWindow();
+
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }
 
 /*
@@ -222,7 +257,7 @@ INT_PTR CDlgMesg::MyDoModal(PTCHAR mesg, UINT8 type)
 			wcscpy_s(m_tzApply, 128, L"Apply");
 			wcscpy_s(m_tzCancel, 128, L"Cancel");
 		}
-		else if (0x02 == type)
+		else if (0x02 == type || 0x04 == type)
 		{
 			wcscpy_s(m_tzApply, 128, L"Yes");
 			wcscpy_s(m_tzCancel, 128, L"No");

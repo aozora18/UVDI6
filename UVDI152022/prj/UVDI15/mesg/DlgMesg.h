@@ -60,7 +60,7 @@ protected:
 protected:
 
 	BOOL				InitCtrl();
-
+	void OnTimer(UINT_PTR nIDEvent);
 
 /* 공용 함수 */
 public:

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "RecipeManager.h"
+#include "../DlgMain.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -32,9 +33,10 @@ CRecipe* CRecipeManager::GetRecipe(EN_RECIPE_MODE eRecipeMode)
 	return &m_clsRcp[eRecipeMode];
 }
 
-void CRecipeManager::Init(HWND hWnd)
+void CRecipeManager::Init(HWND hWnd, CDlgMain* maindlgPtr)
 {
 	m_hMainWnd = hWnd;
+	this->mainDlgPtr = maindlgPtr;
 	//레시피폼 생성
 	LoadRecipeForm(eRECIPE_MODE_SEL);
 	LoadRecipeForm(eRECIPE_MODE_VIEW);
@@ -421,6 +423,9 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 	//	/*Philhmi에 보고*/
 	//	PhilSendSelectRecipe(strRecipeName);
 	//}
+
+	memset(mainDlgPtr->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
+	strcpy_s(mainDlgPtr->m_stExpoLog.host_recipe_name, CT2A(strRecipeName));
 
 	::SendMessage(m_hMainWnd, WM_MAIN_RECIPE_CHANGE, NULL, (LPARAM)&strRecipeName);
 

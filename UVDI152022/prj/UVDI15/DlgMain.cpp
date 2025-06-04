@@ -177,7 +177,7 @@ BOOL CDlgMain::OnInitDlg()
 
 
 	// by sysandj : recipe
-	CRecipeManager::GetInstance()->Init(this->GetSafeHwnd());
+	CRecipeManager::GetInstance()->Init(this->GetSafeHwnd(), this);
 	CIOManager::GetInstance()->Init(this->GetSafeHwnd());
 	CRecvPhil::GetInstance()->Init(this->GetSafeHwnd());
 	// by sysandj : recipe

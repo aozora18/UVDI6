@@ -155,8 +155,8 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* calle
 		if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
 		{
 			//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
-			memset(callerInst->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
-			strcpy_s(callerInst->m_stExpoLog.host_recipe_name, stRecv->st_c2p_rcp_select.szRecipeName);
+			//memset(callerInst->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
+			//strcpy_s(callerInst->m_stExpoLog.host_recipe_name, stRecv->st_c2p_rcp_select.szRecipeName);
 
 
 			UINT8 u8Offset = 0xff;

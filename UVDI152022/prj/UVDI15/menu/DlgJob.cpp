@@ -923,10 +923,10 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 					auto& offsets = uvEng_GetConfig()->headOffsets.GetOffsets();
 
 					CStringArray options;
-
+					USES_CONVERSION;
 					for_each(offsets.begin(), offsets.end(), [&](Headoffset& v)
 						{
-							options.Add(CString(v.offsetName.c_str()));
+							options.Add(CString(A2W(v.offsetName)));
 						});
 
 
@@ -941,9 +941,9 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 
 					Headoffset offset;
 
-					USES_CONVERSION;
+					
 					if (uvEng_GetConfig()->headOffsets.GetOffsets(stParam.GetInt(), offset))
-						pComboCell2->SetText(A2W((char*)offset.offsetName.c_str()));
+						pComboCell2->SetText(A2W((char*)offset.offsetName));
 
 				}
 				else if (stParam.strName == _T("ALIGN_TYPE"))
@@ -1158,10 +1158,33 @@ VOID CDlgJob::OnBtnClick(UINT32 id)
 {
 	switch (id)
 	{
-	case IDC_JOB_BTN_RECIPE_ADD		:	RecipeControl(0x00);	break;
-	case IDC_JOB_BTN_RECIPE_DEL		:	RecipeControl(0x02);	break;
-	case IDC_JOB_BTN_RECIPE_SELECT	:	RecipeSelect();			break;
-	case IDC_JOB_BTN_RECIPE_SAVE	:	RecipeControl(0x01);	break;
+		case IDC_JOB_BTN_RECIPE_ADD		:	
+		{
+			RecipeControl(0x00);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, _T("user act : add recipe"));
+		}
+		break;
+
+		case IDC_JOB_BTN_RECIPE_DEL		:	
+		{
+			RecipeControl(0x02);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, _T("user act : del recipe"));
+		}
+		break;
+
+		case IDC_JOB_BTN_RECIPE_SELECT	:	
+		{
+			RecipeSelect();
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, _T("user act : select recipe"));
+		}
+		break;
+
+		case IDC_JOB_BTN_RECIPE_SAVE	:	
+		{
+			RecipeControl(0x01);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, _T("user act : save recipe"));
+		}
+		break;
 	}
 }
 
@@ -1175,6 +1198,7 @@ void CDlgJob::OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
 
 	if (pstRecipe)
 	{
+
 		TCHAR tzPath[MAX_PATH_LEN] = { NULL };
 		CUniToChar csCnv1, csCnv2;
 		swprintf_s(tzPath, MAX_PATH_LEN, L"%s\\%s",

@@ -2,7 +2,11 @@
 #pragma once
 
 #include "ConfBase.h"
+#include <thread>
+#include <mutex>
 
+
+#define LOADLOCK lock_guard<mutex> rLockGuard(CConfUvdi15::loadLockMutex);
 class CConfUvdi15 : public CConfBase
 {
 /* 생성자 & 파괴자 */
@@ -12,7 +16,6 @@ public:
 	virtual ~CConfUvdi15();
 
 /* 가상 함수 */
-protected:
 
 public:
 

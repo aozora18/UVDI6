@@ -124,7 +124,7 @@ BOOL OpenSharedMemory(ENG_ERVM e_mode)
 	/* !!! 환경 정보 저장 공유 메모리 영역 설정 !!! */
 	if (!g_pMemConf->CreateMap())	return FALSE;
 
-	auto cfgPtr = GetConfig();
+	auto* cfgPtr = GetConfig();
 	cfgPtr->measure_flat.Deallocate(true);
 	/* Engine인 경우만 수행 됨 */
 	if (bIsEngine)

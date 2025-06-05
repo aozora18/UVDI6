@@ -17,7 +17,10 @@
 
 #include "../conf/conf_comn.h"
 
+
 using namespace std;
+
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -557,7 +560,6 @@ BOOL CConfUvdi15::LoadConfigSetupAlign()
 
 BOOL CConfUvdi15::LoadConfigHeadOffsets()
 {
-	m_pstCfg->headOffsets.Clear();
 	TCHAR tzKey[64] = { NULL };
 	TCHAR temp[MAX_PATH] = { 0, };
 
@@ -566,19 +568,21 @@ BOOL CConfUvdi15::LoadConfigHeadOffsets()
 	GetConfigStr(L"OFFSET_TYPE", temp, MAX_PATH);
 
 	int itemNum = 0;
-
+	
 	const int txtLength = 2048;
 
 	vector<wstring> sep = {};  // wstring으로 변경
 
 	ParseAndFillVector<basic_string<TCHAR>>(temp, _T(','), sep);
 
-
 	itemNum = sep.size();
+
+	m_pstCfg->headOffsets.Clear();
 	for (const auto& v : sep)
 	{
-		basic_string<TCHAR> title = _T("OFFSET_") + v;
 		vector<double> values = {};
+		basic_string<TCHAR> title = _T("OFFSET_") + v;
+		
 		GetConfigStr(const_cast<TCHAR*>(title.c_str()), temp, MAX_PATH, _T(""));
 
 		if (wcslen(temp) == 0)

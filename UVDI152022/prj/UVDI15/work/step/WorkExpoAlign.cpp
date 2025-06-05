@@ -468,7 +468,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 
 	Headoffset offset;
 	bool getOffset = uvEng_GetConfig()->headOffsets.GetOffsets(pstExpoRecipe->headOffset, offset);
-	swprintf_s(tempStr, 1024, L"materialType = %s\n", (getOffset ? offset.offsetName.c_str() : "-"));
+	swprintf_s(tempStr, 1024, L"materialType = %s\n", (getOffset ? offset.offsetName : "-"));
 	temps.push_back(wstring(tempStr));
 
 	std::wstring result = std::accumulate(temps.begin(), temps.end(), std::wstring(L""));

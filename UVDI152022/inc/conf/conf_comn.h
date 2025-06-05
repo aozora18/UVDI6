@@ -46,7 +46,7 @@
 #define	MAX_LOCAL_MARKS					1280		/* 최대 Local Mark (Fiducial) 개수 */
 #define	MAX_REGISTRATION_POINTS			(MAX_GLOBAL_MARKS + MAX_LOCAL_MARKS)	/* 얼라인 카메라에 의해 검사된 최대 마크 등록 개수 */
 #define	MAX_SELECT_VELO				4		/* MC2 jog이동시 스피드 선택 개수 */
-
+#define OFFSET_CNT 10
 /* --------------------------------------------------------------------------------------------- */
 /*                                           상수 값                                             */
 /* !!!!!!!!! 중요 !!!  아래 상수 값은 반드시 고정 값 구조체 경계선 정렬하면 절대 안됨  !!!!!!!!! */

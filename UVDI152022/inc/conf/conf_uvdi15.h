@@ -320,38 +320,55 @@ typedef struct __st_config_environmental_info__
 
 struct Headoffset
 {
-	string offsetName;
-	vector<double> offsetVals;
+	
+	char offsetName[255];
+	double offsetVals[10];
 	int idx = 0;
+	bool use = false;
 	Headoffset() {}
 	Headoffset(string name, vector<double> values, int idx)
 	{
-		offsetName = name;
-		offsetVals = values;
-		this->idx = idx;
-	}
+		strcpy_s(offsetName, 255, name.c_str());
 
-	Headoffset(const Headoffset&) = default;
-	Headoffset& operator=(const Headoffset&) = default;
+		for (int i = 0; i < values.size(); i++)
+		{
+			offsetVals[i] = values[i];
+		}
+		this->idx = idx;
+		use = true;
+	}
 
 };
 
 typedef struct __st_config_headOffsets
 {
-	__st_config_headOffsets(const __st_config_headOffsets&) = delete;
-	__st_config_headOffsets& operator=(const __st_config_headOffsets&) = delete;
-
+	
 public:
+	int offsetNum = 0;
+	__st_config_headOffsets()
+	{
+		
+	}
+
 	vector<Headoffset> GetOffsets()
 	{
-		return offsets;
+		vector<Headoffset> temp;
+
+		for (int i = 0; i < OFFSET_CNT; i++)
+		{
+			if(offsets[i].use == false)
+				continue;
+			temp.push_back(offsets[i]);
+		}
+
+		return std::move(temp);
 	}
 
 	bool GetOffsets(string name, Headoffset& ref)
 	{
-		for (int i = 0; i < offsets.size(); i++)
+		for (int i = 0; i < OFFSET_CNT; i++)
 		{
-			if (offsets[i].offsetName == name)
+			if (offsets[i].use == true && string(offsets[i].offsetName) == name)
 			{
 				ref = offsets[i];
 				return true;
@@ -362,7 +379,7 @@ public:
 
 	bool GetOffsets(int idx, Headoffset& ref)
 	{
-		if (offsets.size()  < idx + 1)
+		if (idx < 0 || idx > OFFSET_CNT -1 || offsets[idx].use == false)
 			return false;
 
 		ref = offsets[idx];
@@ -372,17 +389,26 @@ public:
 
 	void AddOffsets(string name, vector<double> values)
 	{
-		offsets.push_back(Headoffset(name, values, offsets.size()));
+		for (int i = 0; i < OFFSET_CNT; i++)
+		{
+			if (offsets[i].use == true) continue;
+
+			offsets[i] = Headoffset(name, values, i);
+			return;
+		}
+
 	}
 
 	void Clear()
 	{
-		offsets.clear();
+		std::for_each(std::begin(offsets), std::end(offsets), [](Headoffset& v) { v.use = false; });
 	}
 
 
 private:
-	vector<Headoffset> offsets;
+	
+	Headoffset offsets[10];
+	
 
 }STG_CHO, * LPG_CHO;
 
@@ -1148,6 +1174,8 @@ typedef struct __st_config_info_engine_all__
 	STG_CMAF			measure_flat;		// 230919 mhbaek Add
 	STG_ENVI environmental;
 	STG_CHO headOffsets;
+
+	
 	/*
 	 desc : Align Camera의 Grabbed Image의 넓이 or 높이 반환
 	 parm : flag	- [in]  0x00: Width, 0x01: Height

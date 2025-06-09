@@ -43,7 +43,7 @@ void CRecipeManager::Init(HWND hWnd, CDlgMain* maindlgPtr)
 	
 	LoadRecipeList();
 
-	SelectRecipe(uvEng_GetRecipeConfig());
+	SelectRecipe(uvEng_GetRecipeConfig(), eRECIPE_MODE_SEL_FROM_INITIAL);
 }
 
 void CRecipeManager::Destroy()
@@ -207,9 +207,10 @@ BOOL CRecipeManager::DeleteAlignRecipe(CString strRecipeName)
 	return bSuccess;
 }
 
-BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
+BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE selType)
 {
-	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
+	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName(strRecipeName.GetBuffer() , selType == EN_RECIPE_SELECT_TYPE::eRECIPE_MODE_SEL_FROM_LOCAL ? true : false );
+	strRecipeName.ReleaseBuffer();
 
 	if (FALSE == bSuccess)
 	{
@@ -311,7 +312,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 
 
 	/* 기존 적재된 Recipe 관련 거버 정보 초기화 */
-	uvEng_MarkSelAlignRecipeReset();
+	//uvEng_MarkSelAlignRecipeReset();
 	uvCmn_Luria_ResetRegisteredJob();
 
 
@@ -332,7 +333,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 	uvEng_SetRecipeConfig(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
 	LoadRecipe(strRecipeName, eRECIPE_MODE_SEL);
 			
-	bSuccess = uvEng_Mark_SelAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe)); // lk91 Mark Recipe Select 추가
+	bSuccess = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe)) != nullptr;
 	if (FALSE == bSuccess)
 	{
 		return FALSE;
@@ -434,15 +435,25 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName)
 
 BOOL CRecipeManager::LoadSelectRecipe()
 {
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
-
-	if (NULL == pstRecipe)
+	
+	LPG_RJAF pstRecipe = nullptr;
+	
+	pstRecipe = uvEng_JobRecipe_GetSelectRecipe(false);
+	
+	if (pstRecipe != nullptr)
 	{
-		return FALSE;
+		LoadRecipe((CString)pstRecipe->job_name, eRECIPE_MODE_VIEW);
+		LoadRecipe((CString)pstRecipe->job_name, eRECIPE_MODE_SEL);
+	
+	}
+	
+	pstRecipe = uvEng_JobRecipe_GetSelectRecipe(true);
+	if (pstRecipe != nullptr)
+	{
+		LoadRecipe((CString)pstRecipe->job_name, eRECIPE_MODE_LOCAL);
 	}
 
-	LoadRecipe((CString)pstRecipe->job_name, eRECIPE_MODE_VIEW);
-	LoadRecipe((CString)pstRecipe->job_name, eRECIPE_MODE_SEL);
+	
 
 	return TRUE;
 }
@@ -1700,7 +1711,11 @@ BOOL CRecipeManager::GetLEDFrameRate()
 {
 	CString strRecipeName = CRecipeManager::GetInstance()->GetRecipeName();
 
-	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
+	bool isLocalRecipe =  uvEng_JobRecipe_WhatLastSelectIsLocal();
+
+	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName(strRecipeName.GetBuffer(), isLocalRecipe);
+	
+	strRecipeName.ReleaseBuffer();
 
 	if (FALSE == bSuccess)
 	{

@@ -1904,7 +1904,7 @@ VOID CDlgPhilhmi::RecipeSelect()
 	CString strRecipeName = m_grd_ctl[ePHILHMI_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], ePHILHMI_GRD_COL_RECIPE_LIST_NAME);
 
 	/* 전역 메모리에 항목 선택 설정 진행 */
-	if (!CRecipeManager::GetInstance()->SelectRecipe(strRecipeName))
+	if (!CRecipeManager::GetInstance()->SelectRecipe(strRecipeName, eRECIPE_MODE_SEL_FROM_HOST))
 	{
 		ShowMsg(eWARN, L"Failed to select the gerber recipe", 0x01);
 		return;

@@ -1014,7 +1014,8 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 	//UINT16(*pBoard)[8] = uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_board;
 
 	/*레시피 정보 가져오기*/
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 
 	/* 현재 컴퓨터 날짜를 파일명으로 설정 */
 	GetLocalTime(&stTm);

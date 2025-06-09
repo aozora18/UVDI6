@@ -7,8 +7,18 @@ enum EN_RECIPE_MODE
 {
 	eRECIPE_MODE_SEL = 0,
 	eRECIPE_MODE_VIEW,
+	eRECIPE_MODE_LOCAL,
 	eRECIPE_MODE_MAX
 };
+
+enum EN_RECIPE_SELECT_TYPE
+{
+	eRECIPE_MODE_SEL_FROM_HOST,
+	eRECIPE_MODE_SEL_FROM_INITIAL,
+	eRECIPE_MODE_SEL_FROM_LOCAL,
+	eRECIPE_MODE_SEL_MAX,
+};
+
 
 typedef struct ST_GRD_PARAM
 {
@@ -52,7 +62,7 @@ public:
 	BOOL				DeleteRecipe(CString strRecipeName);
 	BOOL				DeleteExpoRecipe(CString strRecipeName);
 	BOOL				DeleteAlignRecipe(CString strRecipeName);
-	BOOL				SelectRecipe(CString strRecipeName);
+	BOOL				SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE selType);
 	BOOL				LoadSelectRecipe();
 	void				SetRecipeName(CString strRecipeName, EN_RECIPE_MODE eRecipeMode = eRECIPE_MODE_SEL);
 	CString				GetRecipeName(EN_RECIPE_MODE eRecipeMode = eRECIPE_MODE_SEL);

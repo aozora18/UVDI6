@@ -137,7 +137,8 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
 	LPG_ACGR pstMark = NULL;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	CUniToChar csCnv1, csCnv2;
 
 	CUniToChar	csCnv;
@@ -145,7 +146,8 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 
 	/*레시피 정보 가져오기*/
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+
+	
 
 	/* 현재 컴퓨터 날짜를 파일명으로 설정 */
 	GetLocalTime(&stTm);
@@ -183,7 +185,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	UINT64 u64JobTime = uvEng_GetJobWorkTime();
 	swprintf_s(tzResult, 1024, L"%um%02us,%s,%S,%dum,%.1fmj,",
 		uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02),
-		tzState[state], pstJobRecipe->gerber_name, pstJobRecipe->material_thick, pstJobRecipe->expo_energy);
+		tzState[state], pstRecipe->gerber_name, pstRecipe->material_thick, pstRecipe->expo_energy);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
 	/*ExpoLog 기록*/
@@ -298,9 +300,9 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	}
 
 
-	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
-	m_stExpoLog.material_thick = pstJobRecipe->material_thick;
-	m_stExpoLog.expo_energy = pstJobRecipe->expo_energy;
+	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstRecipe->gerber_name);
+	m_stExpoLog.material_thick = pstRecipe->material_thick;
+	m_stExpoLog.expo_energy = pstRecipe->expo_energy;
 
 	m_stExpoLog.align_type = pstAlignRecipe->align_type;
 #ifdef USE_ALIGNMOTION
@@ -334,16 +336,14 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
 	LPG_ACGR pstMark = NULL;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	CUniToChar csCnv1, csCnv2;
 
 	CUniToChar	csCnv;
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
-	/*레시피 정보 가져오기*/
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
-
 
 
 	TCHAR title[1024] = { NULL };
@@ -359,11 +359,11 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	temps.push_back(wstring(tempStr));
 	swprintf_s(tempStr, 1024, L"succ = %s\n", tzState[state]);
 	temps.push_back(wstring(tempStr));
-	swprintf_s(tempStr, 1024, L"gerber_name = %S\n", pstJobRecipe->gerber_name);
+	swprintf_s(tempStr, 1024, L"gerber_name = %S\n", pstRecipe->gerber_name);
 	temps.push_back(wstring(tempStr));
-	swprintf_s(tempStr, 1024, L"material_thick(um) = %d\n", pstJobRecipe->material_thick);
+	swprintf_s(tempStr, 1024, L"material_thick(um) = %d\n", pstRecipe->material_thick);
 	temps.push_back(wstring(tempStr));
-	swprintf_s(tempStr, 1024, L"expo_eneray(mj) = %.1f\n", pstJobRecipe->expo_energy);
+	swprintf_s(tempStr, 1024, L"expo_eneray(mj) = %.1f\n", pstRecipe->expo_energy);
 	temps.push_back(wstring(tempStr));
 
 	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;

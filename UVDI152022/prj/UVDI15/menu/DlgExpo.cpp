@@ -22,6 +22,8 @@
 #include "../GlobalVariables.h"
 
 
+#include "../../../inc/comn/UniToChar.h"
+
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
 #undef THIS_FILE
@@ -239,7 +241,9 @@ VOID CDlgExpo::UpdateControl(UINT64 tick, BOOL is_busy)
 {
 	UINT16 u16Marks	= uvEng_Camera_GetGrabbedCount();
 	//BOOL bError		= uvEng_IsEngineAlarm();
-	LPG_RJAF recipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF recipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+
 	BOOL bSelect	= recipe ? TRUE : FALSE;
 	BOOL bLoaded	= uvCmn_Luria_IsJobNameLoaded();
 	BOOL bMarked	= uvEng_Luria_IsMarkGlobal();
@@ -493,9 +497,9 @@ VOID CDlgExpo::CloseObject()
 */
 VOID CDlgExpo::OnBtnClick(UINT32 id)
 {
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_REAF pstExpo = uvEng_ExpoRecipe_GetSelectRecipe();
-	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
+	CUniToChar csCnv;
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
+	LPG_RAAF pstAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstJob->align_recipe));
 	/* 검색 대상의 마크 정보 설정 */
 	switch (id)
 	{
@@ -572,7 +576,7 @@ VOID CDlgExpo::RecipeLoad()
 		if (IDOK != dlgStep.MyDoModal())	return;
 		u8Offset	= dlgStep.GetOffset();
 	}
-	m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
+	m_pDlgMain->RunWorkJob(ENG_BWOK::en_local_gerb_load, PUINT64(&u8Offset));
 }
 
 /*

@@ -36,13 +36,17 @@ API_IMPORT UINT32 uvEng_JobRecipe_GetCount();
  parm : None
  retn : 레시피가 저장된 구조체 포인터
 */
-API_IMPORT LPG_RJAF uvEng_JobRecipe_GetSelectRecipe();
+API_IMPORT LPG_RJAF uvEng_JobRecipe_GetSelectRecipe(bool getLocalRecipe);
+
+API_IMPORT bool uvEng_JobRecipe_WhatLastSelectIsLocal();
+
+API_IMPORT VOID uvEng_JobRecipe_SetWhatLastSelectIsLocal(bool localJobAtTime);
 /*
  desc : 현재 선택된 Job 레시피 초기화
  parm : None
  retn : Non
 */
-API_IMPORT VOID uvEng_JobRecipe_ResetSelectRecipe();
+
 /*
  desc : Calibration Job 레시피 재-적재
  parm : None
@@ -84,13 +88,13 @@ API_IMPORT LPG_RJAF uvEng_JobRecipe_GetRecipeIndex(INT32 index);
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-API_IMPORT BOOL uvEng_JobRecipe_SelRecipeOnlyName(PTCHAR recipe);
+API_IMPORT BOOL uvEng_JobRecipe_SelRecipeOnlyName(PTCHAR recipe,bool isLocalJobRecipe);
 /*
  desc : Job 레시피 기본 이름 (전체 경로 포함)을 통한 레시피 기본 선택
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름 (전체 경로 포함)
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-API_IMPORT BOOL uvEng_JobRecipe_SelRecipePathName(PTCHAR recipe);
+API_IMPORT BOOL uvEng_JobRecipe_SelRecipePathName(PTCHAR recipe, bool isLocalJobRecipe);
 /*
  desc : Job Recipe 저장
  parm : None
@@ -130,18 +134,7 @@ API_IMPORT int uvEng_JobRecipe_GetSelectRecipeIndex();
  retn : 등록된 개수 반환
 */
 API_IMPORT UINT32 uvEng_ExpoRecipe_GetCount();
-/*
- desc : 현재 선택된 Expo 레시피 기본 반환
- parm : None
- retn : 레시피가 저장된 구조체 포인터
-*/
-API_IMPORT LPG_REAF uvEng_ExpoRecipe_GetSelectRecipe();
-/*
- desc : 현재 선택된 Expo 레시피 초기화
- parm : None
- retn : Non
-*/
-API_IMPORT VOID uvEng_ExpoRecipe_ResetSelectRecipe();
+
 /*
  desc : Calibration Recipe 재-적재
  parm : None
@@ -172,7 +165,7 @@ API_IMPORT LPG_REAF uvEng_ExpoRecipe_GetRecipeIndex(INT32 index);
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-API_IMPORT BOOL uvEng_ExpoRecipe_SelRecipeOnlyName(PTCHAR recipe);
+//API_IMPORT BOOL uvEng_ExpoRecipe_SelRecipeOnlyName(PTCHAR recipe);
 /*
  desc : Expo Recipe 저장
  parm : None

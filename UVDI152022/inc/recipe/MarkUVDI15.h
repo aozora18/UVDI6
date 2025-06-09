@@ -15,7 +15,7 @@ public:
 /* 로컬 변수 */
 protected:
 
-	LPG_RAAF			m_pstSelected;	/* 현재 선택된 레시피 */
+
 
 	CAtlList <LPG_CMPV>	m_lstModel;
 	CAtlList <LPG_RAAF>	m_lstAlignRecipe;
@@ -71,10 +71,9 @@ public:
 
 	PTCHAR				GetModelTypeToStr(UINT32 type);
 
-	LPG_RAAF			GetSelectAlignRecipe()		{	return m_pstSelected;	}
-	VOID				SelAlignRecipeReset()		{	m_pstSelected	= NULL;	}
-	BOOL				SelAlignRecipeName(PCHAR r_name);
-
+	LPG_RAAF			GetSelectAlignRecipe(bool isLocalSelelectRecipe);
+	
+	
 
 	BOOL				IsRecipeSharedType();
 	BOOL				IsExistLocalMark();

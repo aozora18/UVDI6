@@ -22,7 +22,10 @@ protected:
 
 	/* 현재 선택된 레시피 이름 및 상세 속성 정보 */
 	LPG_RJAF			m_pstJobRecipe;
-	LPG_REAF			m_pstExpoRecipe;
+	LPG_RJAF			m_pstlocalJobRecipe;
+	bool whatLastSelectIsLocal = false; //기본값은 host recipe select이다. 
+
+
 	LPG_LDSM			m_pstLuriaMem;
 	CLedPower*			m_pLedPower;
 
@@ -42,8 +45,11 @@ protected:
 /* 공용 함수 */
 public:
 
-	LPG_RJAF			GetSelectJobRecipe();
-	LPG_REAF			GetSelectExpoRecipe();
+	LPG_RJAF			GetSelectJobRecipe(bool local);
+	
+
+	BOOL GetWhatLastSelectIsLocal();
+	VOID SetWhatLastSelectIsLocal(bool localJobAtTime);
 
 	BOOL				LoadFile();
 	BOOL				SaveJobFile();
@@ -69,17 +75,15 @@ public:
 
 
 
-	VOID				SelJobRecipeReset()		 {	m_pstJobRecipe	= NULL;	}
-	VOID				SelExpoRecipeReset()	 {  m_pstExpoRecipe = NULL; }
 
 
-	BOOL				SelJobRecipeOnlyName(PCHAR recipe);
-	BOOL				SelJobRecipePathName(PCHAR recipe);
+	BOOL				SelJobRecipeOnlyName(PCHAR recipe, bool isLocalJobRecipe);
+	BOOL				SelJobRecipePathName(PCHAR recipe, bool isLocalJobRecipe);
 	BOOL				SelExpoRecipeOnlyName(PCHAR recipe);
 
 
 	VOID				ResetSelectJobRecipe();
-	VOID				ResetSelectExpoRecipe();
+	
 	UINT32				GetJobRecipeCount()			{	return (UINT32)m_lstJobRecipe.GetCount();	}
 	UINT32				GetExpoRecipeCount()		{   return (UINT32)m_lstExpoRecipe.GetCount(); }
 

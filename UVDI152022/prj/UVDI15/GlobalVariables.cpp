@@ -599,10 +599,11 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 	void AlignMotion::UpdateParamValues()
 	{
-		LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
+		CUniToChar csCnv;
+		LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 
 		LPG_MACP thick = job != nullptr ? uvEng_ThickCali_GetRecipe(job->cali_thick) : nullptr;
-		LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
+		LPG_RAAF alignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(job->align_recipe)); //uvEng_Mark_GetSelectAlignRecipe();
 
 		const int _1to3 = 0;
 		const int _2to3 = 1;
@@ -754,7 +755,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 
 		auto GenCommonGlobal = [&](ENG_AMOS motion)
 		{
-			LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
+			bool isLocalSelectJob = uvEng_JobRecipe_WhatLastSelectIsLocal();
+			LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectJob);
 			STG_XMXY temp;
 			if (job != nullptr)
 			{
@@ -808,7 +810,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 	ENG_MFOR AlignMotion::IsNeedManualFixOffset(int* camNum)
 	{
 		CUniToChar csCnv;
-		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+		bool isLocalSelectJob = uvEng_JobRecipe_WhatLastSelectIsLocal();
+		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectJob);
 		LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 		LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 		auto* config = uvEng_GetConfig();

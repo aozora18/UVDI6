@@ -1637,7 +1637,7 @@ VOID CDlgCalbExposureFEM::StopPrint()
 double CDlgCalbExposureFEM::GetSpeedToEnergy(double dFrameRate)
 {
 	CUniToChar csCnv;
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 
 	if (NULL == pstJobRecipe)
 	{

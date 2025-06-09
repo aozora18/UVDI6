@@ -1239,13 +1239,13 @@ VOID CDlgMark::MarkAppend(UINT8 mode) // lk91 미사용
 		else
 		{
 			/* 기존 선택된 레시피가 삭제되었다면 ... */
-			if (uvEng_Mark_GetSelectAlignRecipe())
+			/*if (uvEng_Mark_GetSelectAlignRecipe())
 			{
 				if (0 == wcscmp(csCnv.Ansi2Uni(uvEng_Mark_GetSelectAlignRecipe()->align_name), tzName))
 				{
 					uvEng_MarkSelAlignRecipeReset();
 				}
-			}
+			}*/
 		}
 	}
 

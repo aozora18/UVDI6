@@ -2,7 +2,7 @@
 /*
  desc : Gerber Recipe
 */
-
+#define NO_SELECT
 
 using namespace std;
 
@@ -41,9 +41,13 @@ CDlgJob::CDlgJob(UINT32 id, CWnd* parent)
 	
 	m_nSelectRecipe[eRECIPE_MODE_SEL] = -1;
 	m_nSelectRecipe[eRECIPE_MODE_VIEW] = -1;
+	
+
+	//m_nSelectRecipe[eRECIPE_MODE_LOCAL] = -1;
 
 	m_nSelectRecipeOld[eRECIPE_MODE_SEL] = -1;
 	m_nSelectRecipeOld[eRECIPE_MODE_VIEW] = -1;
+	//m_nSelectRecipeOld[eRECIPE_MODE_LOCAL] = -1;
 
 	m_bIsEditing = FALSE;
 }
@@ -83,6 +87,7 @@ VOID CDlgJob::DoDataExchange(CDataExchange* dx)
 
 BEGIN_MESSAGE_MAP(CDlgJob, CDlgMenu)
 	ON_NOTIFY(NM_CLICK				, IDC_JOB_GRD_RECIPE_LIST		, OnClickGridRecipeList)
+	ON_NOTIFY(NM_DBLCLK, IDC_JOB_GRD_RECIPE_LIST , OnDblClickGridRecipeList)
 	ON_NOTIFY(NM_CLICK				, IDC_JOB_GRD_JOB_PARAMETER		, OnClickGridJobParameter)
 	ON_NOTIFY(NM_CLICK				, IDC_JOB_GRD_EXPOSE_PARAMETER	, OnClickGridExposeParameter)
 	ON_NOTIFY(NM_CLICK				, IDC_JOB_GRD_ALIGN_PARAMETER	, OnClickGridAlignParameter)
@@ -248,12 +253,20 @@ VOID CDlgJob::UpdateControl(UINT64 tick, BOOL is_busy)
 {
 	BOOL bSelect	= (0 <= m_nSelectRecipe) ? TRUE : FALSE;
 
-	if (m_btn_ctl[eJOB_BTN_RECIPE_SELECT] && m_btn_ctl[eJOB_BTN_RECIPE_DELETE] && m_btn_ctl[eJOB_BTN_RECIPE_SAVE])
+	//if (m_btn_ctl[eJOB_BTN_RECIPE_SELECT] && m_btn_ctl[eJOB_BTN_RECIPE_DELETE] && m_btn_ctl[eJOB_BTN_RECIPE_SAVE])
+	//{
+	//	if (m_btn_ctl[eJOB_BTN_RECIPE_SELECT].IsWindowEnabled() != (bSelect && !is_busy))	m_btn_ctl[eJOB_BTN_RECIPE_SELECT].EnableWindow(bSelect && !is_busy);		/* Recipe Selected */
+	//	if (m_btn_ctl[eJOB_BTN_RECIPE_DELETE].IsWindowEnabled() != (bSelect && !is_busy))	m_btn_ctl[eJOB_BTN_RECIPE_DELETE].EnableWindow(bSelect && !is_busy);		/* Recipe Deleted */
+	//	if (m_btn_ctl[eJOB_BTN_RECIPE_SAVE].IsWindowEnabled() != (bSelect && !is_busy))		m_btn_ctl[eJOB_BTN_RECIPE_SAVE].EnableWindow(bSelect && !is_busy);		/* Recipe Modified */
+	//}
+
+	if (m_btn_ctl[eJOB_BTN_RECIPE_DELETE] && m_btn_ctl[eJOB_BTN_RECIPE_SAVE])
 	{
-		if (m_btn_ctl[eJOB_BTN_RECIPE_SELECT].IsWindowEnabled() != (bSelect && !is_busy))	m_btn_ctl[eJOB_BTN_RECIPE_SELECT].EnableWindow(bSelect && !is_busy);		/* Recipe Selected */
+		
 		if (m_btn_ctl[eJOB_BTN_RECIPE_DELETE].IsWindowEnabled() != (bSelect && !is_busy))	m_btn_ctl[eJOB_BTN_RECIPE_DELETE].EnableWindow(bSelect && !is_busy);		/* Recipe Deleted */
 		if (m_btn_ctl[eJOB_BTN_RECIPE_SAVE].IsWindowEnabled() != (bSelect && !is_busy))		m_btn_ctl[eJOB_BTN_RECIPE_SAVE].EnableWindow(bSelect && !is_busy);		/* Recipe Modified */
 	}
+
 }
 
 /*
@@ -1172,13 +1185,14 @@ VOID CDlgJob::OnBtnClick(UINT32 id)
 		}
 		break;
 
-		case IDC_JOB_BTN_RECIPE_SELECT	:	
-		{
-			RecipeSelect();
-			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, _T("user act : select recipe"));
-		}
-		break;
-
+//#ifndef NO_SELECT
+//		case IDC_JOB_BTN_RECIPE_SELECT	:	
+//		{
+//			RecipeSelect();
+//			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_normal, _T("user act : select recipe"));
+//		}
+//		break;
+//#endif
 		case IDC_JOB_BTN_RECIPE_SAVE	:	
 		{
 			RecipeControl(0x01);
@@ -1186,6 +1200,31 @@ VOID CDlgJob::OnBtnClick(UINT32 id)
 		}
 		break;
 	}
+}
+void CDlgJob::OnDblClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
+{
+
+	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
+
+	if (m_nSelectRecipe[eRECIPE_MODE_VIEW] != pItem->iRow)
+		return;
+
+	if (TRUE == CheckEditing())
+		return;
+
+	if (SelectLocalRecipe() == false)
+		return;
+
+	CString strSelectRecipe = m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(pItem->iRow, eJOB_GRD_COL_RECIPE_LIST_NAME);
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(strSelectRecipe.GetBuffer());
+	strSelectRecipe.ReleaseBuffer();
+
+	if (pstRecipe == nullptr)
+		return;
+	
+	
+	SelectRecipe(pItem->iRow, eRECIPE_MODE_LOCAL);
+	Invalidate(TRUE);
 }
 
 void CDlgJob::OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
@@ -1540,7 +1579,7 @@ void CDlgJob::OnClickGridExposeParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 					}
 					// 삭제
 					
-					if (0 == stParam.GetValue().Compare(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe()->expo_recipe)))
+					if (0 == stParam.GetValue().Compare(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal())->expo_recipe)))
 					{
 						ShowMsg(eSTOP, L"Recipes currently in use cannot be deleted.");
 						return;
@@ -1549,7 +1588,7 @@ void CDlgJob::OnClickGridExposeParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 					if (ShowYesNoMsg(eQUEST, _T("Do you want to delete the [%s] recipe?"), stParam.GetValue()) == IDYES)
 					{
 						CRecipeManager::GetInstance()->DeleteExpoRecipe(stParam.GetValue());
-						CRecipeManager::GetInstance()->LoadExpoRecipe(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe()->expo_recipe), eRECIPE_MODE_VIEW);
+						CRecipeManager::GetInstance()->LoadExpoRecipe(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal())->expo_recipe), eRECIPE_MODE_VIEW);
 					}
 				}
 				else
@@ -1778,7 +1817,7 @@ void CDlgJob::OnClickGridAlignParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 						return;
 					}
 					// 삭제
-					if (0 == stParam.GetValue().Compare(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe()->expo_recipe)))
+					if (0 == stParam.GetValue().Compare(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal())->expo_recipe)))
 					{
 						ShowMsg(eSTOP, L"Recipes currently in use cannot be deleted.");
 						return;
@@ -1787,7 +1826,7 @@ void CDlgJob::OnClickGridAlignParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 					if (ShowYesNoMsg(eQUEST, _T("Do you want to delete the [%s] recipe?"), stParam.GetValue()) == IDYES)
 					{
 						CRecipeManager::GetInstance()->DeleteAlignRecipe(stParam.GetValue());
-						CRecipeManager::GetInstance()->LoadAlignRecipe(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe()->align_recipe), eRECIPE_MODE_VIEW);
+						CRecipeManager::GetInstance()->LoadAlignRecipe(csCnv.Ansi2Uni(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal())->align_recipe), eRECIPE_MODE_VIEW);
 					}
 				}
 				else
@@ -2366,7 +2405,7 @@ VOID CDlgJob::CalcMarkDist()
 	//CUniToChar csCnv;
 
 
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	//* 현재 선택된 거버 파일 (전체 경로) 얻기 */
 	swprintf_s(tzGerb, MAX_PATH_LEN, L"%S\\%S", pstJob->gerber_path, pstJob->gerber_name);
 
@@ -2448,8 +2487,8 @@ VOID CDlgJob::MarkRateMarkDist()
 
 	/* XML 파일에 등록된 Mark 개수 확인 */
 	u8MarkG = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_REAF pstExpo = uvEng_ExpoRecipe_GetSelectRecipe();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
+	
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 	/* Global 마크가 등록되어 있지 않다면 Pass */
 	if (u8MarkG < 4)
@@ -2569,14 +2608,14 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 		InitGridRecipeList();
 		break;
 	}
-	case 0x01	: 
+	case 0x01	:  //<-근데 이제 uvdi에서 select를 하지 않으니 사용하지는 않게됐으나 사람일은 어찌될지 모르니 놔둠.
 		bUpdated = CRecipeManager::GetInstance()->SaveRecipe(strRecipeName, eRECIPE_MODE_VIEW);		
 		/* 등록 성공 여부 */
 		if (!bUpdated)	return;
 		/*PhilHMI에 연결 되어 있다면 보고*/
 		if (uvEng_Philhmi_IsConnected())
 		{
-			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 			CRecipeManager::GetInstance()->PhilSendModifyRecipe(pstRecipe);
 		}
 
@@ -2588,9 +2627,10 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 		UpdateRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
 
 		/*수정된 파라미터 값으로 선택*/
-		RecipeSelect();
+		SelectHostRecipe();
 		SetEditing(FALSE);
 		break;
+
 	case 0x02	: 
 	{
 		if (m_nSelectRecipe[eRECIPE_MODE_SEL] == m_nSelectRecipe[eRECIPE_MODE_VIEW])
@@ -2620,19 +2660,15 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 	Invalidate(TRUE);
 }
 
-/*
- desc : 현재 선택된 Gerber Recipe 항목 메모리에 적재
- parm : None
- retn : None
-*/
-VOID CDlgJob::RecipeSelect()
+
+VOID CDlgJob::SelectHostRecipe()
 {
 	CUniToChar csCnv;
 	CString strReicpe, strExpo, strAlign;
 	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
 
-	CString strRecipeName	= m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], eJOB_GRD_COL_RECIPE_LIST_NAME);
-	
+	CString strRecipeName = m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], eJOB_GRD_COL_RECIPE_LIST_NAME);
+
 	TCHAR tzMsg[256] = { NULL };
 	swprintf_s(tzMsg, 256, L"--warning-- Cancel recipe change?\n %s => %s", strReicpe, strRecipeName);
 
@@ -2641,9 +2677,9 @@ VOID CDlgJob::RecipeSelect()
 	{
 		return;
 	}
-	
+
 	/* 전역 메모리에 항목 선택 설정 진행 */
-	if (!CRecipeManager::GetInstance()->SelectRecipe(strRecipeName))
+	if (!CRecipeManager::GetInstance()->SelectRecipe(strRecipeName, eRECIPE_MODE_SEL_FROM_HOST))
 	{
 		ShowMsg(eWARN, L"Failed to select the gerber recipe", 0x01);
 		return;
@@ -2654,15 +2690,15 @@ VOID CDlgJob::RecipeSelect()
 		CRecipeManager::GetInstance()->PhilSendSelectRecipe(strRecipeName);
 	}
 
-	
-	strReicpe	= CRecipeManager::GetInstance()->GetRecipeName();
-	strExpo		= CRecipeManager::GetInstance()->GetExpoRecipeName();
-	strAlign	= CRecipeManager::GetInstance()->GetAlignRecipeName();
 
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::JOB,		(LPARAM)&strReicpe);
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::EXPOSE,	(LPARAM)&strExpo);
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::ALIGN,	(LPARAM)&strAlign);
-	
+	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+	strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
+	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+
+	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::JOB, (LPARAM)&strReicpe);
+	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::EXPOSE, (LPARAM)&strExpo);
+	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::ALIGN, (LPARAM)&strAlign);
+
 	SelectRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
 
 	/* 최종적으로 전역 메모리에 선택된 마크 레시피 pstRecipeMark 저장 */
@@ -2670,34 +2706,91 @@ VOID CDlgJob::RecipeSelect()
 	TCHAR* tcharRecipeName = _T("");
 	tcharRecipeName = (TCHAR*)(LPCTSTR)strAlign;
 	//if (!uvEng_Mark_SelAlignRecipeName(csCnv.Ansi2Uni(strAlign)))
-	if (!uvEng_Mark_SelAlignRecipeName(tcharRecipeName))
+
+	LPG_RAAF align = uvEng_Mark_GetAlignRecipeName(tcharRecipeName);
+
+	if (align == nullptr)
 	{
 		ShowMsg(eWARN, L"Failed to select the recipe for mark", 0x01);
 		return;
 	}
+	else
+	{
+		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) 
+		{
+			for (int j = 0; j < 2; j++) 
+			{ // global, local 2개
+				uvCmn_Camera_SetMarkFindMode(i + 1, align->mark_type, j);
+			}
+		}
 
-	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
-	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
-		for (int j = 0; j < 2; j++) { // global, local 2개
-			uvCmn_Camera_SetMarkFindMode(i + 1, pstAlign->mark_type, j);
+		uvEng_Camera_SetMarkMethod(ENG_MMSM(align->search_type), align->search_count);
+	}
+	
+}
+
+
+
+
+/*
+ desc : 현재 선택된 Gerber Recipe 항목 메모리에 적재
+ parm : None
+ retn : None
+*/
+BOOL CDlgJob::SelectLocalRecipe()
+{
+	CUniToChar csCnv;
+	CString strReicpe, strExpo, strAlign;
+	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+
+	CString strRecipeName	= m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], eJOB_GRD_COL_RECIPE_LIST_NAME);
+	
+	if (!CRecipeManager::GetInstance()->SelectRecipe(strRecipeName, eRECIPE_MODE_SEL_FROM_LOCAL)) //<-이게 사실 문제네.
+	{
+		ShowMsg(eWARN, L"Failed to select the gerber recipe", 0x01);
+		return false;
+	}
+
+	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+	strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
+	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+
+	//SelectRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
+
+	/* 최종적으로 전역 메모리에 선택된 마크 레시피 pstRecipeMark 저장 */
+	// CString -> TCHAR * 
+	TCHAR* tcharRecipeName = _T("");
+	tcharRecipeName = (TCHAR*)(LPCTSTR)strAlign;
+	
+	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(tcharRecipeName);
+
+	//if (!uvEng_Mark_SelAlignRecipeName(csCnv.Ansi2Uni(strAlign)))
+	if (pstRecipeAlign == nullptr)
+	{
+		ShowMsg(eWARN, L"Failed to select the recipe for mark", 0x01);
+		return false;
+	}
+
+	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) 
+	{
+		for (int j = 0; j < 2; j++) 
+		{ // global, local 2개
+			uvCmn_Camera_SetMarkFindMode(i + 1, pstRecipeAlign->mark_type, j);
 		}
 	}
 
-	uvEng_Camera_SetMarkMethod(ENG_MMSM(pstAlign->search_type), pstAlign->search_count);
+	uvEng_Camera_SetMarkMethod(ENG_MMSM(pstRecipeAlign->search_type), pstRecipeAlign->search_count);
 }
+
+
+
+
 
 void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode) 
 {
-	if (eRECIPE_MODE_SEL == eRecipeMode)
-	{
-		m_nSelectRecipeOld[eRECIPE_MODE_SEL] = m_nSelectRecipe[eRECIPE_MODE_SEL];
-		m_nSelectRecipe[eRECIPE_MODE_SEL] = nSelect;
-	}
-	else if (eRECIPE_MODE_VIEW == eRecipeMode)
-	{
-		m_nSelectRecipeOld[eRECIPE_MODE_VIEW] = m_nSelectRecipe[eRECIPE_MODE_VIEW];
-		m_nSelectRecipe[eRECIPE_MODE_VIEW] = nSelect;
-	}
+
+	m_nSelectRecipeOld[eRecipeMode] = m_nSelectRecipe[eRecipeMode];
+	m_nSelectRecipe[eRecipeMode] = nSelect;
 
 	//Old부터 처리
 	for (int nCnt = 0; nCnt < eRECIPE_MODE_MAX; nCnt++)
@@ -2709,12 +2802,20 @@ void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode)
 		}
 	}
 
+	
+
 	if (-1 != m_nSelectRecipe[eRECIPE_MODE_VIEW])
 	{
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 0, PALE_GREEN);
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 1, PALE_GREEN);
 
 		UpdateRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
+	}
+
+	if (-1 != m_nSelectRecipe[eRECIPE_MODE_LOCAL])
+	{
+		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_LOCAL], 0, LIGHT_MAGENTA);
+		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_LOCAL], 1, LIGHT_MAGENTA);
 	}
 
 	if (-1 != m_nSelectRecipe[eRECIPE_MODE_SEL])

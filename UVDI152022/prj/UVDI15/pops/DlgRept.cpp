@@ -272,8 +272,8 @@ VOID CDlgRept::OnBtnClicked(UINT32 id)
 			CUniToChar csCnv;
 			LPG_PLPI pstLedPower = NULL;
 			UINT16 u16LedPower[MAX_PH][4] = { NULL };
-
-			LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+			bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+			LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 			//LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 			LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 			/* 레시피에 설정된 Led Power Name을 이용한 Led Power Index 조회 */

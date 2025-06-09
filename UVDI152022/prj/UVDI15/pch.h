@@ -121,6 +121,9 @@ typedef enum class __en_base_work_operate_kind__ : UINT8
 	en_env_calib = 0x51,
 
 	en_work_request = 0x61,
+
+	en_local_gerb_load = 0x71,		//로컬레시피로드
+
 	/* App Exit */
 	en_app_exit		= 0xff,		/* 프로그램 종료 메시지 */
 

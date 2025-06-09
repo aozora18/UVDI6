@@ -499,7 +499,9 @@ ENG_JWNS CWorkStep::GetJobLists(UINT32 time)
 */
 ENG_JWNS CWorkStep::SetJobNameSelecting()
 {
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+
 	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
 	TCHAR tzJobName[MAX_GERBER_NAME] = { NULL };
 	CUniToChar csCnv1, csCnv2;
@@ -736,7 +738,10 @@ ENG_JWNS CWorkStep::IsTrigRegistGlobal()
 
 	/* 현재 조명 타입 (AMBER or IR)에 따라, Trigger Board에 등록될 채널 변경 */
 #if 1	/* 현재 장비에서는 트리거 이벤트는 무조건 채널 1번과 채널 2번에만 해당됨 */
-	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetSelectAlignRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	CUniToChar csCnv;
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
 	uvEng_GetConfig()->set_comn.strobe_lamp_type = pstRecipeAlign->lamp_type;
 	uvEng_SaveConfig();
 
@@ -1112,7 +1117,7 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 		if (measureFlat.u8UseThickCheck)
 		{
 
-			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 
 			DOUBLE dLDSZPOS = uvEng_GetConfig()->acam_spec.acam_z_focus[1];
 			DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
@@ -1194,7 +1199,7 @@ ENG_JWNS CWorkStep::SetAlignMovingLocal(UINT8 mode, UINT8 scan)
 	STG_XMXY stPoint = { STG_XMXY(), };
 	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
 	LPG_CMSI pstMC2Svc = &uvEng_GetConfig()->mc2_svc;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstThickCali = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
 
@@ -1880,7 +1885,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	UINT8 u8MarkLen[6] = { NULL };
 	UINT32 u32MarkDist = 0;
 	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 	/* 측정 오차 값이 적용된 마크 넓이 / 높이 값 임시 저장 */
 	if (status.globalMarkCnt == 0x04)
@@ -1987,7 +1992,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
 	std::tuple<double, double> val;
 	CUniToChar csCnv;
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motion.status;
@@ -2391,7 +2396,7 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 	DOUBLE dbPhDiffZ = 0.0f, dbPhVeloZ[8] = { NULL };
 
 	LPG_CSAI pstAlign = &uvEng_GetConfig()->set_align;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
 	LPG_CMSI pstMC2 = &uvEng_GetConfig()->mc2b_svc;
 	UINT8	 u8drv_id;
@@ -2549,7 +2554,8 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long& lastUniqueID)
 	UINT8 i = 0x00;
 	INT32 i32ACamDiffZ = 0;	/* 단위: 0.1 um or 100 nm */
 	LPG_CSAI pstAlign = &uvEng_GetConfig()->set_align;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelectRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectRecipe);
 	LPG_CCDB pstACamInfo = &uvEng_GetConfig()->set_basler;
 	//LPG_CAFI pstACamFocus = &uvEng_GetConfig()->acam_focus;
 	LPG_CASI pstACamSpec = &uvEng_GetConfig()->acam_spec;
@@ -2863,7 +2869,8 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 
 
 	CHAR szGerbFile[MAX_PATH_LEN] = { NULL };
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalRecipeSelected = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalRecipeSelected);
 	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
 	CUniToChar csCnv;
 
@@ -2883,8 +2890,8 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 	/* 현재 선택된 거버 파일 등록 수행 */
 	sprintf_s(szGerbFile, MAX_PATH_LEN, "%s\\%s", pstRecipe->gerber_path, pstRecipe->gerber_name);
 
+	LPG_RAAF pstAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 
-	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
 	ENG_ATGL alignType = (ENG_ATGL)pstAlign->align_type;
 
 	ChangeXml(string(szGerbFile) + "\\rlt_settings.xml", alignType);
@@ -2913,7 +2920,8 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 */
 ENG_JWNS CWorkStep::IsGerberRegisted()
 {
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	LPG_LDJM pstJobMgt = &uvEng_ShMem_GetLuria()->jobmgt;
 
 	/* 현재 작업 Step Name 설정 */
@@ -2941,7 +2949,8 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 	LPG_LDEW pstExpo = &uvEng_ShMem_GetLuria()->exposure;
 	CUniToChar csCnv;
 
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 
@@ -3074,7 +3083,8 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 	LPG_PLPI pstLedPower = NULL;
 	//LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelectRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectRecipe);
 	//LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 
@@ -3135,7 +3145,8 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 */
 ENG_JWNS CWorkStep::IsLedAmplituded()
 {
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelectRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectRecipe);
 	LPG_LDEW pstExpose = &uvEng_ShMem_GetLuria()->exposure;
 
 	/* 현재 작업 Step Name 설정 */
@@ -4122,7 +4133,10 @@ ENG_JWNS CWorkStep::CheckValidRecipe()
 {
 	TCHAR tzMesg[128] = { NULL };
 
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstRecipe = nullptr;
+	bool isLocalSelectRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectRecipe);
+
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstThick = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
 	// by sysandj : 변수없음(수정)
@@ -4275,6 +4289,7 @@ ENG_JWNS CWorkStep::IsDeleteSelectedJobName(UINT8 back_step)
 		switch (m_enWorkJobID)
 		{
 		case ENG_BWOK::en_gerb_load:
+		case ENG_BWOK::en_local_gerb_load:
 		case ENG_BWOK::en_gerb_unload:	m_u8StepIt = back_step;	break;	/* 다시 처음부터 삭제 작업 수행 */
 		}
 	}
@@ -4296,7 +4311,12 @@ ENG_JWNS CWorkStep::SetHysteresis(UINT8 offset)
 	LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
 	LPG_LDMC pstMemMach = &uvEng_ShMem_GetLuria()->machine;
 	//LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelectRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectRecipe);
+	
+	if(pstRecipe == nullptr)
+		return ENG_JWNS::en_error;
+
 	// by sysandj : 변수없음(수정)
 	LPG_OSSD pstPhStep = uvEng_PhStep_GetRecipeData(pstRecipe->frame_rate);
 

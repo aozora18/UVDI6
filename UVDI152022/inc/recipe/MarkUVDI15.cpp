@@ -25,7 +25,7 @@ static CHAR THIS_FILE[] = __FILE__;
 CMarkUVDI15::CMarkUVDI15(PTCHAR work_dir)
 	: CBase(work_dir)
 {
-	m_pstSelected	= NULL;
+	
 	m_pstROI = new STG_CRD();
 	//for (int i = 0; i < GetConfig()->set_cams.acam_count; i++) { // lk91 UI Cam 3개로 변경시 수정
 	for (int i = 0; i < 2; i++) {
@@ -464,12 +464,6 @@ BOOL CMarkUVDI15::RemoveAlignRecipe(PCHAR r_name)
 	POSITION pPos	= NULL, pPrePos;
 	LPG_RAAF pstData= NULL;
 
-	/* 현재 삭제 대상인 레시피 이름과 선택된 레시피 이름 같은지 확인 */
-	if (m_pstSelected && 0 == strcmp(r_name, m_pstSelected->align_name))
-	{
-		m_pstSelected	= NULL;	/* 선택된 레시피 해제 처리 */
-	}
-
 	pPos	= m_lstAlignRecipe.GetHeadPosition();
 	while (pPos)
 	{
@@ -586,6 +580,12 @@ PCHAR CMarkUVDI15::GetModelName(UINT8 index)
 
 	/* 위치에 해당되는 결과 값 반환 */
 	return m_lstModel.GetAt(pPos)->name;
+}
+
+LPG_RAAF CMarkUVDI15::GetSelectAlignRecipe(bool isLocalSelelectRecipe)
+{
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelelectRecipe);
+	return GetAlignRecipeName(rcp->align_recipe);
 }
 
 /*
@@ -959,12 +959,7 @@ BOOL CMarkUVDI15::AlignRecipeModify(LPG_RAAF recipe)
 		return FALSE;
 	}
 
-	/* 기존 수정 대상이 현재 선택된 레시피와 동일한지 여부 */
-	if (m_pstSelected && 0 == strcmp(recipe->align_name, m_pstSelected->align_name))
-	{
-		//AfxMessageBox(L"The currently selected recipe cannot be deleted", MB_ICONSTOP|MB_TOPMOST);
-		//return FALSE;
-	}
+
 
 	/* 기존에 등록된 Model가 있는지 확인 */
 	pstRecipe = GetAlignRecipeName(recipe->align_name);
@@ -1015,8 +1010,13 @@ BOOL CMarkUVDI15::ModelDelete(PCHAR m_name)
 */
 BOOL CMarkUVDI15::AlignRecipeDelete(PCHAR r_name)
 {
+	CUniToChar csCnv;
 	/* 삭제 대상이 현재 선택된 레시피와 동일한지 여부 */
-	if (m_pstSelected && 0 == strcmp(r_name, m_pstSelected->align_name))
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
+	
+	if ( 0 == strcmp(r_name, pstRecipeAlign->align_name))
 	{
 		AfxMessageBox(L"The currently selected recipe cannot be deleted", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
@@ -1057,21 +1057,7 @@ PTCHAR CMarkUVDI15::GetModelTypeToStr(UINT32 type)
 	return L"";
 }
 
-/*
- desc : 레시피 이름을 통한 레시피 선택
- parm : r_name	- [in]  Mark 레시피 이름
- retn : TRUE or FALSE
-*/
-BOOL CMarkUVDI15::SelAlignRecipeName(PCHAR r_name)
-{
-	LPG_RAAF pstRecipe	= GetAlignRecipeName(r_name);
-	if (!pstRecipe)	return FALSE;
 
-	/* 레시피 선택 설정 */
-	m_pstSelected	= pstRecipe;
-
-	return TRUE;
-}
 
 /*
  desc : Mark Recipe 내에 검색 대상의 Model Name이 존재하는지 여부
@@ -1307,7 +1293,9 @@ BOOL CMarkUVDI15::IsRecipeSharedType()
 */
 BOOL CMarkUVDI15::IsExistLocalMark()
 {
-	if (!m_pstSelected)	return FALSE;
+
+
+
 	auto fiducial =  uvEng_Luria_GetLocalFiducial();
 	return fiducial->GetCount() != 0 ? TRUE : FALSE;
 
@@ -1334,7 +1322,7 @@ BOOL CMarkUVDI15::IsExistLocalMark()
 */
 UINT8 CMarkUVDI15::GetSelectRecipeLocalMarkCount()
 {
-	if (!m_pstSelected)	return 0x00;
+	
 
 	auto fiducial = uvEng_Luria_GetLocalFiducial();
 	return fiducial->GetCount(); 

@@ -40,7 +40,7 @@ enum EnJobBtn
 {
 	eJOB_BTN_RECIPE_ADD			,
 	eJOB_BTN_RECIPE_DELETE		,
-	eJOB_BTN_RECIPE_SELECT		,
+	//eJOB_BTN_RECIPE_SELECT		,
 	eJOB_BTN_RECIPE_SAVE		,
 	eJOB_BTN_MAX				,
 };
@@ -110,8 +110,8 @@ protected:
 	CArrGrdPage			m_arrGrdPage[EN_RECIPE_TAB::_size()];
 	INT32				m_i32DistS[6];
 
-	int					m_nSelectRecipe[eRECIPE_MODE_MAX];
-	int					m_nSelectRecipeOld[eRECIPE_MODE_MAX];
+	int					m_nSelectRecipe[eRECIPE_MODE_MAX] = {-1,-1,-1};
+	int					m_nSelectRecipeOld[eRECIPE_MODE_MAX] = { -1,-1,-1 };;
 
 	CDrawModel**		m_pDrawModel;			/* Mark Model Object */
 /* 로컬 함수 */
@@ -134,7 +134,8 @@ protected:
 
 	PTCHAR				SelectGerber();
 	VOID				RecipeControl(UINT8 mode);
-	VOID				RecipeSelect();
+	VOID				SelectHostRecipe();
+	BOOL				SelectLocalRecipe();
 	VOID				SetBaseData();
 	VOID				ResetMarkInfo();
 	VOID				CalcMarkDist();
@@ -161,6 +162,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
  	afx_msg VOID		OnBtnClick(UINT32 id);
 	afx_msg	void		OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult);
+	afx_msg	void OnDblClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg	void		OnClickGridJobParameter(NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg	void		OnClickGridExposeParameter(NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg	void		OnClickGridAlignParameter(NMHDR* pNotifyStruct, LRESULT* pResult);

@@ -299,6 +299,7 @@ VOID CDlgManual::UpdateBtn(UINT64 tick, BOOL is_busy)
 		case ENG_BWOK::en_work_stop:
 			break;
 		case ENG_BWOK::en_gerb_load:
+		case ENG_BWOK::en_local_gerb_load:
 			nBtnIndex = EN_MANUAL_BTN::RECIPE_LOAD;
 			break;
 		case ENG_BWOK::en_gerb_unload:
@@ -593,7 +594,7 @@ VOID CDlgManual::InitCtrl()
 BOOL CDlgManual::InitObject()
 {
 	m_stJob.Init();
-	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 
 	try
 	{
@@ -630,8 +631,8 @@ BOOL CDlgManual::InitObject()
 
 		if (m_stJob.IsValid())
 		{
-			m_pDrawPrev->LoadMark(uvEng_JobRecipe_GetSelectRecipe());
-			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+			m_pDrawPrev->LoadMark(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal()));
+			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal()));
 		}
 	}
 	catch(exception e)
@@ -740,7 +741,7 @@ void CDlgManual::UpdateGridInformation()
 {
 	int	nGridIndex = eGRD_INFORMATION;
 	CUniToChar csCnv;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	if (pstRecipe == nullptr) return;
 
 	LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
@@ -776,7 +777,7 @@ void CDlgManual::UpdateGridInformation()
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::TACT_TIME, 1, L"Last : %u m %02u s", uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02));
 
 	/*Gerber Name*/
-	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_INFORMATION_ROW::GERBER_NAME, 1, L"%S", pJob->gerber_name);
 
 	///*Roation*/
@@ -1102,9 +1103,11 @@ VOID CDlgManual::CalcEnergy()
 */
 VOID CDlgManual::OnBtnClick(UINT32 id)
 {
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
-	LPG_REAF pstExpo = uvEng_ExpoRecipe_GetSelectRecipe();
-	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
+	CUniToChar csCnv;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstJob->align_recipe));
+	
 
 	CString strMsg;
 	UINT nID = id - DEF_UI_MANUAL_BTN;
@@ -1152,7 +1155,9 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 	}
 		break;
 	case EN_MANUAL_BTN::RECIPE_LOAD:
+		
 		RecipeLoad();
+		
 		break;
 	case EN_MANUAL_BTN::RECIPE_UNLOAD:
 		RecipeUnload();
@@ -1409,7 +1414,9 @@ VOID CDlgManual::OnLButtonDown(UINT32 nFlags, CPoint point)
 		if (rtPreview.PtInRect(point))
 		{
 			m_pDrawPrev->OnMouseClick(point.x - rtPreview.left, point.y - rtPreview.top, rtPreview);
-			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+			bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+			LPG_RJAF jobRcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+			m_pDrawPrev->DrawMem(jobRcp);
 			m_pDrawPrev->Draw();
 
 			if (0 <= m_pDrawPrev->GetSelectGlobalMark())
@@ -1466,7 +1473,7 @@ VOID CDlgManual::RecipeLoad()
 		if (IDOK != dlgStep.MyDoModal())	return;
 		u8Offset = dlgStep.GetOffset();
 	}
-	m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
+	m_pDlgMain->RunWorkJob(ENG_BWOK::en_local_gerb_load, PUINT64(&u8Offset));
 }
 
 /*
@@ -1653,8 +1660,8 @@ void CDlgManual::ChangeAlignMode()
 		MessageBoxEx(nullptr, _T("cannnot change align method, on working."), _T(""), MB_OK | MB_ICONSTOP, LANG_ENGLISH);
 		return;
 	}
-
-	LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF job = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto motionType = motions.markParams.alignMotion;
 
@@ -1686,7 +1693,8 @@ BOOL CDlgManual::MarkZero()
 {
 	LPG_ACGR pstGrab[4];
 	LPG_ACGR pstMark = NULL;
-	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	LPG_MACP pstThickCali = uvEng_ThickCali_GetRecipe(pJob->cali_thick);
 	pstThickCali->mark2_stage_y[0];
 	pstThickCali->mark2_stage_y[1];
@@ -1801,7 +1809,8 @@ VOID CDlgManual::ErrorThick()
 		return;
 	}
 
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto motionType = motions.markParams.alignMotion;
@@ -1824,7 +1833,8 @@ VOID CDlgManual::ErrorThick()
 
 	if (measureFlat.u8UseThickCheck)
 	{
-		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+		bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
 		DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
@@ -1911,7 +1921,8 @@ VOID CDlgManual::DrawMarkData(bool drawForce)
 
 
 	bool dataReady = GlobalVariables::GetInstance()->GetAlignMotion().IsDataReady();
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	if (m_pdlgMarkShow == nullptr || pstJob == nullptr || dataReady == false)
 		return;
 
@@ -1953,7 +1964,7 @@ VOID CDlgManual::DrawMarkData(bool drawForce)
 		}
 	}
 
-	m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+	m_pDrawPrev->DrawMem(pstJob);
 	m_pDrawPrev->Draw();
 	
 }

@@ -411,7 +411,8 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 
 	/*레시피 정보 가져오기*/
 	CUniToChar	csCnv;
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstJobRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 	CUniToChar csCnv1, csCnv2;

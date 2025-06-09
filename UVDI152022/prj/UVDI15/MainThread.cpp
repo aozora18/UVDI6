@@ -104,6 +104,7 @@ VOID CMainThread::RunWork()
 		{
 			/* Luria 관련 작업인 경우 알림 */
 			if (m_pWorkJob->GetWorkJobID() == ENG_BWOK::en_gerb_load ||
+				m_pWorkJob->GetWorkJobID() == ENG_BWOK::en_local_gerb_load ||
 				m_pWorkJob->GetWorkJobID() == ENG_BWOK::en_gerb_unload)
 			{
 				uvEng_Luria_SetWorkBusy(TRUE);
@@ -252,6 +253,7 @@ VOID CMainThread::RunWorkJob()
 				case ENG_BWOK::en_work_home		:
 				case ENG_BWOK::en_work_init		:
 				case ENG_BWOK::en_gerb_load		:
+				case ENG_BWOK::en_local_gerb_load:
 				case ENG_BWOK::en_gerb_unload	:
 				case ENG_BWOK::en_gerb_onlyfem:
 				case ENG_BWOK::en_mark_move		:
@@ -314,9 +316,13 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 			case ENG_BWOK::en_work_home		: m_pWorkJob = new CWorkHoming();					break;
 			case ENG_BWOK::en_work_init		: m_pWorkJob = new CWorkInited();					break;
 
-			case ENG_BWOK::en_gerb_load		: 
-				m_pWorkJob = new CWorkRecipeLoad(UINT8(*data), ENG_BWOK::en_work_none);
-				break;
+			case ENG_BWOK::en_local_gerb_load:
+			case ENG_BWOK::en_gerb_load		:
+				m_pWorkJob = new CWorkRecipeLoad(job_id, UINT8(*data), ENG_BWOK::en_work_none);
+			break;
+
+
+
 			case ENG_BWOK::en_gerb_unload	: m_pWorkJob = new CWorkRecipeUnload();				break;
 
 			case ENG_BWOK::en_gerb_onlyfem	: m_pWorkJob = new CWorkOnlyFEM();					break;
@@ -339,7 +345,7 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 				bool loaded = uvCmn_Luria_IsJobNameLoaded();
 
 				if(calledByRelayWork == false && loaded == false)
-					m_pWorkJob = new CWorkRecipeLoad(0xff, ENG_BWOK::en_expo_align);
+					m_pWorkJob = new CWorkRecipeLoad(job_id,0xff, ENG_BWOK::en_expo_align);
 				else
 				{
 					auto expoAlign = new CWorkExpoAlign();
@@ -478,7 +484,8 @@ VOID CMainThread::UpdateWorkName()
 		case ENG_BWOK::en_work_home		: wcscpy_s(tzName, 64, L"All Motor Homing");	break;
 		case ENG_BWOK::en_work_init		: wcscpy_s(tzName, 64, L"All Device Init");		break;
 
-		case ENG_BWOK::en_gerb_load		: wcscpy_s(tzName, 64, L"Recipe Load");			break;
+		case ENG_BWOK::en_local_gerb_load: wcscpy_s(tzName, 64, L"Local Recipe Load");			break;
+		case ENG_BWOK::en_gerb_load		: wcscpy_s(tzName, 64, L"Host Recipe Load");			break;
 		case ENG_BWOK::en_gerb_unload	: wcscpy_s(tzName, 64, L"Recipe Unload");		break;
 		case ENG_BWOK::en_gerb_onlyfem	: wcscpy_s(tzName, 64, L"Recipe FEM");		break;
 

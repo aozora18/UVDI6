@@ -109,7 +109,8 @@ VOID CWork::SetWorkName()
 	case ENG_BWOK::en_work_init		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Equip. Initing");		break;	/* Work Init */
 	case ENG_BWOK::en_work_home		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Equip. Homing");		break;	/* Work Homing */
 	case ENG_BWOK::en_work_stop		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Work Stop");			break;	/* Work Stop */
-	case ENG_BWOK::en_gerb_load		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Recipe Load");		break;	/* Load the gerber (recipe) */
+	case ENG_BWOK::en_gerb_load		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Host Recipe Load");		break;	/* Load the gerber (recipe) */
+	case ENG_BWOK::en_local_gerb_load: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Local Recipe Load");		break;	/* Load the gerber (recipe) */
 	case ENG_BWOK::en_gerb_unload	: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Recipe Unload");		break;	/* Unload the gerber (recipe) */
 	case ENG_BWOK::en_mark_move		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Mark Moving");		break;	/* Align Mark 위치로 이동 */
 	case ENG_BWOK::en_mark_test		: wcscpy_s(m_tzWorkName, WORK_NAME_LEN, L"Mark Testing");		break;	/* Align Mark 검사 */
@@ -284,7 +285,8 @@ VOID CWork::CheckWorkTimeout()
 	{
 	case ENG_BWOK::en_work_init		:	wcscpy_s(tzJob, 64, L"System.Init");			break;
 	case ENG_BWOK::en_work_stop		:	wcscpy_s(tzJob, 64, L"System.Abort");			break;
-	case ENG_BWOK::en_gerb_load		:	wcscpy_s(tzJob, 64, L"Gerber.Load");			break;
+	case ENG_BWOK::en_gerb_load		:	wcscpy_s(tzJob, 64, L"Host Gerber.Load");			break;
+	case ENG_BWOK::en_local_gerb_load:	wcscpy_s(tzJob, 64, L"Local Gerber.Load");			break;
 	case ENG_BWOK::en_gerb_unload	:	wcscpy_s(tzJob, 64, L"Gerber.Unload");			break;
 	case ENG_BWOK::en_mark_move		:	wcscpy_s(tzJob, 64, L"Mark.Moving");			break;
 	case ENG_BWOK::en_mark_test		:	wcscpy_s(tzJob, 64, L"Mark.Inspection");		break;
@@ -456,11 +458,6 @@ BOOL CWork::IsGerberMarkValidCheck()
 */
 BOOL CWork::GetLocalLeftRightTopMarkIndex(UINT8 scan, UINT8 &left, UINT8 &right)
 {
-	/* 현재 선택된 레시피 정보 얻기 */
-	LPG_RAAF pstRecipe	= uvEng_Mark_GetSelectAlignRecipe();
-	if (!pstRecipe)	return FALSE;
-
-
 	
 	//스캔은 각 캠 중앙에서 이루어진다. 
 
@@ -472,55 +469,6 @@ BOOL CWork::GetLocalLeftRightTopMarkIndex(UINT8 scan, UINT8 &left, UINT8 &right)
 	left = status.markMapConst[scan].front().tgt_id; //1캠
 	right = status.markMapConst[centerCol + scan].front().tgt_id; //2캠
 
-#if 0
-	switch (pstRecipe->align_type)
-	{
-		/* Normal Mark Type */
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	/* Global (4) points / Local Division (2 x 2) (16) points */
-		//abh1000 0417
-		// 		if (0x00 == scan)	{	left = 0;	right = 4;	}
-		// 		else				{	left = 8;	right = 12;	}
-		if (0x00 == scan) { left = 0;	right = 8; }
-		else { left = 4;	right = 12; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	/* Global (4) points / Local Division (3 x 2) (24) points */
-		// 		if (0x00 == scan)	{	left = 0;	right = 6;	}
-		// 		else				{	left = 17;	right = 18;	}
-		if (0x00 == scan) { left = 0;	right = 12; }
-		else { left = 6;	right = 18; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	/* Global (4) points / Local Division (4 x 2) (32) points */
-		// 		if (0x00 == scan)	{	left = 0;	right = 8;	}
-		// 		else				{	left = 23;	right = 24;	}
-		if (0x00 == scan) { left = 0;	right = 16; }
-		else { left = 8;	right = 24; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	/* Global (4) points / Local Division (5 x 2) (40) points */
-		// 		if (0x00 == scan)	{	left = 0;	right = 10;	}
-		// 		else				{	left = 29;	right = 30;	}
-		if (0x00 == scan) { left = 0;	right = 20; }
-		else { left = 10;	right = 30; }
-		break;
-		/* Shared Mark Type */
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	/* Global (4) points / Local Division (2 x 2) (13) points */
-		if (0x00 == scan) { left = 0;	right = 3; }
-		else { left = 3;	right = 6; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	/* Global (4) points / Local Division (3 x 2) (16) points */
-		if (0x00 == scan) { left = 0;	right = 4; }
-		else { left = 4;	right = 8; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	/* Global (4) points / Local Division (4 x 2) (19) points */
-		if (0x00 == scan) { left = 0;	right = 5; }
-		else { left = 5;	right = 10; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	/* Global (4) points / Local Division (5 x 2) (22) points */
-		if (0x00 == scan) { left = 0;	right = 6; }
-		else { left = 6;	right = 12; }
-		break;
-	default:	return FALSE;
-	}
-#endif
 	return TRUE;
 }
 
@@ -533,11 +481,7 @@ BOOL CWork::GetLocalLeftRightTopMarkIndex(UINT8 scan, UINT8 &left, UINT8 &right)
 */
 BOOL CWork::GetLocalLeftRightBottomMarkIndex(UINT8 scan, UINT8 &left, UINT8 &right)
 {
-	/* 현재 선택된 레시피 정보 얻기 */
-	LPG_RAAF pstRecipe = uvEng_Mark_GetSelectAlignRecipe();
-	if (!pstRecipe)	return FALSE;
-
-
+	
 	//스캔은 횟수이자. 방향을 의미 
 	//스캔이 2로 나누어 떨어지면 돌아오는 타이밍인걸 의미 
 
@@ -551,8 +495,6 @@ BOOL CWork::GetLocalLeftRightBottomMarkIndex(UINT8 scan, UINT8 &left, UINT8 &rig
 
 	//스캔은 각 캠 중앙에서 이루어진다. 
 
-	auto alType = pstRecipe->align_type;
-
 	
 
 	auto status = GlobalVariables::GetInstance()->GetAlignMotion().status;
@@ -564,58 +506,6 @@ BOOL CWork::GetLocalLeftRightBottomMarkIndex(UINT8 scan, UINT8 &left, UINT8 &rig
 	left = status.markMapConst[scan].back().tgt_id; //1캠
 	right = status.markMapConst[centerCol + scan].back().tgt_id; //2캠
 	
-
-	return true;
-
-#if 0
-	switch (pstRecipe->align_type)
-	{
-	case ENG_ATGL::en_global_4_local_2x2_n_point:	/* Global (4) points / Local Division (2 x 2) (16) points */
-		//abh1000 0417
-		// 		if (0x00 == scan)	{	left = 3;	right = 7;	}
-		// 		else				{	left = 11;	right = 15;	}
-		if (0x00 == scan) { left = 3;	right = 11; }
-		else { left = 7;	right = 15; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_n_point:	/* Global (4) points / Local Division (3 x 2) (24) points */
-		// 		if (0x00 == scan)	{	left = 5;	right = 11;	}
-		// 		else				{	left = 17;	right = 23;	}
-		if (0x00 == scan) { left = 5;	right = 17; }
-		else { left = 11;	right = 23; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_n_point:	/* Global (4) points / Local Division (4 x 2) (32) points */
-		// 		if (0x00 == scan)	{	left = 7;	right = 15;	}
-		// 		else				{	left = 23;	right = 31;	}
-		if (0x00 == scan) { left = 7;	right = 23; }
-		else { left = 15;	right = 31; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_n_point:	/* Global (4) points / Local Division (5 x 2) (40) points */
-		// 		if (0x00 == scan)	{	left = 9;	right = 19;	}
-		// 		else				{	left = 29;	right = 39;	}
-		if (0x00 == scan) { left = 9;	right = 29; }
-		else { left = 19;	right = 39; }
-		break;
-
-	case ENG_ATGL::en_global_4_local_2x2_s_point:	/* Global (4) points / Local Division (2 x 2) (13) points */
-		if (0x00 == scan) { left = 2;	right = 5; }
-		else { left = 5;	right = 8; }
-		break;
-	case ENG_ATGL::en_global_4_local_3x2_s_point:	/* Global (4) points / Local Division (3 x 2) (16) points */
-		if (0x00 == scan) { left = 3;	right = 7; }
-		else { left = 7;	right = 11; }
-		break;
-	case ENG_ATGL::en_global_4_local_4x2_s_point:	/* Global (4) points / Local Division (4 x 2) (19) points */
-		if (0x00 == scan) { left = 4;	right = 9; }
-		else { left = 9;	right = 14; }
-		break;
-	case ENG_ATGL::en_global_4_local_5x2_s_point:	/* Global (4) points / Local Division (5 x 2) (22) points */
-		if (0x00 == scan) { left = 5;	right = 11; }
-		else { left = 11;	right = 17; }
-		break;
-
-	default:	LOG_ERROR(ENG_EDIC::en_podis, L"Failed to find for lower left and right marks");	return FALSE;
-	}
-#endif
 
 	return TRUE;
 }
@@ -659,7 +549,8 @@ BOOL CWork::IsMC2ErrorCheck()
 */
 BOOL CWork::IsSelectedRecipeValid()
 {
-	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	if (!pstRecipe || !pstRecipe->IsValid())
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The selected recipe is not valid");
@@ -727,7 +618,8 @@ INT32 CWork::GetLeftRightBottomMarkPosY(ENG_AMTF mark, UINT8 scan, UINT8 direct)
 	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
-	LPG_RJAF pstRecipe		= uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe		= uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstThickCali	= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
 
@@ -796,7 +688,8 @@ INT32 CWork::GetGlobalMarkMotionPosY(UINT8 mark_no)
 	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstThickCali	= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
 
@@ -834,7 +727,8 @@ INT32 CWork::GetLocalMarkMotionPosY(UINT8 index)
 	DOUBLE dbDiffMarkY		= 0, dbMark2StageY	= 0;
 	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstThickCali	= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
@@ -882,7 +776,8 @@ void CWork::LocalTrigRegist()
 	INT32 expoY = (INT32)ROUNDED(uvCmn_Luria_GetStartY(ENG_MDMD::en_pos_expo_start) * 10000.0f, 0);
 	INT32 unloadY = uvEng_GetConfig()->set_align.table_unloader_xy[0][1] * 10000.0f;;
 	LPG_CTSP pstTrigSet = &pstConfig->trig_grab;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	LPG_MACP pstThickCali = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick); //thick값.
 
 	double trigPosCam[SidecamCnt]={0,};// 트리거 저장될 버퍼 .
@@ -1074,7 +969,8 @@ BOOL CWork::SetAlignACamCaliX()
 
 	INT32 i32ACamVertX			= 0;	/* 단위: 0.1 um or 100 nm */
 	LPG_CIEA pstConfig			= uvEng_GetConfig();
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstRecipe			= uvEng_Mark_GetSelectAlignRecipe();
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstCaliThick		= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
@@ -1209,7 +1105,8 @@ BOOL CWork::SetAlignACamCaliX()
 */
 VOID CWork::GetACamCentDistXY(INT32 &dist_x, INT32 &dist_y)
 {
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstCaliThick	= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
@@ -1225,7 +1122,8 @@ VOID CWork::GetACamCentDistXY(INT32 &dist_x, INT32 &dist_y)
 
 VOID CWork::GetACamCentDistXY(DOUBLE &dist_x, DOUBLE &dist_y)
 {
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstRecipe = uvEng_Mark_GetSelectAlignRecipe();
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstCaliThick = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
@@ -1249,7 +1147,8 @@ INT32 CWork::GetACam1Mark2MotionX(UINT8 mark_no)
 	INT32 i32Mark2ACamX		= 0;
 	STG_XMXY stMarkPos		= { STG_XMXY(), };
 	LPG_CSAI pstSetAlign	= &uvEng_GetConfig()->set_align;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstRecipe		= uvEng_Mark_GetSelectAlignRecipe();
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstCaliThick = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
@@ -1310,11 +1209,9 @@ BOOL CWork::IsVacuumRunning()
 */
 VOID CWork::GetGlobalMarkIndex(UINT8 mark_no, UINT8 &cam_id, UINT8 &img_id)
 {
-	LPG_RAAF pstRecipe	= uvEng_Mark_GetSelectAlignRecipe();
-
 	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
 
-	if (!pstRecipe || mark_no > 0x03)
+	if (mark_no > 0x03)
 	{
 		cam_id	= 0x01;
 		img_id	= 0x00;
@@ -1353,18 +1250,19 @@ VOID CWork::GetGlobalMarkIndex(UINT8 mark_no, UINT8 &cam_id, UINT8 &img_id)
 BOOL CWork::IsRecipeGerberCheck()
 {
 	CHAR szGerbFile[MAX_PATH_LEN]	= {NULL};
-	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	CUniToChar csCnv;
 
 	/* 현재 선택된 레시피가 있는지 여부 */
-	if (!pstRecipe)
+	if (!rcp)
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The selected gerber recipe does not exist");
 		return FALSE;
 	}
 
 	/* 레시피에 포함된 거버의 정보가 로컬 드라이브에 있는지 여부 확인 */
-	sprintf_s(szGerbFile, MAX_PATH_LEN, "%s\\%s", pstRecipe->gerber_path, pstRecipe->gerber_name);
+	sprintf_s(szGerbFile, MAX_PATH_LEN, "%s\\%s", rcp->gerber_path, rcp->gerber_name);
 	if (!uvCmn_FindPath(csCnv.Ansi2Uni(szGerbFile)))
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Gerber file does not exist");
@@ -1381,10 +1279,14 @@ BOOL CWork::IsRecipeGerberCheck()
 */
 BOOL CWork::IsMarkTypeOnlyGlobal()
 {
-	LPG_RAAF pstRecipe	= uvEng_Mark_GetSelectAlignRecipe();
-	if (!pstRecipe)	return FALSE;
+	CUniToChar csCnv;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	if (!rcp)	return FALSE;
+	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
+	if (!pstRecipeAlign)	return FALSE;
 	
-	return (ENG_ATGL::en_global_4_local_0_point == ENG_ATGL(pstRecipe->align_type));
+	return (ENG_ATGL::en_global_4_local_0_point == ENG_ATGL(pstRecipeAlign->align_type));
 
 	//if (ENG_ATGL::en_global_4_local_0x0_n_point == ENG_ATGL(pstRecipe->align_type) ||
 	//	ENG_ATGL::en_global_3_local_0x0_n_point == ENG_ATGL(pstRecipe->align_type) ||
@@ -1617,7 +1519,8 @@ DOUBLE CWork::GetACamMark2MotionX(UINT16 mark_no)
 	DOUBLE dbMark2ACamX	= 0.0f;
 	STG_XMXY stMarkPos	= { STG_XMXY(), };
 	LPG_CSAI pstAlign	= &uvEng_GetConfig()->set_align;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstRecipe	= uvEng_Mark_GetSelectAlignRecipe();	/* 현재 선택된 거버 레시피 */
 	// by sysandj : 변수없음(수정)
 	LPG_MACP pstThick	= uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
@@ -1664,7 +1567,8 @@ BOOL CWork::GetGlobalMarkMoveXY(UINT16 mark_no, DOUBLE &acam_x, DOUBLE &stage_y)
 	LPG_RJAF pstRecipe	= NULL;
 	LPG_MACP pstThick	= NULL;
 
-	pstRecipe	= uvEng_JobRecipe_GetSelectRecipe();	/* 현재 선택된 거버 레시피 */
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	pstRecipe	= uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);	/* 현재 선택된 거버 레시피 */
 	if (!pstRecipe)
 	{
 		AfxMessageBox(L"No recipes are selected [Gerber]", MB_ICONSTOP|MB_TOPMOST);

@@ -94,9 +94,11 @@ VOID CExpoVal::ResetData()
 VOID CExpoVal::DrawRecipe()
 {
 	CMyStatic *pText	= NULL;
-	LPG_RJAF pstJob		= uvEng_JobRecipe_GetSelectRecipe();
-	LPG_REAF pstExpo	= uvEng_ExpoRecipe_GetSelectRecipe();
-	LPG_RAAF pstMark	= uvEng_Mark_GetSelectAlignRecipe();
+	
+
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+
 	CUniToChar csCnv;
 
 	CString strReicpe, strExpo, strAlign;

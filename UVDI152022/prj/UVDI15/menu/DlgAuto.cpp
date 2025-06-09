@@ -279,6 +279,7 @@ VOID CDlgAuto::UpdateSttSeq(UINT64 tick, BOOL is_busy)
 		case ENG_BWOK::en_work_stop:
 			break;
 		case ENG_BWOK::en_gerb_load:
+		case ENG_BWOK::en_local_gerb_load:
 			nSttSeqIndex = EN_AUTO_STT_SEQ::LOAD;
 			break;
 		case ENG_BWOK::en_gerb_unload:
@@ -345,6 +346,7 @@ VOID CDlgAuto::UpdateSttSeq(UINT64 tick, BOOL is_busy)
 		case ENG_BWOK::en_work_stop:
 			break;
 		case ENG_BWOK::en_gerb_load:
+		case ENG_BWOK::en_local_gerb_load:
 			nSttSeqIndex = EN_AUTO_STT_SEQ::LOAD;
 			break;
 		case ENG_BWOK::en_gerb_unload:
@@ -495,11 +497,11 @@ VOID CDlgAuto::InitCtrl()
 */
 BOOL CDlgAuto::InitObject()
 {
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	if (pstJob)
 	{
-		m_pDrawPrev->LoadMark(uvEng_JobRecipe_GetSelectRecipe());
-		m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+		m_pDrawPrev->LoadMark(pstJob);
+		m_pDrawPrev->DrawMem(pstJob);
 	}
 	
 	return TRUE;
@@ -627,7 +629,7 @@ void CDlgAuto::UpdateGridProcess()
 	int	nGridIndex = eGRD_PROCESS;
 	CUniToChar	clsCvt;
 
-	LPG_RJAF	pstJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF	pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	if (!pstJob) return;
 
 	LPG_REAF	pstExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(clsCvt.Ansi2Uni(pstJob->expo_recipe));
@@ -776,7 +778,7 @@ void CDlgAuto::UpdateGridProduct()
 {
 	int	nGridIndex = eGRD_PRODUCT;
 	CUniToChar	clsCvt;
-	LPG_RJAF	pstJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF	pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	if (!pstJob) return;
 
 	UINT32 u32JobCount	= uvEng_GetJobWorkCount();
@@ -870,7 +872,7 @@ VOID CDlgAuto::OnLButtonDown(UINT32 nFlags, CPoint point)
 		if (rtPreview.PtInRect(point))
 		{
 			m_pDrawPrev->OnMouseClick(point.x - rtPreview.left, point.y - rtPreview.top, rtPreview);
-			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+			m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal()));
 			m_pDrawPrev->Draw();
 
 			if (0 <= m_pDrawPrev->GetSelectGlobalMark())
@@ -1096,7 +1098,7 @@ VOID CDlgAuto::DrawMarkData(bool drawForce)
 // 	m_pDrawPrev->SetGlobalMarkResult(2, stMark.stInfo);
 // 	m_pDrawPrev->SetGlobalMarkResult(3, stMark.stInfo);
 	bool dataReady = GlobalVariables::GetInstance()->GetAlignMotion().IsDataReady();
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 	if (m_pdlgMarkShow == nullptr || pstJob == nullptr || dataReady == false)
 		return;
 
@@ -1138,7 +1140,7 @@ VOID CDlgAuto::DrawMarkData(bool drawForce)
 		}
 	}
 
-	m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe());
+	m_pDrawPrev->DrawMem(uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal()));
 	m_pDrawPrev->Draw();
 	
 }

@@ -188,7 +188,10 @@ VOID CDrawPrev::LoadMark(LPG_RJAF recipe)
 	/* 현재 선택된 거버 파일 (전체 경로) 얻기 */
 	CString strGerbPath = csCnv.Ansi2Uni(recipe->gerber_path);
 	CString strGerbName = strGerbPath + _T("\\") + csCnv.Ansi2Uni(recipe->gerber_name);
-	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
 
 	if (!pstAlign)
 	{
@@ -363,8 +366,8 @@ VOID CDrawPrev::DrawMem(LPG_RJAF recipe)
 	int		nLocalMarkSize = 5;
 
 	int nIndex = 0;
-
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	
 	auto doRelease = [&]()
 	{

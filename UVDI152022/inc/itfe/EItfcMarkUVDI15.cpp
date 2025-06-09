@@ -194,38 +194,6 @@ API_EXPORT PTCHAR uvEng_Mark_GetModelTypeToStr(UINT32 type)
 	return g_pMark->GetModelTypeToStr(type);
 }
 
-/*
- desc : 현재 선택된 레시피 정보 반환
- parm : None
- retn : 현재 선택된 레시피 구조체 포인터
-*/
-API_EXPORT LPG_RAAF uvEng_Mark_GetSelectAlignRecipe()
-{
-	if (!g_pMark)	return NULL;
-	return g_pMark->GetSelectAlignRecipe();
-}
-
-/*
- desc : 현재 선택된 레시피 초기화
- parm : None
- retn : None
-*/
-API_EXPORT VOID uvEng_MarkSelAlignRecipeReset()
-{
-	if (g_pMark)	g_pMark->SelAlignRecipeReset();
-}
-
-/*
- desc : 레시피 이름을 통한 레시피 선택
- parm : r_name	- [in]  Mark 레시피 이름
- retn : TRUE or FALSE
-*/
-API_EXPORT BOOL uvEng_Mark_SelAlignRecipeName(PTCHAR r_name)
-{
-	CUniToChar csCnv;
-	if (!g_pMark)	return FALSE;
-	return g_pMark->SelAlignRecipeName(csCnv.Uni2Ansi(r_name));
-}
 
 
 API_EXPORT BOOL uvEng_Mark_SetAlignMotionPtr(AlignMotion& ptr)

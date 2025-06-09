@@ -121,7 +121,7 @@ VOID CDrawMark::DrawInit(UINT8 page, UINT8 index)
 VOID CDrawMark::DrawMark(UINT8 page_no)
 {
 	auto& alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
-
+	CUniToChar csCnv;
 	ENG_AMOS motion = alignMotion.markParams.alignMotion;
 	UINT8 i, j, k		= 0x00;
 	UINT8 u8ACams = motion == ENG_AMOS::en_onthefly_2cam || motion == ENG_AMOS::en_static_2cam ? 2 : alignMotion.markParams.centerCamIdx;
@@ -129,7 +129,12 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 	TCHAR tzMark[128]	= {NULL};
 	/*BOOL bRedraw		= FALSE;*/
 	LPG_ACGR pstMark	= NULL;
-	LPG_REAF pstRecipe	= uvEng_ExpoRecipe_GetSelectRecipe();
+
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_REAF pstRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(rcp->expo_recipe));
+	
+
 	COLORREF clrText[2]	= { RGB(255, 0, 0), RGB(34, 177, 76) };
 	CMyStatic *pText	= NULL;
 	

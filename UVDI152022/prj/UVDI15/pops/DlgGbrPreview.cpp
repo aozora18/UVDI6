@@ -159,8 +159,8 @@ BOOL DlgGbrPreview::OnInitDialog()
 
 
 	GetClientRect(&clientRect);
-
-	auto recipe = uvEng_JobRecipe_GetSelectRecipe();	
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	auto recipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	sprintf_s(szFile, MAX_PATH_LEN, "%s\\%s\\PreviewDownscale.bmp", recipe->gerber_path, recipe->gerber_name);
 
 	auto uniName = u2c.Ansi2Uni(szFile);

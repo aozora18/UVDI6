@@ -47,21 +47,25 @@ API_EXPORT UINT32 uvEng_JobRecipe_GetCount()
  parm : None
  retn : 레시피가 저장된 구조체 포인터
 */
-API_EXPORT LPG_RJAF uvEng_JobRecipe_GetSelectRecipe()
+API_EXPORT LPG_RJAF uvEng_JobRecipe_GetSelectRecipe(bool getLocalRecipe)
 {
 	if (!g_pRecipe)	return NULL;
-	return g_pRecipe->GetSelectJobRecipe();
+
+	return g_pRecipe->GetSelectJobRecipe(getLocalRecipe);
 }
 
-/*
- desc : 현재 선택된 Job 레시피 초기화
- parm : None
- retn : None
-*/
-API_EXPORT VOID uvEng_JobRecipe_ResetSelectRecipe()
+API_EXPORT bool uvEng_JobRecipe_WhatLastSelectIsLocal() //마지막에 로드한 레시피가 호스트 셀렉트인지, 로컬 셀렉트인지.
 {
-	g_pRecipe->ResetSelectJobRecipe();
+	return g_pRecipe->GetWhatLastSelectIsLocal();
 }
+
+API_EXPORT VOID uvEng_JobRecipe_SetWhatLastSelectIsLocal(bool localJobAtTime) 
+{
+	g_pRecipe->SetWhatLastSelectIsLocal(localJobAtTime);
+}
+
+
+
 
 /*
  desc : Calibration Recipe 재-적재
@@ -131,10 +135,10 @@ API_EXPORT LPG_RJAF uvEng_JobRecipe_GetRecipeIndex(INT32 index)
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-API_EXPORT BOOL uvEng_JobRecipe_SelRecipeOnlyName(PTCHAR recipe)
+API_EXPORT BOOL uvEng_JobRecipe_SelRecipeOnlyName(PTCHAR recipe, bool islocalJobRecipe)
 {
 	CUniToChar csCnv;
-	return g_pRecipe->SelJobRecipeOnlyName(csCnv.Uni2Ansi(recipe));
+	return g_pRecipe->SelJobRecipeOnlyName(csCnv.Uni2Ansi(recipe), islocalJobRecipe);
 }
 
 /*
@@ -142,10 +146,10 @@ API_EXPORT BOOL uvEng_JobRecipe_SelRecipeOnlyName(PTCHAR recipe)
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름 (전체 경로 포함)
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-API_EXPORT BOOL uvEng_JobRecipe_SelRecipePathName(PTCHAR recipe)
+API_EXPORT BOOL uvEng_JobRecipe_SelRecipePathName(PTCHAR recipe, bool islocalJobRecipe)
 {
 	CUniToChar csCnv;
-	return g_pRecipe->SelJobRecipePathName(csCnv.Uni2Ansi(recipe));
+	return g_pRecipe->SelJobRecipePathName(csCnv.Uni2Ansi(recipe), islocalJobRecipe);
 }
 
 /*
@@ -212,27 +216,6 @@ API_EXPORT UINT32 uvEng_ExpoRecipe_GetCount()
 }
 
 /*
- desc : 현재 선택된 Expo 레시피 기본 반환
- parm : None
- retn : 레시피가 저장된 구조체 포인터
-*/
-API_EXPORT LPG_REAF uvEng_ExpoRecipe_GetSelectRecipe()
-{
-	if (!g_pRecipe)	return NULL;
-	return g_pRecipe->GetSelectExpoRecipe();
-}
-
-/*
- desc : 현재 선택된 Expo 레시피 초기화
- parm : None
- retn : None
-*/
-API_EXPORT VOID uvEng_ExpoRecipe_ResetSelectRecipe()
-{
-	g_pRecipe->ResetSelectExpoRecipe();
-}
-
-/*
  desc : Expo 레시피 기본 존재 여부
  parm : recipe	- [in]  검색하고자 하는 레시피 이름
  retn : TRUE (Finded) or FALSE (Not find)
@@ -265,16 +248,7 @@ API_EXPORT LPG_REAF uvEng_ExpoRecipe_GetRecipeIndex(INT32 index)
 	return g_pRecipe->GetExpoRecipeIndex(index);
 }
 
-/*
- desc : Expo 레시피 기본 이름을 통한 레시피 기본 선택
- parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름
- retn : TRUE (선택 성공) or FALSE (선택 실패)
-*/
-API_EXPORT BOOL uvEng_ExpoRecipe_SelRecipeOnlyName(PTCHAR recipe)
-{
-	CUniToChar csCnv;
-	return g_pRecipe->SelExpoRecipeOnlyName(csCnv.Uni2Ansi(recipe));
-}
+
 
 /*
  desc : Expo Recipe 저장

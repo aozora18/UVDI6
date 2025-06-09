@@ -323,7 +323,8 @@ ENG_JWNS CWorkFEMExpo::SetPhZAxisMovingAll()
 	DOUBLE dbPhDiffZ = 0.0f, dbPhVeloZ[8] = { NULL };
 
 	LPG_CSAI pstAlign = &uvEng_GetConfig()->set_align;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
 	LPG_CMSI pstMC2 = &uvEng_GetConfig()->mc2b_svc;
 	UINT8	 u8drv_id;
@@ -440,8 +441,8 @@ ENG_JWNS CWorkFEMExpo::SetStepDutyFrame()
 {
 	LPG_LDEW pstExpo = &uvEng_ShMem_GetLuria()->exposure;
 	CUniToChar csCnv;
-
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
 

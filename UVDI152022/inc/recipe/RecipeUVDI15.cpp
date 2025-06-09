@@ -25,7 +25,8 @@ CRecipeUVDI15::CRecipeUVDI15(PTCHAR work_dir, CLedPower* led_power, LPG_LDSM mem
 	: CBase(work_dir)
 {
 	m_pstJobRecipe = NULL;
-	m_pstExpoRecipe = NULL;
+	m_pstlocalJobRecipe = nullptr;
+	
 	m_pLedPower = led_power;
 	m_pstLuriaMem = mem_luria;
 }
@@ -55,10 +56,7 @@ VOID CRecipeUVDI15::ResetSelectJobRecipe()
  parm : None
  retn : None
 */
-VOID CRecipeUVDI15::ResetSelectExpoRecipe()
-{
-	m_pstExpoRecipe = NULL;
-}
+
 
 
 /*
@@ -66,20 +64,21 @@ VOID CRecipeUVDI15::ResetSelectExpoRecipe()
  parm : None
  retn : 레시피가 저장된 구조체 포인터
 */
-LPG_RJAF CRecipeUVDI15::GetSelectJobRecipe()
+LPG_RJAF CRecipeUVDI15::GetSelectJobRecipe(bool local)
 {
-	return m_pstJobRecipe;
+	return local ? m_pstlocalJobRecipe :  m_pstJobRecipe;
 }
 
-/*
- desc : 현재 선택된 레시피 기본 반환
- parm : None
- retn : 레시피가 저장된 구조체 포인터
-*/
-LPG_REAF CRecipeUVDI15::GetSelectExpoRecipe()
+BOOL CRecipeUVDI15::GetWhatLastSelectIsLocal()
 {
-	return m_pstExpoRecipe;
+	return whatLastSelectIsLocal;
 }
+
+VOID CRecipeUVDI15::SetWhatLastSelectIsLocal(bool localJobAtTime)
+{
+	whatLastSelectIsLocal = localJobAtTime;
+}
+
 
 /*
  desc : 기존 등록된 Job 레시피 모두 제거
@@ -132,7 +131,7 @@ VOID CRecipeUVDI15::RemoveAllExpo()
 	/* 리스트 비움 */
 	m_lstExpoRecipe.RemoveAll();
 	/* 기존 선택된 레시피 초기화 */
-	m_pstExpoRecipe = NULL;
+	
 }
 
 /*
@@ -184,11 +183,11 @@ BOOL CRecipeUVDI15::LoadFile()
 		/* 파일 핸들 닫기 */
 		fclose(fp);
 
-		if (FALSE == SelJobRecipeOnlyName(csCnv.Uni2Ansi(GetConfig()->set_uvdi15.recipe_name)))
+		if (FALSE == SelJobRecipeOnlyName(csCnv.Uni2Ansi(GetConfig()->set_uvdi15.recipe_name),false))
 		{
 			if (m_lstJobRecipe.GetCount())
 			{
-				SelJobRecipeOnlyName(m_lstJobRecipe.GetHead()->job_name);
+				SelJobRecipeOnlyName(m_lstJobRecipe.GetHead()->job_name,false);
 			}
 		}
 	}
@@ -654,7 +653,7 @@ BOOL CRecipeUVDI15::RemoveExpoRecipe(PCHAR recipe)
 		}
 	}
 	/* 기존 선택된 레시피 해제 */
-	ResetSelectExpoRecipe();
+	
 
 	return FALSE;
 }
@@ -664,7 +663,7 @@ BOOL CRecipeUVDI15::RemoveExpoRecipe(PCHAR recipe)
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe)
+BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe,bool isLocalJobRecipe)
 {
 	BOOL bSucc			= FALSE;
 	POSITION pPos		= NULL;
@@ -677,7 +676,7 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe)
 		pstRecipe	= m_lstJobRecipe.GetNext(pPos);
 		if (0 == strcmp(recipe, pstRecipe->job_name))
 		{
-			m_pstJobRecipe = pstRecipe;
+			isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = pstRecipe;
 			bSucc	= TRUE;
 			break;
 		}
@@ -686,14 +685,19 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe)
 	/* 레시피에 기본과 연결되는 레시피 속성 정보가 없다면... */
 	if (!bSucc)
 	{
-		m_pstJobRecipe = NULL;
+		isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = nullptr;
+
 		return FALSE;
 	}
+
+	if (isLocalJobRecipe)
+		return bSucc;
 
 	// by sysandj : 선택된 레시피 저장
 	INT32 i32Len = (INT32)strlen(recipe);
 	if (i32Len >= MAX_FILE_LEN)	i32Len = MAX_FILE_LEN - 1;
 	CUniToChar csCnv;
+	
 	wcscpy_s(GetConfig()->set_uvdi15.recipe_name, MAX_FILE_LEN, csCnv.Ansi2Uni(recipe));
 
 	/* 환경 파일 객체 생성 */
@@ -708,43 +712,13 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe)
 	return bSucc;
 }
 
-/*
- desc : 레시피 기본 이름을 통한 레시피 기본 선택
- parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름
- retn : TRUE (선택 성공) or FALSE (선택 실패)
-*/
-BOOL CRecipeUVDI15::SelExpoRecipeOnlyName(PCHAR recipe)
-{
-	BOOL bSucc = FALSE;
-	POSITION pPos = NULL;
-	LPG_REAF pstRecipe = NULL;
-
-	/* 레시피 기본 정보 검색 및 선택 */
-	pPos = m_lstExpoRecipe.GetHeadPosition();
-	while (pPos)
-	{
-		pstRecipe = m_lstExpoRecipe.GetNext(pPos);
-		if (0 == strcmp(recipe, pstRecipe->expo_name))
-		{
-			m_pstExpoRecipe = pstRecipe;
-			bSucc = TRUE;
-			break;
-		}
-	}
-
-	/* 레시피에 기본과 연결되는 레시피 속성 정보가 없다면... */
-	if (!bSucc)	m_pstExpoRecipe = NULL;
-
-	return bSucc;
-}
-
 
 /*
  desc : 레시피 기본 이름 (전체 경로 포함)을 통한 레시피 기본 선택
  parm : recipe	- [in]  검색하고자 하는 레시피 기본 이름 (전체 경로 포함)
  retn : TRUE (선택 성공) or FALSE (선택 실패)
 */
-BOOL CRecipeUVDI15::SelJobRecipePathName(PCHAR recipe)
+BOOL CRecipeUVDI15::SelJobRecipePathName(PCHAR recipe,bool isLocalJobRecipe)
 {
 	CHAR szGerberPath[MAX_GERBER_NAME];
 	BOOL bSucc = FALSE;
@@ -758,17 +732,18 @@ BOOL CRecipeUVDI15::SelJobRecipePathName(PCHAR recipe)
 		memset(szGerberPath, 0x00, MAX_GERBER_NAME);
 		sprintf_s(szGerberPath, MAX_GERBER_NAME, "%s\\%s",
 			pstRecipe->gerber_path, pstRecipe->gerber_name);
+
 		if (0 == strcmp(recipe, szGerberPath))
 		{
-			m_pstJobRecipe = pstRecipe;
+			isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = pstRecipe;
 			bSucc = TRUE;
 			break;
 		}
 	}
 	if (!bSucc)	return FALSE;
-
+	
 	/* 레시피에 기본과 연결되는 레시피 속성 정보가 없다면... */
-	if (!bSucc)	m_pstJobRecipe = NULL;
+	if (!bSucc)	isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = nullptr;
 
 	return FALSE;
 }
@@ -1237,16 +1212,14 @@ int CRecipeUVDI15::GetSelectExpoRecipeIndex()
 	LPG_REAF pstData = NULL;
 	int		nIndex = 0;
 
-	if (NULL == m_pstExpoRecipe)
-	{
-		return -1;
-	}
-
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	
 	pPos = m_lstExpoRecipe.GetHeadPosition();
 	while (pPos)
 	{
 		pstData = m_lstExpoRecipe.GetNext(pPos);
-		if (0 == strcmp(m_pstExpoRecipe->expo_name, pstData->expo_name))	return nIndex;
+		if (0 == strcmp(rcp->expo_recipe, pstData->expo_name))	return nIndex;
 		nIndex++;
 	}
 

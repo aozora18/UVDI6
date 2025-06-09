@@ -22,13 +22,13 @@ static char THIS_FILE[]	= __FILE__;
 						Hysterisys의 Negative Pixel 값
  retn : None
 */
-CWorkRecipeLoad::CWorkRecipeLoad(UINT8 offset, ENG_BWOK relayWork)
+CWorkRecipeLoad::CWorkRecipeLoad(ENG_BWOK workType, UINT8 offset, ENG_BWOK relayWork)
 	: CWorkStep(relayWork)
 {
 	m_u8Offset		= offset;
-	m_enWorkJobID	= ENG_BWOK::en_gerb_load;
+	m_enWorkJobID = workType; //ENG_BWOK::en_gerb_load;
 	m_lastUniqueID = 0;
-
+	
 	/*UI에 표시되는 추기값 초기화*/
 	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
 	pstParams->rotation = 0;
@@ -338,7 +338,7 @@ ENG_JWNS CWorkRecipeLoad::IsRectangleLock()
 ENG_JWNS CWorkRecipeLoad::SetPhOffset()
 {
 	LPG_LDMC pstMemMach	= &uvEng_ShMem_GetLuria()->machine;
-	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe();
+	
 
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.PH.Offset");
@@ -351,31 +351,7 @@ ENG_JWNS CWorkRecipeLoad::SetPhOffset()
 	else
 	{
 		/*노광 속도에 따른 차별적 단차 조정 기능 미적용 ph_step*/
-#if 0
-		LPG_MACP pstThick = uvEng_ThickCali_GetRecipe(pstRecipe->cali_thick);
-		LPG_OSSD pstPhStep = uvEng_PhStep_GetRecipeData(pstRecipe->frame_rate);
-		/* 0번째 배열 인덱스 값이 2 번재 Photohead의 Offset 값이 저장되어 있음 */
-		UINT32 u32OffsetX = pstPhStep->step_x_nm[m_u8SetPhNo - 1];	/* unit : nm */
-		INT32 u32OffsetY = pstPhStep->step_y_nm[m_u8SetPhNo - 1];	/* unit : nm */
 
-		/*환경 파일에서 가지고온 단차값 적용*/
-		LPG_MCPO pStepXY = uvEng_ShMem_GetLuria()->machine.ph_offset_xy;
-		//m_pstConfLuria->ph_offset_x[i]
-		/* 0번째 배열 인덱스 값이 2 번재 Photohead의 Offset 값이 저장되어 있음 */
-		UINT32 u32OffsetX = pStepXY[m_u8SetPhNo - 1].pos_offset_x;	/* unit : nm */
-		INT32 u32OffsetY = pStepXY[m_u8SetPhNo - 1].pos_offset_y;	/* unit : nm */
-		/* 현재 작업 Step Name 설정 */
-		SetStepName(L"Set.Optic.Offset");
-
-		/* 기존 단차 정보 초기화 */
-		pstMemMach->ResetPhOffset();
-		/* Photohead의 Offset 값 적용하기 위함 (최초는 Photohead Number가 2 값임) */
-		if (!uvEng_Luria_ReqSetSpecPhotoHeadOffset(m_u8SetPhNo, u32OffsetX, u32OffsetY))
-		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSpecPhotoHeadOffset)");
-			return ENG_JWNS::en_error;
-		}
-#else
 		/* 기존 단차 정보 초기화 */
 		pstMemMach->ResetPhOffset();
 		LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
@@ -400,7 +376,6 @@ ENG_JWNS CWorkRecipeLoad::SetPhOffset()
 			}
 		}
 
-#endif
 }
 
 	//#else
@@ -490,7 +465,8 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 	CUniToChar	csCnv;
 	ENG_ATGL enType		= ENG_ATGL::en_not_defined;
 	ENG_AMOS enMotion = ENG_AMOS::en_onthefly_2cam;
-	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	//LPG_RAAF pstAlignRecipe = uvEng_Mark_GetSelectAlignRecipe();
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	/* 현재 작업 Step Name 설정 */

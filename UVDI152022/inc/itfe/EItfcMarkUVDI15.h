@@ -125,24 +125,7 @@ API_IMPORT UINT32 uvEng_Mark_GetAlignRecipeCount();
  retn : 문자열 반환
 */
 API_IMPORT TCHAR *uvEng_Mark_GetModelTypeToStr(UINT32 type);
-/*
- desc : 현재 선택된 레시피 정보 반환
- parm : None
- retn : 현재 선택된 레시피 구조체 포인터
-*/
-API_IMPORT LPG_RAAF uvEng_Mark_GetSelectAlignRecipe();
-/*
- desc : 현재 선택된 레시피 초기화
- parm : None
- retn : None
-*/
-API_IMPORT VOID uvEng_MarkSelAlignRecipeReset();
-/*
- desc : 레시피 이름을 통한 레시피 선택
- parm : r_name	- [in]  Mark 레시피 이름
- retn : TRUE or FALSE
-*/
-API_IMPORT BOOL uvEng_Mark_SelAlignRecipeName(PTCHAR r_name);
+
 
 API_IMPORT BOOL uvEng_Mark_SetAlignMotionPtr(AlignMotion& ptr);
 

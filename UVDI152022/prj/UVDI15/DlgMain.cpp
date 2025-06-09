@@ -189,7 +189,12 @@ BOOL CDlgMain::OnInitDlg()
 	// DBMgr 클래스 추가
 	CDBMgr::GetInstance()->Create(this);
 
-	LPG_RAAF pstAlign = uvEng_Mark_GetSelectAlignRecipe();
+	CUniToChar csCnv;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
+
+	
 
 	if (nullptr != pstAlign)	// 20230814 mhbaek Add : 경계검사 추가
 	{
@@ -255,8 +260,9 @@ BOOL CDlgMain::OnInitDlg()
 	SetWindowTextW(L"HDDI6 LLS06");
 #endif
 
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe();
-	CUniToChar csCnv;
+	
+	LPG_RJAF pstHostJob = uvEng_JobRecipe_GetSelectRecipe(false); //<host job,
+	LPG_RJAF pstLocalJob = uvEng_JobRecipe_GetSelectRecipe(true); //<local job
 
 	CString strReicpe, strExpo, strAlign;
 	/* 거버 레시피 출력 */
@@ -264,14 +270,28 @@ BOOL CDlgMain::OnInitDlg()
 	//if (!pstGerb)	pText->SetWindowTextW(L"No recipe selected");
 	//else			pText->SetWindowTextW(csCnv.Ansi2Uni(pstGerb->recipe_name));
 	//pText->Invalidate(TRUE);
-	if (!pstJob)	strReicpe = L"No recipe selected";
-	else			strReicpe = csCnv.Ansi2Uni(pstJob->job_name);
+	if (!pstHostJob && !pstLocalJob)
+	{
+		strReicpe = L"No recipe selected";
+		strExpo = L"No recipe selected";
+		strAlign = L"No recipe selected";
+	}
+	else
+	{
+		CString _1, _2;
 
-	if (!pstJob)	strExpo = L"No recipe selected";
-	else			strExpo = csCnv.Ansi2Uni(pstJob->expo_recipe);
+		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->job_name);
+		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->job_name);
+		strReicpe = _1 + L"/" + _2;
 
-	if (!pstJob)	strAlign = L"No recipe selected";
-	else			strAlign = csCnv.Ansi2Uni(pstJob->align_recipe);
+		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->expo_recipe);
+		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->expo_recipe);
+		strExpo = _1 + L"/" + _2;
+
+		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->align_recipe);
+		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->align_recipe);
+		strExpo = _1 + L"/" + _2;
+	}
 
 	m_txt_ctl[eMAIN_TXT_GERB_RECIPE].SetTextToStr(strReicpe.GetBuffer());
 	m_txt_ctl[eMAIN_TXT_EXPOSE_RECIPE].SetTextToStr(strExpo.GetBuffer());
@@ -1212,7 +1232,8 @@ VOID CDlgMain::UpdateControl(UINT64 tick, BOOL busy)
 	/* If the expose screen is currently displayed... */
 	/*bExposeDlg	= m_enDlgID == ENG_CMDI::en_menu_expo;*/
 	/* If a gerber is currently being loaded... */
-	bLoadedJob	= m_pMainThread->GetWorkJobID() == ENG_BWOK::en_gerb_load;
+	bLoadedJob	= m_pMainThread->GetWorkJobID() == ENG_BWOK::en_gerb_load || 
+				  m_pMainThread->GetWorkJobID() == ENG_BWOK::en_local_gerb_load;
 
 	if (!bLoadedJob && uvEng_IsEngineAlarm())
 	{
@@ -2407,14 +2428,20 @@ VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 	memcpy(stProcessExecute.szGlassID, stRecv->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
 
 	/*레시피의 선택 유무*/
-	BOOL bSelect = uvEng_JobRecipe_GetSelectRecipe() ? TRUE : FALSE;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF selJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	BOOL bSelect = selJob != nullptr;
 	/*레시피 등록 유무*/
 	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
 	/*레시피에 마크 등록 유무*/
 	BOOL bMarked = uvEng_Luria_IsMarkGlobal();
 
-
-	if ((bSelect && bLoaded && !is_busy))
+	if (strcmp(selJob->job_name, m_stExpoLog.recipe_name) != 0)
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	}
+	else if ((bSelect && bLoaded && !is_busy))
 	{
 		RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&m_stExpoLog));
 	}

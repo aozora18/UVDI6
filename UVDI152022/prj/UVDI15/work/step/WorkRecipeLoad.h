@@ -8,7 +8,7 @@ class CWorkRecipeLoad : public CWorkStep
 /* 생성자 & 파괴자 */
 public:
 
-	CWorkRecipeLoad(UINT8 offset,ENG_BWOK relayWork);
+	CWorkRecipeLoad(ENG_BWOK workType , UINT8 offset,ENG_BWOK relayWork);
 	virtual ~CWorkRecipeLoad();
 
 /* 가상함수 재정의 */

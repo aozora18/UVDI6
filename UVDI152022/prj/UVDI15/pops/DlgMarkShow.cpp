@@ -282,11 +282,13 @@ int CDlgMarkShow::GetMarkImgIDFromIndex(int fiducialIndex,int camIndex,  BOOL bI
 BOOL CDlgMarkShow::DrawMark(int index)
 {
 	
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	if (pstRecipe == nullptr)
 		return FALSE;
 
-	LPG_REAF expoRecipe = uvEng_ExpoRecipe_GetSelectRecipe();
+	CUniToChar csCnv;
+	LPG_REAF expoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 

@@ -152,7 +152,7 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* calle
 	else
 	{
 		/*Recipe 선택 요청 성공*/
-		if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe))
+		if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe,EN_RECIPE_SELECT_TYPE::eRECIPE_MODE_SEL_FROM_HOST))
 		{
 			//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
 			//memset(callerInst->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
@@ -199,7 +199,7 @@ VOID CRecvPhil::PhilSendListRecipe(STG_PP_PACKET_RECV* stRecv)
 
 
 	// 20230824 mhbaek Add
-	strcpy_s(stStatus.szSelectedRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(uvEng_JobRecipe_GetSelectRecipe()->job_name));
+	strcpy_s(stStatus.szSelectedRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(uvEng_JobRecipe_GetSelectRecipe(false)->job_name));
 
 	for (int i = 0; i < nCount; i++)
 	{
@@ -225,7 +225,8 @@ VOID CRecvPhil::PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv)
 
 	memcpy(stInfoSend.szRecipeName, stRecv->st_c2p_rcp_info.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH);
 
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe();
+
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(false);
 
 	EN_RECIPE_JOB::JOB_NAME;
 
@@ -280,7 +281,9 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	memcpy(stProcessExecute.szGlassID, stRecv->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
 
 	/*레시피의 선택 유무*/
-	BOOL bSelect = uvEng_JobRecipe_GetSelectRecipe() ? TRUE : FALSE;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF selJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	BOOL bSelect = selJob != nullptr;
 	/*레시피 등록 유무*/
 	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
 	/*레시피에 마크 등록 유무*/
@@ -298,19 +301,25 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 		return;
 	}
 
-	if(callerInst->m_stExpoLog.host_recipe_name[0] == '\0')
+	//if(callerInst->m_stExpoLog.host_recipe_name[0] == '\0')
+	//{
+	//	swprintf_s(tzMesg, 512, L"No recipe selected. Select on Platform first.");
+	//	LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
+	//	//   주 공정, 진행 불가
+	//	stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	//	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
+	//	return;
+	//}
+
+	
+
+	if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0)
 	{
-		swprintf_s(tzMesg, 512, L"No recipe selected. Select on Platform first.");
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-
-		//   주 공정, 진행 불가
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
-		uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
-		return;
 	}
-
-	//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
-	if (0 == strcmp(callerInst->m_stExpoLog.host_recipe_name, callerInst->m_stExpoLog.recipe_name))
+	else
 	{
 		if (uvEng_GetConfig()->set_comn.use_auto_align)
 		{
@@ -323,26 +332,32 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 			callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
 		}
 	}
-	else
-	{
 
-		wchar_t w_host[128] = { 0 };
-		wchar_t w_exec[128] = { 0 };
+	//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
+	/*if (0 == strcmp(callerInst->m_stExpoLog.host_recipe_name, callerInst->m_stExpoLog.recipe_name))
+	{*/
+		
+	//}
+	//else
+	//{
 
-		MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.host_recipe_name, -1, w_host, 128);
-		MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.recipe_name, -1, w_exec, 128);
+	//	wchar_t w_host[128] = { 0 };
+	//	wchar_t w_exec[128] = { 0 };
 
-		swprintf_s(
-			tzMesg, 512,
-			L"A Recipe different from the Recipe sent from the Host is selected, selected = %s, executed = %s",
-			w_host,
-			w_exec);
+	//	MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.host_recipe_name, -1, w_host, 128);
+	//	MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.recipe_name, -1, w_exec, 128);
 
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+	//	swprintf_s(
+	//		tzMesg, 512,
+	//		L"A Recipe different from the Recipe sent from the Host is selected, selected = %s, executed = %s",
+	//		w_host,
+	//		w_exec);
 
-		//   주 공정, 진행 불가
-		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
-	}
+	//	LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
+	//	//   주 공정, 진행 불가
+	//	stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	//}
 
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }

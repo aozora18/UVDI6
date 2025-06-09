@@ -54,8 +54,12 @@ BOOL CWorkMarkMove::InitWork()
 	/* 내부 멤버 변수 값 초기화 */
 	if (!CWork::InitWork())	return FALSE;
 
-	LPG_RAAF alignRecipe = uvEng_Mark_GetSelectAlignRecipe();
-	SetAlignMode((ENG_AMOS)alignRecipe->align_motion, (ENG_ATGL)alignRecipe->align_type);
+	CUniToChar csCnv;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
+
+	SetAlignMode((ENG_AMOS)pstRecipeAlign->align_motion, (ENG_ATGL)pstRecipeAlign->align_type);
 
 
 	uvEng_Camera_SetCamMode(ENG_VCCM::en_none);

@@ -21,8 +21,8 @@ protected:
 	CAtlList <LPG_REAF>	m_lstExpoRecipe;
 
 	/* 현재 선택된 레시피 이름 및 상세 속성 정보 */
-	LPG_RJAF			m_pstJobRecipe;
-	LPG_RJAF			m_pstlocalJobRecipe;
+	LPG_RJAF			m_pstJobRecipe = nullptr;
+	LPG_RJAF			m_pstlocalJobRecipe=nullptr;
 	bool whatLastSelectIsLocal = false; //기본값은 host recipe select이다. 
 
 

@@ -112,10 +112,17 @@ VOID CDlgMain::DoDataExchange(CDataExchange* dx)
 	for (i=0; i< eMAIN_PIC_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_pic_ctl[i]);
 	/* static - normal */
 	u32StartID	= IDC_MAIN_TXT_STATUS;
-	for (i=0; i< eMAIN_TXT_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_txt_ctl[i]);
+	for (i=0; i< eMAIN_TXT_MAX; i++)		
+		DDX_Control(dx, u32StartID+i,	m_txt_ctl[i]);
 	/* button - normal */
 	u32StartID	= IDC_MAIN_BTN_EXIT;
 	for (i=0; i< eMAIN_BTN_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_btn_ctl[i]);
+
+	DDX_Control(dx, IDC_RICH_RCPNAME, newNameList[eMAIN_RICHTXT_GERB_RECIPE]);
+	DDX_Control(dx, IDC_RICH_EXPONAME, newNameList[eMAIN_RICHTXT_EXPOSE_RECIPE]);
+	DDX_Control(dx, IDC_RICH_ALIGNNAME, newNameList[eMAIN_RICHTXT_ALIGN_RECIPE]);
+
+	
 }
 
 BEGIN_MESSAGE_MAP(CDlgMain, CMyDialog)
@@ -260,16 +267,31 @@ BOOL CDlgMain::OnInitDlg()
 	SetWindowTextW(L"HDDI6 LLS06");
 #endif
 
+	GetDlgItem(IDC_MAIN_BTN_PHILHMI)->ShowWindow(SW_HIDE);
+
+	RefreshRecipeTitleCaption();
+
 	
+	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
+	/*딱 한번만 초기화 필요*/
+	uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
+
+	return TRUE;
+}
+
+
+void CDlgMain::RefreshRecipeTitleCaption()
+{
+
+	CUniToChar csCnv;
+
+	bool isLocalJobSelect =  uvEng_JobRecipe_WhatLastSelectIsLocal();
+
 	LPG_RJAF pstHostJob = uvEng_JobRecipe_GetSelectRecipe(false); //<host job,
 	LPG_RJAF pstLocalJob = uvEng_JobRecipe_GetSelectRecipe(true); //<local job
 
 	CString strReicpe, strExpo, strAlign;
-	/* 거버 레시피 출력 */
-	//pText	= (CMyStatic *)CWnd::FromHandle(m_hGerb);
-	//if (!pstGerb)	pText->SetWindowTextW(L"No recipe selected");
-	//else			pText->SetWindowTextW(csCnv.Ansi2Uni(pstGerb->recipe_name));
-	//pText->Invalidate(TRUE);
+	
 	if (!pstHostJob && !pstLocalJob)
 	{
 		strReicpe = L"No recipe selected";
@@ -290,32 +312,49 @@ BOOL CDlgMain::OnInitDlg()
 
 		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->align_recipe);
 		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->align_recipe);
-		strExpo = _1 + L"/" + _2;
+		strAlign = _1 + L"/" + _2;
 	}
 
-	m_txt_ctl[eMAIN_TXT_GERB_RECIPE].SetTextToStr(strReicpe.GetBuffer());
-	m_txt_ctl[eMAIN_TXT_EXPOSE_RECIPE].SetTextToStr(strExpo.GetBuffer());
-	m_txt_ctl[eMAIN_TXT_ALIGN_RECIPE].SetTextToStr(strAlign.GetBuffer());
+	SetRichTextColored(&newNameList[eMAIN_RICHTXT_GERB_RECIPE], strReicpe, isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));
+	SetRichTextColored(&newNameList[eMAIN_RICHTXT_EXPOSE_RECIPE], strExpo,isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));
+	SetRichTextColored(&newNameList[eMAIN_RICHTXT_ALIGN_RECIPE], strAlign, isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));
 
-	strReicpe.ReleaseBuffer();
-	strExpo.ReleaseBuffer();
-	strAlign.ReleaseBuffer();
-
-	GetDlgItem(IDC_MAIN_BTN_PHILHMI)->ShowWindow(SW_HIDE);
-
-
-	//추가. 
+	Invalidate(true);
+}
 
 
 
+void  CDlgMain::SetRichTextColored(CRichEditCtrl* pCtrl,
+	const CString& text,
+	COLORREF colorLeft,
+	COLORREF colorRight,
+	TCHAR delimiter)
+{
+	if (!pCtrl) return;
+
+	pCtrl->SetWindowText(text);
+
+	int delimiterPos = text.Find(delimiter);
+	if (delimiterPos == -1) return;
+
+	CHARFORMAT cf = { 0 };
+	cf.cbSize = sizeof(cf);
+	cf.dwMask = CFM_COLOR | CFM_BOLD; // 볼드도 같이 줄 수 있음
+	cf.dwEffects = 0;
+
+	// 앞부분 색
+	cf.crTextColor = colorLeft;
+	pCtrl->SetSel(0, delimiterPos);
+	pCtrl->SetSelectionCharFormat(cf);
+
+	// 뒷부분 색
+	cf.crTextColor = colorRight;
+	pCtrl->SetSel(delimiterPos + 1, text.GetLength());
+	pCtrl->SetSelectionCharFormat(cf);
+
+	// 선택 해제
+	pCtrl->SetSel(-1, -1);
 	
-
-	
-	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
-	/*딱 한번만 초기화 필요*/
-	uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
-
-	return TRUE;
 }
 
 /*
@@ -489,12 +528,16 @@ VOID CDlgMain::InitCtrl()
 		clsResizeUI.ResizeControl(this, &m_txt_ctl[i]);
 		// by sysandj : Resize UI
 	}
-
+	
 	for (i = eMAIN_TXT_SERVER; i < eMAIN_TXT_MAX; i++)
 	{
 		m_txt_ctl[i].SetBgColor(SEA_GREEN);
 		m_txt_ctl[i].SetTextColor(WHITE_);
 	}
+
+	clsResizeUI.ResizeControl(this, &newNameList[0]);
+	clsResizeUI.ResizeControl(this, &newNameList[1]);
+	clsResizeUI.ResizeControl(this, &newNameList[2]);
 
 #if 1
 	/* 버전 정보 출력 */
@@ -661,33 +704,7 @@ retn : 0L
 */
 LRESULT CDlgMain::OnMsgMainRecipeUpdate(WPARAM wparam, LPARAM lparam)
 {
-	CString* pstrRecipe = (CString*)lparam;
-
-	switch (EnMainGrp((int)wparam))
-	{
-	case eMAIN_GRP_JOB_RECIPE:
-		if (NULL != pstrRecipe)
-		{
-			m_txt_ctl[eMAIN_TXT_GERB_RECIPE].SetTextToStr(pstrRecipe->GetBuffer());
-		}
-		break;
-	case eMAIN_GRP_EXPOSE_RECIPE:
-		if (NULL != pstrRecipe)
-		{
-			m_txt_ctl[eMAIN_TXT_EXPOSE_RECIPE].SetTextToStr(pstrRecipe->GetBuffer());
-		}
-		break;
-	case eMAIN_GRP_ALIGN_RECIPE:
-		if (NULL != pstrRecipe)
-		{
-			m_txt_ctl[eMAIN_TXT_ALIGN_RECIPE].SetTextToStr(pstrRecipe->GetBuffer());
-			
-		}
-		break;
-	}
-	
-	pstrRecipe->ReleaseBuffer();
-
+	RefreshRecipeTitleCaption();
 	return 0L;
 }
 

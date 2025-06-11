@@ -991,7 +991,9 @@ typedef struct __st_config_info_podis_common__
 	UINT8				use_vision_lib:1;		/* 0 : Vision Library 사용 안함, 1 : Vision Library 사용 함 */
 	UINT8				load_recipe_homing:1;	/* 레시피 적재할 때, 광학계 Homing 할지 여부 (0 : Not homing, 1 : Homing) */
 	UINT8				uu_reserved[7];
-	TCHAR				recipe_name[MAX_FILE_LEN];	// by sysandj : 현재 RECIPE 저장
+	TCHAR				host_recipe_name[MAX_FILE_LEN];	// by sysandj : 현재 RECIPE 저장(Host)
+	TCHAR				local_recipe_name[MAX_FILE_LEN];	// by sysandj : 현재 RECIPE 저장(Host)
+
 }	STG_CIPC,	*LPG_CIPC;
 
 /* 온조기 온도 자동 제어 */

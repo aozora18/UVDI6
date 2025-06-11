@@ -43,7 +43,12 @@ void CRecipeManager::Init(HWND hWnd, CDlgMain* maindlgPtr)
 	
 	LoadRecipeList();
 
-	SelectRecipe(uvEng_GetRecipeConfig(), eRECIPE_MODE_SEL_FROM_INITIAL);
+	PTCHAR lastHostRcp = uvEng_GetHostRecipeConfig();
+	SelectRecipe(lastHostRcp, eRECIPE_MODE_SEL_FROM_INITIAL);
+	
+	PTCHAR lastLocalRcp = uvEng_GetLocalRecipeConfig();
+	uvEng_JobRecipe_SelRecipeOnlyName(lastLocalRcp,true); //local rcp도 같은레시피로 등록 , 초기화라서 가능한것.
+	
 }
 
 void CRecipeManager::Destroy()
@@ -209,229 +214,150 @@ BOOL CRecipeManager::DeleteAlignRecipe(CString strRecipeName)
 
 BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE selType)
 {
-	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName(strRecipeName.GetBuffer() , selType == EN_RECIPE_SELECT_TYPE::eRECIPE_MODE_SEL_FROM_LOCAL ? true : false );
-	strRecipeName.ReleaseBuffer();
 
-	if (FALSE == bSuccess)
-	{
-		return FALSE;
-	}
+	
+	uvEng_JobRecipe_SetWhatLastSelectIsLocal(selType == eRECIPE_MODE_SEL_FROM_LOCAL);
 
-	CHAR szJob[MAX_PATH_LEN] = { NULL };
-	CUniToChar	csCnv;
-	LPG_RJAF pstRecipe		= uvEng_JobRecipe_GetRecipeOnlyName(strRecipeName.GetBuffer());	strRecipeName.ReleaseBuffer();
+	
 
-	if (NULL == pstRecipe)
-	{
-		return FALSE;
-	}
+	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName((PTCHAR)strRecipeName.GetString(), selType == eRECIPE_MODE_SEL_FROM_LOCAL);
+	if (!bSuccess) return FALSE;
+
+	CHAR szJob[MAX_PATH_LEN] = { 0 };
+	CUniToChar csCnv;
+
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName((PTCHAR)strRecipeName.GetString());
+	if (!pstRecipe) return FALSE;
 
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+	if (!pstAlignRecipe || !pstExpoRecipe) return FALSE;
 
-	if (NULL == pstAlignRecipe || NULL == pstExpoRecipe)
-	{
-		return FALSE;
-	}
-
-	/* 거버 파일의 존재 여부 (거파 파일 검색) */
 	sprintf_s(szJob, MAX_PATH_LEN, "%s\\%s", pstRecipe->gerber_path, pstRecipe->gerber_name);
 	if (!uvCmn_FindFile(csCnv.Ansi2Uni(szJob)))
 	{
-		AfxMessageBox(L"The gerber file registered in the recipe does not exist", 0x01);
+		AfxMessageBox(L"The gerber file registered in the recipe does not exist", MB_ICONWARNING);
 		return FALSE;
 	}
 
-#if 1
-	/*각 레시피 조건에 따른 노광 속도 계산*/
-	LPG_PLPI	pstPowerI = uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
-
-	if (NULL == pstPowerI)
+	LPG_PLPI pstPowerI = uvEng_LedPower_GetLedPowerName(csCnv.Ansi2Uni(pstExpoRecipe->power_name));
+	if (!pstPowerI)
 	{
-		AfxMessageBox(L"The LED Power file registered in the recipe does not exist", 0x01);
+		AfxMessageBox(L"The LED Power file registered in the recipe does not exist", MB_ICONWARNING);
 		return FALSE;
 	}
+
 	UINT8 i = 0, j = 0;
-	DOUBLE dbTotal = 0.0f, dbPowerWatt[MAX_LED] = { NULL }, dbSpeed = 0.0f;
-	/* 광량 계산 */
+	DOUBLE dbTotal = 0.0, dbPowerWatt[MAX_LED] = { 0 }, dbSpeed = 0.0;
+
+	int phcnt = uvEng_GetConfig()->luria_svc.ph_count;
 	for (; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
-		for (j = 0; j < MAX_LED; j++)	
+		for (j = 0; j < MAX_LED; j++)
 			dbPowerWatt[j] = pstPowerI->led_watt[i][j];
 
-		dbTotal += uvCmn_Luria_GetEnergyToSpeed(pstRecipe->step_size, pstRecipe->expo_energy,
-			pstExpoRecipe->led_duty_cycle, dbPowerWatt);
-		
+		dbTotal += uvCmn_Luria_GetEnergyToSpeed(
+			pstRecipe->step_size,
+			pstRecipe->expo_energy,
+			pstExpoRecipe->led_duty_cycle,
+			dbPowerWatt);
 	}
-	pstRecipe->frame_rate = (UINT16)(dbTotal / DOUBLE(i));
-#endif
+	pstRecipe->frame_rate = (UINT16)(dbTotal / (DOUBLE)i);
 
-	/* 등록된 마크 정보가 있는지 여부 */
-	if (pstAlignRecipe->align_type != UINT8(ENG_ATGL::en_global_0_local_0x0_n_point))
+	if (pstAlignRecipe->align_type != (UINT8)ENG_ATGL::en_global_0_local_0x0_n_point)
 	{
-		/* 얼라인 카메라의 2D 보정 파일 적재 (검색) */
-		// by sysandj : 변수없음(수정)
 		if (!uvEng_ACamCali_LoadFile(pstRecipe->cali_thick))
 		{
-			if (IDNO == AfxMessageBox(L"Failed to load the calibration data for align camera\n Do you want to continue", MB_YESNO))
-			{
+			if (IDNO == AfxMessageBox(L"Failed to load the calibration data for align camera\nDo you want to continue?", MB_YESNO))
 				return FALSE;
-			}
 		}
 	}
 
-//카메라 게인레벨 카메라 설정 갯수에 따라서	
 	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 	{
 		try
 		{
 			uvEng_Camera_SetGainLevel(i + 1, pstAlignRecipe->gain_level[i]);
 		}
-		catch(exception e)
-		{
-
-		}
+		catch (...) {}
 	}
 
-
-
-	///* Align Camera의 Gain Level 값 설정 */
-	//if (!uvEng_Camera_SetGainLevel(0x01, pstAlignRecipe->gain_level[0]))
-	//{ 
-	//	//AfxMessageBox(L"The gerber file registered in the recipe does not exist");
-	//	//AfxMessageBox(L"Failed to set Gain Level value of Align Camera1");
-	//	//return FALSE;
-	//}
-	//if (!uvEng_Camera_SetGainLevel(0x02, pstAlignRecipe->gain_level[1]))
-	//{
-	//	//AfxMessageBox(L"The gerber file registered in the recipe does not exist");
-	//	//AfxMessageBox(L"Failed to set Gain Level value of Align Camera2");
-	//	//return FALSE;
-	//}
-
-
-
-	/* 기존 적재된 Recipe 관련 거버 정보 초기화 */
-	//uvEng_MarkSelAlignRecipeReset();
 	uvCmn_Luria_ResetRegisteredJob();
 
+	if (pstAlignRecipe->search_count == 1)
+		uvEng_Camera_SetMultiMarkArea();
+	else
+		uvEng_Camera_SetMultiMarkArea(pstAlignRecipe->mark_area[0], pstAlignRecipe->mark_area[1]);
 
-	/* Multi-Mark인 경우만 해당됨, 마크 검색 Area 크기 값 설정 */
-	if (pstAlignRecipe->search_count == 1)	uvEng_Camera_SetMultiMarkArea();
-	else									uvEng_Camera_SetMultiMarkArea(pstAlignRecipe->mark_area[0], pstAlignRecipe->mark_area[1]);
-
-
-	if (NULL == pstExpoRecipe)
-	{
-		return FALSE;
-	}
-
-	/* 최정 검색된 마크의 검색 조건 값 설정 */
 	uvEng_Camera_SetRecipeMarkRate(pstExpoRecipe->mark_score_accept, pstExpoRecipe->mark_scale_range);
 
+	uvEng_JobRecipe_SetWhatLastSelectIsLocal(selType == eRECIPE_MODE_SEL_FROM_LOCAL);
+	LoadRecipe(strRecipeName, selType == eRECIPE_MODE_SEL_FROM_LOCAL ? eRECIPE_MODE_LOCAL : eRECIPE_MODE_SEL);
 
-	uvEng_SetRecipeConfig(strRecipeName.GetBuffer()); strRecipeName.ReleaseBuffer();
-	LoadRecipe(strRecipeName, eRECIPE_MODE_SEL);
-			
 	bSuccess = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe)) != nullptr;
-	if (FALSE == bSuccess)
-	{
-		return FALSE;
-	}
+	if (!bSuccess) return FALSE;
 
-	for (int index = 0; index < 2; index++) 
+	for (int index = 0; index < 2; index++)
 	{
 		UINT8 u8Speed = (UINT8)uvEng_GetConfig()->mark_find.model_speed;
 		UINT8 u8Level = (UINT8)uvEng_GetConfig()->mark_find.detail_level;
 		DOUBLE dbSmooth = (DOUBLE)uvEng_GetConfig()->mark_find.model_smooth;
-		DOUBLE dbScaleMin = 0.0f, dbScaleMax = 0.0f, dbScoreRate;
-		CUniToChar csCnv1, csCnv2;
+		DOUBLE dbScaleMin = 0.0, dbScaleMax = 0.0, dbScoreRate = pstExpoRecipe->mark_score_accept;
+		CUniToChar csCnv1, csCnv2, csCnv3, csCnv4, csCnv5;
+
+		BOOL IsFind = FALSE;
 		bool bpatFile = false, bmmfFile = false;
-		//dbScoreRate = uvEng_GetConfig()->mark_find.score_rate;
-		dbScoreRate = pstExpoRecipe->mark_score_accept;
+		CFileFind finder;
 
-		BOOL IsFind = false;
-		CFileFind	finder;
-		CUniToChar csCnv3, csCnv4, csCnv5;
-
-
-		//ST_RECIPE_PARAM stMarkParam = CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->GetParam(EN_RECIPE_TAB::ALIGN, EN_RECIPE_ALIGN::GLOBAL_MARK_NAME + index);
 		ST_RECIPE_PARAM stMarkParam = CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_SEL)->GetParam(EN_RECIPE_TAB::ALIGN, EN_RECIPE_ALIGN::GLOBAL_MARK_NAME + index);
+		LPG_CMPV pstMark = uvEng_Mark_GetModelName((PTCHAR)stMarkParam.GetValue().GetString());
 
-		LPG_CMPV pstMark = uvEng_Mark_GetModelName(stMarkParam.GetValue().GetBuffer()); stMarkParam.GetValue().ReleaseBuffer();
-
-		//마크 정보가 없으면 패스
 		if (pstMark)
 		{
 			if (ENG_MMDT(pstMark->type) != ENG_MMDT::en_image)
 			{
 				bmmfFile = true;
-				bpatFile = false;
-				for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+				for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 						pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(pstMark->file),
 						dbScaleMin, dbScaleMax, dbScoreRate);
-				}
 			}
-			else if (ENG_MMDT(pstMark->type) == ENG_MMDT::en_image) {
+			else
+			{
 				CHAR tmpfile[MARK_MODEL_NAME_LENGTH];
-				//sprintf_s(tmpfile, MARK_MODEL_NAME_LENGTH, "%s\\data\\mmf\\%s.mmf",
-				//	csCnv1.Uni2Ansi(g_tzWorkDir), csCnv2.Uni2Ansi(pstMark->file));
 				sprintf_s(tmpfile, MARK_MODEL_NAME_LENGTH, "%s\\%s\\mmf\\%s.mmf",
 					csCnv1.Uni2Ansi(g_tzWorkDir), CUSTOM_DATA_CONFIG2, pstMark->file);
 				IsFind = finder.FindFile(csCnv3.Ansi2Uni(tmpfile));
-				if (IsFind)
-					bmmfFile = true;
-				else
-					bmmfFile = false;
-				if (bmmfFile) {
-					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+				bmmfFile = IsFind;
+				if (bmmfFile)
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 							pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(tmpfile),
 							dbScaleMin, dbScaleMax, dbScoreRate);
-					}
-				}
 
-				//sprintf_s(tmpfile, MARK_MODEL_NAME_LENGTH, "%s\\data\\pat\\%s.pat",
-				//	csCnv1.Uni2Ansi(g_tzWorkDir), csCnv4.Uni2Ansi(pstMark->file));
 				sprintf_s(tmpfile, MARK_MODEL_NAME_LENGTH, "%s\\%s\\pat\\%s.pat",
 					csCnv1.Uni2Ansi(g_tzWorkDir), CUSTOM_DATA_CONFIG2, pstMark->file);
 				IsFind = finder.FindFile(csCnv5.Ansi2Uni(tmpfile));
-				if (IsFind)
-					bpatFile = true;
-				else
-					bpatFile = false;
-				if (bpatFile) {
-					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
+				bpatFile = IsFind;
+				if (bpatFile)
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
 							pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(tmpfile),
 							dbScaleMin, dbScaleMax, dbScoreRate);
-					}
-				}
 
-				if (!bpatFile && !bmmfFile) {
-					//dlgMesg.MyDoModal(L"Failed to load mark file(MMF & PAT)", 0x01);
+				if (!bpatFile && !bmmfFile)
 					return FALSE;
-				}
 			}
 		}
-		}
-
-
-	/*Philhmi 에서 Select 보낸 요청한 메세지 아닐 경우만 보고*/
-	//if (g_u16PhilCommand |= ePHILHMI_C2P_RECIPE_SELECT)
-	//{
-	//	/*Philhmi에 보고*/
-	//	PhilSendSelectRecipe(strRecipeName);
-	//}
+	}
 
 	memset(mainDlgPtr->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
-	strcpy_s(mainDlgPtr->m_stExpoLog.host_recipe_name, CT2A(strRecipeName));
-
+	strcpy_s(mainDlgPtr->m_stExpoLog.host_recipe_name, CT2A(strRecipeName.GetString()));
 	::SendMessage(m_hMainWnd, WM_MAIN_RECIPE_CHANGE, NULL, (LPARAM)&strRecipeName);
 
 	return TRUE;
 }
+
 
 BOOL CRecipeManager::LoadSelectRecipe()
 {
@@ -1592,11 +1518,11 @@ int CRecipeManager::GetRecipeIndex(CString strName)
 	return -1;
 }
 
-int CRecipeManager::GetSelectRecipeIndex()
+int CRecipeManager::GetSelectRecipeIndex(EN_RECIPE_MODE eRecipeMode)
 {
 	for (int i = 0; i < (int)m_strArrRecipeList.GetCount(); i++)
 	{
-		if (0 == GetRecipeName().Compare(m_strArrRecipeList.GetAt(i)))
+		if (0 == GetRecipeName(eRecipeMode).Compare(m_strArrRecipeList.GetAt(i)))
 		{
 			return i;
 		}
@@ -1709,7 +1635,7 @@ int CRecipeManager::GetRecipeList(CStringArray &strArrRecipeList)
 
 BOOL CRecipeManager::GetLEDFrameRate()
 {
-	CString strRecipeName = CRecipeManager::GetInstance()->GetRecipeName();
+	/*CString strRecipeName = CRecipeManager::GetInstance()->GetRecipeName();
 
 	bool isLocalRecipe =  uvEng_JobRecipe_WhatLastSelectIsLocal();
 
@@ -1720,11 +1646,14 @@ BOOL CRecipeManager::GetLEDFrameRate()
 	if (FALSE == bSuccess)
 	{
 		return FALSE;
-	}
+	}*/
+	//아니 뭐 다고쳐야되네 진짜. 
+
+	bool isLocalRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
 
 	CHAR szJob[MAX_PATH_LEN] = { NULL };
 	CUniToChar	csCnv;
-	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(strRecipeName.GetBuffer());	strRecipeName.ReleaseBuffer();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalRecipe);// strRecipeName.GetBuffer());	strRecipeName.ReleaseBuffer();
 
 	if (NULL == pstRecipe)
 	{

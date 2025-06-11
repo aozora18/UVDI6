@@ -214,10 +214,15 @@ API_IMPORT BOOL uvEng_Camera_SetModelDefine_tot(UINT8 cam_id, UINT8 speed, UINT8
 
 API_IMPORT BOOL uvEng_IsInitedEngine();
 
-// by sysandj : recipe 저장
-API_EXPORT BOOL		uvEng_SetRecipeConfig(PTCHAR name);
-API_EXPORT PTCHAR	uvEng_GetRecipeConfig();
-// by sysandj : recipe 저장
+
+API_IMPORT BOOL		uvEng_SetHostRecipeConfig(PTCHAR name);
+API_IMPORT PTCHAR	uvEng_GetHostRecipeConfig();
+					
+
+API_IMPORT BOOL		uvEng_SetLocalRecipeConfig(PTCHAR name);
+API_IMPORT PTCHAR	uvEng_GetLocalRecipeConfig();
+
+
 
 /*
  desc : 환경 파일 저장

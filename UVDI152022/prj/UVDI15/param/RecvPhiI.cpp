@@ -143,6 +143,8 @@ VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* calle
 
 	uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
 
+	uvEng_JobRecipe_SetWhatLastSelectIsLocal(false); //<-실패든 뭐든 호스트 레시피로 변경해야함.
+	
 	/*현재 시나리오 동작 중*/
 	if (is_busy)
 	{
@@ -281,8 +283,12 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	memcpy(stProcessExecute.szGlassID, stRecv->st_c2p_process_execute.szGlassID, DEF_MAX_GLASS_NAME_LENGTH);
 
 	/*레시피의 선택 유무*/
-	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
-	LPG_RJAF selJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	
+	//
+	uvEng_JobRecipe_SetWhatLastSelectIsLocal(false);
+	LPG_RJAF selJob = uvEng_JobRecipe_GetSelectRecipe(false); //<- execute는 무조건 host레시피료 진행되야함.
+	//
+
 	BOOL bSelect = selJob != nullptr;
 	/*레시피 등록 유무*/
 	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();

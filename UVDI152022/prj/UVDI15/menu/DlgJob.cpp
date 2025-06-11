@@ -462,11 +462,14 @@ BOOL CDlgJob::InitGridRecipeList(BOOL bUpdate)
 	}
 
 
-	int nSelRecipe = CRecipeManager::GetInstance()->GetSelectRecipeIndex();
+	int nSelRecipe = CRecipeManager::GetInstance()->GetSelectRecipeIndex(EN_RECIPE_MODE::eRECIPE_MODE_SEL);
 	if (0 <= nSelRecipe)
-	{
 		SelectRecipe(nSelRecipe, eRECIPE_MODE_SEL);
-	}
+	
+	nSelRecipe = CRecipeManager::GetInstance()->GetSelectRecipeIndex(EN_RECIPE_MODE::eRECIPE_MODE_LOCAL);
+	if (0 <= nSelRecipe)
+		SelectRecipe(nSelRecipe, eRECIPE_MODE_LOCAL);
+
 
 	/* 기본 속성 및 갱신 */
 	pGrid->SetColumnResize(FALSE);
@@ -1212,9 +1215,7 @@ void CDlgJob::OnDblClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
 	if (TRUE == CheckEditing())
 		return;
 
-	if (SelectLocalRecipe() == false)
-		return;
-
+	
 	CString strSelectRecipe = m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(pItem->iRow, eJOB_GRD_COL_RECIPE_LIST_NAME);
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(strSelectRecipe.GetBuffer());
 	strSelectRecipe.ReleaseBuffer();
@@ -1223,8 +1224,16 @@ void CDlgJob::OnDblClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
 		return;
 	
 	
+	uvEng_JobRecipe_SetWhatLastSelectIsLocal(true); //로컬레시피로 변경.
+	
+	if (SelectLocalRecipe() == false)
+		return;
+
+	
+
 	SelectRecipe(pItem->iRow, eRECIPE_MODE_LOCAL);
-	Invalidate(TRUE);
+	::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, 0, 0);
+
 }
 
 void CDlgJob::OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
@@ -1283,6 +1292,7 @@ void CDlgJob::OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
 		}
 
 		SelectRecipe(pItem->iRow, eRECIPE_MODE_VIEW);
+		UpdateRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
 	}
 	Invalidate(TRUE);
 }
@@ -2320,9 +2330,7 @@ VOID CDlgJob::UpdateRecipe(int nSelectRecipe)
 	/* 기존 선택된 레시피가 있다면, 관련 정보 출력 */
 	if ((recipe = uvEng_JobRecipe_GetRecipeOnlyName(strSelectRecipe.GetBuffer())))
 	{
-		strSelectRecipe.ReleaseBuffer();
-
-		CRecipeManager::GetInstance()->LoadRecipe(strSelectRecipe, eRECIPE_MODE_VIEW);
+		CRecipeManager::GetInstance()->LoadRecipe(strSelectRecipe, eRECIPE_MODE_VIEW); //더블클릭이니 첫 한번은 무조건 클릭으로 VIEW에 추가되게된다. 그래서 LOCALSELECT도 VIEW를 쓰면된다. 
 
 		UpdateGridParam(EN_RECIPE_TAB::JOB);
 		UpdateGridParam(EN_RECIPE_TAB::EXPOSE);
@@ -2341,6 +2349,7 @@ VOID CDlgJob::UpdateRecipe(int nSelectRecipe)
 		SetRedraw(TRUE);
 		Invalidate(FALSE);
 	}
+	strSelectRecipe.ReleaseBuffer();
 }
 
 /*
@@ -2691,13 +2700,13 @@ VOID CDlgJob::SelectHostRecipe()
 	}
 
 
-	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
-	strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
-	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+	//strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+	//strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
+	//strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
 
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::JOB, (LPARAM)&strReicpe);
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::EXPOSE, (LPARAM)&strExpo);
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::ALIGN, (LPARAM)&strAlign);
+	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, 0, 0);
+	//m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::EXPOSE, (LPARAM)&strExpo);
+	//m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::ALIGN, (LPARAM)&strAlign);
 
 	SelectRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
 
@@ -2740,8 +2749,8 @@ VOID CDlgJob::SelectHostRecipe()
 BOOL CDlgJob::SelectLocalRecipe()
 {
 	CUniToChar csCnv;
-	CString strReicpe, strExpo, strAlign;
-	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+	CString   strAlign;
+
 
 	CString strRecipeName	= m_grd_ctl[eJOB_GRD_RECIPE_LIST].GetItemText(m_nSelectRecipe[eRECIPE_MODE_VIEW], eJOB_GRD_COL_RECIPE_LIST_NAME);
 	
@@ -2751,16 +2760,17 @@ BOOL CDlgJob::SelectLocalRecipe()
 		return false;
 	}
 
-	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
-	strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
-	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+	/*strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
+	strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();*/
+	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName( eRECIPE_MODE_LOCAL);
 
 	//SelectRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
 
 	/* 최종적으로 전역 메모리에 선택된 마크 레시피 pstRecipeMark 저장 */
 	// CString -> TCHAR * 
-	TCHAR* tcharRecipeName = _T("");
-	tcharRecipeName = (TCHAR*)(LPCTSTR)strAlign;
+	TCHAR tcharRecipeName[256] = { 0 };
+	_tcscpy_s(tcharRecipeName, strAlign);  // ← 복사본으로 안전하게 사용
+	
 	
 	LPG_RAAF pstRecipeAlign = uvEng_Mark_GetAlignRecipeName(tcharRecipeName);
 
@@ -2770,7 +2780,7 @@ BOOL CDlgJob::SelectLocalRecipe()
 		ShowMsg(eWARN, L"Failed to select the recipe for mark", 0x01);
 		return false;
 	}
-
+	
 	for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) 
 	{
 		for (int j = 0; j < 2; j++) 
@@ -2778,13 +2788,11 @@ BOOL CDlgJob::SelectLocalRecipe()
 			uvCmn_Camera_SetMarkFindMode(i + 1, pstRecipeAlign->mark_type, j);
 		}
 	}
-
+	
 	uvEng_Camera_SetMarkMethod(ENG_MMSM(pstRecipeAlign->search_type), pstRecipeAlign->search_count);
+
+	return TRUE;
 }
-
-
-
-
 
 void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode) 
 {
@@ -2809,7 +2817,7 @@ void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode)
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 0, PALE_GREEN);
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 1, PALE_GREEN);
 
-		UpdateRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);
+		
 	}
 
 	if (-1 != m_nSelectRecipe[eRECIPE_MODE_LOCAL])

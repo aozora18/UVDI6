@@ -199,7 +199,7 @@ BOOL CLedPower::ParseAppend(CHAR *data, UINT32 size)
 	}
 
 	/* 순서대로 읽어서 구조체에 저장 */
-	pstData	= new STG_PLPI;
+	pstData	= new STG_PLPI();
 	ASSERT(pstData);
 	/* 메모리 할당 및 초기화 */
 	pstData->Init();

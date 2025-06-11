@@ -1052,20 +1052,37 @@ API_EXPORT BOOL uvEng_IsInitedEngine()
 	return g_bEngineInited;
 }
 
-API_EXPORT BOOL uvEng_SetRecipeConfig(PTCHAR name)
+API_EXPORT BOOL uvEng_SetHostRecipeConfig(PTCHAR name)
 {
 	INT32 i32Len = (INT32)wcslen(name);
 
 	if (i32Len >= MAX_FILE_LEN)	i32Len = MAX_FILE_LEN - 1;
-	wcscpy_s(GetConfig()->set_uvdi15.recipe_name, MAX_FILE_LEN, name);
+	wcscpy_s(GetConfig()->set_uvdi15.host_recipe_name, MAX_FILE_LEN, name);
 
 	return TRUE;
 }
 
-API_EXPORT PTCHAR uvEng_GetRecipeConfig()
+API_EXPORT PTCHAR uvEng_GetHostRecipeConfig()
 {
-	return GetConfig()->set_uvdi15.recipe_name;
+	return GetConfig()->set_uvdi15.host_recipe_name;
 }
+
+API_EXPORT BOOL uvEng_SetLocalRecipeConfig(PTCHAR name)
+{
+	INT32 i32Len = (INT32)wcslen(name);
+
+	if (i32Len >= MAX_FILE_LEN)	i32Len = MAX_FILE_LEN - 1;
+	wcscpy_s(GetConfig()->set_uvdi15.local_recipe_name, MAX_FILE_LEN, name);
+
+	return TRUE;
+}
+
+API_EXPORT PTCHAR uvEng_GetLocalRecipeConfig()
+{
+	return GetConfig()->set_uvdi15.local_recipe_name;
+}
+
+
 
 /*
  desc : 환경 파일 저장

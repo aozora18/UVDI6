@@ -24,7 +24,7 @@ static CHAR THIS_FILE[] = __FILE__;
 CRecipeUVDI15::CRecipeUVDI15(PTCHAR work_dir, CLedPower* led_power, LPG_LDSM mem_luria)
 	: CBase(work_dir)
 {
-	m_pstJobRecipe = NULL;
+	m_pstJobRecipe = nullptr;
 	m_pstlocalJobRecipe = nullptr;
 	
 	m_pLedPower = led_power;
@@ -183,12 +183,16 @@ BOOL CRecipeUVDI15::LoadFile()
 		/* 파일 핸들 닫기 */
 		fclose(fp);
 
-		if (FALSE == SelJobRecipeOnlyName(csCnv.Uni2Ansi(GetConfig()->set_uvdi15.recipe_name),false))
+		if (FALSE == SelJobRecipeOnlyName(csCnv.Uni2Ansi(GetConfig()->set_uvdi15.host_recipe_name),false))
 		{
 			if (m_lstJobRecipe.GetCount())
 			{
 				SelJobRecipeOnlyName(m_lstJobRecipe.GetHead()->job_name,false);
 			}
+		}
+		if (FALSE == SelJobRecipeOnlyName(csCnv.Uni2Ansi(GetConfig()->set_uvdi15.local_recipe_name), true))
+		{
+			SelJobRecipeOnlyName(GetSelectJobRecipe(false)->job_name, true);
 		}
 	}
 
@@ -669,6 +673,8 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe,bool isLocalJobRecipe)
 	POSITION pPos		= NULL;
 	LPG_RJAF pstRecipe	= NULL;
 
+	
+
 	/* Job 레시피 기본 정보 검색 및 선택 */
 	pPos	= m_lstJobRecipe.GetHeadPosition();
 	while (pPos)
@@ -676,7 +682,15 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe,bool isLocalJobRecipe)
 		pstRecipe	= m_lstJobRecipe.GetNext(pPos);
 		if (0 == strcmp(recipe, pstRecipe->job_name))
 		{
-			isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = pstRecipe;
+			if (isLocalJobRecipe)
+			{
+				m_pstlocalJobRecipe = pstRecipe;
+			}
+			else
+			{
+				m_pstJobRecipe = pstRecipe;
+			}
+			
 			bSucc	= TRUE;
 			break;
 		}
@@ -685,20 +699,25 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe,bool isLocalJobRecipe)
 	/* 레시피에 기본과 연결되는 레시피 속성 정보가 없다면... */
 	if (!bSucc)
 	{
-		isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = nullptr;
+		if (isLocalJobRecipe)
+		{
+			m_pstlocalJobRecipe = nullptr;
+		}
+		else
+		{
+			m_pstJobRecipe = nullptr;
+		}
 
 		return FALSE;
 	}
-
-	if (isLocalJobRecipe)
-		return bSucc;
 
 	// by sysandj : 선택된 레시피 저장
 	INT32 i32Len = (INT32)strlen(recipe);
 	if (i32Len >= MAX_FILE_LEN)	i32Len = MAX_FILE_LEN - 1;
 	CUniToChar csCnv;
 	
-	wcscpy_s(GetConfig()->set_uvdi15.recipe_name, MAX_FILE_LEN, csCnv.Ansi2Uni(recipe));
+
+	wcscpy_s(isLocalJobRecipe ? GetConfig()->set_uvdi15.local_recipe_name : GetConfig()->set_uvdi15.host_recipe_name, MAX_FILE_LEN, csCnv.Ansi2Uni(recipe));
 
 	/* 환경 파일 객체 생성 */
 	CConfUvdi15* pConfUvdi15 = new CConfUvdi15(GetConfig());
@@ -725,6 +744,8 @@ BOOL CRecipeUVDI15::SelJobRecipePathName(PCHAR recipe,bool isLocalJobRecipe)
 	POSITION pPos = NULL;
 	LPG_RJAF pstRecipe = NULL;
 
+	
+
 	pPos = m_lstJobRecipe.GetHeadPosition();
 	while (pPos && !bSucc)
 	{
@@ -735,15 +756,31 @@ BOOL CRecipeUVDI15::SelJobRecipePathName(PCHAR recipe,bool isLocalJobRecipe)
 
 		if (0 == strcmp(recipe, szGerberPath))
 		{
-			isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = pstRecipe;
+			if (isLocalJobRecipe)
+			{
+				m_pstlocalJobRecipe = pstRecipe;
+			}
+			else
+			{
+				m_pstJobRecipe = pstRecipe;
+			}
 			bSucc = TRUE;
 			break;
 		}
 	}
-	if (!bSucc)	return FALSE;
+	if (!bSucc)	
+		return FALSE;
 	
 	/* 레시피에 기본과 연결되는 레시피 속성 정보가 없다면... */
-	if (!bSucc)	isLocalJobRecipe ? m_pstlocalJobRecipe : m_pstJobRecipe = nullptr;
+	if (!bSucc)	
+		if (isLocalJobRecipe)
+		{
+			m_pstlocalJobRecipe = nullptr;
+		}
+		else
+		{
+			m_pstJobRecipe = nullptr;
+		}
 
 	return FALSE;
 }

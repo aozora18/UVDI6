@@ -44,9 +44,9 @@ enum EnMainTxt
 	eMAIN_TXT_STATUS	 ,
 	eMAIN_TXT_MESSAGE	 ,
 	eMAIN_TXT_VERSION	 ,
-	eMAIN_TXT_GERB_RECIPE ,
+	/*eMAIN_TXT_GERB_RECIPE ,
 	eMAIN_TXT_EXPOSE_RECIPE,
-	eMAIN_TXT_ALIGN_RECIPE ,
+	eMAIN_TXT_ALIGN_RECIPE ,*/
 	eMAIN_TXT_SERVER,
 	eMAIN_TXT_MOTION,
 	eMAIN_TXT_TRIGGER,
@@ -57,6 +57,15 @@ enum EnMainTxt
 	eMAIN_TXT_STROBE_LAMP,
 	eMAIN_TXT_MAX
 };
+
+enum EnRichTxt
+{
+	eMAIN_RICHTXT_GERB_RECIPE ,
+	eMAIN_RICHTXT_EXPOSE_RECIPE,
+	eMAIN_RICHTXT_ALIGN_RECIPE ,
+	eMAIN_RICHTXT_MAX
+};
+
 
 enum EnMainBtn
 {
@@ -107,6 +116,11 @@ protected:
 	virtual VOID		OnResizeDlg();
 	virtual void		RegisterUILevel();
 
+	void RefreshRecipeTitleCaption();
+	void SetRichTextColored(CRichEditCtrl* pCtrl, const CString& text,
+		COLORREF colorLeft = RGB(255, 0, 0),
+		COLORREF colorRight = RGB(0, 0, 255),
+		TCHAR delimiter = _T('/'));
 /* 로컬 변수 */
 protected:
 
@@ -136,6 +150,8 @@ protected:
 	CMyStatic			m_txt_ctl[eMAIN_TXT_MAX];
 	CMyStatic			m_pic_ctl[eMAIN_PIC_MAX];
 	CMacButton			m_btn_ctl[eMAIN_BTN_MAX];
+	
+	CRichEditCtrl		newNameList[3];
 
 	/* 자식 메뉴 화면 */
 	ENG_CMDI			m_enDlgID;		/* 가장 최근에 선택된 다이얼로그 ID */

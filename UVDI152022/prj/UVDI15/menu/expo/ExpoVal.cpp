@@ -93,32 +93,9 @@ VOID CExpoVal::ResetData()
 */
 VOID CExpoVal::DrawRecipe()
 {
-	CMyStatic *pText	= NULL;
 	
-
-	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
-	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
-
-	CUniToChar csCnv;
-
-	CString strReicpe, strExpo, strAlign;
-	/* 거버 레시피 출력 */
-	//pText	= (CMyStatic *)CWnd::FromHandle(m_hGerb);
-	//if (!pstGerb)	pText->SetWindowTextW(L"No recipe selected");
-	//else			pText->SetWindowTextW(csCnv.Ansi2Uni(pstGerb->recipe_name));
-	//pText->Invalidate(TRUE);
-	if (!pstJob)	strReicpe = L"No recipe selected";
-	else			strReicpe = csCnv.Ansi2Uni(pstJob->job_name);
-
-	if (!pstJob)	strExpo = L"No recipe selected";
-	else			strExpo = csCnv.Ansi2Uni(pstJob->expo_recipe);
-
-	if (!pstJob)	strAlign = L"No recipe selected";
-	else			strAlign = csCnv.Ansi2Uni(pstJob->align_recipe);
-
-	::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)0, (LPARAM)&strReicpe);
-	::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)1, (LPARAM)&strExpo);
-	::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)2, (LPARAM)&strAlign);
+	::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, 0,0);
+	
 }
 
 /*

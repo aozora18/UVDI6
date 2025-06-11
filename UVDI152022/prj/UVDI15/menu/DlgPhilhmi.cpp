@@ -1002,7 +1002,7 @@ BOOL CDlgPhilhmi::InitGridRecipeList(BOOL bUpdate)
 	}
 
 
-	int nSelRecipe = CRecipeManager::GetInstance()->GetSelectRecipeIndex();
+	int nSelRecipe = CRecipeManager::GetInstance()->GetSelectRecipeIndex(EN_RECIPE_MODE::eRECIPE_MODE_SEL);
 	if (0 <= nSelRecipe)
 	{
 		SelectRecipe(nSelRecipe, eRECIPE_MODE_SEL);
@@ -1910,14 +1910,14 @@ VOID CDlgPhilhmi::RecipeSelect()
 		return;
 	}
 
-	CString strReicpe, strExpo, strAlign;
+	/*CString strReicpe;// strExpo, strAlign;
 	strReicpe = CRecipeManager::GetInstance()->GetRecipeName();
 	strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
-	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+	strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();*/
 
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::JOB, (LPARAM)&strReicpe);
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::EXPOSE, (LPARAM)&strExpo);
-	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::ALIGN, (LPARAM)&strAlign);
+	m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, 0, 0);
+	//m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::EXPOSE, (LPARAM)&strExpo);
+	//m_pDlgMain->SendMessageW(WM_MAIN_RECIPE_UPDATE, EN_RECIPE_TAB::ALIGN, (LPARAM)&strAlign);
 
 
 	/*Philhmi Ελ½Ε*/
@@ -1926,10 +1926,10 @@ VOID CDlgPhilhmi::RecipeSelect()
 	STG_PP_P2C_RCP_SELECT_ACK stRecv;
 	stSend.Reset();
 	stRecv.Reset();
-	sprintf_s(stSend.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, "%S", strReicpe.GetString());
+	sprintf_s(stSend.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, "%S", strRecipeName.GetString());
 	uvEng_Philhmi_Send_P2C_RCP_SELECT(stSend, stRecv);
 	AddListBox(_T("P2C Reicpe Select"));
-	swprintf_s(szTemp, 512, L"Reicpe Select: %s", strReicpe.GetString());
+	swprintf_s(szTemp, 512, L"Reicpe Select: %s", strRecipeName.GetString());
 	AddListBox(szTemp);
 
 	SelectRecipe(m_nSelectRecipe[eRECIPE_MODE_VIEW]);

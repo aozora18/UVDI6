@@ -80,7 +80,7 @@ public:
 	BOOL				LoadRecipe(CString strJobName, CString strExpoName, CString strAlignName, EN_RECIPE_MODE eRecipeMode = eRECIPE_MODE_SEL);
 	int					GetRecipeTabIndex(CString strTabName);
 	int					GetRecipeIndex(CString strName);
-	int					GetSelectRecipeIndex();
+	int					GetSelectRecipeIndex(EN_RECIPE_MODE eRecipeMode);
 	CString				GetRecipeTabName(int nIndexTab);
 	BOOL				GetLEDFrameRate();
 	BOOL				CalcMarkDist();

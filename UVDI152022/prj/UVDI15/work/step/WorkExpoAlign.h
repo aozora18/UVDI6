@@ -24,7 +24,7 @@ protected:
 	};
 public:
 
-	map< OffsetType, vector<CaliPoint>> offsetPool;
+	
 
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();
@@ -32,8 +32,7 @@ public:
 	
 	ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam;
 	ENG_ATGL aligntype = ENG_ATGL::en_global_4_local_0_point;
-
-	vector<STG_XMXY>	grabMarkPath;
+	
 	int globalMarkCnt, localMarkCnt = 0;
 
 	void DoInitOnthefly2cam();
@@ -108,6 +107,8 @@ protected:
 /* 공용 함수 */
 public:
 
+	map< OffsetType, vector<CaliPoint>> offsetPool;
+	vector<STG_XMXY>	grabMarkPath;
 
 };
 

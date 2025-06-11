@@ -113,84 +113,87 @@ CaliPoint CaliCalc::CalculateAverageOffset(const std::vector<CaliPoint>& nearbyP
 					LimittoMicro(sumOffsetY / nearbyPoints.size()) };
 }
 
+
+
+
+std::vector<double> tokenize(string str)
+{
+		const std::regex re(R"([\s|,]+)");
+		std::sregex_token_iterator it{ str.begin(), str.end(), re, -1 };
+		std::vector<string> tokenized{ it, {} };
+
+		tokenized.erase(std::remove_if(tokenized.begin(),
+			tokenized.end(), [](std::string const& s)
+			{
+				return s.size() == 0;
+			}),
+			tokenized.end());
+
+		std::vector<double> doubleVector;
+		std::transform(tokenized.begin(), tokenized.end(), std::back_inserter(doubleVector),
+			[](const std::string& str) { return std::stod(str); });
+
+		return doubleVector;
+}
+
+
+void StackVector(TCHAR* name, vector<CaliPoint>& dataList, vector<double>& featureStored)
+{
+	const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
+	const int DATACOUNT = 4; //x,y, offsetx,offsety
+
+
+	dataList.clear();
+	featureStored.clear();
+
+	std::basic_string<TCHAR> str(name);
+	if (str.empty()) return;
+
+	try
+	{
+		std::ifstream file(name);
+
+		for (std::string line; std::getline(file, line);)
+		{
+			std::string lineCopy = line;
+			const std::vector<double> tokens = tokenize(lineCopy);
+			if (tokens.empty()) continue;
+
+			if (tokens.size() != DATACOUNT)
+				std::copy(tokens.begin(), tokens.end(), std::back_inserter(featureStored));
+			else
+				dataList.push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
+		}
+	}
+	catch (exception e)
+	{
+
+	}
+}
+
 void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 {
-
-	
-
-	auto tokenize = [](string str) -> vector<double>
-		{
-			const std::regex re(R"([\s|,]+)");
-			std::sregex_token_iterator it{ str.begin(), str.end(), re, -1 };
-			std::vector<string> tokenized{ it, {} };
-
-			tokenized.erase(std::remove_if(tokenized.begin(),
-				tokenized.end(), [](std::string const& s)
-				{
-					return s.size() == 0;
-				}),
-				tokenized.end());
-
-			std::vector<double> doubleVector;
-			std::transform(tokenized.begin(), tokenized.end(), std::back_inserter(doubleVector),
-				[](const std::string& str) { return std::stod(str); });
-
-			return doubleVector;
-		};
-
-
-	auto StackVector = [&](TCHAR* name, vector<CaliPoint>& dataList , vector<double>& featureStored)
-		{
-			const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
-			const int DATACOUNT = 4; //x,y, offsetx,offsety
-			
-			
-			dataList.clear();
-			featureStored.clear();
-
-			std::basic_string<TCHAR> str(name);
-			if (str.empty()) return;
-
-			try
-			{
-				std::ifstream file(name);
-
-				for (std::string line; std::getline(file, line);)
-				{
-					std::string lineCopy = line;
-					const std::vector<double> tokens = tokenize(lineCopy);
-					if (tokens.empty()) continue;
-
-					if (tokens.size() != DATACOUNT)
-						std::copy(tokens.begin(), tokens.end(), std::back_inserter(featureStored));
-					else
-						dataList.push_back(CaliPoint(tokens[XCoord], tokens[YCoord], tokens[OffsetX], tokens[OffsetY]));
-				}
-			}
-			catch (exception e)
-			{
-				int debug = 0;
-			}
-
-		};
-
 
 	auto loadSeq = [&](LPG_CIEA cfg)
 		{		
 			
+			TCHAR fileName[2][256];
+			_tcscpy_s(fileName[0], cfg->file_dat.staticAcamAlignCali);
+			_tcscpy_s(fileName[1], cfg->file_dat.staticAcamExpoCali);
+
 			try
 			{
 				vector<double> temp;
-				TCHAR* name = cfg->file_dat.staticAcamAlignCali;
-				StackVector(name, caliDataMap[OffsetType::align], temp);
+
+				
+				StackVector(fileName[0], caliDataMap[OffsetType::align], temp);
 				if (caliDataMap[OffsetType::align].size() != 0)
 				{
 					SortPos(caliDataMap[OffsetType::align]);
 					calidataFeature[OffsetType::align] = CaliFeature(temp);
 				}
 
-				name = cfg->file_dat.staticAcamExpoCali;
-				StackVector(name, caliDataMap[OffsetType::expo], temp);
+				StackVector(fileName[1], caliDataMap[OffsetType::expo], temp);
 				if (caliDataMap[OffsetType::expo].size() != 0)
 				{
 					SortPos(caliDataMap[OffsetType::expo]);

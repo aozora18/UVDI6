@@ -576,6 +576,28 @@ VOID CDlgExpo::RecipeLoad()
 		if (IDOK != dlgStep.MyDoModal())	return;
 		u8Offset	= dlgStep.GetOffset();
 	}
+
+	bool isLocalSelect =  uvEng_JobRecipe_WhatLastSelectIsLocal();
+	bool sameRecipe = false;
+	LPG_RJAF localJob = uvEng_JobRecipe_GetSelectRecipe(true);
+	LPG_RJAF hostJob = uvEng_JobRecipe_GetSelectRecipe(false);
+
+	if (localJob && hostJob)
+	{
+		sameRecipe = strcmp(localJob->job_name, hostJob->job_name) == 0;
+	}
+	
+	if (sameRecipe == false)
+	{
+		TCHAR temp[255] = { 0, };
+		sprintf_s("%s %s selected. Load Recipe?", 255, isLocalSelect ? "LocalRecipe" : "HostRecipe", isLocalSelect ? localJob->job_name : hostJob->job_name);
+
+		if (MessageBox(temp, L"Notice", MB_YESNO) == 0)
+			return;
+	}
+	
+
+
 	m_pDlgMain->RunWorkJob(ENG_BWOK::en_local_gerb_load, PUINT64(&u8Offset));
 }
 

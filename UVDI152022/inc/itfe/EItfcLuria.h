@@ -131,6 +131,10 @@ API_IMPORT DOUBLE uvEng_Luria_GetGlobalLeftRightBottomDiffY();
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvEng_Luria_GetLocalBottomMark(UINT8 scan, UINT8 cam_id, LPG_XMXY data);
+
+
+API_IMPORT BOOL uvEng_Luria_GetLoadedJobName(PCHAR buff, int buffSize);
+
 /*
  desc : 현재 선택된 거버의 XML 데이터 읽기
  parm : align	- [in]  Gerber Data에 저장된 Mark Type (ENG_ATGL)

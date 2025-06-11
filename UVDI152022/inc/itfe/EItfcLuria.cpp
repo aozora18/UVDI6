@@ -197,6 +197,23 @@ API_EXPORT BOOL uvEng_Luria_GetLocalBottomMark(UINT8 scan, UINT8 cam_id, LPG_XMX
 	return uvLuria_GetLocalBottomMark(scan, cam_id, *data);
 }
 
+API_EXPORT BOOL uvEng_Luria_GetLoadedJobName(PCHAR buff,int buffSize)
+{
+	memset(buff, 0, buffSize);
+
+	if (strlen(GetShMemLuria()->jobmgt.selected_job_name) < 1)
+		return FALSE;
+
+	char* src = uvEng_ShMem_GetLuria()->jobmgt.selected_job_name;
+	
+
+	const char* filename = strrchr(src, '\\') ? strrchr(src, '\\') + 1 : src;
+
+	strcpy_s(buff, buffSize, filename);
+	return TRUE;
+}
+
+
 
 /*
  desc : 현재 선택된 거버의 XML 데이터 읽기

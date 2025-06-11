@@ -320,6 +320,7 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 
 	
 
+
 	if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0)
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
@@ -327,43 +328,44 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	}
 	else
 	{
-		if (uvEng_GetConfig()->set_comn.use_auto_align)
+
+		char loadedJob[255] = { 0, };
+		bool getLoadedJob = uvEng_Luria_GetLoadedJobName(loadedJob, 255);
+
+		if (getLoadedJob && strcmp(callerInst->m_stExpoLog.recipe_name, loadedJob) != 0)
 		{
-			/*자동화 동작시 얼라인 동작 후 노광*/
-			callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
+
+
+			wchar_t wloaded[128] = { 0 };
+			wchar_t wexec[128] = { 0 };
+
+			MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.recipe_name, -1, wexec, 128);
+			MultiByteToWideChar(CP_ACP, 0, loadedJob, -1, wloaded, 128);
+
+			swprintf_s(
+				tzMesg, 512,
+				L"execute error!loaded(% s) / execute(% s) recipe mismatching!!!!",
+				wloaded,
+				wexec);
+
+			LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 		}
 		else
 		{
-			/*자동화 동작시 얼라인 동작 없이 노광*/
-			callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+			if (uvEng_GetConfig()->set_comn.use_auto_align)
+			{
+				/*자동화 동작시 얼라인 동작 후 노광*/
+				callerInst->RunWorkJob(ENG_BWOK::en_expo_align, PUINT64(&callerInst->m_stExpoLog));
+			}
+			else
+			{
+				/*자동화 동작시 얼라인 동작 없이 노광*/
+				callerInst->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&callerInst->m_stExpoLog));
+			}
 		}
 	}
 
-	//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
-	/*if (0 == strcmp(callerInst->m_stExpoLog.host_recipe_name, callerInst->m_stExpoLog.recipe_name))
-	{*/
-		
-	//}
-	//else
-	//{
-
-	//	wchar_t w_host[128] = { 0 };
-	//	wchar_t w_exec[128] = { 0 };
-
-	//	MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.host_recipe_name, -1, w_host, 128);
-	//	MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.recipe_name, -1, w_exec, 128);
-
-	//	swprintf_s(
-	//		tzMesg, 512,
-	//		L"A Recipe different from the Recipe sent from the Host is selected, selected = %s, executed = %s",
-	//		w_host,
-	//		w_exec);
-
-	//	LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-
-	//	//   주 공정, 진행 불가
-	//	stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
-	//}
 
 	uvEng_Philhmi_Send_C2P_PROCESS_EXECUTE_ACK(stProcessExecute);
 }

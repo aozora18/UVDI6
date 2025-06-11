@@ -18,6 +18,7 @@ static char THIS_FILE[]	= __FILE__;
 
 volatile atomic<bool> CWork::aborted;
 volatile atomic<bool> CWork::onExternalWork;
+ENG_BWOK CWork::relayWorkResv = ENG_BWOK::en_work_none;
 
 /*
  desc : 생성자
@@ -40,6 +41,7 @@ CWork::CWork(ENG_BWOK relayWork)
 */
 CWork::~CWork()
 {
+
 }
 
 /*
@@ -145,15 +147,41 @@ VOID CWork::EndWork()
 	CWork::SetAbort(false);
 	CWork::SetonExternalWork(false);
 
-	if (GetRelayWork() != ENG_BWOK::en_work_none)
+	if (IsSutableWork(GetRelayWork()))
 	{
-		thread([&]()
-		{
-				this_thread::sleep_for(chrono::milliseconds(1000));
-				mainthreadPtr->RunWorkJob(GetRelayWork(), nullptr, true);}).detach();
-		}
+		CWork::relayWorkResv = GetRelayWork();
+		thread([=]()
+			{
+				this_thread::sleep_for(chrono::milliseconds(100));
+				CMainThread::GetPtr()->RunWorkJob(CWork::relayWorkResv, nullptr, true);
+			}).detach();
+	}
+	
+	relayWork = ENG_BWOK::en_work_none;
 }
 
+
+bool CWork::IsSutableWork(ENG_BWOK work)
+{
+
+	vector< ENG_BWOK> workList =
+	{
+		ENG_BWOK::en_work_stop,
+		ENG_BWOK::en_work_home,
+		ENG_BWOK::en_work_init,
+		ENG_BWOK::en_local_gerb_load,
+		ENG_BWOK::en_gerb_load,
+		ENG_BWOK::en_gerb_unload,
+		ENG_BWOK::en_gerb_onlyfem,
+		ENG_BWOK::en_mark_move,
+		ENG_BWOK::en_mark_test,
+		ENG_BWOK::en_env_calib,
+		ENG_BWOK::en_expo_only,
+		ENG_BWOK::en_expo_align,
+		ENG_BWOK::en_gerb_expofem,
+	};
+	return std::find(workList.begin(), workList.end(), work) != workList.end();
+}
 /*
  desc : 작업 관련 로그 이력
  parm : mesg	- [in]  작업 동작 관련 메시지 버퍼

@@ -60,7 +60,7 @@ enum EnMainTxt
 
 enum EnRichTxt
 {
-	eMAIN_RICHTXT_GERB_RECIPE ,
+	eMAIN_RICHTXT_GERB_RECIPE =0,
 	eMAIN_RICHTXT_EXPOSE_RECIPE,
 	eMAIN_RICHTXT_ALIGN_RECIPE ,
 	eMAIN_RICHTXT_MAX
@@ -151,7 +151,7 @@ protected:
 	CMyStatic			m_pic_ctl[eMAIN_PIC_MAX];
 	CMacButton			m_btn_ctl[eMAIN_BTN_MAX];
 	
-	CRichEditCtrl		newNameList[3];
+	CRichEditCtrl		newNameList[eMAIN_RICHTXT_MAX];
 
 	/* 자식 메뉴 화면 */
 	ENG_CMDI			m_enDlgID;		/* 가장 최근에 선택된 다이얼로그 ID */

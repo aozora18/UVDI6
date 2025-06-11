@@ -44,11 +44,17 @@ void CRecipeManager::Init(HWND hWnd, CDlgMain* maindlgPtr)
 	LoadRecipeList();
 
 	PTCHAR lastHostRcp = uvEng_GetHostRecipeConfig();
-	SelectRecipe(lastHostRcp, eRECIPE_MODE_SEL_FROM_INITIAL);
+	if (SelectRecipe(lastHostRcp, eRECIPE_MODE_SEL_FROM_INITIAL)) //최초 시작시엔 사고를 막기위해 무조건 호스트레시피로 동기화
+	{
+		uvEng_JobRecipe_SelRecipeOnlyName(lastHostRcp, true);;
+		SetRecipeName(lastHostRcp, eRECIPE_MODE_LOCAL);
+	}
+
 	
-	PTCHAR lastLocalRcp = uvEng_GetLocalRecipeConfig();
-	uvEng_JobRecipe_SelRecipeOnlyName(lastLocalRcp,true); //local rcp도 같은레시피로 등록 , 초기화라서 가능한것.
 	
+//	PTCHAR lastLocalRcp = uvEng_GetLocalRecipeConfig();
+//	uvEng_JobRecipe_SelRecipeOnlyName(lastLocalRcp,true); //local rcp도 같은레시피로 등록 , 초기화라서 가능한것.
+//	SetRecipeName(lastLocalRcp,eRECIPE_MODE_LOCAL);
 }
 
 void CRecipeManager::Destroy()

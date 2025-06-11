@@ -1466,13 +1466,38 @@ VOID CDlgManual::RedrawMarkPage(UINT8 mode)
 VOID CDlgManual::RecipeLoad()
 {
 	UINT8 u8Offset = 0xff;
-
+	USES_CONVERSION;
 	if (uvEng_GetConfig()->set_comn.run_develop_mode)
 	{
 		CDlgStep dlgStep;
 		if (IDOK != dlgStep.MyDoModal())	return;
 		u8Offset = dlgStep.GetOffset();
 	}
+
+
+	bool isLocalSelect = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	bool sameRecipe = false;
+	LPG_RJAF localJob = uvEng_JobRecipe_GetSelectRecipe(true);
+	LPG_RJAF hostJob = uvEng_JobRecipe_GetSelectRecipe(false);
+	CDlgMesg dlgMesg;
+
+	if (localJob && hostJob)
+	{
+		sameRecipe = strcmp(localJob->job_name, hostJob->job_name) == 0;
+	}
+
+	if (sameRecipe == false)
+	{
+		
+		TCHAR temp[255] = { 0, };
+		wsprintf(temp,_T("<<%s>> : <%s> selected. Load Recipe?"), isLocalSelect ? _T("LocalRecipe") : _T("HostRecipe"), isLocalSelect ? A2W(localJob->job_name) : A2W(hostJob->job_name));
+
+		if (dlgMesg.MyDoModal(temp) != IDOK)
+			return;
+	}
+
+
+
 	m_pDlgMain->RunWorkJob(ENG_BWOK::en_local_gerb_load, PUINT64(&u8Offset));
 }
 

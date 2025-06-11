@@ -29,6 +29,14 @@ public:
 	virtual ~CMainThread();
 	void DeleteCurrentJob();
 	thread workThread; atomic<bool> exited = false;
+
+	static CMainThread* myPtr;
+	static CMainThread* GetPtr()
+	{
+		return myPtr;
+	}
+
+
 /* 가상 함수 재정의 */
 protected:
 

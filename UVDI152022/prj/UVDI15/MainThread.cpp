@@ -28,7 +28,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-
+CMainThread* CMainThread::myPtr ;
 /*
  desc : 생성자
  parm : parent	- [in]  자신을 호출한 부모 윈도 핸들
@@ -50,7 +50,7 @@ CMainThread::CMainThread(HWND parent)
 	paramPool.reserve(poolsize);
 	paramPool = vector< LparamExtension>(poolsize, LparamExtension());
 	poolItor = paramPool.begin();
-	
+	myPtr = this;
 }
 
 /*
@@ -117,7 +117,7 @@ VOID CMainThread::RunWork()
 			uvEng_Luria_SetWorkBusy(FALSE);
 		}
 		/* 만약 작업 동작이 에러가 발생 했다면 ... Abort 동작 수행 */
-		if (m_pWorkJob && m_pWorkJob->IsWorkError())
+		if (m_pWorkJob && m_pWorkJob->IsWorkError() || CWork::GetAbort())
 		{
 			if (CWork::GetAbort() == false)
 			{
@@ -125,8 +125,8 @@ VOID CMainThread::RunWork()
 				CWork::SetAbort(true);
 				return;
 			}
-
-			RunWorkJob(ENG_BWOK::en_work_stop);
+			if(m_pWorkJob->GetWorkJobID() != ENG_BWOK::en_work_stop)
+				RunWorkJob(ENG_BWOK::en_work_stop);
 		}
 		/* 로그 데이터 관리 */
 		else if (!m_pWorkJob || m_pWorkJob->IsWorkCompleted())
@@ -361,7 +361,6 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 			if (!m_pWorkJob)	bSucc = FALSE;
 			else
 			{
-				((CWork*)m_pWorkJob)->SetMainthreadPtr(this);
 
 				bSucc = TRUE;
 				/* 초기화 작업 수행 */
@@ -405,7 +404,9 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 						m_pWorkJob != nullptr && 
 						m_pWorkJob->IsWorkStopped()  == false)
 					{
-						RunWorkJob();
+						if(m_csSyncWork.IsLockCount() == 0)
+							RunWorkJob();
+
 						this_thread::sleep_for(chrono::milliseconds(300));
 					}
 					exited.store(true);

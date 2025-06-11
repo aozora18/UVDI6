@@ -44,19 +44,16 @@ public:
 
 /* 가상함수 재정의 */
 protected:
+	
 	ENG_BWOK relayWork;
 public:
 	volatile static atomic<bool> aborted;
 	volatile static atomic<bool> onExternalWork;
-
-	void SetMainthreadPtr(CMainThread* ptr)
-	{
-		mainthreadPtr = ptr;
-	}
+	static ENG_BWOK relayWorkResv;
 
 /* 열거형 */
 protected:
-	CMainThread* mainthreadPtr = nullptr;
+	
 
 /* 로컬 변수 */
 protected:
@@ -107,6 +104,7 @@ protected:
 	VOID				CheckWorkTimeout();
 
 	VOID				SaveWorkLogs(PTCHAR mesg);
+	bool IsSutableWork(ENG_BWOK work);
 
 	VOID				SetStepName(PTCHAR name);
 

@@ -38,7 +38,6 @@
 #include "../../inc/itfc/ItfcUVDI15.h"
 
 
-
 using namespace std;
 class CaliCalc;
 
@@ -108,10 +107,15 @@ public:
 	bool isThreadRunning(const std::string& key);
 
 
+
+
 private:
 
 	std::unordered_map<std::string, tuple<std::unique_ptr<std::thread>, std::atomic<bool>&>> threads_;
 	std::recursive_mutex mutex_;
+
+
+	
 };
 
 struct subOffset //참조용.

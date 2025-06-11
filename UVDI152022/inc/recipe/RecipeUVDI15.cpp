@@ -716,8 +716,10 @@ BOOL CRecipeUVDI15::SelJobRecipeOnlyName(PCHAR recipe,bool isLocalJobRecipe)
 	if (i32Len >= MAX_FILE_LEN)	i32Len = MAX_FILE_LEN - 1;
 	CUniToChar csCnv;
 	
-
 	wcscpy_s(isLocalJobRecipe ? GetConfig()->set_uvdi15.local_recipe_name : GetConfig()->set_uvdi15.host_recipe_name, MAX_FILE_LEN, csCnv.Ansi2Uni(recipe));
+
+	if (isLocalJobRecipe)
+		return bSucc;
 
 	/* 券版 颇老 按眉 积己 */
 	CConfUvdi15* pConfUvdi15 = new CConfUvdi15(GetConfig());

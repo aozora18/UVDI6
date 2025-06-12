@@ -321,9 +321,22 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 	
 
 
-	if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0)
+	if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0) //선택이 다른경우.
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
+
+		wchar_t seljob[128] = { 0 };
+		wchar_t exeJob[128] = { 0 };
+
+		MultiByteToWideChar(CP_ACP, 0, selJob->job_name, -1, seljob, 128);
+		MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.recipe_name, -1, exeJob, 128);
+
+		swprintf_s(
+			tzMesg, 512,
+			L"execute error! Selected =(%s) / Host Executed = (%s) recipe mismatching!!!!",
+			seljob,
+			exeJob);
+
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 	}
 	else
@@ -332,7 +345,7 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 		char loadedJob[255] = { 0, };
 		bool getLoadedJob = uvEng_Luria_GetLoadedJobName(loadedJob, 255);
 
-		if (getLoadedJob && strcmp(callerInst->m_stExpoLog.recipe_name, loadedJob) != 0)
+		if (getLoadedJob && strcmp(callerInst->m_stExpoLog.recipe_name, loadedJob) != 0) //로드가 다른경
 		{
 
 

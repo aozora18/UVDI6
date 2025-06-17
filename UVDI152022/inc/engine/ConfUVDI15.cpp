@@ -1490,7 +1490,7 @@ BOOL CConfUvdi15::LoadConfigUvDI15Common()
 	m_pstCfg->set_uvdi15.check_start_led		= GetConfigUint8(L"CHECK_START_LED");
 	m_pstCfg->set_uvdi15.use_vision_lib		= GetConfigUint8(L"USE_VISION_LIBRARY");
 	m_pstCfg->set_uvdi15.load_recipe_homing	= GetConfigUint8(L"LOAD_RECIPE_HOMING");
-	GetConfigStr(L"HOST_RECIPE_NAME", m_pstCfg->set_uvdi15.host_recipe_name, MAX_FILE_LEN);
+	GetConfigStr(L"RECIPE_NAME", m_pstCfg->set_uvdi15.host_recipe_name, MAX_FILE_LEN);
 	//GetConfigStr(L"LOCAL_RECIPE_NAME", m_pstCfg->set_uvdi15.local_recipe_name, MAX_FILE_LEN);
 
 	return TRUE;
@@ -1508,7 +1508,7 @@ BOOL CConfUvdi15::SaveConfigUvDI15Common()
 	SetConfigUint32(L"CHECK_START_LED",		m_pstCfg->set_uvdi15.check_start_led);
 	SetConfigUint32(L"USE_VISION_LIBRARY",	m_pstCfg->set_uvdi15.use_vision_lib);
 	SetConfigUint32(L"LOAD_RECIPE_HOMING",	m_pstCfg->set_uvdi15.load_recipe_homing);
-	SetConfigStr(L"HOST_RECIPE_NAME",			m_pstCfg->set_uvdi15.host_recipe_name);
+	SetConfigStr(L"RECIPE_NAME",			m_pstCfg->set_uvdi15.host_recipe_name);
 	//SetConfigStr(L"LOCAL_RECIPE_NAME", m_pstCfg->set_uvdi15.local_recipe_name);
 
 	return TRUE;

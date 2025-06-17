@@ -2,7 +2,7 @@
 /*
  desc : Gerber Recipe
 */
-#define NO_SELECT
+
 
 using namespace std;
 
@@ -2631,13 +2631,13 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 	case 0x01	:  //<-근데 이제 uvdi에서 select를 하지 않으니 사용하지는 않게됐으나 사람일은 어찌될지 모르니 놔둠.
 		bUpdated = CRecipeManager::GetInstance()->SaveRecipe(strRecipeName, eRECIPE_MODE_VIEW);		
 		/* 등록 성공 여부 */
-		//if (!bUpdated)	return;
-		///*PhilHMI에 연결 되어 있다면 보고*/
-		//if (uvEng_Philhmi_IsConnected())
-		//{
-		//	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
-		//	CRecipeManager::GetInstance()->PhilSendModifyRecipe(pstRecipe);
-		//}
+		if (!bUpdated)	return;
+		/*PhilHMI에 연결 되어 있다면 보고*/
+		if (uvEng_Philhmi_IsConnected())
+		{
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
+			CRecipeManager::GetInstance()->PhilSendModifyRecipe(pstRecipe);
+		}
 
 		for (int i = 0; i <= EN_RECIPE_TAB::ALIGN; i++)
 		{

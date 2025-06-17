@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Work.h"
+class CWorkIdle;
 
 class BundleAction
 {
@@ -67,6 +68,7 @@ protected:
 
 	ENG_JWNS			SetMovingUnloader();
 	ENG_JWNS			IsMovedUnloader();
+	
 
 	ENG_JWNS			IsLoadedGerberCheck();
 	ENG_JWNS			IsMotorDriveStopAll();
@@ -94,6 +96,10 @@ protected:
 
 	ENG_JWNS			SetFinish();
 	ENG_JWNS			IsFinish();
+
+	ENG_JWNS Roaming(CWorkIdle* ptr);
+	
+
 
 	ENG_JWNS			SetLedVacuumShutterIn();
 	ENG_JWNS			SetLedVacuumShutterOut();
@@ -195,5 +201,8 @@ protected:
 
 	ENG_JWNS			ResetErrorMC2();			/* Reset the MC2 */
 	ENG_JWNS			CameraSetCamMode(ENG_VCCM mode);
+
+	public:
+		
 
 };

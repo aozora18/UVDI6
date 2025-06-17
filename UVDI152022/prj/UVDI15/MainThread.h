@@ -29,11 +29,23 @@ public:
 	virtual ~CMainThread();
 	void DeleteCurrentJob();
 	thread workThread; atomic<bool> exited = false;
-
+	
 	static CMainThread* myPtr;
 	static CMainThread* GetPtr()
 	{
 		return myPtr;
+	}
+
+	double idleAccum = 0;
+	double lastTick = GetTickCount();
+	void AccumIdleTime()
+	{
+		idleAccum += GetTickCount() - lastTick;
+		lastTick = GetTickCount();
+	}
+	bool CanRoaming()
+	{
+		return idleAccum > (1000 * 30);
 	}
 
 

@@ -1237,7 +1237,7 @@ BOOL CWork::IsVacuumRunning()
 */
 VOID CWork::GetGlobalMarkIndex(UINT8 mark_no, UINT8 &cam_id, UINT8 &img_id)
 {
-	LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
+	//LPG_CSAI pstSetAlign = &uvEng_GetConfig()->set_align;
 
 	if (mark_no > 0x03)
 	{
@@ -1508,6 +1508,7 @@ BOOL CWork::IsTrigPosResetAll()
 
 	return TRUE;
 }
+
 
 /*
  desc : 현재 작업이 중지된 상태이지 여부

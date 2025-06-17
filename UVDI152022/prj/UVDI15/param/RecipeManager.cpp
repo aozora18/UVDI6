@@ -1723,10 +1723,11 @@ BOOL CRecipeManager::CalcMarkDist()
 		return FALSE;
 	}
 
+	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 
 	/* 거버에 대한 마크 정보 얻기 */
 	if (0x00 != uvEng_Luria_GetGlobalMarkJobName(tzGerb, lstX, lstY,
-		ENG_ATGL::en_global_4_local_0_point))
+		(ENG_ATGL)pstAlignRecipe->align_type))
 	{
 		//dlgMesg.MyDoModal(L"Failed to get the mark info. of gerber file", 0x01);
 	}

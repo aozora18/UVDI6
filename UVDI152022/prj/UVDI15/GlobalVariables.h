@@ -561,10 +561,10 @@ public:
 
 	bool IsMarkFindInLastGrab();
 	int GetGrabCnt(int camIdx);
-
+	bool Inposition(ENG_MMDI axis, double pos, double threashold = 0.002);
 	bool IsMarkFindInLastGrab(int camIdx, double* grabOffsetX = nullptr, double* grabOffsetY = nullptr);
 
-	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000);
+	bool MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout = 30 * 1000,double speed=50);
 
 	bool GetOffsetsUseMarkPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);
 	bool GetOffsetsCurrPos(int centerCam, STG_XMXY mark, CaliPoint* alignOffset = nullptr, CaliPoint* expoOffset = nullptr, double posOffsetX=0, double posOffsetY=0);

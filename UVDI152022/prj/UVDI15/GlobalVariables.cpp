@@ -1354,6 +1354,19 @@ int CommonMotionStuffs::GetGrabCnt(int camIdx)
 	return cnt;
 }
 
+bool CommonMotionStuffs::Inposition(ENG_MMDI axis, double pos, double threashold)
+{
+	auto inPos = [=](double curr, double tgt, double thr)->bool
+		{
+			return std::abs(curr - tgt) <= thr;
+		};
+
+	double currPos =  uvCmn_MC2_GetDrvAbsPos(axis);
+
+	return inPos(currPos, pos, threashold);
+	
+}
+
 bool CommonMotionStuffs::IsMarkFindInLastGrab(int camIdx,double* grabOffsetX, double* grabOffsetY)
 {
 	CAtlList <LPG_ACGR>* grabs = uvEng_Camera_GetGrabbedMarkAll();
@@ -1499,7 +1512,7 @@ bool CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, Cal
 	return true;
 }
 
-bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout)
+bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout, double speed)
 {
 	double curr = uvCmn_MC2_GetDrvAbsPos(axis);
 
@@ -1511,7 +1524,7 @@ bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool
 
 	uvCmn_MC2_GetDrvDoneToggled(axis);
 
-	BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, uvEng_GetConfig()->mc2_svc.step_velo);
+	BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, speed);
 
 	if (waiting && res)
 		res = GlobalVariables::GetInstance()->Waiter([&]()->bool

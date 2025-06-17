@@ -645,6 +645,7 @@ void CDlgAuto::UpdateGridProcess()
 
 	for (int i = 0; i < (int)EN_GRD_PROCESS_COL::_size(); i++)
 	{
+		if (m_pGrd[nGridIndex] == nullptr) continue;
 		if (m_pGrd[nGridIndex]->GetColumnCount() <= i)
 		{
 			break;
@@ -670,6 +671,7 @@ void CDlgAuto::UpdateGridProcess()
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::POWER + 1, i + 1, _T("%.1f [W]"), dbTotal);
 	}
 
+	if (m_pGrd[nGridIndex] == nullptr) return;
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::ENERGE + 1, 1, _T("%.3f [mJ]"), pstJob->expo_energy);
 
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::SPEED + 1, 1, _T("%.1f [%%]"), pstJob->frame_rate / 10.0f);
@@ -784,7 +786,7 @@ void CDlgAuto::UpdateGridProduct()
 	UINT32 u32JobCount	= uvEng_GetJobWorkCount();
 	UINT64 u64JobTime	= uvEng_GetJobWorkTime();
 	UINT64 u64JobTimeAvg= uvEng_GetJobWorkTimeAverage();
-
+	if (m_pGrd[nGridIndex] == nullptr) return;
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PRODUCT_ROW::PRODUCT_COUNT, 1, _T("%d"), u32JobCount);
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PRODUCT_ROW::LAST_TACT_TIME, 1, _T("Last : %u m %02u s"), uvCmn_GetTimeToType(u64JobTime, 0x01), uvCmn_GetTimeToType(u64JobTime, 0x02));
 	m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PRODUCT_ROW::AVERAGE_TACT_TIME, 1, _T("Avgs : %u m %02u s"), uvCmn_GetTimeToType(u64JobTimeAvg, 0x01), uvCmn_GetTimeToType(u64JobTimeAvg, 0x02));
@@ -1004,7 +1006,7 @@ VOID CDlgAuto::UpdateQuickIOStatus()
 	CIOManager::GetInstance()->UpdateQUICKIO();
 	CIOManager::GetInstance()->GetQuickIOList(m_vQuickIO2);
 	int	nGridIndex = eGRD_IO_QUICK1;
-
+	if (m_pGrd[nGridIndex] == nullptr) return;
 	for (const auto& io : m_vQuickIO2)
 	{
 		if (nGridIndex >= eGRD_MAX)

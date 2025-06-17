@@ -18,6 +18,7 @@
 #include "./work/step/WorkMarkMove.h"
 #include "./work/step/WorkMarkTest.h"
 #include "./work/step/WorkOnlyFEM.h"
+#include "./work/step/WorkIdle.h"
 #include "./work/step/WorkFEMExpo.h"
 #include "./work/step/WorkEnvironCalib.h"
 
@@ -91,7 +92,10 @@ VOID CMainThread::RunWork()
 	if (m_csSyncWork.Enter())
 	{
 		UINT64 u64Tick	= GetTickCount64();
-
+		if (m_pWorkJob)
+		{
+			idleAccum = 0;
+		}
 		/* 에뮬레이터 모드로 동작할 경우, 조금 느리게 반응하기 위함 (메시지 출력 확인 위해) */
 		if (uvEng_GetConfig() && uvEng_GetConfig()->IsRunDemo() &&
 			m_pWorkJob && m_pWorkJob->IsWorkStopped())
@@ -115,6 +119,14 @@ VOID CMainThread::RunWork()
 		{
 			/* 작업이 없는 경우라고 알림 */
 			uvEng_Luria_SetWorkBusy(FALSE);
+			AccumIdleTime();
+			if (CanRoaming())
+			{
+				idleAccum = 0;
+				RunWorkJob(ENG_BWOK::en_work_roaming);
+				m_csSyncWork.Leave();
+				return;
+			}
 		}
 		/* 만약 작업 동작이 에러가 발생 했다면 ... Abort 동작 수행 */
 		if (m_pWorkJob && m_pWorkJob->IsWorkError() || CWork::GetAbort())
@@ -262,6 +274,7 @@ VOID CMainThread::RunWorkJob()
 				case ENG_BWOK::en_expo_align	:	
 				case ENG_BWOK::en_gerb_expofem	:	
 				case ENG_BWOK::en_env_calib		:
+				case ENG_BWOK::en_work_roaming:
 				{
 					m_pWorkJob->DoWork();
 				}
@@ -300,6 +313,15 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 		{
 			/* 기존 작업 메모리 해제 */
 
+			if (m_pWorkJob != NULL && m_pWorkJob->GetWorkJobID() == ENG_BWOK::en_work_roaming)
+			{
+				GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					return CommonMotionStuffs::GetInstance().NowOnMoving() == false;
+				},1000*60);
+				m_pWorkJob->SetWorkState(ENG_JWNS::en_comp);
+			}
+
 
 			if (ResetWorkJob() == FALSE)
 			{
@@ -319,6 +341,11 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 			case ENG_BWOK::en_local_gerb_load:
 			case ENG_BWOK::en_gerb_load		:
 				m_pWorkJob = new CWorkRecipeLoad(job_id, UINT8(*data), ENG_BWOK::en_work_none);
+			break;
+
+
+			case ENG_BWOK::en_work_roaming:
+				m_pWorkJob = new CWorkIdle();
 			break;
 
 

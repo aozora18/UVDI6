@@ -1544,7 +1544,7 @@ VOID CWorkExpoAlign::SetPhilProcessCompelet()
 	if (!m_stExpoLog.expo_succ)
 	{
 		stProcessComp.usErrorCode = ePHILHMI_ERR_STATUS_COMPLETE;
-		stProcessComp.usProgress = 0; 
+		stProcessComp.usProgress = 2; 
 	}
 
 	uvEng_Philhmi_Send_P2C_PROCESS_COMP(stProcessComp, stProcessCompAck);

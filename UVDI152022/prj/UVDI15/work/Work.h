@@ -161,7 +161,7 @@ public:
 	PTCHAR				GetStepName()		{	return m_tzStepName;	}
 	ENG_BWOK			GetWorkJobID()		{	return m_enWorkJobID;	}
 	ENG_JWNS			GetWorkState()		{	return m_enWorkState;	}
-
+	void			SetWorkState(ENG_JWNS state) { m_enWorkState = ENG_JWNS::en_comp; }
 	void				SetUIRefresh(bool set) 
 	{ 
 		uiRefresh = set; 

@@ -10,6 +10,9 @@
 #include "../GlobalVariables.h"
 #include "../mesg/DlgMesg.h"
 #include "../../../inc/comn/UniToChar.h"
+#include "step/WorkIdle.h"
+
+
 
 namespace fs = std::filesystem;
 
@@ -242,6 +245,33 @@ ENG_JWNS CWorkStep::SetMovingUnloader()
 	}
 
 	return ENG_JWNS::en_next;
+}
+
+
+
+ENG_JWNS CWorkStep::Roaming(CWorkIdle* ptr) //그냥 튕기면서 이동.
+{
+	
+	Sleep(1000);
+	
+	 if(uvCmn_MC2_IsDriveError(ENG_MMDI::en_stage_x) || uvCmn_MC2_IsDriveError(ENG_MMDI::en_stage_y))
+		return ENG_JWNS::en_error;
+
+	if (CommonMotionStuffs::GetInstance().NowOnMoving())
+		return ENG_JWNS::en_wait;
+
+	auto pos = ptr->NextPos();
+	
+	if (CommonMotionStuffs::GetInstance().Inposition(ENG_MMDI::en_stage_x, pos.first) == false ||
+		CommonMotionStuffs::GetInstance().Inposition(ENG_MMDI::en_stage_y, pos.second) == false)
+	{
+		ENG_MMDI vecAxis;
+
+		if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, pos.first, pos.second, 30, vecAxis))
+			ENG_JWNS::en_error;
+	}
+	
+	return ENG_JWNS::en_wait;
 }
 
 /*

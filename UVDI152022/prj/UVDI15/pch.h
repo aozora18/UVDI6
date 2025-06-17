@@ -119,6 +119,7 @@ typedef enum class __en_base_work_operate_kind__ : UINT8
 
 	/* environmental works */
 	en_env_calib = 0x51,
+	en_work_roaming = 0x52, //로밍.
 
 	en_work_request = 0x61,
 

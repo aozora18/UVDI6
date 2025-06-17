@@ -1656,9 +1656,10 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 					}
 
 					::SelectObject(hDC, hOldPen);
+					::DeleteObject(hPen);
 
 				}
-				::DeleteObject(hPen);
+				
 			}
 #endif
 			/* Release the DC */

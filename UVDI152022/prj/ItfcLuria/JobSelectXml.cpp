@@ -760,6 +760,7 @@ BOOL CJobSelectXml::SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
 */
 BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 {
+	BOOL res = TRUE;
 	CHAR szJobPath[MAX_PATH_LEN] = { NULL };
 	UINT16 i, u16Row = 0, u16Col = 0, u16Cnt = 0/* Stripe 내의 1 Block 마다 Fiducial 개수 */;
 	BOOL bSharedType = FALSE;
@@ -893,7 +894,7 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 		stGbrXY.org_id++;
 	}
 	/* Global Mark가 최소 2개 이상이어야 됨 */
-	if (lstGbrXY.GetCount() < 2 || lstGbrXY.GetCount() > 4)
+	if (lstGbrXY.GetCount() < 2 || lstGbrXY.GetCount() > 4 || align_type == ENG_ATGL::en_global_0_local_0x0_n_point)
 	{
 		lstGbrXY.RemoveAll();
 		return TRUE;	/* 굳이 FALSE 할 필요 없음. */
@@ -901,7 +902,11 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 	if (lstGbrXY.GetCount() && lstGbrXY.GetCount())
 	{
 		/* Global Fiducial 정렬 작업 진행 */
-		if (!SortMarks(1, 1, UINT16(lstGbrXY.GetCount()), FALSE, lstGbrXY))	return FALSE;
+		if (!SortMarks(1, 1, UINT16(lstGbrXY.GetCount()), FALSE, lstGbrXY))
+		{
+			lstGbrXY.RemoveAll();
+			res = FALSE;
+		}
 		/* 최종 Global Fiducial에 등록된 개수만큼 저장 */
 		for (i = 0; i < lstGbrXY.GetCount(); i++)
 		{
@@ -1046,7 +1051,7 @@ BOOL CJobSelectXml::LoadRegistrationXML(CHAR* job_name, ENG_ATGL align_type)
 		m_pPhDistX[i] = xmlAttr->IntValue();
 	}
 
-	return TRUE;
+	return res;
 }
 
 /*

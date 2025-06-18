@@ -77,7 +77,8 @@ protected:
 	void DoInitStaticCam();
 	void DoAlignStaticCam();
 	VOID SetWorkNextStaticCam();
-
+	VOID WriteWebLogForExpoResult(UINT8 state);
+	
 	enum class AlignMotionMode : UINT8
 	{
 		toInitialMoving = 0, //최초 스캔을 위해 검사 초기위치로 이동하는 스탭

@@ -886,6 +886,8 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 	{
 		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()
 			{
+				
+
 				this_thread::sleep_for(chrono::seconds(10));
 
 				const int SERVER_PORT = 5000;
@@ -901,10 +903,10 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 				const int updateDelay = 1;
 				while (cancelFlag.load() == false)
 				{
-					gv->GetWebMonitor().Update();
+					
 					gv->GetWebMonitor().RefreshWebPage();
 					this_thread::sleep_for(chrono::seconds(updateDelay));
-					gv->GetWebMonitor().AddLog(L"SADFASDFASDF");
+				
 				}
 				gv->GetWebMonitor().StopWebServer();
 			});		

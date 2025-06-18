@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Monitoring</title>
+    <title>Absolics UVDI_15</title>
     <style>
         body {
             font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
@@ -11,15 +11,18 @@
             background-color: #f4f4f4;
             color: #333;
         }
+
         h1 {
             text-align: center;
             color: #007bff;
         }
+
         .tabs {
             display: flex;
             margin-bottom: 20px;
             border-bottom: 2px solid #ccc;
         }
+
         .tab {
             padding: 10px 20px;
             cursor: pointer;
@@ -27,11 +30,13 @@
             margin-right: 5px;
             border-radius: 5px 5px 0 0;
         }
+
         .tab.active {
             background-color: #fff;
             border-bottom: 2px solid #fff;
             font-weight: bold;
         }
+
         .tab-content {
             display: none;
             background-color: #fff;
@@ -39,14 +44,28 @@
             border: 2px solid #ccc;
             border-radius: 0 0 5px 5px;
         }
+
         .tab-content.active {
             display: block;
         }
+
+        .category-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #333;
+            border-left: 5px solid #007bff;
+            padding-left: 10px;
+            background-color: #e8f0fe;
+        }
+
         #outputText {
             font-weight: bold;
             color: #555;
             white-space: pre;
         }
+
         button {
             background-color: #007bff;
             color: white;
@@ -56,81 +75,221 @@
             cursor: pointer;
             margin: 5px 0;
         }
+
         button:hover {
             background-color: #0056b3;
         }
     </style>
     <script src="/lib/signalr.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // 탭 기능
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
+<script>
+    let connection;
 
-            tabs.forEach((tab, index) => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    contents.forEach(c => c.classList.remove('active'));
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll('.tab');
+        const contents = document.querySelectorAll('.tab-content');
 
-                    tab.classList.add('active');
-                    contents[index].classList.add('active');
-                });
-            });
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
 
-            // SignalR 연결
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/monitoringhub")
-                .configureLogging(signalR.LogLevel.Information)
-                .build();
-
-            connection.on("ReceiveValues", (str) => {
-                document.getElementById("MonValText").innerText = str;
-            });
-
-            connection.on("ReceiveLogs", (str) => {
-                document.getElementById("LogText").innerText = str;
-            });
-            });
-
-            connection.start()
-                .then(() => {
-                    console.log('Connected to server');
-                    connection.invoke("RequestRefreshValues")
-                        .catch(err => console.error('Failed to request values:', err));
-                })
-                .catch(err => console.error('Could not connect to server:', err));
-
-            document.getElementById("clearLogsButton").addEventListener("click", function () {
-                connection.invoke("ClearLogs")
-                    .then(() => console.log('Logs cleared.'))
-                    .catch(err => console.error('Failed to clear logs:', err));
+                tab.classList.add('active');
+                contents[index].classList.add('active');
             });
         });
-    </script>
+
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("/monitoringhub")
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        connection.on("ReceiveValues", (str) => {
+            document.getElementById("MonValText").innerText = str;
+        });
+
+        connection.on("ReceiveLogs", (str) => {
+            document.getElementById("LogText").innerText = str;
+        });
+
+        connection.on("ReceiveCmdLogs", (str) => {
+            document.getElementById("CmdLogText").innerText = str;
+        });
+
+
+        connection.on("ReceiveConfigUpdate", (json) => {
+        try {
+            const items = JSON.parse(json); 
+            if (!Array.isArray(items)) return;
+
+            items.forEach(({ label, values }) => {
+                console.log("📥 Received config update:", label, values);
+                const configItem = document.querySelector(`.config-item[data-config-label="${label}"]`);
+                if (configItem) {
+                    const inputs = configItem.querySelectorAll("input");
+                    if (inputs.length === values.length) {
+                        for (let i = 0; i < inputs.length; i++) {
+                            inputs[i].value = values[i];
+                        }
+                    } else {
+                        console.warn(`Input count mismatch for ${label}`);
+                    }
+                } else {
+                    console.warn(`No config item found for ${label}`);
+                }
+            });
+        } catch (err) {
+            console.error("Failed to handle config update:", err);
+        }
+    });
+
+        connection.start()
+            .then(() => {
+                console.log('Connected to server');
+                connection.invoke("RequestReset")
+                    .catch(err => console.error('Failed to reset data:', err));
+
+                connection.invoke("RequestRefreshValues")
+                    .catch(err => console.error('Failed to request values:', err));
+            })
+            .catch(err => console.error('Could not connect to server:', err));
+
+        document.getElementById("clearLogsButton")?.addEventListener("click", function () {
+            connection.invoke("ClearLogs")
+                .then(() => console.log('Logs cleared.'))
+                .catch(err => console.error('Failed to clear logs:', err));
+        });
+    });
+
+
+    function sendConfigUpdate(label, count) {
+        const container = document.querySelector(`.config-item[data-config-label="${label}"]`);
+        if (!container) return;
+
+        const inputs = container.querySelectorAll('input');
+        let values = [];
+        inputs.forEach(input => values.push(input.value.trim()));
+
+        if (inputs.length !== count) {
+            console.warn(`Input count mismatch for ${label}`);
+            return;
+        }
+
+        const msg = `config/${label}/${values.join('/')}`;
+        sendCommand(msg);
+    }
+
+    function sendCommandWithParam(cmd) {
+        const commonParam = document.getElementById("commonParam")?.value || "";
+        const fullCmd = `cmd/${cmd}/${commonParam}`;
+        connection.invoke("ReceiveCommand", fullCmd)
+            .then(() => console.log(`Command sent: ${fullCmd}`))
+            .catch(err => console.error(`Failed to send command: ${err}`));
+    }
+
+    function sendCommand(cmd) {
+        if (!connection) {
+            console.error("Connection is not initialized.");
+            return;
+        }
+
+        connection.invoke("ReceiveCommand", `${cmd}` )
+            .then(() => console.log(`Command sent: ${cmd}`))
+            .catch(err => console.error(`Failed to send command: ${err}`));
+    }
+</script>
 </head>
 <body>
-    <h1>Web Monitoring</h1>
-
+    <H1>Absolics UVDI_15</H1>
     <div class="tabs">
         <div class="tab active">Log</div>
-        <div class="tab active">Monitoring Values</div>
+        <div class="tab">Monitoring Values</div>
         <div class="tab">Control</div>
+        <div class='tab'>Config</div>
     </div>
 
     <div class="tab-content active">
-        <!-- Log 탭 -->
-        <pre id="LogText">실시간 로그가 출력됩니다.</pre>
-    </div>
-
-    <div class="tab-content active">
-        <!-- 모니터링값 탭 -->
-        <pre id="MonValText">모니터링 대상 변수들이 출력됩니다. </pre>
+    <div class="category-title">실시간 로그</div>
+        <pre id="LogText"></pre>
+        <button id="clearLogsButton">Clear Logs</button>
     </div>
 
     <div class="tab-content">
-        <!-- Control 탭 -->
-        <p>여기에 제어용 버튼 등을 추가할 수 있습니다.</p>
-        <button onclick="alert('Control 동작 예시')">예시 버튼</button>
+        <div class="category-title">모니터링 데이터</div>
+        <pre id="MonValText"></pre>
+    </div>
+
+    <div class="tab-content">
+        <div class="category-title">공통 파라메터</div>
+        <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="commonParam" placeholder="여기에 입력" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;" />
+        </div>
+        <div class="category-title">개별시퀀스 동작</div>
+        <button onclick="sendCommandWithParam('ae')">얼라인 노광</button>
+        <div class="category-title">Config설정초기화</div>
+        <button onclick="sendCommandWithParam('cr')">초기화</button>
+        <div class="category-title">명령 로그</div>
+        <pre id="CmdLogText"></pre>
+    </div>
+
+    <div class='tab-content'>
+        <div class="category-title">환경변수</div>
+<div class="config-item" data-config-label="lds ThresHold(um)">
+<span>lds ThresHold(um)</span>
+<input type="text" value="50" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('lds ThresHold(um)', 1)" style="height: 30px;">Confirm</button>
+</div>
+<div class="config-item" data-config-label="ups voltage(v)">
+<span>ups voltage(v)</span>
+<input type="text" value="150" style="width: 80px;"/>
+<input type="text" value="330" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('ups voltage(v)', 2)" style="height: 30px;">Confirm</button>
+</div>
+        <div class="category-title">노광조건</div>
+<div class="config-item" data-config-label="led power1">
+<span>led power1</span>
+<input type="text" value="100" style="width: 80px;"/>
+<input type="text" value="101" style="width: 80px;"/>
+<input type="text" value="102" style="width: 80px;"/>
+<input type="text" value="103" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('led power1', 4)" style="height: 30px;">Confirm</button>
+</div>
+<div class="config-item" data-config-label="led power2">
+<span>led power2</span>
+<input type="text" value="200" style="width: 80px;"/>
+<input type="text" value="201" style="width: 80px;"/>
+<input type="text" value="202" style="width: 80px;"/>
+<input type="text" value="203" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('led power2', 4)" style="height: 30px;">Confirm</button>
+</div>
+<div class="config-item" data-config-label="led power3">
+<span>led power3</span>
+<input type="text" value="300" style="width: 80px;"/>
+<input type="text" value="301" style="width: 80px;"/>
+<input type="text" value="302" style="width: 80px;"/>
+<input type="text" value="303" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('led power3', 4)" style="height: 30px;">Confirm</button>
+</div>
+<div class="config-item" data-config-label="led power4">
+<span>led power4</span>
+<input type="text" value="400" style="width: 80px;"/>
+<input type="text" value="401" style="width: 80px;"/>
+<input type="text" value="402" style="width: 80px;"/>
+<input type="text" value="403" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('led power4', 4)" style="height: 30px;">Confirm</button>
+</div>
+        <div class="category-title">티칭 파라메터</div>
+<div class="config-item" data-config-label="x limit(H,L)">
+<span>x limit(H,L)</span>
+<input type="text" value="1350" style="width: 80px;"/>
+<input type="text" value="0" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('x limit(H,L)', 2)" style="height: 30px;">Confirm</button>
+</div>
+<div class="config-item" data-config-label="y limit(H,L)">
+<span>y limit(H,L)</span>
+<input type="text" value="550" style="width: 80px;"/>
+<input type="text" value="0" style="width: 80px;"/>
+<button onclick="sendConfigUpdate('y limit(H,L)', 2)" style="height: 30px;">Confirm</button>
+</div>
     </div>
 </body>
 </html>

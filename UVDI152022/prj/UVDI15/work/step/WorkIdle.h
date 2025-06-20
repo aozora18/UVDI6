@@ -87,10 +87,10 @@ public:
 protected:
 
 	double x = 490.0;
-	double y = 1490.0;
+	double y = 1300.0;
 	double dx = -7.07;
 	double dy = -7.07;
 	const double xMin = 10.0, xMax = 490.0;
-	const double yMin = 10.0, yMax = 1490.0;
+	const double yMin = 10.0, yMax = 1300.0;
 	
 };

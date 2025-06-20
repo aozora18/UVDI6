@@ -1182,7 +1182,7 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 
 	/* 현재 컴퓨터 날짜를 파일명으로 설정 */
 	GetLocalTime(&stTm);
-	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\logs\\expo\\%04d-%02d-%02d AlignExpo.csv",
+	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\logs\\expo\\%04d-%02d-%02d MarkTest.csv",
 		g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay);
 
 	/* 만약에 열고자 하는 파일이 없으면, 해당 파일 생성 후, 타이틀 (Field) 추가 */

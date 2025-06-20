@@ -405,107 +405,107 @@ BOOL CWorkExpoOnly::IsMovedPhUpDown()
 */
 VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 {
+	//UINT8 i;
 	TCHAR tzResult[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
+	TCHAR tzDrv[8] = { NULL };
+
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
-
-	/*레시피 정보 가져오기*/
-	CUniToChar	csCnv;
+	LPG_ACGR pstMark = NULL;
 	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
-	LPG_RJAF pstJobRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
-	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstJobRecipe->align_recipe));
-	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstJobRecipe->expo_recipe));
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	CUniToChar csCnv1, csCnv2;
+
+	CUniToChar	csCnv;
+	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
+	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 
 	/* 현재 컴퓨터 날짜를 파일명으로 설정 */
 	GetLocalTime(&stTm);
-	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\logs\\expo\\%04d-%02d-%02d.csv",
+	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\logs\\expo\\%04d-%02d-%02d ExpoOnly.csv",
 		g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay);
+
 	/* 만약에 열고자 하는 파일이 없으면, 해당 파일 생성 후, 타이틀 (Field) 추가 */
 	if (!uvCmn_FindFile(tzFile))
 	{
 		wcscpy_s(tzResult, 1024,
-			L"date,temp,expo_time(ms),mode,succ,real_cale,real_roation,"
+			L"time,tack,succ,"
+			L"gerber_name,material_thick(um),expo_eneray(mj),"
 			L"horz_dist_13(mm),horz_dist_24(mm),vert_dist_12(mm),vert_dist_34(mm),"
 			L"diag_dist_14(mm),diag_dist_23(mm),"
-			L"gerber,thick,energy,align_type,mark_type,lamp_type,gain_leven[0],gain_leven[1],"
-			L"power_name,duty_cycle,\n");
+			L"led_recipe,materialType\n");
+
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x00);
+
+
 	}
 
 	/* 발생 시간 */
 	swprintf_s(tzResult, 1024, L"%02d:%02d:%02d,", stTm.wHour, stTm.wMinute, stTm.wSecond);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+
 	/*ExpoLog 기록*/
 	memcpy(m_stExpoLog.data, tzResult, 40);
 
-
-	/* 온도 / 노광 시간 / 노광 성공 / 노광 모드 / 소재 배율 / 소재 회전 */
-	swprintf_s(tzResult, 1024, L"\%llu,%s,%.2f,%.2f,",
-		uvEng_GetJobWorkTime(), tzState[state], pstExpoRecipe->real_scale_range, pstExpoRecipe->real_rotaion_range);
+	UINT64 u64JobTime = uvEng_GetJobWorkTime();
+	swprintf_s(tzResult, 1024, L"%um%02us,%s,%S,%dum,%.1fmj,",
+		uvCmn_GetTimeToType(u64JobTime, 0x01),
+		uvCmn_GetTimeToType(u64JobTime, 0x02),
+		tzState[state],
+		pstRecipe->gerber_name,
+		pstRecipe->material_thick,
+		pstRecipe->expo_energy);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+
 	/*ExpoLog 기록*/
 	m_stExpoLog.expo_time = uvEng_GetJobWorkTime();
 	m_stExpoLog.expo_succ = state;
 	m_stExpoLog.real_scale = pstExpoRecipe->real_scale_range;
 	m_stExpoLog.real_rotaion = pstExpoRecipe->real_rotaion_range;
-	
+
 
 	/* 마크 간의 6 곳 길이 측정 오차 값 과 전체 노광하는데 소요된 시간 저장 */
+	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	swprintf_s(tzResult, 1024, L"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,",
-		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz),
-		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz),
-		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert),
-		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert),
-		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag),
-		uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag));
+		pstMarkDiff->result[0].diff * 100.0f, pstMarkDiff->result[1].diff * 100.0f, pstMarkDiff->result[2].diff * 100.0f,
+		pstMarkDiff->result[3].diff * 100.0f, pstMarkDiff->result[4].diff * 100.0f, pstMarkDiff->result[5].diff * 100.0f);
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-	/*ExpoLog 기록*/
-	m_stExpoLog.global_dist[0] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_top_horz);
-	m_stExpoLog.global_dist[1] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_btm_horz);
-	m_stExpoLog.global_dist[2] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_vert);
-	m_stExpoLog.global_dist[3] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_vert);
-	m_stExpoLog.global_dist[4] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_lft_diag);
-	m_stExpoLog.global_dist[5] = uvEng_Camera_GetGrabbedMarkDist(ENG_GMDD::en_rgt_diag);
+
+	m_stExpoLog.global_dist[0] = pstMarkDiff->result[0].diff * 100.0f;
+	m_stExpoLog.global_dist[1] = pstMarkDiff->result[1].diff * 100.0f;
+	m_stExpoLog.global_dist[2] = pstMarkDiff->result[2].diff * 100.0f;
+	m_stExpoLog.global_dist[3] = pstMarkDiff->result[3].diff * 100.0f;
+	m_stExpoLog.global_dist[4] = pstMarkDiff->result[4].diff * 100.0f;
+	m_stExpoLog.global_dist[5] = pstMarkDiff->result[5].diff * 100.0f;
 
 
-	/* 거버 / 소재두께 / 광량 / 얼라인 타입 / 마크 타입 / 조명 타입 / 1번 카메라 조명 / 2번 카메라 조명 */
-	/*TCHAR tzAlignType[7][40] = { L"Global 0 Local 0_0"	, L"Global 4 Local 0_0" , L"Global 4 Local 2_1" , L"Global 4 Local 2_2"
-														, L"Global 4 Local 3_2" , L"Global 4 Local 4_2" , L"Global 4 Local 5_2" };
-	TCHAR tzMarkType[2][20] = { L"Geomatrix", L"Pattern Image" };
-	TCHAR tzLampType[2][8] = { L"Ring", L"Coaxial" };*/
-//
-//#ifdef USE_ALIGNMOTION
-//	swprintf_s(tzResult, 1024, L"%s,%d,%.2f,%s,%s,%s,%s,%d,%d,",
-//		csCnv1.Ansi2Uni(pstJobRecipe->gerber_name), pstJobRecipe->material_thick, pstJobRecipe->expo_energy, tzAlignType[pstAlignRecipe->align_type],
-//		tzAlignType[pstAlignRecipe->align_motion], tzMarkType[pstAlignRecipe->mark_type], tzLampType[pstAlignRecipe->lamp_type], pstAlignRecipe->gain_level[0], 
-//		pstAlignRecipe->gain_level[1]);
-//
-//	
-//#else
-//	//swprintf_s(tzResult, 1024, L"%s,%d,%.2f,%s,%s,%s,%d,%d,",
-//	//	csCnv1.Ansi2Uni(pstJobRecipe->gerber_name), pstJobRecipe->material_thick, pstJobRecipe->expo_energy, tzAlignType[pstAlignRecipe->align_type],
-//	//	tzMarkType[pstAlignRecipe->mark_type], tzLampType[pstAlignRecipe->lamp_type], pstAlignRecipe->gain_level[0], pstAlignRecipe->gain_level[1]);
-//	//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-//#endif
-// 
-//	//uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
-	/*ExpoLog 기록*/
-	//memcpy(m_stExpoLog.gerber_name, pstJobRecipe->gerber_name, MAX_GERBER_NAME);
-	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstJobRecipe->gerber_name);
-	m_stExpoLog.material_thick	= pstJobRecipe->material_thick;
-	m_stExpoLog.expo_energy		= pstJobRecipe->expo_energy;
+	swprintf_s(tzResult, 1024, L"%S,", pstExpoRecipe->power_name);
+	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
-	m_stExpoLog.align_type		= pstAlignRecipe->align_type;
+
+	Headoffset offset;
+
+	//	LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+	bool getOffset = uvEng_GetConfig()->headOffsets.GetOffsets(pstExpoRecipe->headOffset, offset);
+	USES_CONVERSION;
+
+	swprintf_s(tzResult, 1024, L"%s,", getOffset ? A2T(offset.offsetName) : L"-");
+	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+
+	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstRecipe->gerber_name);
+	m_stExpoLog.material_thick = pstRecipe->material_thick;
+	m_stExpoLog.expo_energy = pstRecipe->expo_energy;
+
+	m_stExpoLog.align_type = pstAlignRecipe->align_type;
 #ifdef USE_ALIGNMOTION
 	m_stExpoLog.align_motion = pstAlignRecipe->align_motion;
 #endif
 	m_stExpoLog.headOffset = pstExpoRecipe->headOffset;
-	m_stExpoLog.mark_type		= pstAlignRecipe->mark_type;
-	m_stExpoLog.lamp_type		= pstAlignRecipe->lamp_type;
-	m_stExpoLog.gain_level[0]	= pstAlignRecipe->gain_level[0];
-	m_stExpoLog.gain_level[1]	= pstAlignRecipe->gain_level[1];
+	m_stExpoLog.mark_type = pstAlignRecipe->mark_type;
+	m_stExpoLog.lamp_type = pstAlignRecipe->lamp_type;
+	m_stExpoLog.gain_level[0] = pstAlignRecipe->gain_level[0];
+	m_stExpoLog.gain_level[1] = pstAlignRecipe->gain_level[1];
 
 	m_stExpoLog.led_duty_cycle = pstExpoRecipe->led_duty_cycle;
 	//sprintf_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
@@ -513,6 +513,7 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
 	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
+
 }
 
 

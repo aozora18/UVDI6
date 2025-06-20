@@ -270,12 +270,17 @@ VOID CDlgJob::UpdateControl(UINT64 tick, BOOL is_busy)
 	//	if (m_btn_ctl[eJOB_BTN_RECIPE_SAVE].IsWindowEnabled() != (bSelect && !is_busy))		m_btn_ctl[eJOB_BTN_RECIPE_SAVE].EnableWindow(bSelect && !is_busy);		/* Recipe Modified */
 	//}
 
-	if (m_btn_ctl[eJOB_BTN_RECIPE_DELETE] && m_btn_ctl[eJOB_BTN_RECIPE_SAVE])
-	{
-		
-		if (m_btn_ctl[eJOB_BTN_RECIPE_DELETE].IsWindowEnabled() != (bSelect && !is_busy))	m_btn_ctl[eJOB_BTN_RECIPE_DELETE].EnableWindow(bSelect && !is_busy);		/* Recipe Deleted */
-		if (m_btn_ctl[eJOB_BTN_RECIPE_SAVE].IsWindowEnabled() != (bSelect && !is_busy))		m_btn_ctl[eJOB_BTN_RECIPE_SAVE].EnableWindow(bSelect && !is_busy);		/* Recipe Modified */
-	}
+	
+	if (m_btn_ctl[eJOB_BTN_RECIPE_DELETE] && m_btn_ctl[eJOB_BTN_RECIPE_DELETE].IsWindowEnabled() != (bSelect && !is_busy && g_loginLevel >= eLOGIN_LEVEL_ENGINEER))
+		m_btn_ctl[eJOB_BTN_RECIPE_DELETE].EnableWindow(bSelect && !is_busy && g_loginLevel >= eLOGIN_LEVEL_ENGINEER);		/* Recipe Deleted */
+
+	if (m_btn_ctl[eJOB_BTN_RECIPE_SAVE] && m_btn_ctl[eJOB_BTN_RECIPE_SAVE].IsWindowEnabled() != (bSelect && !is_busy && g_loginLevel >= eLOGIN_LEVEL_ENGINEER))
+		m_btn_ctl[eJOB_BTN_RECIPE_SAVE].EnableWindow(bSelect && !is_busy && g_loginLevel >= eLOGIN_LEVEL_ENGINEER);		/* Recipe Modified */
+	
+	if (m_btn_ctl[eJOB_BTN_RECIPE_ADD] && m_btn_ctl[eJOB_BTN_RECIPE_ADD].IsWindowEnabled() != (g_loginLevel >= eLOGIN_LEVEL_ENGINEER))
+		m_btn_ctl[eJOB_BTN_RECIPE_ADD].EnableWindow(g_loginLevel >= eLOGIN_LEVEL_ENGINEER);
+
+	
 
 }
 

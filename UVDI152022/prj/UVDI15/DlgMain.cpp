@@ -445,12 +445,25 @@ void CDlgMain::RegisterUILevel()
 	/* 권한 설정을 등록한 버튼은 최초 로그인되기 전까지 비활성화 상태이다.			*/
 	/* 권한 설정을 하지 않은 버튼은 자동적으로 활성화 상태가 된다.					*/
 	/* ----------------------------------------------------------------------------	*/
-
+	
 
 	//	예시 코드.
-	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_MANUAL]));		//	OPERATOR / ENGINEER / ADMIN 레벨로 로그인 시, 해당 버튼이 활성화된다.
-	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_ENGINEER, &m_btn_ctl[eMAIN_BTN_EXPO]));		//	           ENGINEER / ADMIN 레벨로 로그인 시, 해당 버튼이 활성화된다.
-	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_ADMIN   , &m_btn_ctl[eMAIN_BTN_MARK]));		//	                      ADMIN 레벨로 로그인 시, 해당 버튼이 활성화된다.
+
+
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_EXIT]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_MANUAL]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_STOP]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_RESET]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_MODE]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_LOGS]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_CTRL]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_OPERATOR, &m_btn_ctl[eMAIN_BTN_GERB]));
+
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_ENGINEER, &m_btn_ctl[eMAIN_BTN_EXPO]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_ENGINEER, &m_btn_ctl[eMAIN_BTN_CONF]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_ENGINEER, &m_btn_ctl[eMAIN_BTN_CALB]));
+	m_vUILevel.push_back(ST_UI_LEVEL(eLOGIN_LEVEL_ENGINEER, &m_btn_ctl[eMAIN_BTN_MARK]));
+
 }
 
 /*

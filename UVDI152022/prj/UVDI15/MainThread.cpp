@@ -92,7 +92,7 @@ VOID CMainThread::RunWork()
 	if (m_csSyncWork.Enter())
 	{
 		UINT64 u64Tick	= GetTickCount64();
-		if (m_pWorkJob)
+		if (IsBusy() || CommonMotionStuffs::GetInstance().NowOnMoving())
 		{
 			idleAccum = 0;
 		}

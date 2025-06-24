@@ -19,6 +19,7 @@ protected:
 	virtual BOOL		PreTranslateMessage(MSG* msg);
 	virtual INT32		ExitInstance();
 	virtual BOOL		InitInstance();
+	void InitLoginLevel();
 
 // 로컬 변수
 protected:

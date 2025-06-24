@@ -773,7 +773,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 
 
 	BOOL bBusy = LONG(lparam) == 1 ? TRUE : FALSE;
-	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
+	//BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
 
 	if (nullptr == pstPhil)
 	{

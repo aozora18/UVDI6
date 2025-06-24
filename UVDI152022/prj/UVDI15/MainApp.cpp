@@ -56,6 +56,16 @@ BOOL CMainApp::PreTranslateMessage(MSG* msg)
 }
 
 
+void CMainApp::InitLoginLevel()
+{
+	TCHAR szPath[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, szPath, MAX_PATH);
+	PathRemoveFileSpec(szPath);
+	PathAppend(szPath, _T("key"));
+	g_loginLevel = PathFileExists(szPath) ? (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_ADMIN : (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_UNKNOWN;
+	
+}
+
 /*
  desc : 처음 로드 되었을 때 호출되는 함수
  parm : None
@@ -77,7 +87,7 @@ BOOL CMainApp::InitInstance()
 	// RichEdit 초기화
 	AfxInitRichEdit();
 	AfxEnableControlContainer();
-
+	InitLoginLevel();
 	CShellManager *pShellManager = new CShellManager;
 
 	SetRegistryKey(_T("Philoptics - SiLuria Services"));

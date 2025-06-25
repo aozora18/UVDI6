@@ -1910,7 +1910,7 @@ VOID CDlgManual::ErrorThick()
 				/*이번 소재만 LDS Check OFF*/
 				uvEng_GetConfig()->measure_flat.bOnePass = TRUE;
 				uvEng_GetConfig()->measure_flat.u8UseThickCheck = FALSE;
-				uvEng_SaveConfig();
+				//uvEng_SaveConfig();
 			}
 
 			/*얼라인 마크 인식 초기화*/

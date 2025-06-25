@@ -2640,7 +2640,7 @@ VOID CDlgJob::RecipeControl(UINT8 mode)
 		/*PhilHMI에 연결 되어 있다면 보고*/
 		if (uvEng_Philhmi_IsConnected())
 		{
-			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
+			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(strRecipeName.GetBuffer());
 			CRecipeManager::GetInstance()->PhilSendModifyRecipe(pstRecipe);
 		}
 

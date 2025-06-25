@@ -57,7 +57,8 @@ VOID CRecvPhil::PhilSendCreateRecipe(STG_PP_PACKET_RECV* stRecv)
 	memcpy(stRecipe.expo_recipe,	stRecv->st_c2p_rcp_create.stVar[4].szParameterValue,	DEF_MAX_RECIPE_PARAM_VALUE_LENGTH);
 	stRecipe.material_thick =	(UINT32)atoi(stRecv->st_c2p_rcp_create.stVar[5].szParameterValue);
 	stRecipe.expo_energy =		(FLOAT)atof(stRecv->st_c2p_rcp_create.stVar[6].szParameterValue);
-
+	stRecipe.ldsThreshold = uvEng_GetConfig()->measure_flat.dLimitZPOS * 1000.0f;
+		
 	///*Recipe 积己 夸没 己傍*/
 	if (CRecipeManager::GetInstance()->CreateRecipe(stRecipe))
 	{
@@ -115,6 +116,12 @@ VOID CRecvPhil::PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv)
 	stRecipe.material_thick =	(UINT32)atoi(stRecv->st_c2p_rcp_create.stVar[5].szParameterValue);
 	stRecipe.expo_energy =		(FLOAT)atof(stRecv->st_c2p_rcp_create.stVar[6].szParameterValue);
 
+	LPG_RJAF pstRecipe = nullptr;
+	USES_CONVERSION;
+	pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(A2T(pstRecipe.job_name));
+
+	if (pstRecipe)
+		stRecipe.ldsThreshold = pstRecipe.ldsThreshold;
 
 	///*Recipe 积己 夸没 己傍*/
 	//if (CRecipeManager::GetInstance()->UpdateRecipe(stRecipe))

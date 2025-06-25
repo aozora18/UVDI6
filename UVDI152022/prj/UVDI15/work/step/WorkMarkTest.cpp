@@ -825,6 +825,7 @@ VOID CWorkMarkTest::SetWorkNextStaticCam()
 		
 		m_u8StepIt = 0x00;
 		m_enWorkState = ENG_JWNS::en_error;
+		GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
@@ -840,6 +841,7 @@ VOID CWorkMarkTest::SetWorkNextStaticCam()
 			{
 				m_u8StepIt = 0x00;
 				m_enWorkState = ENG_JWNS::en_comp;
+				GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 				CWork::EndWork();
 			}
 		}
@@ -881,10 +883,11 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 			m_enWorkState = ENG_JWNS::en_next;
 		}
 		else
-				{
+		{
 			m_enWorkState = ENG_JWNS::en_error;
-				}
-			}
+		}
+		GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
+	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 			{
 				/*Auto Mdoe로 노광 종료가 되면 Philhmil에 완료보고*/
@@ -911,7 +914,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 			else
 			{
 				m_enWorkState = ENG_JWNS::en_comp;
-
+				GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 				/* 항상 호출*/
 				CWork::EndWork();
 			}

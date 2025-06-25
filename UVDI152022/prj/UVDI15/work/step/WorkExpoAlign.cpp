@@ -110,8 +110,6 @@ bool CWorkExpoAlign::SetAlignMode()
 {
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 
-
-
 	this->alignMotion = motion.markParams.alignMotion;
 	this->aligntype = motion.markParams.alignType;
 
@@ -809,7 +807,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		m_enWorkState = ENG_JWNS::en_error;
 #endif
-
+		GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
@@ -869,7 +867,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 
 
 				m_enWorkState = ENG_JWNS::en_comp;
-
+				GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 				/* 항상 호출*/
 				CWork::EndWork();
 			}
@@ -1433,7 +1431,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 			/*노광 종료가 되면 Philhmil에 완료보고*/
 			SetPhilProcessCompelet();
 		}
-
+		GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 	}
 	else if (ENG_JWNS::en_next == m_enWorkState)
 	{
@@ -1479,7 +1477,8 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 
 				m_enWorkState = ENG_JWNS::en_comp;
-
+				
+				GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 				/* 항상 호출*/
 				CWork::EndWork();
 			}

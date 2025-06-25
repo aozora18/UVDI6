@@ -345,14 +345,14 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 		char loadedJob[255] = { 0, };
 		bool getLoadedJob = uvEng_Luria_GetLoadedJobName(loadedJob, 255);
 
-		if (getLoadedJob && strcmp(callerInst->m_stExpoLog.recipe_name, loadedJob) != 0) //로드가 다른경
+		if (getLoadedJob && strcmp(selJob->gerber_name, loadedJob) != 0) //로드가 다른경
 		{
 
 
 			wchar_t wloaded[128] = { 0 };
 			wchar_t wexec[128] = { 0 };
 
-			MultiByteToWideChar(CP_ACP, 0, callerInst->m_stExpoLog.recipe_name, -1, wexec, 128);
+			MultiByteToWideChar(CP_ACP, 0, selJob->gerber_name, -1, wexec, 128);
 			MultiByteToWideChar(CP_ACP, 0, loadedJob, -1, wloaded, 128);
 
 			swprintf_s(

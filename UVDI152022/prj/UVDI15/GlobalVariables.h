@@ -408,7 +408,7 @@ struct Params
 	int centerCamIdx = 3;
 	double centerMarkzeroOffsetX = 0;
 	double centerMarkzeroOffsetY = 0;
-	ENG_AMOS alignMotion;
+	ENG_AMOS alignMotion; ENG_AMOS prevAlignMotion;
 	ENG_ATGL alignType;
 	ENG_WETE workErrorType;
 	vector<tuple<ENG_MMDI, double, double>> axisLimit;
@@ -680,6 +680,7 @@ public:
 	void Refresh();
 
 	void LoadCaliData(LPG_CIEA cfg);
+	void RevertPrevAlignMotion();
 
 	bool GetNearFid(STG_XMXY currentPos, SearchFlag flag, vector<STG_XMXY> skipList, STG_XMXY& findFid);
 

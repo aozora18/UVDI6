@@ -393,11 +393,15 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		}
 }
 
-void AlignMotion::LoadCaliData(LPG_CIEA cfg)
-{
-	caliCalcInst.LoadCaliData(cfg);
-}
+	void AlignMotion::LoadCaliData(LPG_CIEA cfg)
+	{
+		caliCalcInst.LoadCaliData(cfg);
+	}
 
+	void AlignMotion::RevertPrevAlignMotion()
+	{
+		markParams.alignMotion = markParams.prevAlignMotion;
+	}
 
 
 	bool AlignMotion::GetNearFid(STG_XMXY currentPos, SearchFlag flag, vector<STG_XMXY> skipList, STG_XMXY& findFid)
@@ -644,6 +648,7 @@ void AlignMotion::LoadCaliData(LPG_CIEA cfg)
 		
 		markParams.alignType = (ENG_ATGL)alignRecipe->align_type;
 		markParams.alignMotion = (ENG_AMOS)alignRecipe->align_motion;
+		markParams.prevAlignMotion = markParams.alignMotion;
 	
 		STG_XMXY temp;
 		auto globalFiducial = uvEng_Luria_GetGlobalFiducial();

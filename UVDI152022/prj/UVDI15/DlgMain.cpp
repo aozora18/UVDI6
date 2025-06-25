@@ -304,15 +304,15 @@ void CDlgMain::RefreshRecipeTitleCaption()
 
 		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->job_name);
 		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->job_name);
-		strReicpe = _1 + L"/" + _2;
+		strReicpe = _1 + L"\r\n/" + _2;
 
 		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->expo_recipe);
 		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->expo_recipe);
-		strExpo = _1 + L"/" + _2;
+		strExpo = _1 + L"\r\n/" + _2;
 
 		_1 = pstHostJob == nullptr ? L"noRemoteRecipe" : csCnv.Ansi2Uni(pstHostJob->align_recipe);
 		_2 = pstLocalJob == nullptr ? L"noLocalRecipe" : csCnv.Ansi2Uni(pstLocalJob->align_recipe);
-		strAlign = _1 + L"/" + _2;
+		strAlign = _1 + L"\r\n/" + _2;
 	}
 
 	SetRichTextColored(&newNameList[eMAIN_RICHTXT_GERB_RECIPE], strReicpe, isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));

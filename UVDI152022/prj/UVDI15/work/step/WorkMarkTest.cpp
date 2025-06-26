@@ -627,11 +627,14 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 		motions.SetAlignComplete(false);
 		if (m_enWorkState == ENG_JWNS::en_next)
 			GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
+
+		
 	}
 	break;	    /* 노광 가능한 상태인지 여부 확인 */
 	case 0x02:
 	{
 		m_enWorkState = IsLoadedGerberCheck();
+		
 	}
 	break;	/* 거버가 적재되었고, Mark가 존재하는지 확인 */
 	
@@ -864,7 +867,7 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 
 	/* 매 작업 구간마다 시간 값 증가 처리 */
 	uvEng_UpdateJobWorkTime(u64JobTime);
-
+	
 	/* 모든 작업이 종료 되었는지 여부 */
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
@@ -1089,27 +1092,28 @@ VOID CWorkMarkTest::WriteWebLogForExpoResult(UINT8 state)
 		{
 			/* 얼라인 마크 검색 결과 값 저장 */
 			pstMark = uvEng_Camera_GetGrabbedMark(i + 1, 0);
-			
-			swprintf_s(tempStr, 1024, L"score_1 = %.3f\n", pstMark ? pstMark->score_rate : 0);
+
+			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", i + 1, pstMark ? pstMark->score_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"scale_1 = %.3f\n", pstMark ? pstMark->scale_rate : 0);
+			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", i + 1, pstMark ? pstMark->scale_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_x1(mm) = %.4f\n", pstMark ?  pstMark->move_mm_x : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", i + 1, pstMark ? pstMark->move_mm_x : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_y1(mm) = %.4f\n", pstMark ?  pstMark->move_mm_y : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", i + 1, pstMark ? pstMark->move_mm_y : 0);
 			temps.push_back(wstring(tempStr));
-			
+
+
 			pstMark = uvEng_Camera_GetGrabbedMark(i + 1, 1);
-			
-			swprintf_s(tempStr, 1024, L"score_2 = %.3f\n", pstMark ?  pstMark->score_rate : 0);
+
+			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", i + 2, pstMark ? pstMark->score_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"scale_2 = %.3f\n", pstMark ?  pstMark->scale_rate : 0);
+			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", i + 2, pstMark ? pstMark->scale_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_x2(mm) = %.4f\n", pstMark ?  pstMark->move_mm_x : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", i + 2, pstMark ? pstMark->move_mm_x : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_y2(mm) = %.4f\n", pstMark ?  pstMark->move_mm_y : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", i + 2, pstMark ? pstMark->move_mm_y : 0);
 			temps.push_back(wstring(tempStr));
-			
+
 		}
 	}
 
@@ -1310,9 +1314,11 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 
 	auto& measureFlat = uvEng_GetConfig()->measure_flat;
-	auto mean = measureFlat.GetThickMeasureMean();
+
 	if (measureFlat.u8UseThickCheck)
-	{
+	{	
+		auto mean = measureFlat.GetThickMeasureMean();
+
 		DOUBLE RealThick;
 		DOUBLE LDSToThickOffset = 0;
 		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
@@ -1332,6 +1338,7 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 
 		swprintf_s(tzResult, 1024, L"%d,", pstRecipe->ldsThreshold);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+		
 	}
 	else
 	{
@@ -1349,7 +1356,7 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 
 	USES_CONVERSION;
 
-	swprintf_s(tzResult, 1024, L"%s,", getOffset ? A2T(offset.offsetName) : L"-");
+	swprintf_s(tzResult, 1024, L"%s,\n", getOffset ? A2T(offset.offsetName) : L"-");
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
 	
 	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstRecipe->gerber_name);
@@ -1371,7 +1378,7 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 	strcpy_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
-	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
+	
 
 
 	WriteWebLogForExpoResult(state);

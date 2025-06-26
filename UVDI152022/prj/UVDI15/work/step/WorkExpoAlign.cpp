@@ -312,9 +312,9 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	bool getOffset = uvEng_GetConfig()->headOffsets.GetOffsets(pstExpoRecipe->headOffset, offset);
 	USES_CONVERSION;
 
-	swprintf_s(tzResult, 1024, L"%s,", getOffset ? A2T(offset.offsetName) : L"-" );
+	swprintf_s(tzResult, 1024, L"%s,\n", getOffset ? A2T(offset.offsetName) : L"-" );
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
-
+	
 	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstRecipe->gerber_name);
 	m_stExpoLog.material_thick = pstRecipe->material_thick;
 	m_stExpoLog.expo_energy = pstRecipe->expo_energy;
@@ -334,7 +334,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	strcpy_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
-	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
+	
 
 
 	WriteWebLogForExpoResult(state);
@@ -424,25 +424,25 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 			/* 얼라인 마크 검색 결과 값 저장 */
 			pstMark = uvEng_Camera_GetGrabbedMark(i+1, 0);
 			
-			swprintf_s(tempStr, 1024, L"score_1 = %.3f\n", pstMark ? pstMark->score_rate : 0);
+			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", i + 1, pstMark ? pstMark->score_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"scale_1 = %.3f\n", pstMark ? pstMark->scale_rate : 0);
+			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", i + 1, pstMark ? pstMark->scale_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_x1(mm) = %.4f\n", pstMark ?  pstMark->move_mm_x : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", i + 1, pstMark ?  pstMark->move_mm_x : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_y1(mm) = %.4f\n", pstMark ?  pstMark->move_mm_y : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", i + 1,  pstMark ?  pstMark->move_mm_y : 0);
 			temps.push_back(wstring(tempStr));
 			
 
 			pstMark = uvEng_Camera_GetGrabbedMark(i+1, 1);
 			
-			swprintf_s(tempStr, 1024, L"score_2 = %.3f\n", pstMark ? pstMark->score_rate: 0 );
+			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", i + 2,  pstMark ? pstMark->score_rate: 0 );
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"scale_2 = %.3f\n", pstMark ? pstMark->scale_rate: 0);
+			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", i + 2,pstMark ? pstMark->scale_rate: 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_x2(mm) = %.4f\n", pstMark ? pstMark->move_mm_x: 0);
+			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", i + 2, pstMark ? pstMark->move_mm_x: 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_y2(mm) = %.4f\n", pstMark ? pstMark->move_mm_y: 0);
+			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", i + 2, pstMark ? pstMark->move_mm_y: 0);
 			temps.push_back(wstring(tempStr));
 			
 		}

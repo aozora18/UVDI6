@@ -490,8 +490,9 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 	bool getOffset = uvEng_GetConfig()->headOffsets.GetOffsets(pstExpoRecipe->headOffset, offset);
 	USES_CONVERSION;
 
-	swprintf_s(tzResult, 1024, L"%s,", getOffset ? A2T(offset.offsetName) : L"-");
+	swprintf_s(tzResult, 1024, L"%s,\n", getOffset ? A2T(offset.offsetName) : L"-");
 	uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
+	
 
 	strcpy_s(m_stExpoLog.gerber_name, MAX_GERBER_NAME, pstRecipe->gerber_name);
 	m_stExpoLog.material_thick = pstRecipe->material_thick;
@@ -512,7 +513,7 @@ VOID CWorkExpoOnly::SaveExpoLog(UINT8 state)
 	strcpy_s(m_stExpoLog.power_name, LED_POWER_NAME_LENGTH, pstExpoRecipe->power_name);
 
 	/* 마지막엔 무조건 다음 라인으로 넘어가도록 하기 위함 */
-	uvCmn_SaveTxtFileW(L"\n", (UINT32)wcslen(L"\n"), tzFile, 0x01);
+	
 
 }
 

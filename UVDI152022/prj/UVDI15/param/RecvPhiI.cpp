@@ -118,10 +118,13 @@ VOID CRecvPhil::PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv)
 
 	LPG_RJAF pstRecipe = nullptr;
 	USES_CONVERSION;
-	pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(A2T(pstRecipe.job_name));
+	pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName(A2T(stRecipe.job_name));
 
 	if (pstRecipe)
-		stRecipe.ldsThreshold = pstRecipe.ldsThreshold;
+	{
+		stRecipe.ldsThreshold = pstRecipe->ldsThreshold;
+		stRecipe.frame_rate = pstRecipe->frame_rate;
+	}
 
 	///*Recipe 积己 夸没 己傍*/
 	//if (CRecipeManager::GetInstance()->UpdateRecipe(stRecipe))

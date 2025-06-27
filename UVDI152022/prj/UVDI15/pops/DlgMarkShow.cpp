@@ -221,7 +221,7 @@ int CDlgMarkShow::GetMarkACamNoFromIndex(int index, BOOL bIsLocal)
 			return 1;
 		};
 
-	switch (motions.markParams.alignMotion)
+	switch (motions.markParams.processedAlignMotion)
 	{
 		case ENG_AMOS::en_static_3cam:
 			return CENTER_CAM;
@@ -292,8 +292,8 @@ BOOL CDlgMarkShow::DrawMark(int index)
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 
-	auto alignMotion = motions.markParams.alignMotion;
-	auto aligntype = motions.markParams.alignType;
+	auto alignMotion = motions.markParams.processedAlignMotion;
+	
 	int u8ACamNo = 0;
 	int u8ImgNo = -1;
 	switch (alignMotion)

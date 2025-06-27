@@ -468,7 +468,10 @@ VOID CFiles::SaveTxtFileA(PCHAR buff, UINT32 size, PCHAR file, UINT8 mode)
 }
 VOID CFiles::SaveTxtFileW(PTCHAR buff, UINT32 size, PTCHAR file, UINT8 mode)
 {
-	FILE* fpWrite = NULL;
+	static std::mutex s_mtxFileWrite;              // 함수 단위 공유 락
+	std::lock_guard<std::mutex> lock(s_mtxFileWrite);  // 자동 락/언락
+
+	FILE* fpWrite = nullptr;
 
 	if (mode)
 		fpWrite = _wfsopen(file, L"a+, ccs=UTF-16LE", _SH_DENYNO);
@@ -479,8 +482,7 @@ VOID CFiles::SaveTxtFileW(PTCHAR buff, UINT32 size, PTCHAR file, UINT8 mode)
 	{
 #ifdef UNICODE
 		if (!mode) {
-			// overwrite 모드일 때 BOM 추가
-			wchar_t bom = 0xFEFF;
+			const wchar_t bom = 0xFEFF;
 			fwrite(&bom, sizeof(wchar_t), 1, fpWrite);
 		}
 

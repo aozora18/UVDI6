@@ -122,7 +122,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 {
 	auto& alignMotion = GlobalVariables::GetInstance()->GetAlignMotion();
 	CUniToChar csCnv;
-	ENG_AMOS motion = alignMotion.markParams.alignMotion;
+	ENG_AMOS motion = alignMotion.markParams.processedAlignMotion;
 	UINT8 i, j, k		= 0x00;
 	UINT8 u8ACams = motion == ENG_AMOS::en_onthefly_2cam || motion == ENG_AMOS::en_static_2cam ? 2 : alignMotion.markParams.centerCamIdx;
 	UINT8 u8ImgNo		= (page_no - 1) * u8ACams, u8ImgId, u8Index, u8Mark=0x00;

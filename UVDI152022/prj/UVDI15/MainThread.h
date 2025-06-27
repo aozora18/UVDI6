@@ -45,6 +45,7 @@ public:
 	}
 	bool CanRoaming()
 	{
+		return false;
 		return idleAccum > (1000 * 60 * 5);
 	}
 

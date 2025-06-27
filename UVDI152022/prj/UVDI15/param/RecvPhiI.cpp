@@ -209,9 +209,10 @@ VOID CRecvPhil::PhilSendListRecipe(STG_PP_PACKET_RECV* stRecv)
 	nCount = uvEng_JobRecipe_GetCount();
 	stStatus.usCount = nCount;
 
+	LPG_RJAF hostRcp = uvEng_JobRecipe_GetSelectRecipe(false);
 
-	// 20230824 mhbaek Add
-	strcpy_s(stStatus.szSelectedRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(uvEng_JobRecipe_GetSelectRecipe(false)->job_name));
+	if(hostRcp)
+		strcpy_s(stStatus.szSelectedRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(hostRcp->job_name));
 
 	for (int i = 0; i < nCount; i++)
 	{

@@ -290,6 +290,7 @@ BOOL CRecipeUVDI15::ParseJobRecipe(PCHAR data, UINT32 size)
 			memset(szValue, 0x00, _countof(szValue));
 			memcpy(szValue, pData, pFind - pData);	pData = ++pFind;
 			pstRecipe->ldsThreshold = (UINT32)atoi(szValue);
+			pstRecipe->ldsThreshold = pstRecipe->ldsThreshold == 0 ? uvEng_GetConfig()->measure_flat.dLimitZPOS * 1000.0f : pstRecipe->ldsThreshold;
 		}
 		
 	}

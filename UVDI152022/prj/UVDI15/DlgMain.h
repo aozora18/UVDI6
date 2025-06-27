@@ -120,7 +120,7 @@ protected:
 	void SetRichTextColored(CRichEditCtrl* pCtrl, const CString& text,
 		COLORREF colorLeft = RGB(255, 0, 0),
 		COLORREF colorRight = RGB(0, 0, 255),
-		TCHAR delimiter = _T('/'));
+		TCHAR delimiter = _T('/'),bool boldLeft = true);
 /* 로컬 변수 */
 protected:
 

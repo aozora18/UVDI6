@@ -620,7 +620,7 @@ ENG_JWNS CWorkStep::IsJobNameLoaded()
 	SetStepName(tzStep);
 
 	/* 거버 적재가 모두 완료 되었는지 여부 */
-	if (!pstJobMgt->IsJobNameRegistedSelectedLoaded())
+	if (!pstJobMgt->IsJobNameRegistedSelectedLoaded() )
 	{
 		if (!uvEng_GetConfig()->luria_svc.use_announcement)
 		{
@@ -1149,22 +1149,13 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 
 			LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
 
-			DOUBLE dLDSZPOS = uvEng_GetConfig()->acam_spec.acam_z_focus[1];
 			DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
 
-			DOUBLE LDSToThickOffset = 0;
-			//LDSToThickOffset = 1.3;
-			LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+			measureFlat.CalcFinalThick(pstRecipe->material_thick);
 
 			/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
-			//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
-			//DOUBLE RealThick = LDSToThickOffset - mean + dmater;
-#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-			/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
-			DOUBLE RealThick = mean + dmater + LDSToThickOffset;
-#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
-			DOUBLE RealThick = mean + LDSToThickOffset;
-#endif
+			DOUBLE RealThick = measureFlat.GetFinalThick();
+
 			DOUBLE LimitZPos = pstRecipe->ldsThreshold / 1000.0f; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
 			DOUBLE MaxZPos = LimitZPos;   //uvEng_GetConfig()->measure_flat.dLimitZPOS;
 			DOUBLE MinZPos = LimitZPos * -1.0f;   //uvEng_GetConfig()->measure_flat.dLimitZPOS * -1;

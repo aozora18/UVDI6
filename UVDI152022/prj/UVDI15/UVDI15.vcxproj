@@ -65,6 +65,7 @@
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -258,6 +259,7 @@
     <ClInclude Include="work\step\WorkExpoOnly.h" />
     <ClInclude Include="work\step\WorkFEMExpo.h" />
     <ClInclude Include="work\step\WorkHoming.h" />
+    <ClInclude Include="work\step\WorkIdle.h" />
     <ClInclude Include="work\step\WorkInited.h" />
     <ClInclude Include="work\step\WorkExpoAlign.h" />
     <ClInclude Include="work\step\WorkMarkMove.h" />
@@ -395,6 +397,7 @@
     <ClCompile Include="work\step\WorkExpoOnly.cpp" />
     <ClCompile Include="work\step\WorkFEMExpo.cpp" />
     <ClCompile Include="work\step\WorkHoming.cpp" />
+    <ClCompile Include="work\step\WorkIdle.cpp" />
     <ClCompile Include="work\step\WorkInited.cpp" />
     <ClCompile Include="work\step\WorkExpoAlign.cpp" />
     <ClCompile Include="work\step\WorkMarkMove.cpp" />

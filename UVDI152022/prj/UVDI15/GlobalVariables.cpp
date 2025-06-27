@@ -403,6 +403,16 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		markParams.alignMotion = markParams.prevAlignMotion;
 	}
 
+	void AlignMotion::ResetprocessedAlignMotion()
+	{
+		markParams.processedAlignMotion = markParams.alignMotion;
+	}
+
+	ENG_AMOS AlignMotion::GerPrevAlignMotion()
+	{
+		return markParams.prevAlignMotion;
+	}
+
 
 	bool AlignMotion::GetNearFid(STG_XMXY currentPos, SearchFlag flag, vector<STG_XMXY> skipList, STG_XMXY& findFid)
 	{
@@ -649,7 +659,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		markParams.alignType = (ENG_ATGL)alignRecipe->align_type;
 		markParams.alignMotion = (ENG_AMOS)alignRecipe->align_motion;
 		markParams.prevAlignMotion = markParams.alignMotion;
-	
+		markParams.processedAlignMotion = markParams.alignMotion;
 		STG_XMXY temp;
 		auto globalFiducial = uvEng_Luria_GetGlobalFiducial();
 		for (int i = 0; i < globalFiducial->GetCount(); i++)
@@ -1162,6 +1172,11 @@ bool RefindMotion::ProcessEstimateRST(int centerCam, std::vector<STG_XMXY> repre
 	if (fabs(diffX) > thresholdDist || 
 		fabs(diffY) > thresholdDist)
 	{
+
+		TCHAR tzMesg[128] = { NULL };
+		swprintf_s(tzMesg, 128, L"Offset correction failed! diff_X = %f, diff_Y = %f (exceeds max capacity = %f)", diffX , diffY, thresholdDist);
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+
 		errFlag = true;
 		return true;
 	}

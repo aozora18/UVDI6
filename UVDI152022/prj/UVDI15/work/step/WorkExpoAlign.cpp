@@ -277,13 +277,9 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	auto mean = measureFlat.GetThickMeasureMean();
 	if (measureFlat.u8UseThickCheck)
 	{
-		DOUBLE RealThick;
-		DOUBLE LDSToThickOffset = 0;
-		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-
-		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
-
-		RealThick = mean + dmater + LDSToThickOffset;
+		DOUBLE RealThick = measureFlat.GetFinalThick();
+		
+		
 
 		swprintf_s(tzResult, 1024, L"%.3f,", RealThick);
 		uvCmn_SaveTxtFileW(tzResult, (UINT32)wcslen(tzResult), tzFile, 0x01);
@@ -424,25 +420,25 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 			/* 얼라인 마크 검색 결과 값 저장 */
 			pstMark = uvEng_Camera_GetGrabbedMark(i+1, 0);
 			
-			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", i + 1, pstMark ? pstMark->score_rate : 0);
+			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", (i*2) + 1, pstMark ? pstMark->score_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", i + 1, pstMark ? pstMark->scale_rate : 0);
+			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", (i * 2) + 1, pstMark ? pstMark->scale_rate : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", i + 1, pstMark ?  pstMark->move_mm_x : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", (i * 2) + 1, pstMark ?  pstMark->move_mm_x : 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", i + 1,  pstMark ?  pstMark->move_mm_y : 0);
+			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", (i * 2) + 1,  pstMark ?  pstMark->move_mm_y : 0);
 			temps.push_back(wstring(tempStr));
 			
 
 			pstMark = uvEng_Camera_GetGrabbedMark(i+1, 1);
 			
-			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", i + 2,  pstMark ? pstMark->score_rate: 0 );
+			swprintf_s(tempStr, 1024, L"score_%d = %.3f\n", (i * 2) + 2,  pstMark ? pstMark->score_rate: 0 );
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", i + 2,pstMark ? pstMark->scale_rate: 0);
+			swprintf_s(tempStr, 1024, L"scale_%d = %.3f\n", (i * 2) + 2,pstMark ? pstMark->scale_rate: 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", i + 2, pstMark ? pstMark->move_mm_x: 0);
+			swprintf_s(tempStr, 1024, L"mark_move_x%d(mm) = %.4f\n", (i * 2) + 2, pstMark ? pstMark->move_mm_x: 0);
 			temps.push_back(wstring(tempStr));
-			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", i + 2, pstMark ? pstMark->move_mm_y: 0);
+			swprintf_s(tempStr, 1024, L"mark_move_y%d(mm) = %.4f\n", (i * 2) + 2, pstMark ? pstMark->move_mm_y: 0);
 			temps.push_back(wstring(tempStr));
 			
 		}
@@ -457,19 +453,11 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	{
 		auto mean = measureFlat.GetThickMeasureMean();
 
-		DOUBLE RealThick;
-		DOUBLE LDSToThickOffset = 0;
-		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-		LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
-
-		RealThick = mean + dmater + LDSToThickOffset;
-
+		DOUBLE RealThick = measureFlat.GetFinalThick();
+		
 		swprintf_s(tempStr, 1024, L"read_thick(mm) = %.3f\n", RealThick);
 		temps.push_back(wstring(tempStr));
 
-
-		/*swprintf_s(tempStr, 1024, L"LDS_BaseHeight(um) = %d\n", pstRecipe->ldsBaseHeight);
-		temps.push_back(wstring(tempStr));*/
 
 		swprintf_s(tempStr, 1024, L"LDS_Threshold(um) = %d\n", pstRecipe->ldsThreshold);
 		temps.push_back(wstring(tempStr));
@@ -498,6 +486,8 @@ void CWorkExpoAlign::DoInitOnthefly2cam()
 {
 	m_u8StepTotal = 0x29;
 	m_u8StepIt = 1;
+	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	motions.ResetprocessedAlignMotion();
 }
 
 void CWorkExpoAlign::DoAlignOnthefly2cam()
@@ -926,10 +916,9 @@ void CWorkExpoAlign::SetWorkNextStatic2cam()
 
 void CWorkExpoAlign::DoInitStaticCam()
 {
-
 	m_u8StepIt = 0;
-
-
+	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	motions.ResetprocessedAlignMotion();
 }
 
 void CWorkExpoAlign::DoAlignStaticCam()

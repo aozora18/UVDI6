@@ -315,9 +315,9 @@ void CDlgMain::RefreshRecipeTitleCaption()
 		strAlign = _1 + L"\r\n/" + _2;
 	}
 
-	SetRichTextColored(&newNameList[eMAIN_RICHTXT_GERB_RECIPE], strReicpe, isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));
-	SetRichTextColored(&newNameList[eMAIN_RICHTXT_EXPOSE_RECIPE], strExpo,isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));
-	SetRichTextColored(&newNameList[eMAIN_RICHTXT_ALIGN_RECIPE], strAlign, isLocalJobSelect ? RGB(0, 0, 0) : RGB(255, 0, 0), isLocalJobSelect ? RGB(255, 0, 0) : RGB(0, 0, 0));
+	SetRichTextColored(&newNameList[eMAIN_RICHTXT_GERB_RECIPE], strReicpe,  RGB(255, 0, 0) , RGB(197, 64, 255), _T('/'), !isLocalJobSelect);
+	SetRichTextColored(&newNameList[eMAIN_RICHTXT_EXPOSE_RECIPE], strExpo,  RGB(255, 0, 0)  , RGB(197, 64, 255), _T('/'), !isLocalJobSelect);
+	SetRichTextColored(&newNameList[eMAIN_RICHTXT_ALIGN_RECIPE], strAlign,  RGB(255, 0, 0) , RGB(197, 64, 255), _T('/'), !isLocalJobSelect);
 
 	Invalidate(true);
 }
@@ -328,7 +328,7 @@ void  CDlgMain::SetRichTextColored(CRichEditCtrl* pCtrl,
 	const CString& text,
 	COLORREF colorLeft,
 	COLORREF colorRight,
-	TCHAR delimiter)
+	TCHAR delimiter,bool boldLeft)
 {
 	if (!pCtrl) return;
 
@@ -339,17 +339,24 @@ void  CDlgMain::SetRichTextColored(CRichEditCtrl* pCtrl,
 
 	CHARFORMAT cf = { 0 };
 	cf.cbSize = sizeof(cf);
-	cf.dwMask = CFM_COLOR | CFM_BOLD; // 볼드도 같이 줄 수 있음
+	cf.dwMask = CFM_COLOR; // 볼드도 같이 줄 수 있음
 	cf.dwEffects = 0;
 
 	// 앞부분 색
 	cf.crTextColor = colorLeft;
 	pCtrl->SetSel(0, delimiterPos);
+
+	if(boldLeft)
+		cf.dwMask |= (CFM_BOLD | CFM_ITALIC); // 볼드도 같이 줄 수 있음
+
 	pCtrl->SetSelectionCharFormat(cf);
+	cf.dwMask = CFM_COLOR;  // 볼드도 같이 줄 수 있음
 
 	// 뒷부분 색
+	if (boldLeft == false)
+		cf.dwMask |= (CFM_BOLD | CFM_ITALIC); // 볼드도 같이 줄 수 있음
 	cf.crTextColor = colorRight;
-	pCtrl->SetSel(delimiterPos + 1, text.GetLength());
+	pCtrl->SetSel(delimiterPos, text.GetLength());
 	pCtrl->SetSelectionCharFormat(cf);
 
 	// 선택 해제

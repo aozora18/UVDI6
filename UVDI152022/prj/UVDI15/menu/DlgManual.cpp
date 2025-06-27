@@ -817,16 +817,8 @@ void CDlgManual::UpdateGridInformation()
 
 	//DOUBLE LDSToThickOffset = 1.3;
 	DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
-	DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-	//auto lastThick = uvEng_GetConfig()->measure_flat.GetThickMeasure(); //	DOUBLE LDSMeasure = uvEng_GetConfig()->measure_flat.dAlignMeasure;
-	//DOUBLE RealThick = LDSToThickOffset - LDSMeasure;
-	//DOUBLE RealThick = LDSToThickOffset - lastThick + dmater;
-	/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
-#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-	DOUBLE RealThick = mean + dmater + LDSToThickOffset;
-#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
-	DOUBLE RealThick = mean + LDSToThickOffset;
-#endif
+	DOUBLE dmater = measureFlat.GetCheckedMaterialThick();
+	DOUBLE RealThick = measureFlat.GetFinalThick();
 
 	/*현재 측정 LDS 측정값에 장비 옵셋값 추가 하여 실제 소재 측정값 계산*/
 	DOUBLE MaxZPos = LimitZPos; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
@@ -1704,7 +1696,6 @@ void CDlgManual::ChangeAlignMode()
 	if (MessageBoxEx(nullptr, A2T(combine.str().c_str()), _T(""), MB_OKCANCEL | MB_ICONINFORMATION, LANG_ENGLISH) == IDOK)
 	{
 		motions.markParams.alignMotion = ((int)motionType & 0b01) != 0 ? ENG_AMOS::en_static_3cam : ENG_AMOS::en_onthefly_2cam; //!! 레퍼런스에서 수정한것임 !!
-
 		//부수적인 작업은 진행해야함. 레시피 변경할때 얼라인 타입에 따라 준비되는 데이터가 따로 있음.
 	}
 }
@@ -1858,17 +1849,12 @@ VOID CDlgManual::ErrorThick()
 
 	if (measureFlat.u8UseThickCheck)
 	{
-		bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
-		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
-		DOUBLE dmater = pstRecipe->material_thick / 1000.0f;
-		DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
+		//bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+		//LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+		DOUBLE dmater = measureFlat.GetCheckedMaterialThick(); //pstRecipe->material_thick / 1000.0f;
+		//DOUBLE LDSToThickOffset = uvEng_GetConfig()->measure_flat.dOffsetZPOS;
 
-#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
-		/*소재두께 0mm 위치 CameraZ 설정 후 LDS 초기화 그래서 오차값만 측정됨*/
-		DOUBLE RealThick = mean + dmater + LDSToThickOffset;
-#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
-		DOUBLE RealThick = mean + LDSToThickOffset;
-#endif
+		DOUBLE RealThick = measureFlat.GetFinalThick();
 
 		DOUBLE LimitZPos = m_stJob.ldsThreshold / 1000.0f; //uvEng_GetConfig()->measure_flat.dLimitZPOS;
 		DOUBLE MaxZPos = LimitZPos;    //uvEng_GetConfig()->measure_flat.dLimitZPOS;

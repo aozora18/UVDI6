@@ -468,21 +468,27 @@ VOID CFiles::SaveTxtFileA(PCHAR buff, UINT32 size, PCHAR file, UINT8 mode)
 }
 VOID CFiles::SaveTxtFileW(PTCHAR buff, UINT32 size, PTCHAR file, UINT8 mode)
 {
-	FILE *fpWrite	= NULL;
+	FILE* fpWrite = NULL;
 
-	/* 한글을 저장할 때는 반드시 ? UTF 방식 중 Little Endian 적용 */
-	if (mode)	fpWrite	= _wfsopen(file, L"a+, ccs=UTF-16LE", _SH_DENYNO);
-	else		fpWrite	= _wfsopen(file, L"w+, ccs=UTF-16LE", _SH_DENYNO);
+	if (mode)
+		fpWrite = _wfsopen(file, L"a+, ccs=UTF-16LE", _SH_DENYNO);
+	else
+		fpWrite = _wfsopen(file, L"w+, ccs=UTF-16LE", _SH_DENYNO);
 
 	if (fpWrite)
 	{
-		if (buff && size > 0)
-		{
-			/* 파일의 맨 끝으로 이동 */
-			fseek(fpWrite, 0, SEEK_END);
-			fwrite(buff, sizeof(TCHAR), size, fpWrite);
+#ifdef UNICODE
+		if (!mode) {
+			// overwrite 모드일 때 BOM 추가
+			wchar_t bom = 0xFEFF;
+			fwrite(&bom, sizeof(wchar_t), 1, fpWrite);
 		}
-		// 파일 닫기
+
+		if (buff && size > 0)
+			fwrite(buff, sizeof(wchar_t), size, fpWrite);
+#else
+		TRACE("ANSI 빌드에서는 UTF-16LE 저장 불가\n");
+#endif
 		fclose(fpWrite);
 	}
 	else

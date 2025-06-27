@@ -1076,6 +1076,9 @@ public:
 	vector<DOUBLE>* dAlignMeasure;						/*LDS ÃøÁ¤ °ª*/
 	double lastThickness;
 	
+	double finalCalcThickness = 0;
+	UINT32 lastMaterialThickness = 0;
+
 	void SetThickMeasureResult(DOUBLE d)
 	{
 		Allocate();
@@ -1086,6 +1089,31 @@ public:
 	DOUBLE GetThickMeasure()
 	{
 		return lastThickness;
+	}
+
+	UINT32 GetCheckedMaterialThick()
+	{
+		return lastMaterialThickness;
+	}
+
+	double GetFinalThick()
+	{
+		return finalCalcThickness;
+	}
+
+	void CalcFinalThick(UINT32 materialThick)
+	{
+		lastMaterialThickness = materialThick;
+
+		auto mean = GetThickMeasureMean();
+		DOUBLE LDSToThickOffset = dOffsetZPOS;
+		
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+		DOUBLE dmater = materialThick / 1000.0f;
+		finalCalcThickness = mean + dmater + LDSToThickOffset;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+		finalCalcThickness = mean + LDSToThickOffset;
+#endif
 	}
 
 	DOUBLE GetThickMeasureMean()
@@ -1104,6 +1132,8 @@ public:
 	{
 		Allocate();
 		lastThickness = 0;
+		lastMaterialThickness = 0;
+		finalCalcThickness = 0;
 		dAlignMeasure->clear();
 	}
 

@@ -1028,7 +1028,7 @@ VOID CWorkMarkTest::WriteWebLogForExpoResult(UINT8 state)
 	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	CUniToChar csCnv1, csCnv2;
-
+	ENG_AMOS motion = GlobalVariables::GetInstance()->GetAlignMotion().markParams.processedAlignMotion;
 	CUniToChar	csCnv;
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
@@ -1069,7 +1069,7 @@ VOID CWorkMarkTest::WriteWebLogForExpoResult(UINT8 state)
 	swprintf_s(tempStr, 1024, L"diag_dist_23(mm) = %.4f\n", pstMarkDiff->result[5].diff * 100.0f);
 	temps.push_back(wstring(tempStr));
 
-	if ((ENG_AMOS)pstAlignRecipe->align_motion == ENG_AMOS::en_static_3cam)
+	if (motion == ENG_AMOS::en_static_3cam)
 	{
 
 		int cCam = uvEng_GetConfig()->set_align.centerCamIdx;
@@ -1249,8 +1249,9 @@ VOID CWorkMarkTest::SaveExpoResult(UINT8 state)
 	m_stExpoLog.global_dist[4] = pstMarkDiff->result[4].diff * 100.0f;
 	m_stExpoLog.global_dist[5] = pstMarkDiff->result[5].diff * 100.0f;
 
+	ENG_AMOS motion = GlobalVariables::GetInstance()->GetAlignMotion().markParams.processedAlignMotion;
 
-	if ((ENG_AMOS)pstAlignRecipe->align_motion == ENG_AMOS::en_static_3cam)
+	if (motion == ENG_AMOS::en_static_3cam)
 	{
 
 		int cCam = uvEng_GetConfig()->set_align.centerCamIdx;

@@ -131,7 +131,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	//UINT8 i;
 	TCHAR tzResult[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
 	TCHAR tzDrv[8] = { NULL };
-
+	ENG_AMOS motion = GlobalVariables::GetInstance()->GetAlignMotion().markParams.processedAlignMotion;
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
 	LPG_ACGR pstMark = NULL;
@@ -211,7 +211,7 @@ VOID CWorkExpoAlign::SaveExpoResult(UINT8 state)
 	m_stExpoLog.global_dist[5] = pstMarkDiff->result[5].diff * 100.0f;
 
 
-	if ((ENG_AMOS)pstAlignRecipe->align_motion == ENG_AMOS::en_static_3cam)
+	if (motion == ENG_AMOS::en_static_3cam)
 	{
 
 		int cCam = uvEng_GetConfig()->set_align.centerCamIdx;
@@ -343,6 +343,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	//UINT8 i;
 	TCHAR tempStr[1024] = { NULL }, tzFile[MAX_PATH_LEN] = { NULL }, tzState[2][8] = { L"FAIL", L"SUCC" };
 	TCHAR tzDrv[8] = { NULL };
+	ENG_AMOS motion = GlobalVariables::GetInstance()->GetAlignMotion().markParams.processedAlignMotion;
 
 	SYSTEMTIME stTm = { NULL };
 	MEMORYSTATUSEX stMem = { NULL };
@@ -391,7 +392,7 @@ VOID CWorkExpoAlign::WriteWebLogForExpoResult(UINT8 state)
 	swprintf_s(tempStr, 1024, L"diag_dist_23(mm) = %.4f\n", pstMarkDiff->result[5].diff * 100.0f);
 	temps.push_back(wstring(tempStr));
 
-	if ((ENG_AMOS)pstAlignRecipe->align_motion == ENG_AMOS::en_static_3cam)
+	if (motion == ENG_AMOS::en_static_3cam)
 	{
 
 		int cCam = uvEng_GetConfig()->set_align.centerCamIdx;

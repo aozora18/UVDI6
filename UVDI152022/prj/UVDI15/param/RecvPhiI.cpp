@@ -140,61 +140,85 @@ VOID CRecvPhil::PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv)
 	}
 }
 
+bool CRecvPhil::SelectRecipePender(CString strRecipe,CDlgMain* callerInst)
+{
+
+	if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe, EN_RECIPE_SELECT_TYPE::eRECIPE_MODE_SEL_FROM_HOST))
+	{
+		CString strExpo, strAlign;
+		UINT8 u8Offset = 0xff;
+		callerInst->RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
+
+		/*UI Recipe 목록 변경*/
+		strRecipe = CRecipeManager::GetInstance()->GetRecipeName();
+		strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
+		strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
+		::PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)0, (LPARAM)&strRecipe);
+		::PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)1, (LPARAM)&strExpo);
+		::PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)2, (LPARAM)&strAlign);
+		/*Auto Dlg로 변경*/
+		::PostMessage(callerInst->GetSafeHwnd(), WM_USER_CREATE_AUTO_MENU, 0, 0);
+		return true;
+	}
+	else
+		return false;
+	
+}
+
 VOID CRecvPhil::PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy)
 {
 	STG_PP_C2P_RCP_SELECT_ACK stSelectSend;
 	stSelectSend.Reset();
 	stSelectSend.ulUniqueID = stRecv->st_c2p_rcp_select.ulUniqueID;
+
 	CUniToChar csCnv;
 	CString strRecipe;
-	CString strExpo, strAlign;
-
 	strRecipe.Format(_T("%s"), csCnv.Ansi2Uni(stRecv->st_c2p_rcp_select.szRecipeName));
-
-	uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
-
-	uvEng_JobRecipe_SetWhatLastSelectIsLocal(false); //<-실패든 뭐든 호스트 레시피로 변경해야함.
 	
-	/*현재 시나리오 동작 중*/
 	if (is_busy)
 	{
-		stSelectSend.usErrorCode = ePHILHMI_ERR_STATUS_BUSY;
+		LOG_ERROR(ENG_EDIC::en_uvdi15, _T("[WAIT FOR COMPLETE] SelectRecipe received. DI Master is in busy state."));
+		uvEng_JobRecipe_SetWhatLastSelectIsLocal(false);
+		uvEng_JobRecipe_SelRecipeOnlyName((PTCHAR)strRecipe.GetString(), false);
+
 		uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
+		CString strRecipeCopy(strRecipe); // 안전한 복사본 생성
+		
+		std::thread([this, strRecipeCopy, callerInst]() 
+		{
+			const int max_wait_ms = 30 * 1000;
+			int waited = 0;
+			const int sleep_interval = 100;
+
+			while (callerInst->IsBusyWorkJob() && waited < max_wait_ms) 
+			{
+				Sleep(sleep_interval);
+				waited += sleep_interval;
+			}
+
+			if (!callerInst->IsBusyWorkJob())
+			{
+				SelectRecipePender(strRecipeCopy, callerInst); // 성공 시도
+			}
+			else 
+			{
+				LOG_ERROR(ENG_EDIC::en_uvdi15, _T("[TIME OUT!!]SelectRecipe received. DI Master is in busy state. "));
+
+			}
+			}).detach();
 	}
 	else
 	{
-		/*Recipe 선택 요청 성공*/
-		if (CRecipeManager::GetInstance()->SelectRecipe(strRecipe,EN_RECIPE_SELECT_TYPE::eRECIPE_MODE_SEL_FROM_HOST))
+		if (SelectRecipePender(strRecipe, callerInst))
 		{
-			//Host에서 내려진 Recipe Name 저장하여 매 노광시 같은 Reicpe Name 인지 확인 작업 진행
-			//memset(callerInst->m_stExpoLog.host_recipe_name, 0x00, DEF_MAX_RECIPE_NAME_LENGTH);
-			//strcpy_s(callerInst->m_stExpoLog.host_recipe_name, stRecv->st_c2p_rcp_select.szRecipeName);
-
-
-			UINT8 u8Offset = 0xff;
-			callerInst->RunWorkJob(ENG_BWOK::en_gerb_load, PUINT64(&u8Offset));
-
 			uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
-
-			/*UI Recipe 목록 변경*/
-			strRecipe = CRecipeManager::GetInstance()->GetRecipeName();
-			strExpo = CRecipeManager::GetInstance()->GetExpoRecipeName();
-			strAlign = CRecipeManager::GetInstance()->GetAlignRecipeName();
-			::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)0, (LPARAM)&strRecipe);
-			::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)1, (LPARAM)&strExpo);
-			::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_MAIN_RECIPE_UPDATE, (WPARAM)2, (LPARAM)&strAlign);
-			/*Auto Dlg로 변경*/
-			callerInst->CreateMenu(IDC_MAIN_BTN_AUTO);
 		}
-		/*Recipe 선택 요청 실패*/
 		else
 		{
 			stSelectSend.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
 			uvEng_Philhmi_Send_C2P_RCP_SELECT_ACK(stSelectSend);
 		}
-
 	}
-
 }
 
 VOID CRecvPhil::PhilSendListRecipe(STG_PP_PACKET_RECV* stRecv)

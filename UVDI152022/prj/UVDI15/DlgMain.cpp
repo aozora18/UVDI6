@@ -142,6 +142,7 @@ BEGIN_MESSAGE_MAP(CDlgMain, CMyDialog)
 	ON_MESSAGE(eMSG_MAIN_LOGIN_CONSOLE, OnOpenLoginConsole)
 	ON_MESSAGE(eMSG_MAIN_ADMIN_CONSOLE, OnOpenAdminConsole)
 	ON_MESSAGE(eMSG_MAIN_MANAGER_CONSOLE, OnOpenManagerConsole)
+	ON_MESSAGE(WM_USER_CREATE_AUTO_MENU, &CDlgMain::OnCreateAutoMenu)
 END_MESSAGE_MAP()
 
 /*
@@ -154,6 +155,12 @@ VOID CDlgMain::OnSysCommand(UINT32 id, LPARAM lparam)
 {
 
 	CMyDialog::OnSysCommand(id, lparam);
+}
+
+LRESULT CDlgMain::OnCreateAutoMenu(WPARAM, LPARAM)
+{
+	CreateMenu(IDC_MAIN_BTN_AUTO);
+	return 0;
 }
 
 /*

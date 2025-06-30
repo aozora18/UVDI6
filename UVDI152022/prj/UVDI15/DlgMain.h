@@ -106,6 +106,8 @@ public:
 	CDlgMain(CWnd* parent = NULL);
 	enum { IDD = IDD_MAIN };
 
+	BOOL IsBusy() { return m_bMainBusy; }
+	
 /* 가상 함수 */
 protected:
 
@@ -135,13 +137,13 @@ protected:
 	UINT64				m_u64StartTimeHMI;			/* 작업 시작 시간 저장 */
 
 	CMainThread			*m_pMainThread;
-
+	BOOL				m_bMainBusy;
 	CMainThread* GetMainthreadPtr() 
 	{
 		return m_pMainThread;
 	}
 
-	BOOL				m_bMainBusy;
+	
 	/* Logo Images 출력 */
 	CImgCustomer		*m_pImgCustomer;
 	CImgPhil			*m_pImgPhil;
@@ -247,4 +249,5 @@ protected:
 	afx_msg LRESULT		OnMsgMainRecipeChange(WPARAM wparam, LPARAM lparam);
 	afx_msg VOID		OnSysCommand(UINT32 id, LPARAM lparam);
 	afx_msg VOID		OnBtnClicked(UINT32 id);
+	afx_msg LRESULT OnCreateAutoMenu(WPARAM, LPARAM);
 };

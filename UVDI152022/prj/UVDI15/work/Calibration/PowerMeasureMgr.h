@@ -180,6 +180,7 @@ public:
 
 	BOOL MeasureStart(HWND hHwnd = NULL);
 	VOID MeasureEnd();
+	void SaveAllHeadtableFile();
 
 	BOOL RecipeCheckStart(HWND hHwnd = NULL);
 

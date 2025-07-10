@@ -1116,7 +1116,7 @@ void CDlgCalbUVPowerMeasure::SaveResult()
 		return;
 	}
 
-	CPowerMeasureMgr::GetInstance()->MeasureEnd();
+	CPowerMeasureMgr::GetInstance()->SaveAllHeadtableFile();
 }
 
 void CDlgCalbUVPowerMeasure::OnClickGridSelectHead(NMHDR* pNotifyStruct, LRESULT* pResult)

@@ -1627,6 +1627,22 @@ BOOL CPowerMeasureMgr::CheckRecipe(HWND hHwnd)
 	return TRUE;
 }
 
+void CPowerMeasureMgr::SaveAllHeadtableFile()
+{
+	if (m_bUseAllPH)
+	{
+		
+		for (int i = m_u8StartHead; i <= (int)(uvEng_GetConfig()->luria_svc.ph_count); i++)
+		{
+			SaveHeadTableFile(i);
+		}
+	}
+	else
+	{
+		SaveHeadTableFile(m_u8Head);
+	}
+}
+
 /*
  desc : 측정 후 테이블 값 교체 후 저장
  parm : None

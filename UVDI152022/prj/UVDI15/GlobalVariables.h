@@ -638,6 +638,8 @@ class AutoFocus
 
 	map<int, int> currentSensingAFValue;
 	map<int, int> storedAFValue;
+	map<int, int> AFSensorState;
+
 public:
 	void SetCurrentAFSensingPosition(int phNum, int value)
 	{
@@ -648,6 +650,13 @@ public:
 	{
 		storedAFValue[phNum] = value;
 	}
+
+	void SetAFSensorState(int phNum, int value)
+	{
+		AFSensorState[phNum] = value;
+	}
+
+	
 
 	
 

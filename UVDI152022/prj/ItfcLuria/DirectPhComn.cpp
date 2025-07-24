@@ -410,6 +410,8 @@ PUINT8 CDirectPhComn::GetPktCurrentAutofocusPosition(UINT8 ph_no)
 	return GetPktData(4, ph_no, (UINT16)ENG_LLRN::en_get_autofocus_position);
 }
 
+
+//AF 관련 추가!!!!
 PUINT8 CDirectPhComn::SetPktStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
 {
 	UINT8 u8Data[2] = { NULL }; //포지션 페이로드
@@ -423,6 +425,18 @@ PUINT8 CDirectPhComn::SetPktStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
 PUINT8 CDirectPhComn::GetPktStoredAutofocusPosition(UINT8 ph_no)
 {
 	return GetPktData(4, ph_no, (UINT16)ENG_LLRN::RequestFcsMtrAutoSetPos);
+}
+
+
+PUINT8 CDirectPhComn::SetPktAFSensorOnOff(UINT8 ph_no, bool on) //lds 센서 온오프.
+{
+	UINT8 u8Data = on ? 1 : 0;
+	return GetPktData(5, ph_no, (UINT16)ENG_LLRN::SetLaserMode, &u8Data, 1);
+}
+
+PUINT8 CDirectPhComn::GetPktAFSensorOnOff(UINT8 ph_no) //lds 센서 온오프 상태확인
+{
+	return GetPktData(4, ph_no, (UINT16)ENG_LLRN::RequestLaserMode);
 }
 
 
@@ -542,6 +556,8 @@ VOID CDirectPhComn::SetRecvPacket(UINT8 uid, PUINT8 data, UINT32 size)
 	if (u16RecID)	m_pstShMemDP->get_last_received_record_id	= u16RecID;
 }
 
+
+
 /*
  desc : Direct Photohead <single>의 Body Part
  parm : ph_no	- [in]  Photohead Number (1 ~ 8)
@@ -565,9 +581,16 @@ INT32 CDirectPhComn::SetRecvDirectPh(UINT8 ph_no, UINT16 rec_id, PUINT8 data)
 		i32RetSize = SetRecvFocusPosition(ph_no,data);
 	}
 	break;
+
+	case ENG_LLRN::ReplyLaserMode:// = 557, //라인센서 켜기 끄기 응답
+	{
+		i32RetSize = SetRecvAFSensorState(ph_no, data);
+	}
+	break;
+
 	case ENG_LLRN::ReplyFcsMtrAfTrim:// = 547, //스토어드벨류인데 임시 옵셋 +1 -1mm 쓰기응답
 	case ENG_LLRN::ReplyAfLineSensor:// = 617, ///라인센서 선택  (0- 인터널 1 - 익스터널)응답
-	case ENG_LLRN::ReplyLaserMode:// = 557, //라인센서 켜기 끄기 응답
+	
 	case ENG_LLRN::ReplyLaserModeEx:// = 662,//라인센서 켜고 끄기 ex 읽기응답
 	case ENG_LLRN::ReplyLaserIntensityEx:// = 663, //라인센서 레이저 감도 조절ex set 응답
 	case ENG_LLRN::ReplyZposAfPositions:// = 583,//af z 축 높이제한 응답
@@ -724,6 +747,13 @@ INT32 CDirectPhComn::SetRecvLedOnTime(UINT8 ph_no, PUINT8 data)
 	m_pstShMemDP->light_source_on_time_read_ok[ph_no-1][u16LedNo]	= u8ReadOK;
 
 	return (0x00000007);
+}
+
+
+INT32 CDirectPhComn::SetRecvAFSensorState(UINT8 ph_no, PUINT8 data)
+{
+	m_pstShMemDP->AFSensorState[ph_no - 1] = data[0];
+	return (0x00000002);
 }
 
 /*

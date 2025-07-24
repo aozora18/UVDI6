@@ -4166,6 +4166,22 @@ API_EXPORT BOOL uvLuria_ReqGetCurrentAutofocusPosition(UINT8 ph_no)
 	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
 }
 
+API_EXPORT BOOL uvLuria_ReqSetAFSensorOnOff(UINT8 ph_no, bool on)
+{
+	if (ph_no != 0xff && !IsPhNoValid(ph_no))	return FALSE;
+	/* Get Packet */
+	PUINT8 pPktBuff = g_pPktDP->SetPktAFSensorOnOff(ph_no,on);
+	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
+}
+
+API_EXPORT BOOL uvLuria_ReqGetAFSensorOnOff(UINT8 ph_no)
+{
+	if (ph_no != 0xff && !IsPhNoValid(ph_no))	return FALSE;
+	/* Get Packet */
+	PUINT8 pPktBuff = g_pPktDP->GetPktAFSensorOnOff(ph_no);
+	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
+}
+
 
 API_EXPORT BOOL uvLuria_ReqSetStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
 {
@@ -4180,6 +4196,9 @@ API_EXPORT BOOL uvLuria_ReqGetStoredAutofocusPosition(UINT8 ph_no)
 	PUINT8 pPktBuff = g_pPktDP->GetPktStoredAutofocusPosition(ph_no);
 	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
 }
+
+
+
 
 
 

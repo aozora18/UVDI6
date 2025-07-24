@@ -942,9 +942,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			
 			else if (spilt[1] == "_initAF") //오토포커스 초기화 
 			{
-				uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-				uvEng_Luria_ReqSetMotorPositionInitAll();
-				
+				uvEng_Luria_ReqSetMotorPositionInitAll();	
 			}
 			
 			else if (spilt[1] == "_readSV")
@@ -997,62 +995,71 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			}
 			else if (spilt[1] == "_externalLDS")
 			{
+				
+
+			}
+			else if (spilt[1] == "_getLDStype")
+			{
+
+			}
+			else if (spilt[1] == "_ldsOn")
+			{
+
 				for (int i = 1; i <= 2; i++)
 				{
+					bool on = atoi(spilt[2].c_str()) == 0 ? false : true;
 					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqGetCurrentAutofocusPosition(i);
+					uvEng_Luria_ReqSetAFSensorOnOff(i, on);
 
 					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
 					{
 						Sleep(300);
-						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_autofocus_position)
+						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack)
 						{
 							Sleep(300);
 						}
 						Sleep(300);
 						break;
 					}
-					gv->GetAutofocus().SetStoredAFPosition(i, uvEng_Luria_GetShMem()->directph.auto_focus_position[0]);
+					MessageBox(NULL, on ? L"set : true" : L"set : false", L"set", MB_OK);
 				}
 
+				
+				
 			}
-			else if (spilt[1] == "_getLDStype_1")
+			else if (spilt[1] == "_IsldsOn")
+			{
+
+				for (int i = 1; i <= 2; i++)
+				{
+					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+					uvEng_Luria_ReqGetAFSensorOnOff(i);
+
+					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
+					{
+						Sleep(300);
+						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyLaserMode)
+						{
+							Sleep(300);
+						}
+						Sleep(300);
+						break;
+					}
+					gv->GetAutofocus().SetAFSensorState(i, uvEng_Luria_GetShMem()->directph.AFSensorState[0]);
+				}
+
+				
+			}
+
+			else if (spilt[1] == "_ldsOff")
 			{
 
 			}
-			else if (spilt[1] == "_getLDStype_2")
+			else if (spilt[1] == "_afOn")
 			{
 
 			}
-			else if (spilt[1] == "_ldsOnPH1")
-			{
-
-			}
-			else if (spilt[1] == "_ldsOnPH2")
-			{
-
-			}
-			else if (spilt[1] == "_ldsOffPH1")
-			{
-
-			}
-			else if (spilt[1] == "_ldsOffPH2")
-			{
-
-			}
-			else if (spilt[1] == "_afOnPH1")
-			{
-
-			}
-			else if (spilt[1] == "_afOnPH2")
-			{
-
-			}
-			else if (spilt[1] == "_afOffPH1")
-			{
-
-			}
-			else if (spilt[1] == "_afOffPH2")
+			else if (spilt[1] == "_afOff")
 			{
 
 			}
@@ -1080,25 +1087,22 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 				gv->GetWebMonitor().AddWebBtn("라인 센서 internal", "_internalLDS");
 				gv->GetWebMonitor().AddWebBtn("라인 센서 external", "_externalLDS");
 
-				gv->GetWebMonitor().AddWebBtn("라인 센서 종류 읽기 PH1", "_getLDStype_1");
-				gv->GetWebMonitor().AddWebBtn("라인 센서 종류 읽기 PH2", "_getLDStype_2");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 종류 읽기", "_getLDStype");
+				
 
-				gv->GetWebMonitor().AddWebBtn("라인 센서 켜기 PH1", "_ldsOnPH1");
-				gv->GetWebMonitor().AddWebBtn("라인 센서 켜기 PH2", "_ldsOnPH2");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 상태", "_IsldsOn");
 
-				gv->GetWebMonitor().AddWebBtn("라인 센서 끄기 PH1", "_ldsOffPH1");
-				gv->GetWebMonitor().AddWebBtn("라인 센서 끄기 PH2", "_ldsOffPH2");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 켜기", "_ldsOn");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 끄기", "_ldsOff");
+				
 
-				gv->GetWebMonitor().AddWebBtn("현재 LDS값 읽기 PH1,2", "_readLDS");
+				gv->GetWebMonitor().AddWebBtn("현재 LDS값 읽기", "_readLDS");
 
 				gv->GetWebMonitor().AddWebBtn("LDS STORED VALUE 읽기", "_readSV");
 				gv->GetWebMonitor().AddWebBtn("LD STORED VALUE 쓰기",  "_writeSV");
 
-				gv->GetWebMonitor().AddWebBtn("AF 켜기_1번헤드", "_afOnPH1");
-				gv->GetWebMonitor().AddWebBtn("AF 켜기_2번헤드", "_afOnPH2");
-
-				gv->GetWebMonitor().AddWebBtn("AF 켜기_2번헤드", "_afOffPH1");
-				gv->GetWebMonitor().AddWebBtn("AF 끄기_2번헤드", "_afOffPH2");
+				gv->GetWebMonitor().AddWebBtn("AF 켜기", "_afOn");
+				gv->GetWebMonitor().AddWebBtn("AF 끄기_2번헤드", "_afOff");
 				
 				if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
 					return;

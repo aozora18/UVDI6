@@ -37,6 +37,7 @@ protected:
 								   UINT8 size=0);
 
 	INT32				SetRecvDirectPh(UINT8 ph_no, UINT16 rec_id, PUINT8 data);
+	INT32 SetRecvAFSensorState(UINT8 ph_no, PUINT8 data);
 
 	INT32				SetRecvReplyAck(PUINT8 data);
 	INT32				SetRecvMotorStatus(UINT8 ph_no, PUINT8 data);
@@ -126,5 +127,10 @@ public:
 
 	PUINT8 SetPktStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos); // stored af 값 쓰기
 	PUINT8 GetPktStoredAutofocusPosition(UINT8 ph_no); //읽기
-	INT32 SetRecvStoredAutofocusPosition(UINT8 phNo, PUINT8 data); //결과
+
+	PUINT8 SetPktAFSensorOnOff(UINT8 ph_no, bool on); //lds 센서 온오프.
+	PUINT8 GetPktAFSensorOnOff(UINT8 ph_no); //lds 센서 온오프 상태확인
+
+
+	
 };

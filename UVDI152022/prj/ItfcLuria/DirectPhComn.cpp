@@ -410,6 +410,21 @@ PUINT8 CDirectPhComn::GetPktCurrentAutofocusPosition(UINT8 ph_no)
 	return GetPktData(4, ph_no, (UINT16)ENG_LLRN::en_get_autofocus_position);
 }
 
+PUINT8 CDirectPhComn::SetPktStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
+{
+	UINT8 u8Data[2] = { NULL }; //포지션 페이로드
+	memcpy(u8Data, &setPos, 2);
+	return GetPktData(6, ph_no, (UINT16)ENG_LLRN::SetFcsMtrAutoSetPos, u8Data, 0x01);
+}
+
+PUINT8 CDirectPhComn::GetPktStoredAutofocusPosition(UINT8 ph_no)
+{
+	return GetPktData(4, ph_no, (UINT16)ENG_LLRN::RequestFcsMtrAutoSetPos);
+}
+
+
+
+
 /*
  desc : 현재 광학계의 DMD Flip Output 여부 확인
  parm : ph_no	- [in]  Photohead number (0x01 ~ 0x08 or 0xff : All)
@@ -541,6 +556,24 @@ INT32 CDirectPhComn::SetRecvDirectPh(UINT8 ph_no, UINT16 rec_id, PUINT8 data)
 
 	switch (rec_id)
 	{
+	//신규추가.
+	case ENG_LLRN::ReplyFcsMtrAutoSetPos: // af 포지션 스토어값 쓰기 응답
+	{
+		i32RetSize = SetRecvFocusPosition(ph_no,data);
+	}
+	break;
+	case ENG_LLRN::ReplyFcsMtrAfTrim:// = 547, //스토어드벨류인데 임시 옵셋 +1 -1mm 쓰기응답
+	case ENG_LLRN::ReplyAfLineSensor:// = 617, ///라인센서 선택  (0- 인터널 1 - 익스터널)응답
+	case ENG_LLRN::ReplyLaserMode:// = 557, //라인센서 켜기 끄기 응답
+	case ENG_LLRN::ReplyLaserModeEx:// = 662,//라인센서 켜고 끄기 ex 읽기응답
+	case ENG_LLRN::ReplyLaserIntensityEx:// = 663, //라인센서 레이저 감도 조절ex set 응답
+	case ENG_LLRN::ReplyZposAfPositions:// = 583,//af z 축 높이제한 응답
+	{
+		int debug = 0;
+	}
+	break;
+	///
+
 	case ENG_LLRN::en_res_reply_ack							:	i32RetSize = SetRecvReplyAck(data);					break;	/* General Reply Record */
 	case ENG_LLRN::en_res_plot_enable						:	i32RetSize = SetRecvPlotEnable(ph_no, data);		break;
 	case ENG_LLRN::en_res_fcs_motor_status					:	i32RetSize = SetRecvMotorStatus(ph_no, data);		break;
@@ -567,6 +600,8 @@ INT32 CDirectPhComn::SetRecvDirectPh(UINT8 ph_no, UINT16 rec_id, PUINT8 data)
 
 	return i32RetSize;
 }
+
+
 
 /*
  desc : Direct Photohead - ReplyAck
@@ -701,7 +736,7 @@ INT32 CDirectPhComn::SetRecvAutofocusPosition(UINT8 ph_no, PUINT8 data)
 
 	/* 정상적으로 값을 읽어온 경우만 갱신  */
 	memcpy(&u16Pos,	pData, 2);	pData	+= 2;
-	m_pstShMemDP->auto_focus_position[ph_no]	= SWAP16(u16Pos);
+	m_pstShMemDP->auto_focus_position[ph_no-1]	= SWAP16(u16Pos);
 
 	return (0x00000002);
 }

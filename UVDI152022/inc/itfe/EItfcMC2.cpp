@@ -40,79 +40,100 @@ extern "C"
 {
 #endif
 
-/* --------------------------------------------------------------------------------------------- */
-/*                              외부 함수 - < MC2 > < for Engine >                               */
-/* --------------------------------------------------------------------------------------------- */
+	/* --------------------------------------------------------------------------------------------- */
+	/*                              외부 함수 - < MC2 > < for Engine >                               */
+	/* --------------------------------------------------------------------------------------------- */
 
-/*
- desc : 모든 Device Homing All (Sequential) (0x3808)
- parm : None
- retn : TRUE or FALSE
- note : EN_STOP 모드가 적용되지 않는 곳에 사용
-*/
-API_EXPORT BOOL uvEng_MC2_SendDevHomingAll()
-{
-	UINT8 i	= 0x00;
-
-
-	/* 모든 드라이브에 대한 Homing 작업 수행 */
-	for (; i < GetConfig()->mc2_svc.drive_count; i++)
+	/*
+	 desc : 모든 Device Homing All (Sequential) (0x3808)
+	 parm : None
+	 retn : TRUE or FALSE
+	 note : EN_STOP 모드가 적용되지 않는 곳에 사용
+	*/
+	API_EXPORT BOOL uvEng_MC2_SendDevHomingAll()
 	{
-		if (!uvMC2_SendDevHoming(ENG_MMDI(GetConfig()->mc2_svc.axis_id[i])))	return FALSE;
-	}
+		UINT8 i = 0x00;
+
+
+		/* 모든 드라이브에 대한 Homing 작업 수행 */
+		for (; i < GetConfig()->mc2_svc.drive_count; i++)
+		{
+			if (!uvMC2_SendDevHoming(ENG_MMDI(GetConfig()->mc2_svc.axis_id[i])))	return FALSE;
+		}
 
 #if(MC2_DRIVE_2SET == 1)
-	UINT8 u8drv_id;
-	/* 모든 드라이브에 대한 Homing 작업 수행 */
-	for (i=0; i < GetConfig()->mc2b_svc.drive_count; i++)
-	{
-		u8drv_id = i + DRIVEDIVIDE;
-		if (!uvMC2_SendDevHoming(ENG_MMDI(u8drv_id)))	return FALSE;
-	}
+		UINT8 u8drv_id;
+		/* 모든 드라이브에 대한 Homing 작업 수행 */
+		for (i = 0; i < GetConfig()->mc2b_svc.drive_count; i++)
+		{
+			u8drv_id = i + DRIVEDIVIDE;
+			if (!uvMC2_SendDevHoming(ENG_MMDI(u8drv_id)))	return FALSE;
+		}
 
 #endif
 
-	
-	return TRUE;
-}
 
-/*
- desc : 기존 시스템 접속 해제 후 재접속 진행
- parm : None
- retn : TRUE or FALSE
- note : EN_STOP 모드가 적용되지 않는 곳에 사용
-*/
-API_EXPORT BOOL uvEng_MC2_Reconnected()
+		return TRUE;
+	}
+
+	/*
+	 desc : 기존 시스템 접속 해제 후 재접속 진행
+	 parm : None
+	 retn : TRUE or FALSE
+	 note : EN_STOP 모드가 적용되지 않는 곳에 사용
+	*/
+	API_EXPORT BOOL uvEng_MC2_Reconnected()
+	{
+
+		uvMC2_Reconnected();
+
+		return TRUE;
+	}
+
+	/*
+	 desc : 스테이지를 Vector 로 이동
+	 parm : drv_x	- [in]  Vector 이동 대상 축의 Drive ID 1
+			drv_y	- [in]  Vector 이동 대상 축의 Drive ID 2
+			pos_x	- [in]  스테이지가 최종 이동될 X 축의 위치 (단위: 0.1 um or 100 nm)
+			pos_y	- [in]  스테이지가 최종 이동될 Y 축의 위치 (단위: 0.1 um or 100 nm)
+			velo	- [in]  스테이지 이동 속도 값
+			axis	- [out] Vector 이동할 경우, Master Axis (기준 축) 값 반환
+	 retn : TRUE or FALSE
+	*/
+	API_EXPORT BOOL uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI drv_x, ENG_MMDI drv_y,
+		DOUBLE pos_x, DOUBLE pos_y, DOUBLE velo, ENG_MMDI& axis)
+	{
+		/* Check if it is in demo operation mode */
+		if (GetConfig()->IsRunDemo())	return TRUE;
+		if (!IsMC2DriveValid(drv_x))	return FALSE;
+		if (!IsMC2DriveValid(drv_y))	return FALSE;
+
+		INT32 i32MoveX = (INT32)ROUNDED(pos_x * 10000.0f, 0);	/* mm -> 0.1 um or 100 nm */
+		INT32 i32MoveY = (INT32)ROUNDED(pos_y * 10000.0f, 0);	/* mm -> 0.1 um or 100 nm */
+		UINT32 u32Velo = (UINT32)ROUNDED(velo * 10000.0f, 0);	/* mm -> 0.1 um or 100 nm */
+		return uvMC2_SendDevMoveVectorXY(drv_x, drv_y, i32MoveX, i32MoveY, u32Velo, axis);
+	}
+
+#if(MC2_DRIVE_2SET == 0)
+API_EXPORT LPG_MDSM uvEng_MC2_GetShMem()
 {
-
-	uvMC2_Reconnected();
-
-	return TRUE;
+	return GetShMemMC2();
 }
+#else
+	API_EXPORT LPG_MDSM uvEng_MC2_GetShMem(int memNum)
+	{
+#if(MC2_DRIVE_2SET == 0)
+		return GetShMemMC2();
+#else
+		return memNum == 0 ? GetShMemMC2() : GetShMemMC2b();
+#endif
+	}
+#endif
 
-/*
- desc : 스테이지를 Vector 로 이동
- parm : drv_x	- [in]  Vector 이동 대상 축의 Drive ID 1
-		drv_y	- [in]  Vector 이동 대상 축의 Drive ID 2
-		pos_x	- [in]  스테이지가 최종 이동될 X 축의 위치 (단위: 0.1 um or 100 nm)
-		pos_y	- [in]  스테이지가 최종 이동될 Y 축의 위치 (단위: 0.1 um or 100 nm)
-		velo	- [in]  스테이지 이동 속도 값
-		axis	- [out] Vector 이동할 경우, Master Axis (기준 축) 값 반환
- retn : TRUE or FALSE
-*/
-API_EXPORT BOOL uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI drv_x, ENG_MMDI drv_y,
-											  DOUBLE pos_x, DOUBLE pos_y, DOUBLE velo, ENG_MMDI &axis)
-{
-	/* Check if it is in demo operation mode */
-	if (GetConfig()->IsRunDemo())	return TRUE;
-	if (!IsMC2DriveValid(drv_x))	return FALSE;
-	if (!IsMC2DriveValid(drv_y))	return FALSE;
 
-	INT32 i32MoveX	= (INT32)ROUNDED(pos_x * 10000.0f, 0);	/* mm -> 0.1 um or 100 nm */
-	INT32 i32MoveY	= (INT32)ROUNDED(pos_y * 10000.0f, 0);	/* mm -> 0.1 um or 100 nm */
-	UINT32 u32Velo	= (UINT32)ROUNDED(velo * 10000.0f, 0);	/* mm -> 0.1 um or 100 nm */
-	return uvMC2_SendDevMoveVectorXY(drv_x, drv_y, i32MoveX, i32MoveY, u32Velo, axis);
-}
+
+
+
 
 /*
  desc : Device Stopped

@@ -632,6 +632,28 @@ public:
 
 };
 
+
+class AutoFocus
+{
+
+	map<int, int> currentSensingAFValue;
+	map<int, int> storedAFValue;
+public:
+	void SetCurrentAFSensingPosition(int phNum, int value)
+	{
+		currentSensingAFValue[phNum] = value;
+	}
+
+	void SetStoredAFPosition(int phNum, int value)
+	{
+		storedAFValue[phNum] = value;
+	}
+
+	
+
+};
+
+
 class AlignMotion
 {
 public:
@@ -835,7 +857,7 @@ private:
 	unique_ptr<TriggerManager> triggerManager;
 	unique_ptr<WebMonitor> webMonitor;
 	unique_ptr<Environmental> environmental;
-
+	unique_ptr<AutoFocus> autoFocus;
 	
 	
 	template <typename MapType>
@@ -861,6 +883,10 @@ public:
 		return *refindMotion;
 	}
 
+	AutoFocus& GetAutofocus()
+	{
+		return *autoFocus;
+	}
 	TriggerManager& GetTrigger()
 	{
 		return *triggerManager;
@@ -886,6 +912,7 @@ public:
 		alignMotion.reset();
 		refindMotion.reset();
 		triggerManager.reset();
+		autoFocus.reset();
 		webMonitor->StopWebServer();
 		webMonitor.reset();
 		environmental.reset();
@@ -983,6 +1010,7 @@ public:
 		alignMotion.get()->motionMutex = &motionMutex;
 		webMonitor = make_unique<WebMonitor>();
 		triggerManager = make_unique<TriggerManager>();
+		autoFocus = make_unique<AutoFocus>();
 	}
 
 	/*GlobalVariables()

@@ -763,6 +763,13 @@ API_EXPORT BOOL uvEng_Luria_ReqSetUseEthercatForAF(UINT8 enable)
 	return uvLuria_ReqSetUseEthercatForAF(enable);
 }
 
+API_EXPORT BOOL uvEng_Luria_ReqScanEthercat()
+{
+	return uvLuria_ReqScanEthercat();
+}
+
+
+
 /*
  desc : Request/Set Spx-level value
  parm : flag	- [in]  Function Type : Get or Set
@@ -1871,6 +1878,15 @@ API_EXPORT BOOL uvEng_Luria_ReqGetCurrentAutofocusPosition(UINT8 ph_no)
 	return uvLuria_ReqGetCurrentAutofocusPosition(ph_no);
 }
 
+API_EXPORT BOOL uvEng_Luria_ReqSetStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
+{
+	return uvLuria_ReqSetStoredAutofocusPosition(ph_no, setPos);
+}
+
+API_EXPORT BOOL uvEng_Luria_ReqGetStoredAutofocusPosition(UINT8 ph_no)
+{
+	return uvLuria_ReqGetStoredAutofocusPosition(ph_no);
+}
 
 /*
  desc : Luria Server에 Photohead LED On-Time 값 요청
@@ -2628,6 +2644,14 @@ API_EXPORT BOOL uvEng_Luria_IsRecvPktData(ENG_FDPR flag)
 {
 	return uvLuria_IsRecvPktData(flag);
 }
+
+API_EXPORT LPG_LDSM uvEng_Luria_GetShMem()
+{
+	return GetShMemLuria();
+}
+
+
+
 
 /*
  desc : 가장 마지막 (최근)에 수신된 명령어 응답 여부

@@ -755,6 +755,9 @@ API_IMPORT BOOL uvLuria_ReqSetMTCMode(UINT8 mode);
 */
 API_IMPORT BOOL uvLuria_ReqGetUseEthercatForAF();
 API_IMPORT BOOL uvLuria_ReqSetUseEthercatForAF(UINT8 enable);
+
+
+API_IMPORT BOOL uvLuria_ReqScanEthercat();
 /*
  desc : The spx-level from preprocessed files must correspond to the value set here
  parm : level	- [in]  Spx-level to be used. Default is 36
@@ -1719,6 +1722,9 @@ API_IMPORT BOOL uvLuria_ReqGetLineSensorPlot(UINT8 ph_no);
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvLuria_ReqGetCurrentAutofocusPosition(UINT8 ph_no);
+
+API_IMPORT BOOL uvLuria_ReqSetStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos);
+API_IMPORT BOOL uvLuria_ReqGetStoredAutofocusPosition(UINT8 ph_no);
 /*
  desc : 특정 Photohead에 설치된 카메라의 LED Lamp Light Value (0x00 ~ 0xff) 값 설정
  parm : ph_no	- [in]  Photohead Number (0x01 ~ 0x08)

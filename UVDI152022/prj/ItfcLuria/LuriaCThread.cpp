@@ -226,7 +226,7 @@ VOID CLuriaCThread::ReqGetPeriodPkt(UINT64 tick)
 	switch (m_u8NextJob)
 	{
 	case 0x00 :	pPkt = m_pPktSS->GetPktSystemStatus();			pBase = m_pPktSS;	break;
-	case 0x01 :	pPkt = m_pPktDP->GetPktMotorAbsPositionAll();	pBase = m_pPktDP;	break;
+	case 0x01 :	pPkt = m_pPktDP->GetPktMotorAbsPositionAll();	pBase = m_pPktDP;	break; //<-주의 이거 3.0부터는 지원하지 않는 명령엄. 이 명령에서 v3 unsupported command 어쩌구저쩌구 에러나는거임.
 	case 0x02 :	if (0x01 == m_pstConfLuria->z_drive_type)	/* Only for stepping motors */
 					pPkt = m_pPktDP->GetPktMotorStateAll();		pBase = m_pPktDP;	break;
 	}

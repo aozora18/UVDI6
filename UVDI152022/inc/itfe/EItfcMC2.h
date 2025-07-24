@@ -49,6 +49,13 @@ API_IMPORT BOOL uvEng_MC2_SendDevStopped(ENG_MMDI drv_id);
  parm : None
  retn : TRUE or FALSE
 */
+
+#if(MC2_DRIVE_2SET == 0)
+API_IMPORT LPG_MDSM uvEng_MC2_GetShMem();
+#else
+API_IMPORT LPG_MDSM uvEng_MC2_GetShMem(int memNum);
+#endif
+
 API_IMPORT BOOL uvEng_MC2_SendDevStoppedAll();
 /*
  desc : Device Locked (On or OFF)

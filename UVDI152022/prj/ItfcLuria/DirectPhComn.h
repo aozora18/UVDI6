@@ -49,6 +49,9 @@ protected:
 	INT32				SetRecvCameraIllumLED(UINT8 ph_no, PUINT8 data);
 	INT32				SetRecvPlotEnable(UINT8 ph_no, PUINT8 data);
 	INT32				SetRecvFocusPosition(UINT8 ph_no, PUINT8 data);
+
+
+
 	INT32				SetRecvLedPower(UINT8 ph_no, PUINT8 data);
 	INT32				SetRecvLedDriveStatus(UINT8 ph_no, PUINT8 data);
 	INT32				SetRecvLedLightOnOff(UINT8 ph_no, PUINT8 data);
@@ -118,4 +121,10 @@ public:
 	/* Light Pulse Duration*/
 	PUINT8				SetPktLightPulseDuration(UINT8 ph_no, UINT16 value);
 	PUINT8				GetPktLightPulseDuration(UINT8 ph_no);
+
+	//신규추가.
+
+	PUINT8 SetPktStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos); // stored af 값 쓰기
+	PUINT8 GetPktStoredAutofocusPosition(UINT8 ph_no); //읽기
+	INT32 SetRecvStoredAutofocusPosition(UINT8 phNo, PUINT8 data); //결과
 };

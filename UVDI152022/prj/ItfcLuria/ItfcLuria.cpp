@@ -2084,6 +2084,14 @@ API_EXPORT BOOL uvLuria_ReqSetUseEthercatForAF(UINT8 enable)
 	return AddPktSend(pPktBuff, g_pPktMC->GetPktSize(), WFILE);
 }
 
+API_EXPORT BOOL uvLuria_ReqScanEthercat()
+{
+	PUINT8 pPktBuff = g_pPktPF->GetPktScanEthercat();
+	return AddPktSend(pPktBuff, g_pPktPF->GetPktSize(), WFILE);
+}
+
+
+
 /*
  desc : The spx-level from preprocessed files must correspond to the value set here
  parm : level	- [in]  Spx-level to be used. Default is 36
@@ -4152,11 +4160,30 @@ API_EXPORT BOOL uvLuria_ReqGetLineSensorPlot(UINT8 ph_no)
 */
 API_EXPORT BOOL uvLuria_ReqGetCurrentAutofocusPosition(UINT8 ph_no)
 {
-	if (!IsPhNoValid(ph_no))	return FALSE;
+	if (ph_no != 0xff && !IsPhNoValid(ph_no))	return FALSE;
 	/* Get Packet */
 	PUINT8 pPktBuff = g_pPktDP->GetPktCurrentAutofocusPosition(ph_no);
 	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
 }
+
+
+API_EXPORT BOOL uvLuria_ReqSetStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
+{
+	if (ph_no != 0xff && !IsPhNoValid(ph_no))	return FALSE;
+	PUINT8 pPktBuff = g_pPktDP->SetPktStoredAutofocusPosition(ph_no, setPos);
+	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
+}
+
+API_EXPORT BOOL uvLuria_ReqGetStoredAutofocusPosition(UINT8 ph_no)
+{
+	if (ph_no != 0xff && !IsPhNoValid(ph_no))	return FALSE;
+	PUINT8 pPktBuff = g_pPktDP->GetPktStoredAutofocusPosition(ph_no);
+	return AddPktSend(pPktBuff, g_pPktDP->GetPktSize(), WFILE);
+}
+
+
+
+
 
 /*
  desc : 특정 Photohead에 설치된 카메라의 LED Lamp Light Value (0x00 ~ 0xff) 값 설정

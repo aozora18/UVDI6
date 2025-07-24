@@ -363,6 +363,11 @@ typedef enum class __en_lurai_luxbeam_record_number__ : UINT16
 	en_set_fcs_mtr_abs_pos					= 0x0084,	/* 132 : SET */
 	en_get_fcs_mtr_abs_pos					= 0x014C,	/* 332 : GET */
 	en_res_fcs_mtr_abs_pos					= 0x0214,	/* 532 : RES */
+	
+
+	
+
+	///
 	/* LED Driver Amplitude */
 	en_set_led_amplitude					= 0x0085,	/* 133 : SET */
 	en_get_led_amplitude					= 0x014D,	/* 333 : GET */
@@ -384,6 +389,37 @@ typedef enum class __en_lurai_luxbeam_record_number__ : UINT16
 	/* Current Autofocus Position */
 	en_get_autofocus_position				= 0x0159,	/* 345 : GET */
 	en_res_autofocus_position				= 0x0221,	/* 545 : RES */
+
+ //신규추가// 이젠 그냥 공식메뉴얼 명령표기대로 적겠음 헥사값도 안씀.
+	SetFcsMtrAutoSetPos = 146, // af 포지션 스토어값 쓰기
+	RequestFcsMtrAutoSetPos = 346, // 읽기
+	ReplyFcsMtrAutoSetPos = 546, // af 포지션 스토어값 쓰기 응답
+
+	SetFcsMtrAfTrim = 147, //스토어드벨류인데 임시 옵셋 +1 -1mm 쓰기
+	RequestFcsMtrAfTrim = 347, //읽기
+	ReplyFcsMtrAfTrim = 547, //스토어드벨류인데 임시 옵셋 +1 -1mm 쓰기응답
+
+
+	SetAfLineSensor = 217, //라인센서 선택 쓰기 (0- 인터널 1 - 익스터널)
+	RequestAfLineSensor = 417, //라인센서 선택 읽기
+	ReplyAfLineSensor = 617, ///라인센서 선택  (0- 인터널 1 - 익스터널)응답
+
+	SetLaserMode = 157, //라인센서 켜기 끄기 쓰기 (0 = 끄기, 1 = 켜기)
+	RequestLaserMode = 357, // 라인센서 상태 읽기 
+	ReplyLaserMode = 557, //라인센서 켜기 끄기 응답
+
+	SetLaserModeEx = 262, // 라인센서 켜고 끄기 ex 설정 (
+	RequestLaserModeEx = 462,//라인센서 켜고 끄기 ex 읽기
+	ReplyLaserModeEx = 662,//라인센서 켜고 끄기 ex 읽기응답
+
+	SetLaserIntensityEx = 263, //라인센서 레이저 감도 조절ex set
+	RequestLaserIntensityEx = 463, //읽기
+	ReplyLaserIntensityEx = 663, //라인센서 레이저 감도 조절ex set 응답
+
+	SetZposAfPositions = 183, //af z 축 높이제한 set
+	RequestZposAfPositions = 383, // af z축 높이제한 get
+	ReplyZposAfPositions = 583,//af z 축 높이제한 응답
+
 	/* 21.02.11 Enable Flatness Correction Mask (PPC) */
 	en_set_enable_flatness_correction_mask	= 0x0094,	/* 148 : SET */
 	en_get_enable_flatness_correction_mask	= 0x015C,	/* 348 : GET */
@@ -501,8 +537,8 @@ typedef enum class __en_luria_command_system_status__ : UINT8
 
 }	ENG_LCSS;
 
-/* Photohead Focus command (user_id : 0xA8) */
-typedef enum class __en_luria_command_photohead_focus__ : UINT8
+/* Photohead Focus command (user_id : 0xA8 = 168 진짜 씨바 별 이유도 없이 16진수 쓰면 대가리쪼갬. 병신도 아니고 16진수 금지.) */
+typedef enum class __en_luria_command_photohead_focus__ : UINT8 // ****************이거 USER_ID값이다. *******************
 {
 	en_initialize_focus					= 0x01,		/* This will initialize the z-axis. Note that this may take up to 30 seconds to complete. If initialize failes, the status code FocusMotorOperationFailed is give */
 	en_position							= 0x02,		/* Focus Z-position given in micrometers. */
@@ -2253,7 +2289,7 @@ typedef struct __st_luria_data_direct_photohead__
 	UINT16				get_last_received_reply_error;						/* 가장 최근에 수신된 응답 에러 값 */
 
 	UINT16				focus_position[MAX_PH];								/* Range: 21284 - 44252, where 32768 is theoretical middle. 1 unit = 0.174um (기준: Luxbeam 4800/9500) */
-	UINT16				auto_focus_position[MAX_PH];						/* Range: 21284 - 44252, where 32768 is theoretical middle. 1 unit = 0.174um (기준: Luxbeam 4800/9500) */
+	UINT16				auto_focus_position[MAX_PH];						/* Range: 21284 - 44252, where 32768 is theoretical middle. 1 unit = 0.174um (기준: Luxbeam 4800/9500) */ //실시간 센싱값
 	UINT16				focus_motor_status[MAX_PH];							/* Motor Status (1 ~ 8) */
 	UINT16				light_source_driver_amplitude[MAX_PH][MAX_LED];		/* LED Power Value (1 ~ 8. PH 마다 LED 4) (0x0000 (0) ~ 0x0fff (4095) */
 	UINT16				light_source_driver_temp_led[MAX_PH][MAX_LED];		/* LED Temperature (1 ~ 8. PH 마다 LED 4). 나누기 10을 하면 실제 온도 값 */
@@ -2690,6 +2726,7 @@ typedef struct __st_luria_data_shared_memory__
 	{
 		last_send_fid	= 0x00;
 		last_send_uid	= 0x00;
+		directph.get_last_received_record_id = 0x00;
 	}
 
 	/*

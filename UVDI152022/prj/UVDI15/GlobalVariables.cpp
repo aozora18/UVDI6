@@ -10,7 +10,7 @@ using namespace std;
 
 CommonMotionStuffs CommonMotionStuffs::inst;
 
-
+void Callback(const char* cmd);
 
 
 bool ConditionWrapper::WaitFor(std::chrono::milliseconds timeout)
@@ -895,25 +895,199 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		ThreadManager::getInstance().addThread("update", cancelFlag,[&]() {Update(); });
 
 	}
+
+	std::vector<std::string> SplitCmd(const char* cmd)
+	{
+		std::vector<std::string> tokens;
+		std::string s(cmd);
+		size_t pos = 0;
+		while ((pos = s.find('/')) != std::string::npos) {
+			tokens.push_back(s.substr(0, pos));
+			s.erase(0, pos + 1);
+		}
+		if (!s.empty()) tokens.push_back(s); // 마지막 토큰
+		return tokens;
+	}
+
  
+	void Callback(const char* cmd)
+	{
+		
+		auto gv = GlobalVariables::GetInstance();
+
+		auto spilt = SplitCmd(cmd);
+
+		if (spilt[0] == "cmd")
+		{
+			if(spilt[1] == "_readLDS") // 센서에서 현재값 읽어오는거다. (OK)
+			{
+				for (int i = 1; i <= 2; i++)
+				{
+					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+					uvEng_Luria_ReqGetCurrentAutofocusPosition(i);
+
+					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
+					{
+						Sleep(300);
+						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_autofocus_position)
+						{
+							Sleep(300);
+						}
+						Sleep(300);
+						break;
+					}
+					gv->GetAutofocus().SetCurrentAFSensingPosition(i, uvEng_Luria_GetShMem()->directph.auto_focus_position[0]);
+				}
+			}
+			
+			else if (spilt[1] == "_initAF") //오토포커스 초기화 
+			{
+				uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+				uvEng_Luria_ReqSetMotorPositionInitAll();
+				
+			}
+			
+			else if (spilt[1] == "_readSV")
+			{
+				for (int i = 1; i <= 2; i++)
+				{
+					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+					uvEng_Luria_ReqGetStoredAutofocusPosition(1);
+
+					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
+					{
+						Sleep(300);
+						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyFcsMtrAutoSetPos)
+						{
+							Sleep(300);
+						}
+						Sleep(300);
+						break;
+					}
+					gv->GetAutofocus().SetStoredAFPosition(i, uvEng_Luria_GetShMem()->directph.focus_position[0]);
+				}
+
+			}
+			else if(spilt[1] == "_writeSV")
+			{
+
+			}
+			else if(spilt[1] == "_internalLDS")
+			{
+
+			}
+			else if (spilt[1] == "_externalLDS")
+			{
+				for (int i = 1; i <= 2; i++)
+				{
+					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+					uvEng_Luria_ReqGetCurrentAutofocusPosition(i);
+
+					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
+					{
+						Sleep(300);
+						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_autofocus_position)
+						{
+							Sleep(300);
+						}
+						Sleep(300);
+						break;
+					}
+					gv->GetAutofocus().SetStoredAFPosition(i, uvEng_Luria_GetShMem()->directph.auto_focus_position[0]);
+				}
+
+			}
+			else if (spilt[1] == "_getLDStype_1")
+			{
+
+			}
+			else if (spilt[1] == "_getLDStype_2")
+			{
+
+			}
+			else if (spilt[1] == "_ldsOnPH1")
+			{
+
+			}
+			else if (spilt[1] == "_ldsOnPH2")
+			{
+
+			}
+			else if (spilt[1] == "_ldsOffPH1")
+			{
+
+			}
+			else if (spilt[1] == "_ldsOffPH2")
+			{
+
+			}
+			else if (spilt[1] == "_afOnPH1")
+			{
+
+			}
+			else if (spilt[1] == "_afOnPH2")
+			{
+
+			}
+			else if (spilt[1] == "_afOffPH1")
+			{
+
+			}
+			else if (spilt[1] == "_afOffPH2")
+			{
+
+			}
+		}
+		else if (spilt[0] == "config")
+		{
+
+		}
+	}
+
 
 	void WebMonitor::StartWebMonitor()
 	{
 		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()
 			{
 				
-
 				this_thread::sleep_for(chrono::seconds(10));
 
 				const int SERVER_PORT = 5000;
 
 				auto gv = GlobalVariables::GetInstance();
 
+				gv->GetWebMonitor().AddWebBtn("af초기화", "_initAF");
+
+				gv->GetWebMonitor().AddWebBtn("라인 센서 internal", "_internalLDS");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 external", "_externalLDS");
+
+				gv->GetWebMonitor().AddWebBtn("라인 센서 종류 읽기 PH1", "_getLDStype_1");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 종류 읽기 PH2", "_getLDStype_2");
+
+				gv->GetWebMonitor().AddWebBtn("라인 센서 켜기 PH1", "_ldsOnPH1");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 켜기 PH2", "_ldsOnPH2");
+
+				gv->GetWebMonitor().AddWebBtn("라인 센서 끄기 PH1", "_ldsOffPH1");
+				gv->GetWebMonitor().AddWebBtn("라인 센서 끄기 PH2", "_ldsOffPH2");
+
+				gv->GetWebMonitor().AddWebBtn("현재 LDS값 읽기 PH1,2", "_readLDS");
+
+				gv->GetWebMonitor().AddWebBtn("LDS STORED VALUE 읽기", "_readSV");
+				gv->GetWebMonitor().AddWebBtn("LD STORED VALUE 쓰기",  "_writeSV");
+
+				gv->GetWebMonitor().AddWebBtn("AF 켜기_1번헤드", "_afOnPH1");
+				gv->GetWebMonitor().AddWebBtn("AF 켜기_2번헤드", "_afOnPH2");
+
+				gv->GetWebMonitor().AddWebBtn("AF 켜기_2번헤드", "_afOffPH1");
+				gv->GetWebMonitor().AddWebBtn("AF 끄기_2번헤드", "_afOffPH2");
+				
 				if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
 					return;
 
 				if (gv->GetWebMonitor().ConnectClient(SERVER_PORT) == false)
 					return;
+
+				gv->GetWebMonitor().RegisterCommandCallback(Callback);
 
 				const int updateDelay = 1;
 				while (cancelFlag.load() == false)

@@ -413,8 +413,11 @@ PUINT8 CDirectPhComn::GetPktCurrentAutofocusPosition(UINT8 ph_no)
 PUINT8 CDirectPhComn::SetPktStoredAutofocusPosition(UINT8 ph_no, UINT16 setPos)
 {
 	UINT8 u8Data[2] = { NULL }; //포지션 페이로드
-	memcpy(u8Data, &setPos, 2);
-	return GetPktData(6, ph_no, (UINT16)ENG_LLRN::SetFcsMtrAutoSetPos, u8Data, 0x01);
+
+	UINT16 pos = htons(setPos);
+
+	memcpy(u8Data, &pos, 2);
+	return GetPktData(6, ph_no, (UINT16)ENG_LLRN::SetFcsMtrAutoSetPos, u8Data, 2);
 }
 
 PUINT8 CDirectPhComn::GetPktStoredAutofocusPosition(UINT8 ph_no)

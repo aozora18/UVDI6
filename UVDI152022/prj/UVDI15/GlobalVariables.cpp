@@ -951,8 +951,9 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			{
 				for (int i = 1; i <= 2; i++)
 				{
+					
 					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqGetStoredAutofocusPosition(1);
+					uvEng_Luria_ReqGetStoredAutofocusPosition(i);
 
 					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
 					{
@@ -970,6 +971,24 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			}
 			else if(spilt[1] == "_writeSV")
 			{
+				for (int i = 1; i <= 2; i++)
+				{
+					int value = atoi(spilt[2].c_str());
+					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+					uvEng_Luria_ReqSetStoredAutofocusPosition(i, value);
+
+					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
+					{
+						Sleep(300);
+						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack)
+						{
+							Sleep(300);
+						}
+						Sleep(300);
+						break;
+					}
+					
+				}
 
 			}
 			else if(spilt[1] == "_internalLDS")

@@ -2291,6 +2291,7 @@ typedef struct __st_luria_data_direct_photohead__
 	UINT16				focus_position[MAX_PH];								/* Range: 21284 - 44252, where 32768 is theoretical middle. 1 unit = 0.174um (기준: Luxbeam 4800/9500) */
 	UINT16				auto_focus_position[MAX_PH];						/* Range: 21284 - 44252, where 32768 is theoretical middle. 1 unit = 0.174um (기준: Luxbeam 4800/9500) */ //실시간 센싱값
 	UINT8				AFSensorState[MAX_PH];
+	UINT8				AFSensorType[MAX_PH];
 	UINT16				focus_motor_status[MAX_PH];							/* Motor Status (1 ~ 8) */
 	UINT16				light_source_driver_amplitude[MAX_PH][MAX_LED];		/* LED Power Value (1 ~ 8. PH 마다 LED 4) (0x0000 (0) ~ 0x0fff (4095) */
 	UINT16				light_source_driver_temp_led[MAX_PH][MAX_LED];		/* LED Temperature (1 ~ 8. PH 마다 LED 4). 나누기 10을 하면 실제 온도 값 */

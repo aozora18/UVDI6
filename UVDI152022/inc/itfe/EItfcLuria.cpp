@@ -1888,8 +1888,6 @@ API_EXPORT BOOL uvEng_Luria_ReqGetStoredAutofocusPosition(UINT8 ph_no)
 	return uvLuria_ReqGetStoredAutofocusPosition(ph_no);
 }
 
-
-
 API_EXPORT BOOL uvEng_Luria_ReqSetAFSensorOnOff(UINT8 ph_no, bool on)
 {
 	return uvLuria_ReqSetAFSensorOnOff(ph_no, on);
@@ -1901,6 +1899,15 @@ API_EXPORT BOOL uvEng_Luria_ReqGetAFSensorOnOff(UINT8 ph_no)
 }
 
 
+API_EXPORT BOOL uvEng_Luria_ReqSetAFSensorType(UINT8 ph_no, UINT8 sensorType)
+{
+	return uvLuria_ReqSetAFSensorType(ph_no, sensorType);
+}
+
+API_EXPORT BOOL uvEng_Luria_ReqGetAFSensorType(UINT8 ph_no)
+{
+	return uvLuria_ReqGetAFSensorType(ph_no);
+}
 
 
 

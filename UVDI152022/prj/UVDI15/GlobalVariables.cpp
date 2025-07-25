@@ -921,148 +921,134 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		{
 			if(spilt[1] == "_readLDS") // 센서에서 현재값 읽어오는거다. (OK)
 			{
-				for (int i = 1; i <= 2; i++)
+				int _1=0, _2=0;
+				if (gv->GetAutofocus().GetCurrentAFSensingPosition(1, _1) == false ||
+					gv->GetAutofocus().GetCurrentAFSensingPosition(2, _2) == false)
 				{
-					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqGetCurrentAutofocusPosition(i);
-
-					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
-					{
-						Sleep(300);
-						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_autofocus_position)
-						{
-							Sleep(300);
-						}
-						Sleep(300);
-						break;
-					}
-					gv->GetAutofocus().SetCurrentAFSensingPosition(i, uvEng_Luria_GetShMem()->directph.auto_focus_position[0]);
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
+				int debug = 0;
 			}
 			
 			else if (spilt[1] == "_initAF") //오토포커스 초기화 
 			{
-				uvEng_Luria_ReqSetMotorPositionInitAll();	
+				if (gv->GetAutofocus().InitFocusDrive() == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
 			}
 			
 			else if (spilt[1] == "_readSV")
 			{
-				for (int i = 1; i <= 2; i++)
+				int _1 = 0, _2 = 0;
+				if (gv->GetAutofocus().GetStoredAFPosition(1, _1) == false ||
+					gv->GetAutofocus().GetStoredAFPosition(2, _2) == false)
 				{
-					
-					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqGetStoredAutofocusPosition(i);
-
-					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
-					{
-						Sleep(300);
-						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyFcsMtrAutoSetPos)
-						{
-							Sleep(300);
-						}
-						Sleep(300);
-						break;
-					}
-					gv->GetAutofocus().SetStoredAFPosition(i, uvEng_Luria_GetShMem()->directph.focus_position[0]);
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
-
+				int debug = 0;
 			}
 			else if(spilt[1] == "_writeSV")
 			{
-				for (int i = 1; i <= 2; i++)
+				int value = atoi(spilt[2].c_str());
+
+				if (gv->GetAutofocus().SetStoredAFPosition(1, value) == false ||
+					gv->GetAutofocus().SetStoredAFPosition(2, value) == false)
 				{
-					int value = atoi(spilt[2].c_str());
-					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqSetStoredAutofocusPosition(i, value);
-
-					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
-					{
-						Sleep(300);
-						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack)
-						{
-							Sleep(300);
-						}
-						Sleep(300);
-						break;
-					}
-					
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
-
 			}
-			else if(spilt[1] == "_internalLDS")
-			{
 
-			}
-			else if (spilt[1] == "_externalLDS")
-			{
-				
-
-			}
-			else if (spilt[1] == "_getLDStype")
-			{
-
-			}
-			else if (spilt[1] == "_ldsOn")
-			{
-
-				for (int i = 1; i <= 2; i++)
-				{
-					bool on = atoi(spilt[2].c_str()) == 0 ? false : true;
-					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqSetAFSensorOnOff(i, on);
-
-					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
-					{
-						Sleep(300);
-						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack)
-						{
-							Sleep(300);
-						}
-						Sleep(300);
-						break;
-					}
-					MessageBox(NULL, on ? L"set : true" : L"set : false", L"set", MB_OK);
-				}
-
-				
-				
-			}
 			else if (spilt[1] == "_IsldsOn")
 			{
-
-				for (int i = 1; i <= 2; i++)
+				bool _1, _2;
+				if (gv->GetAutofocus().GetAFSensorIsOn(1, _1) == false ||
+					gv->GetAutofocus().GetAFSensorIsOn(2, _2) == false)
 				{
-					uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-					uvEng_Luria_ReqGetAFSensorOnOff(i);
-
-					while (!uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph))
-					{
-						Sleep(300);
-						while (!uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyLaserMode)
-						{
-							Sleep(300);
-						}
-						Sleep(300);
-						break;
-					}
-					gv->GetAutofocus().SetAFSensorState(i, uvEng_Luria_GetShMem()->directph.AFSensorState[0]);
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
+				int debug = 0;
+			}
 
-				
+
+			else if (spilt[1] == "_ldsOn")
+			{
+				if (gv->GetAutofocus().SetAFSensorOnOff(1, true) == false ||
+					gv->GetAutofocus().SetAFSensorOnOff(2, true) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
 			}
 
 			else if (spilt[1] == "_ldsOff")
 			{
+				if (gv->GetAutofocus().SetAFSensorOnOff(1, false) == false ||
+					gv->GetAutofocus().SetAFSensorOnOff(2, false) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
+			}
+
+			else if(spilt[1] == "_internalLDS")
+			{
+				if (gv->GetAutofocus().SetAFSensorType(1,  AFstate::internal) == false ||
+					gv->GetAutofocus().SetAFSensorType(2, AFstate::internal) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
 
 			}
+			else if (spilt[1] == "_externalLDS")
+			{
+				if (gv->GetAutofocus().SetAFSensorType(1, AFstate::external) == false ||
+					gv->GetAutofocus().SetAFSensorType(2, AFstate::external) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
+
+			}
+			else if (spilt[1] == "_getLDStype")
+			{
+				AFstate::LDStype _1, _2;
+
+				if (gv->GetAutofocus().GetAFSensorType(1, _1) == false ||
+					gv->GetAutofocus().GetAFSensorType(2, _2) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
+
+				int debug = 0;
+
+			}
+			
 			else if (spilt[1] == "_afOn")
 			{
-
+				if (gv->GetAutofocus().SetAFOnOff(1, true) == false ||
+					gv->GetAutofocus().SetAFOnOff(2, true) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
 			}
 			else if (spilt[1] == "_afOff")
 			{
-
+				if (gv->GetAutofocus().SetAFOnOff(1, false) == false ||
+					gv->GetAutofocus().SetAFOnOff(2, false) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
 			}
+
+			else if (spilt[1] == "_IsafOn")
+			{
+				bool _1, _2;
+				if (gv->GetAutofocus().GetAFisOn(1, _1) == false ||
+					gv->GetAutofocus().GetAFisOn(2, _2) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
+				int debug = 0;
+			}
+
 		}
 		else if (spilt[0] == "config")
 		{
@@ -1084,26 +1070,25 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 				gv->GetWebMonitor().AddWebBtn("af초기화", "_initAF");
 
-				gv->GetWebMonitor().AddWebBtn("라인 센서 internal", "_internalLDS");
-				gv->GetWebMonitor().AddWebBtn("라인 센서 external", "_externalLDS");
+				gv->GetWebMonitor().AddWebBtn("set internal LDS", "_internalLDS");
+				gv->GetWebMonitor().AddWebBtn("set external LDS", "_externalLDS");
 
-				gv->GetWebMonitor().AddWebBtn("라인 센서 종류 읽기", "_getLDStype");
+				gv->GetWebMonitor().AddWebBtn("센서타입 읽기", "_getLDStype");
 				
+				gv->GetWebMonitor().AddWebBtn("센서 on/off상태", "_IsldsOn");
 
-				gv->GetWebMonitor().AddWebBtn("라인 센서 상태", "_IsldsOn");
-
-				gv->GetWebMonitor().AddWebBtn("라인 센서 켜기", "_ldsOn");
-				gv->GetWebMonitor().AddWebBtn("라인 센서 끄기", "_ldsOff");
+				gv->GetWebMonitor().AddWebBtn("센서 켜기", "_ldsOn");
+				gv->GetWebMonitor().AddWebBtn("센서 끄기", "_ldsOff");
 				
-
 				gv->GetWebMonitor().AddWebBtn("현재 LDS값 읽기", "_readLDS");
 
 				gv->GetWebMonitor().AddWebBtn("LDS STORED VALUE 읽기", "_readSV");
 				gv->GetWebMonitor().AddWebBtn("LD STORED VALUE 쓰기",  "_writeSV");
 
+				gv->GetWebMonitor().AddWebBtn("AF 상태 읽기", "_IsafOn");
 				gv->GetWebMonitor().AddWebBtn("AF 켜기", "_afOn");
 				gv->GetWebMonitor().AddWebBtn("AF 끄기_2번헤드", "_afOff");
-				
+
 				if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
 					return;
 
@@ -1753,3 +1738,231 @@ bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool
 
 	return res;
 }
+
+
+AFstate* AutoFocus::GetAFState(int phIndex)
+{
+	auto value = afState.find(phIndex);
+	return value == afState.end() ? nullptr : &value->second;
+}
+
+bool AutoFocus::InitFocusDrive()
+{
+	uvEng_Luria_ReqSetMotorPositionInitAll();
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_focus,(UINT8)ENG_LCPF::en_initialize_focus);
+		},10000);
+
+	return res;
+}
+
+//set
+bool AutoFocus::SetAFSensorOnOff(int phNum, bool on)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->SetAFSensorOnOff(on);
+}
+
+bool AutoFocus::SetStoredAFPosition(int phNum, int position)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->SetStoredAFPosition(position);
+}
+
+bool AutoFocus::SetAFSensorType(int phNum, AFstate::LDStype type)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->SetAFSensorType(type);
+}
+
+
+bool AutoFocus::SetAFOnOff(int phNum, bool on)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->SetAFOnOff(on);
+}
+
+//get
+bool AutoFocus::GetAFSensorIsOn(int phNum, bool& on)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetAFSensorIsOn(on);
+}
+
+bool AutoFocus::GetCurrentAFSensingPosition(int phNum, int& position)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetCurrentAFSensingPosition(position);
+}
+
+bool AutoFocus::GetStoredAFPosition(int phNum, int& position)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetStoredAFPosition(position);
+}
+
+bool AutoFocus::GetAFSensorType(int phNum, AFstate::LDStype& type)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetAFSensorType(type);
+}
+
+bool AutoFocus::GetAFisOn(int phNum, bool& on)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetAFisOn(on);
+}
+
+
+
+//set
+bool AFstate::SetAFSensorOnOff(bool on)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqSetAFSensorOnOff(phIndex, on);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack;
+			return false;
+		});
+	this->isSensorOn = res ? on : this->isSensorOn;
+	return res;
+}
+
+bool AFstate::SetAFSensorType(LDStype type)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqSetAFSensorType(phIndex, (UINT8)type);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack;
+			return false;
+		});
+	this->ldsType = res ? (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0] : type;
+	return res;
+}
+
+bool AFstate::SetStoredAFPosition(int position)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqSetStoredAutofocusPosition(phIndex, position);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack;
+			return false;
+		});
+	this->storedAFValue = res ? position : this->storedAFValue;
+	return res;
+}
+
+bool AFstate::SetAFOnOff(bool on)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqSetAutoFocusLM(phIndex, on ? 1 : 0);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_focus,
+													 (UINT8)ENG_LCPF::en_auto_focus);
+			
+		});
+
+	this->isAFOn = res ? (bool)uvEng_Luria_GetShMem()->focus.auto_focus[phIndex] : this->isAFOn;
+	return res;
+}
+
+//get
+bool AFstate::GetAFSensorIsOn(bool& on)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetAFSensorOnOff(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyLaserMode;
+			return false;
+		});
+
+	on = uvEng_Luria_GetShMem()->directph.AFSensorState[0] == 0 ? false : true;
+	this->isSensorOn = on;
+	return res;
+}
+
+bool AFstate::GetCurrentAFSensingPosition(int& position)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetCurrentAutofocusPosition(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_autofocus_position;
+			return false;
+		},5000);
+
+	position = uvEng_Luria_GetShMem()->directph.auto_focus_position[0];
+	this->sensingAFValue = position;
+	return res;
+}
+
+bool AFstate::GetStoredAFPosition(int& position)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetStoredAutofocusPosition(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyFcsMtrAutoSetPos;
+			return false;
+		});
+
+	position = uvEng_Luria_GetShMem()->directph.focus_position[0];
+	this->storedAFValue = position;
+	return res;
+}
+
+bool AFstate::GetAFSensorType(LDStype& type)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetAFSensorType(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyAfLineSensor;
+			return false;
+		});
+
+	type = (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0];
+	this->ldsType = type;
+	return res;
+}
+
+bool AFstate::GetAFisOn(bool& on)
+{
+
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetAutoFocus(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_focus, 
+													 (UINT8)ENG_LCPF::en_auto_focus);
+		});
+	
+	on = (bool)uvEng_Luria_GetShMem()->focus.auto_focus[phIndex];
+
+	this->isAFOn = res ? on : this->isAFOn;
+	return res;
+}
+

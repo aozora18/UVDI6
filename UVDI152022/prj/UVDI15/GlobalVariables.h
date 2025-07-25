@@ -40,6 +40,8 @@
 
 using namespace std;
 class CaliCalc;
+class AutoFocus;
+class AFstate;
 
 enum MovingDir
 {
@@ -632,37 +634,6 @@ public:
 
 };
 
-
-class AutoFocus
-{
-
-	map<int, int> currentSensingAFValue;
-	map<int, int> storedAFValue;
-	map<int, int> AFSensorState;
-
-public:
-	void SetCurrentAFSensingPosition(int phNum, int value)
-	{
-		currentSensingAFValue[phNum] = value;
-	}
-
-	void SetStoredAFPosition(int phNum, int value)
-	{
-		storedAFValue[phNum] = value;
-	}
-
-	void SetAFSensorState(int phNum, int value)
-	{
-		AFSensorState[phNum] = value;
-	}
-
-	
-
-	
-
-};
-
-
 class AlignMotion
 {
 public:
@@ -845,6 +816,94 @@ public:
 
 };
 
+
+
+
+class AFstate
+{
+public:
+	enum LDStype
+	{
+		internal,
+		external,
+	};
+
+protected:
+	LDStype ldsType;
+	bool isAFOn;
+	bool isSensorOn;
+	int phIndex;
+	int sensingAFValue;
+	int storedAFValue;
+
+public:
+	AFstate() = default;
+	AFstate(int phIdx)
+	{
+		phIndex = phIdx;
+		isAFOn = false;
+		isSensorOn = false;
+		sensingAFValue = 0;
+		storedAFValue = 0;
+	}
+public:
+	//set
+	bool SetAFSensorOnOff(bool on);
+	bool SetStoredAFPosition(int position);
+	bool SetAFSensorType(LDStype type);
+	bool SetAFOnOff(bool on);
+
+	//get
+	bool GetAFSensorIsOn(bool& on);
+	bool GetCurrentAFSensingPosition(int& position);
+	bool GetStoredAFPosition(int& position);
+	bool GetAFSensorType(LDStype& type);
+	bool GetAFisOn(bool& on);
+
+};
+
+class AutoFocus
+{
+	friend class AFstate;
+	map<int, AFstate> afState;
+
+public:
+
+	AutoFocus() = default;
+	AutoFocus(int phNum)
+	{
+		for (int i = 1; i <= phNum; i++)
+			afState[i] = AFstate(i);
+	}
+
+public:
+	AFstate* GetAFState(int phIndex);
+	bool InitFocusDrive();
+	//set
+	bool SetAFSensorOnOff(int phNum, bool on);
+
+	bool SetStoredAFPosition(int phNum, int position);
+
+	bool SetAFOnOff(int phNum, bool on);
+
+	bool SetAFSensorType(int phNum, AFstate::LDStype type);
+
+	//get
+	bool GetAFSensorIsOn(int phNum, bool& on);
+
+	bool GetCurrentAFSensingPosition(int phNum, int& position);
+
+	bool GetStoredAFPosition(int phNum, int& position);
+
+	bool GetAFSensorType(int phNum, AFstate::LDStype& type);
+
+	bool GetAFisOn(int phNum, bool& on);
+};
+
+
+
+
+
 //인라인클래스 
 class GlobalVariables
 {
@@ -1019,7 +1078,7 @@ public:
 		alignMotion.get()->motionMutex = &motionMutex;
 		webMonitor = make_unique<WebMonitor>();
 		triggerManager = make_unique<TriggerManager>();
-		autoFocus = make_unique<AutoFocus>();
+		autoFocus = make_unique<AutoFocus>(AutoFocus(2));
 	}
 
 	/*GlobalVariables()

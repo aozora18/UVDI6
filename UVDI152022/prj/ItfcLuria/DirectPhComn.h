@@ -38,6 +38,7 @@ protected:
 
 	INT32				SetRecvDirectPh(UINT8 ph_no, UINT16 rec_id, PUINT8 data);
 	INT32 SetRecvAFSensorState(UINT8 ph_no, PUINT8 data);
+	INT32 SetRecvAFSensorType(UINT8 ph_no, PUINT8 data);
 
 	INT32				SetRecvReplyAck(PUINT8 data);
 	INT32				SetRecvMotorStatus(UINT8 ph_no, PUINT8 data);
@@ -130,6 +131,9 @@ public:
 
 	PUINT8 SetPktAFSensorOnOff(UINT8 ph_no, bool on); //lds 센서 온오프.
 	PUINT8 GetPktAFSensorOnOff(UINT8 ph_no); //lds 센서 온오프 상태확인
+
+	PUINT8 SetPktAFSensorType(UINT8 ph_no, UINT8 type); //lds 센서 타입선택 
+	PUINT8 GetPktAFSensorType(UINT8 ph_no); //lds 센서 타입 얻기
 
 
 	

@@ -440,6 +440,17 @@ PUINT8 CDirectPhComn::GetPktAFSensorOnOff(UINT8 ph_no) //lds 센서 온오프 �
 }
 
 
+PUINT8 CDirectPhComn::SetPktAFSensorType(UINT8 ph_no, UINT8 type) //lds 센서 타입선택 
+{
+	
+	return GetPktData(5, ph_no, (UINT16)ENG_LLRN::SetAfLineSensor,&type,1);
+}
+
+PUINT8 CDirectPhComn::GetPktAFSensorType(UINT8 ph_no) //lds 센서 타입 얻기
+{
+	return GetPktData(4, ph_no, (UINT16)ENG_LLRN::RequestAfLineSensor);
+}
+
 
 
 /*
@@ -588,9 +599,13 @@ INT32 CDirectPhComn::SetRecvDirectPh(UINT8 ph_no, UINT16 rec_id, PUINT8 data)
 	}
 	break;
 
-	case ENG_LLRN::ReplyFcsMtrAfTrim:// = 547, //스토어드벨류인데 임시 옵셋 +1 -1mm 쓰기응답
 	case ENG_LLRN::ReplyAfLineSensor:// = 617, ///라인센서 선택  (0- 인터널 1 - 익스터널)응답
-	
+	{
+		i32RetSize = SetRecvAFSensorType(ph_no, data);
+	}
+	break;
+
+	case ENG_LLRN::ReplyFcsMtrAfTrim:// = 547, //스토어드벨류인데 임시 옵셋 +1 -1mm 쓰기응답
 	case ENG_LLRN::ReplyLaserModeEx:// = 662,//라인센서 켜고 끄기 ex 읽기응답
 	case ENG_LLRN::ReplyLaserIntensityEx:// = 663, //라인센서 레이저 감도 조절ex set 응답
 	case ENG_LLRN::ReplyZposAfPositions:// = 583,//af z 축 높이제한 응답
@@ -747,6 +762,13 @@ INT32 CDirectPhComn::SetRecvLedOnTime(UINT8 ph_no, PUINT8 data)
 	m_pstShMemDP->light_source_on_time_read_ok[ph_no-1][u16LedNo]	= u8ReadOK;
 
 	return (0x00000007);
+}
+
+
+INT32 CDirectPhComn::SetRecvAFSensorType(UINT8 ph_no, PUINT8 data)
+{
+	m_pstShMemDP->AFSensorType[ph_no - 1] = data[0];
+	return (0x00000002);
 }
 
 

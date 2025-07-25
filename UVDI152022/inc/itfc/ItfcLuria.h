@@ -1728,6 +1728,11 @@ API_IMPORT BOOL uvLuria_ReqGetStoredAutofocusPosition(UINT8 ph_no);
 
 API_IMPORT BOOL uvLuria_ReqSetAFSensorOnOff(UINT8 ph_no, bool on);
 API_IMPORT BOOL uvLuria_ReqGetAFSensorOnOff(UINT8 ph_no);
+
+API_IMPORT BOOL uvLuria_ReqSetAFSensorType(UINT8 ph_no, UINT8 sensorType);
+API_IMPORT BOOL uvLuria_ReqGetAFSensorType(UINT8 ph_no);
+
+
 /*
  desc : 특정 Photohead에 설치된 카메라의 LED Lamp Light Value (0x00 ~ 0xff) 값 설정
  parm : ph_no	- [in]  Photohead Number (0x01 ~ 0x08)

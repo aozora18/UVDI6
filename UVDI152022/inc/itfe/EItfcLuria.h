@@ -1038,6 +1038,10 @@ API_IMPORT BOOL uvEng_Luria_ReqGetStoredAutofocusPosition(UINT8 ph_no);
 
 API_IMPORT BOOL uvEng_Luria_ReqSetAFSensorOnOff(UINT8 ph_no, bool on);
 API_IMPORT BOOL uvEng_Luria_ReqGetAFSensorOnOff(UINT8 ph_no);
+
+API_IMPORT BOOL uvEng_Luria_ReqSetAFSensorType(UINT8 ph_no, UINT8 sensorType);
+API_IMPORT BOOL uvEng_Luria_ReqGetAFSensorType(UINT8 ph_no);
+
 /*
  desc : Luria Server에 Photohead LED On-Time 값 요청
  parm : None

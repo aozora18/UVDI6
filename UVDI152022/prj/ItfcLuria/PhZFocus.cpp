@@ -604,7 +604,9 @@ VOID CPhZFocus::SetRecvPacket(UINT8 uid, PUINT8 data, UINT32 size)
 	switch (uid)
 	{
 	case (UINT8)ENG_LCPF::en_auto_focus				:
-	case (UINT8)ENG_LCPF::en_af_gain				:	SetRecv2Bytes(uid, data);	break;
+	case (UINT8)ENG_LCPF::en_af_gain				:	
+		SetRecv2Bytes(uid, data);	
+	break;
 
 	case (UINT8)ENG_LCPF::en_abs_work_range_status	:	SetRecv4Bytes(uid, data);	break;
 
@@ -634,8 +636,10 @@ VOID CPhZFocus::SetRecv2Bytes(UINT8 uid, PUINT8 data)
 	switch (uid)
 	{
 	case (UINT8)ENG_LCPF::en_auto_focus	:
-		if (data[0] == 0x00)	memset(m_pstShMemPF->auto_focus, data[1], MAX_PH);
-		else					m_pstShMemPF->auto_focus[data[0]-1]	= data[1];
+		if (data[0] == 0x00)	
+			memset(m_pstShMemPF->auto_focus, data[1], MAX_PH);
+		else					
+			m_pstShMemPF->auto_focus[data[0]-1]	= data[1];
 		break;
 
 	case (UINT8)ENG_LCPF::en_af_gain	:

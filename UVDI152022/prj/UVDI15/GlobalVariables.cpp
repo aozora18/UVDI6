@@ -1880,7 +1880,7 @@ bool AFstate::SetAFSensorType(LDStype type)
 		{
 			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
 		});
-	this->ldsType = res ? (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0] : this->ldsType;
+	this->ldsType = res ? type : this->ldsType;
 	return res;
 }
 
@@ -1909,7 +1909,7 @@ bool AFstate::SetAFOnOff(bool on)
 			
 		});
 
-	this->isAFOn = res ? (bool)uvEng_Luria_GetShMem()->focus.auto_focus[phIndex] : this->isAFOn;
+	this->isAFOn = res ? on : this->isAFOn;
 	return res;
 }
 
@@ -2014,8 +2014,8 @@ bool AFstate::SetAFWorkRange( int below, int above)
 			
 		});
 
-	this->AFworkRange[0] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_min[phIndex - 1] : this->AFworkRange[0];
-	this->AFworkRange[1] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_max[phIndex - 1] : this->AFworkRange[1];
+	this->AFworkRange[0] = res ? below : this->AFworkRange[0];
+	this->AFworkRange[1] = res ? above : this->AFworkRange[1];
 
 	return res;
 }

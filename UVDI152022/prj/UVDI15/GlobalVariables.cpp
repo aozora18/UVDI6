@@ -1776,10 +1776,10 @@ AFstate* AutoFocus::GetAFState(int phIndex)
 bool AutoFocus::InitFocusDrive()
 {
 	uvEng_Luria_ReqSetMotorPositionInitAll();
-
+	Sleep(2000);
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_focus,(UINT8)ENG_LCPF::en_initialize_focus);
+			return uvCmn_MC2_IsMotorDriveStopAll() && uvCmn_Luria_IsLastError() == false;
 		},10000);
 
 	return res;
@@ -1857,6 +1857,7 @@ bool AutoFocus::SetAFWorkRange(int phNum, int below, int above)
 	return value == nullptr ? false : value->SetAFWorkRange(below,above);
 }
 
+
 bool AFstate::SetAFSensorOnOff(bool on)
 {
 	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
@@ -1864,9 +1865,7 @@ bool AFstate::SetAFSensorOnOff(bool on)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
-			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack;
-			return false;
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm,1);
 		});
 	this->isSensorOn = res ? on : this->isSensorOn;
 	return res;
@@ -1879,11 +1878,9 @@ bool AFstate::SetAFSensorType(LDStype type)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
-			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack;
-			return false;
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
 		});
-	this->ldsType = res ? (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0] : type;
+	this->ldsType = res ? (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0] : this->ldsType;
 	return res;
 }
 
@@ -1894,9 +1891,7 @@ bool AFstate::SetStoredAFPosition(int position)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
-			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_reply_ack;
-			return false;
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
 		});
 	this->storedAFValue = res ? position : this->storedAFValue;
 	return res;
@@ -1926,13 +1921,15 @@ bool AFstate::GetAFSensorIsOn(bool& on)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			/*if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
 			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyLaserMode;
-			return false;
+			return false;*/
+
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
 		});
 
-	on = uvEng_Luria_GetShMem()->directph.AFSensorState[0] == 0 ? false : true;
-	this->isSensorOn = on;
+	this->isSensorOn = res ? uvEng_Luria_GetShMem()->directph.AFSensorState[0] == 0 ? false : true : this->isSensorOn;
+	on = this->isSensorOn;
 	return res;
 }
 
@@ -1943,13 +1940,11 @@ bool AFstate::GetCurrentAFSensingPosition(int& position)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
-			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::en_res_autofocus_position;
-			return false;
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
 		},5000);
 
-	position = uvEng_Luria_GetShMem()->directph.auto_focus_position[0];
-	this->sensingAFValue = position;
+	this->sensingAFValue = res ? uvEng_Luria_GetShMem()->directph.auto_focus_position[0] : this->sensingAFValue;
+	position = this->sensingAFValue;
 	return res;
 }
 
@@ -1960,13 +1955,11 @@ bool AFstate::GetStoredAFPosition(int& position)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
-			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyFcsMtrAutoSetPos;
-			return false;
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
 		});
 
-	position = uvEng_Luria_GetShMem()->directph.focus_position[0];
-	this->storedAFValue = position;
+	this->storedAFValue = res ? uvEng_Luria_GetShMem()->directph.focus_position[0] : this->storedAFValue;
+	position = this->storedAFValue;
 	return res;
 }
 
@@ -1977,13 +1970,15 @@ bool AFstate::GetAFSensorType(LDStype& type)
 
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm,1);
+
+		/*	if (uvEng_Luria_IsRecvPktData(ENG_FDPR::en_luria_direct_ph));
 			return uvEng_Luria_GetShMem()->directph.get_last_received_record_id == (UINT16)ENG_LLRN::ReplyAfLineSensor;
-			return false;
+			return false;*/
 		});
 
-	type = (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0];
-	this->ldsType = type;
+	this->ldsType =  res ? (LDStype)uvEng_Luria_GetShMem()->directph.AFSensorType[0] : this->ldsType;
+	type = this->ldsType;
 	return res;
 }
 
@@ -2001,10 +1996,8 @@ bool AFstate::GetAFWorkRange(int& below, int& above)
 
 	this->AFworkRange[0] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_min[phIndex - 1] : this->AFworkRange[0];
 	this->AFworkRange[1] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_max[phIndex - 1] : this->AFworkRange[1];
-
 	below = this->AFworkRange[0];
 	above = this->AFworkRange[1];
-
 	return res;
 
 }
@@ -2041,9 +2034,8 @@ bool AFstate::GetAFisOn(bool& on)
 													 (UINT8)ENG_LCPF::en_auto_focus);
 		});
 	
-	on = (bool)uvEng_Luria_GetShMem()->focus.auto_focus[phIndex];
-
-	this->isAFOn = res ? on : this->isAFOn;
+	this->isAFOn = res ? (bool)uvEng_Luria_GetShMem()->focus.auto_focus[phIndex] : this->isAFOn;
+	on = this->isAFOn;
 	return res;
 }
 

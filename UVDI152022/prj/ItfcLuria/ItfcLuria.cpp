@@ -4559,10 +4559,13 @@ API_EXPORT BOOL uvLuria_ReqGetActiveAreaQualifier()
  retn : TRUE or FALSE
  note : Note that setting AbsWorkRange will clear the AbsWorkRangeStatus for the given photo head(s).
 */
-API_EXPORT BOOL uvLuria_ReqSetAbsWorkRange(UINT8 ph_no, DOUBLE abs_min, DOUBLE abs_max)
+API_EXPORT BOOL uvLuria_ReqSetAbsWorkRange(UINT8 ph_no, INT32  abs_min, INT32 abs_max)
 {
-	INT32 i32AbsMin = (INT32)ROUNDED(abs_min * 1000.0/* mm -> um */, 0);
-	INT32 i32AbsMax = (INT32)ROUNDED(abs_max * 1000.0/* mm -> um */, 0);
+	//INT32 i32AbsMin = (INT32)ROUNDED(abs_min * 1000.0/* mm -> um */, 0);
+	//INT32 i32AbsMax = (INT32)ROUNDED(abs_max * 1000.0/* mm -> um */, 0);
+
+	//INT16 i32AbsMin = abs_min;// * 1000.0/* mm -> um */, 0);
+	//INT16 i32AbsMax = abs_max;// * 1000.0/* mm -> um */, 0);
 
 	if (!IsPhNoValid(ph_no))	return FALSE;
 	if (ph_no == 0xff)	ph_no = 0x00;	/* You must convert it. */
@@ -4573,7 +4576,7 @@ API_EXPORT BOOL uvLuria_ReqSetAbsWorkRange(UINT8 ph_no, DOUBLE abs_min, DOUBLE a
 		LOG_WARN(ENG_EDIC::en_luria, L"Only linear motors are supported functions.");
 		return FALSE;
 	}
-	PUINT8 pPktBuff = g_pPktPF->GetPktAbsWorkRange(ENG_LPGS::en_set, ph_no, i32AbsMin, i32AbsMax);
+	PUINT8 pPktBuff = g_pPktPF->GetPktAbsWorkRange(ENG_LPGS::en_set, ph_no, abs_min, abs_max);
 	return AddPktSend(pPktBuff, g_pPktPF->GetPktSize(), WFILE);
 }
 API_EXPORT BOOL uvLuria_ReqGetAbsWorkRange(UINT8 ph_no)

@@ -1181,7 +1181,7 @@ API_IMPORT BOOL uvEng_Luria_ReqGetActiveAreaQualifier();
  retn : TRUE or FALSE
  note : Note that setting AbsWorkRange will clear the AbsWorkRangeStatus for the given photo head(s).
 */
-API_IMPORT BOOL uvEng_Luria_ReqSetAbsWorkRangeLM(UINT8 ph_no, DOUBLE abs_min, DOUBLE abs_max);
+API_IMPORT BOOL uvEng_Luria_ReqSetAbsWorkRangeLM(UINT8 ph_no, INT32 abs_min, INT32 abs_max); 
 API_IMPORT BOOL uvEng_Luria_ReqGetAbsWorkRange(UINT8 ph_no);
 
 /*

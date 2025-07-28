@@ -261,7 +261,7 @@ PUINT8 CPhZFocus::GetPktActiveAreaQualifier(ENG_LPGS flag, UINT8 enable, UINT32 
 */
 PUINT8 CPhZFocus::GetPktAbsWorkRange(ENG_LPGS flag, UINT8 ph_no, INT32 abs_min, INT32 abs_max)
 {
-	UINT8 u8Body[8] = { ph_no, };
+	UINT8 u8Body[9] = { ph_no, };
 	UINT32 u32Pkts	= 128;
 	PUINT8 pPktBuff	= NULL, pPktNext;
 

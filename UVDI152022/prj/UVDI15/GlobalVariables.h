@@ -835,7 +835,7 @@ protected:
 	int phIndex;
 	int sensingAFValue;
 	int storedAFValue;
-
+	int AFworkRange[2];
 public:
 	AFstate() = default;
 	AFstate(int phIdx)
@@ -852,13 +852,14 @@ public:
 	bool SetStoredAFPosition(int position);
 	bool SetAFSensorType(LDStype type);
 	bool SetAFOnOff(bool on);
-
+	bool SetAFWorkRange(int below, int above);
 	//get
 	bool GetAFSensorIsOn(bool& on);
 	bool GetCurrentAFSensingPosition(int& position);
 	bool GetStoredAFPosition(int& position);
 	bool GetAFSensorType(LDStype& type);
 	bool GetAFisOn(bool& on);
+	bool GetAFWorkRange(int& below, int& above);
 
 };
 
@@ -881,23 +882,22 @@ public:
 	bool InitFocusDrive();
 	//set
 	bool SetAFSensorOnOff(int phNum, bool on);
-
 	bool SetStoredAFPosition(int phNum, int position);
-
 	bool SetAFOnOff(int phNum, bool on);
-
 	bool SetAFSensorType(int phNum, AFstate::LDStype type);
+	bool SetAFWorkRange(int phNum, int below, int above);
+
 
 	//get
 	bool GetAFSensorIsOn(int phNum, bool& on);
-
 	bool GetCurrentAFSensingPosition(int phNum, int& position);
-
 	bool GetStoredAFPosition(int phNum, int& position);
-
 	bool GetAFSensorType(int phNum, AFstate::LDStype& type);
-
 	bool GetAFisOn(int phNum, bool& on);
+	bool GetAFWorkRange(int phNum, int& below, int& above);
+	
+	
+	
 };
 
 

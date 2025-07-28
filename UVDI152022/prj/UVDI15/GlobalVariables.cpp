@@ -934,7 +934,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			{
 				if (gv->GetAutofocus().InitFocusDrive() == false)
 				{
-					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				//	MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
 			}
 			
@@ -1048,7 +1048,30 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 				}
 				int debug = 0;
 			}
+			else if (spilt[1] == "_readAFworkRange")
+			{
+				int _1, _2;
 
+				if (gv->GetAutofocus().GetAFWorkRange(1, _1,_2) == false ||
+					gv->GetAutofocus().GetAFWorkRange(2, _1,_2) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
+				int debug = 0;
+
+			}
+			else if (spilt[1] == "_writeAFworkRange")
+			{
+				int _1, _2;
+				_1 = atoi(spilt[2].c_str());
+				_2 = atoi(spilt[3].c_str());
+
+				if (gv->GetAutofocus().SetAFWorkRange(1, _1,_2) == false ||
+					gv->GetAutofocus().SetAFWorkRange(2, _1,_2) == false)
+				{
+					MessageBox(nullptr, L"failed", L"failed", MB_OK);
+				}
+			}
 		}
 		else if (spilt[0] == "config")
 		{
@@ -1070,8 +1093,8 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 				gv->GetWebMonitor().AddWebBtn("af초기화", "_initAF");
 
-				gv->GetWebMonitor().AddWebBtn("set internal LDS", "_internalLDS");
-				gv->GetWebMonitor().AddWebBtn("set external LDS", "_externalLDS");
+				gv->GetWebMonitor().AddWebBtn("set internal", "_internalLDS");
+				gv->GetWebMonitor().AddWebBtn("set external", "_externalLDS");
 
 				gv->GetWebMonitor().AddWebBtn("센서타입 읽기", "_getLDStype");
 				
@@ -1082,12 +1105,16 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 				
 				gv->GetWebMonitor().AddWebBtn("현재 LDS값 읽기", "_readLDS");
 
-				gv->GetWebMonitor().AddWebBtn("LDS STORED VALUE 읽기", "_readSV");
-				gv->GetWebMonitor().AddWebBtn("LD STORED VALUE 쓰기",  "_writeSV");
+				gv->GetWebMonitor().AddWebBtn("AF STORED VALUE 읽기", "_readSV");
+				gv->GetWebMonitor().AddWebBtn("AF STORED VALUE 쓰기",  "_writeSV");
 
-				gv->GetWebMonitor().AddWebBtn("AF 상태 읽기", "_IsafOn");
+				gv->GetWebMonitor().AddWebBtn("AF on/off상태", "_IsafOn");
 				gv->GetWebMonitor().AddWebBtn("AF 켜기", "_afOn");
-				gv->GetWebMonitor().AddWebBtn("AF 끄기_2번헤드", "_afOff");
+				gv->GetWebMonitor().AddWebBtn("AF 끄기", "_afOff");
+
+				gv->GetWebMonitor().AddWebBtn("AF 작동범위 읽기", "_readAFworkRange");
+				gv->GetWebMonitor().AddWebBtn("AF 작동범위 쓰기", "_writeAFworkRange");
+
 
 				if (gv->GetWebMonitor().StartWebServer(SERVER_PORT) == false)
 					return;
@@ -1815,9 +1842,21 @@ bool AutoFocus::GetAFisOn(int phNum, bool& on)
 	return value == nullptr ? false : value->GetAFisOn(on);
 }
 
+bool AutoFocus::GetAFWorkRange(int phNum, int& below, int& above)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetAFWorkRange(below,above);
+}
 
 
 //set
+
+bool AutoFocus::SetAFWorkRange(int phNum, int below, int above)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->SetAFWorkRange(below,above);
+}
+
 bool AFstate::SetAFSensorOnOff(bool on)
 {
 	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
@@ -1947,6 +1986,48 @@ bool AFstate::GetAFSensorType(LDStype& type)
 	this->ldsType = type;
 	return res;
 }
+
+bool AFstate::GetAFWorkRange(int& below, int& above)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetAbsWorkRange(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_focus,
+			(UINT8)ENG_LCPF::en_abs_work_range);
+			
+		});
+
+	this->AFworkRange[0] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_min[phIndex - 1] : this->AFworkRange[0];
+	this->AFworkRange[1] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_max[phIndex - 1] : this->AFworkRange[1];
+
+	below = this->AFworkRange[0];
+	above = this->AFworkRange[1];
+
+	return res;
+
+}
+
+bool AFstate::SetAFWorkRange( int below, int above)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqSetAbsWorkRangeLM(phIndex,below,above);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_focus,
+			(UINT8)ENG_LCPF::en_abs_work_range);
+			
+		});
+
+	this->AFworkRange[0] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_min[phIndex - 1] : this->AFworkRange[0];
+	this->AFworkRange[1] = res ? uvEng_Luria_GetShMem()->focus.abs_work_range_max[phIndex - 1] : this->AFworkRange[1];
+
+	return res;
+}
+
+
 
 bool AFstate::GetAFisOn(bool& on)
 {

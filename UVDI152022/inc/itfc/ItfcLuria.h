@@ -1862,7 +1862,7 @@ API_IMPORT BOOL uvLuria_ReqGetActiveAreaQualifier();
  retn : TRUE or FALSE
  note : Note that setting AbsWorkRange will clear the AbsWorkRangeStatus for the given photo head(s).
 */
-API_IMPORT BOOL uvLuria_ReqSetAbsWorkRange(UINT8 ph_no, DOUBLE abs_min, DOUBLE abs_max);
+API_IMPORT BOOL uvLuria_ReqSetAbsWorkRange(UINT8 ph_no, INT32 abs_min, INT32 abs_max);
 API_IMPORT BOOL uvLuria_ReqGetAbsWorkRange(UINT8 ph_no);
 /*
  desc : return the status word giving status of autofocus absolute work range

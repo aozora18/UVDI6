@@ -4402,7 +4402,7 @@ API_EXPORT BOOL uvLuria_ReqSetInitializeFocus()
 	if (!AddPktSend(pPktBuff, g_pPktPF->GetPktSize(), WFILE))	return FALSE;
 
 	/* Set the initialize of focus motor */
-	g_pstShMemLuria->focus.initialized	= 0x01;
+	//g_pstShMemLuria->focus.initialized	= 0x01;
 	return TRUE;
 }
 

@@ -1782,6 +1782,7 @@ bool AutoFocus::InitFocusDrive()
 			return uvCmn_MC2_IsMotorDriveStopAll() && uvCmn_Luria_IsLastError() == false;
 		},10000);
 
+	uvEng_Luria_GetShMem()->focus.initialized = res;
 	return res;
 }
 

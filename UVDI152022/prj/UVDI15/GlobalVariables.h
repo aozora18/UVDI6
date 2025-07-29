@@ -826,10 +826,11 @@ public:
 	{
 		internal,
 		external,
+		none,
 	};
 
 protected:
-	LDStype ldsType;
+	LDStype ldsType = LDStype::none;
 	bool isAFOn;
 	bool isSensorOn;
 	int phIndex;

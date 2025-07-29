@@ -6,7 +6,7 @@
 #include "pch.h"
 #include "../../MainApp.h"
 #include "WorkExpoOnly.h"
-
+#include "../../GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -80,17 +80,100 @@ VOID CWorkExpoOnly::DoWork()
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
-	case 0x01 : m_enWorkState = SetExposeReady(FALSE, FALSE, FALSE, m_stExpoLog.expo_count);	break;
+	case 0x01 : 
+	{
+		m_enWorkState = SetExposeReady(FALSE, FALSE, FALSE, m_stExpoLog.expo_count);
+		if (useAFtemp && uvEng_Luria_GetShMem()->focus.initialized == false)
+		{
+			auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
+			m_enWorkState = afInst.InitFocusDrive() == false ? ENG_JWNS::en_error : m_enWorkState;
+		}
+		
+	}
+	break;
 
 	case 0x02 : m_enWorkState = SetPrePrinting();												break;
 	case 0x03 : m_enWorkState = IsPrePrinted();													break;
 
-	case 0x04 : m_enWorkState = SetPrinting();													break;
+	case 0x04 : 
+	{
+		
+		if (useAFtemp)
+		{
+			auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
+			bool res1, res2;
+			AFstate::LDStype _1LDStype, _2LDStype;
+
+			m_enWorkState = afInst.InitFocusDrive() == false ? ENG_JWNS::en_error : m_enWorkState;
+
+			if (m_enWorkState != ENG_JWNS::en_error)
+			{
+				res1 = afInst.SetAFSensorType(1, AFstate::external);
+				res2 = afInst.SetAFSensorType(2, AFstate::external);
+
+				m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
+			}
+
+			if (m_enWorkState != ENG_JWNS::en_error)
+			{
+				res1 = afInst.SetAFSensorOnOff(1, true);
+				res2 = afInst.SetAFSensorOnOff(2, true);
+
+				m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
+			}
+
+			if (m_enWorkState != ENG_JWNS::en_error)
+			{
+				res1 = afInst.SetAFOnOff(1, true);
+				res2 = afInst.SetAFOnOff(2, true);
+				m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
+			}
+
+			if (m_enWorkState != ENG_JWNS::en_error)
+			{
+				DOUBLE* pStartXY = uvEng_GetConfig()->luria_svc.table_expo_start_xy[0];
+				ENG_MMDI vecAxis;
+				m_enWorkState = uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y,
+					pStartXY[0], pStartXY[1], uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)],
+					vecAxis) == TRUE ? m_enWorkState : ENG_JWNS::en_error;
+
+				if (m_enWorkState != ENG_JWNS::en_error)
+				{
+					bool arrived = GlobalVariables::GetInstance()->Waiter([&]()->bool
+						{
+							bool res = ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis);
+							return res;
+
+						}, 10000);
+
+					m_enWorkState = arrived == false ? ENG_JWNS::en_error : m_enWorkState;
+				}
+			}
+			
+		}
+		m_enWorkState = SetPrinting();
+		
+	}
+	break;
+
 	case 0x05 : m_enWorkState = IsPrinted();													break;
 
 	case 0x06 : m_enWorkState = IsMotorDriveStopAll();											break;
 
-	case 0x07 : m_enWorkState = SetWorkWaitTime(1000);											break;
+	case 0x07 : 
+	{
+		m_enWorkState = SetWorkWaitTime(1000);
+		if (useAFtemp)
+		{
+			auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
+			auto res1 = afInst.SetAFOnOff(1, false);
+			auto res2 = afInst.SetAFOnOff(2, false);
+			m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
+
+		}
+	}
+	break;
+
 	case 0x08 : m_enWorkState = IsWorkWaitTime();												break;
 	case 0x09 : m_enWorkState = SetMovingUnloader();											break;
 	case 0x0a : m_enWorkState = IsMovedUnloader();												break;
@@ -122,6 +205,25 @@ VOID CWorkExpoOnly::DoWork()
 	CheckWorkTimeout();
 }
 
+void CWorkExpoOnly::ClearAF()
+{
+	if (useAFtemp)
+	{
+		auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
+
+		auto res1 = afInst.SetAFOnOff(1, false);
+		auto res2 = afInst.SetAFOnOff(2, false);
+
+		res1 = afInst.SetAFSensorOnOff(1, false);
+		res2 = afInst.SetAFSensorOnOff(2, false);
+
+		if (res1 && res2)
+		{
+
+		}
+	}
+}
+
 /*
  desc : 다음 단계로 이동하기 위한 처리
  parm : None
@@ -137,6 +239,7 @@ VOID CWorkExpoOnly::SetWorkNext()
 
 	if (GetAbort())
 	{
+		ClearAF();
 		CWork::EndWork();
 		return;
 	}
@@ -182,7 +285,7 @@ VOID CWorkExpoOnly::SetWorkNext()
 			{
 				/*노광 종료가 되면 Philhmil에 완료보고*/
 				SetPhilProcessCompelet();
-
+				ClearAF();
 				m_enWorkState	= ENG_JWNS::en_comp;
 				CWork::EndWork();	/* 항상 호출*/
 			}
@@ -198,7 +301,7 @@ VOID CWorkExpoOnly::SetWorkNext()
 	else if (ENG_JWNS::en_error == m_enWorkState)
 	{
 		SaveExpoLog(TRUE);
-
+		ClearAF();
 		/*노광 종료가 되면 Philhmil에 완료보고*/
 		SetPhilProcessCompelet();
 

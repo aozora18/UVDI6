@@ -1776,7 +1776,7 @@ AFstate* AutoFocus::GetAFState(int phIndex)
 bool AutoFocus::InitFocusDrive()
 {
 	uvEng_Luria_ReqSetMotorPositionInitAll();
-	Sleep(2000);
+	Sleep(3000);
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
 			return uvCmn_MC2_IsMotorDriveStopAll() && uvCmn_Luria_IsLastError() == false;
@@ -1966,6 +1966,12 @@ bool AFstate::GetStoredAFPosition(int& position)
 
 bool AFstate::GetAFSensorType(LDStype& type)
 {
+	if (this->ldsType != LDStype::none)
+	{
+		type = this->ldsType;
+		return true;
+	}
+
 	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
 	uvEng_Luria_ReqGetAFSensorType(phIndex);
 

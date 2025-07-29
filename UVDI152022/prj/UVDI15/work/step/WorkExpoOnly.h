@@ -11,7 +11,7 @@ public:
 	//CWorkExpoOnly(LPG_CPHE expo);
 	CWorkExpoOnly(LPG_CELA expo);
 	virtual ~CWorkExpoOnly();
-
+	bool useAFtemp = true;
 /* 가상함수 재정의 */
 protected:
 public:
@@ -38,6 +38,7 @@ protected:
 protected:
 
 	VOID				SetWorkNext();
+	void ClearAF();
 	VOID				CalcStepRate();
 
 	BOOL				SetMovingACamSide();

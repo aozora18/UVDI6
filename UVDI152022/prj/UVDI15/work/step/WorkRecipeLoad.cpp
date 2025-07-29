@@ -86,6 +86,33 @@ VOID CWorkRecipeLoad::DoWork()
 	{
 		uvEng_Camera_ResetGrabbedImage();
 		m_enWorkState = CheckValidRecipe();
+
+		if (useAFtemp)
+		{
+			auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
+
+			if (uvEng_Luria_GetShMem()->focus.initialized == false)
+			{
+				m_enWorkState = afInst.InitFocusDrive() == false ? ENG_JWNS::en_error : m_enWorkState;
+			}
+			
+			if (m_enWorkState != ENG_JWNS::en_error)
+			{
+				auto res1 = afInst.SetAFOnOff(1, false);
+				auto res2 = afInst.SetAFOnOff(2, false);
+
+				m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
+
+				if (m_enWorkState != ENG_JWNS::en_error)
+				{
+
+					res1 = afInst.SetAFSensorOnOff(1, false);
+					res2 = afInst.SetAFSensorOnOff(2, false);
+
+					m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
+				}
+			}
+		}
 		m_enWorkState = m_enWorkState == ENG_JWNS::en_next && SetAutoFocusFeatures() ? m_enWorkState : ENG_JWNS::en_error;
 	}
 	break;

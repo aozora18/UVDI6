@@ -485,6 +485,14 @@ VOID CDlgAuto::InitCtrl()
 	}
 	//////////////////////////////////////////////////////////////////////////
 
+	//AF STATUS
+
+	// IO QUICK
+	
+	m_pStt[EN_AUTO_STT::AF_STATUS]->GetWindowRect(rtStt);
+	this->ScreenToClient(rtStt);
+
+
 	m_pdlgMarkShow = new CDlgMarkShow(this);
 	m_pdlgMarkShow->Create();
 	m_pdlgMarkShow->ShowWindow(SW_HIDE);
@@ -920,33 +928,31 @@ VOID CDlgAuto::InitQuickIOGrid()
 	UINT nCenterAlignText = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS;	/* 그리드 옵션 */
 
 	// 그리드 기본 설정
-	int	nGridIndex = eGRD_IO_QUICK1;
+	
 	m_pStt[EN_AUTO_STT::IO_STATUS]->GetWindowRect(rctOldSize);
 	this->ScreenToClient(rctOldSize);
+	
+	int nRowCount = 2;
 
-	for (const auto& io : m_vQuickIO2)
+	
+
+	for (int i= eGRD_IO_QUICK1;i< eGRD_MAX;i++)
 	{
-		if (nGridIndex >= eGRD_MAX)
-		{
-			break;
-		}
-
-		int nRowCount = 2;
-
 		rctSize			= rctOldSize;
 		rctSize.top		= rctOldSize.bottom + DEF_UI_OFFSET;
 		rctSize.bottom	= rctSize.top + (nRowCount * nHeightSize) + 1;
-		m_pGrd[nGridIndex]->MoveWindow(rctSize);
-		m_pGrd[nGridIndex]->SetColumnResize(FALSE);
-		m_pGrd[nGridIndex]->SetRowResize(FALSE);
-		m_pGrd[nGridIndex]->SetEditable(FALSE);
-		m_pGrd[nGridIndex]->EnableSelection(FALSE);
-		m_pGrd[nGridIndex]->ModifyStyle(WS_HSCROLL, 0);
+		rctSize.top		= rctOldSize.bottom + DEF_UI_OFFSET;
+		m_pGrd[i]->MoveWindow(rctSize);
+		m_pGrd[i]->SetColumnResize(FALSE);
+		m_pGrd[i]->SetRowResize(FALSE);
+		m_pGrd[i]->SetEditable(FALSE);
+		m_pGrd[i]->EnableSelection(FALSE);
+		m_pGrd[i]->ModifyStyle(WS_HSCROLL, 0);
 
-		m_pGrd[nGridIndex]->SetGridLineColor(LIGHT_GRAY);
-		m_pGrd[nGridIndex]->SetTextColor(BLACK_);
+		m_pGrd[i]->SetGridLineColor(LIGHT_GRAY);
+		m_pGrd[i]->SetTextColor(BLACK_);
 
-		m_pGrd[nGridIndex]->DeleteAllItems();
+		m_pGrd[i]->DeleteAllItems();
 		// 그리드 영역이 작업 영역을 초과하면 스크롤 바 만큼의 오차값 저장
 		if (rctSize.Height() - 1 < nHeightSize * nRowCount)
 		{
@@ -954,49 +960,71 @@ VOID CDlgAuto::InitQuickIOGrid()
 		}
 
 		// 셀의 개수 지정
-		m_pGrd[nGridIndex]->SetColumnCount((int)1);
-		m_pGrd[nGridIndex]->SetRowCount(nRowCount);
+		m_pGrd[i]->SetColumnCount((int)1);
+		m_pGrd[i]->SetRowCount(nRowCount);
 
 		CString strText;
 		// 높이, 너비, 색상, 문자 적용
 
 		for (int nRow = 0; nRow < nRowCount; nRow++)
 		{
-			m_pGrd[nGridIndex]->SetRowHeight(nRow, nHeightSize);
+			m_pGrd[i]->SetRowHeight(nRow, nHeightSize);
 			for (int nCol = 0; nCol < 1; nCol++)
 			{
 				if (0 == nRow)
 				{
-					m_pGrd[nGridIndex]->SetColumnWidth(nCol, (int)((rctSize.Width())));
-					m_pGrd[nGridIndex]->SetItemBkColour(nRow, nCol, DEF_COLOR_BTN_MENU_NORMAL);
-					m_pGrd[nGridIndex]->SetItemFgColour(nRow, nCol, DEF_COLOR_BTN_MENU_NORMAL_TEXT);
-					m_pGrd[nGridIndex]->SetItemFormat(nRow, nCol, nCenterAlignText);
+					m_pGrd[i]->SetColumnWidth(nCol, (int)((rctSize.Width())));
+					m_pGrd[i]->SetItemBkColour(nRow, nCol, DEF_COLOR_BTN_MENU_NORMAL);
+					m_pGrd[i]->SetItemFgColour(nRow, nCol, DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+					m_pGrd[i]->SetItemFormat(nRow, nCol, nCenterAlignText);
 				}
 				else
 				{
-					m_pGrd[nGridIndex]->SetItemFormat(nRow, nCol, nCenterAlignText);
+					m_pGrd[i]->SetItemFormat(nRow, nCol, nCenterAlignText);
 				}
 			}
 		}
 
- 		int nRowIndex = 0;
+		m_pGrd[i]->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
+
+		if(i - eGRD_IO_QUICK1 >= m_vQuickIO2.size())
+			continue;
+
+		auto& io = m_vQuickIO2[i- eGRD_IO_QUICK1];
  		strText = io.strName.c_str();
  		strText.Replace(_T("_"), _T(" "));
- 		m_pGrd[nGridIndex]->SetItemText(nRowIndex, 0, strText);
- 		nRowIndex++;
- 		m_pGrd[nGridIndex]->SetItemText(nRowIndex, 0, _T("ON"));
-
-
-		m_pGrd[nGridIndex]->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
-		m_pGrd[nGridIndex]->Refresh();
-		nGridIndex++;
-
+ 		m_pGrd[i]->SetItemText(0, 0, strText);
+ 		m_pGrd[i]->SetItemText(1, 0, _T("ON"));
+		
+		
+		m_pGrd[i]->Refresh();
+		
 		rctOldSize = rctSize;
 	}
+	//AF를 위해서 쪼끔 남김.
 
-	for (; nGridIndex < eGRD_MAX; nGridIndex++)
+	
+	m_pStt[EN_AUTO_STT::AF_STATUS]->GetWindowRect(rctOldSize);
+	
+	rctSize.top = rctOldSize.bottom + DEF_UI_OFFSET;
+	rctSize.bottom = rctSize.top + 54;
+	rctSize.right += 2;
+
+	int afIdx = m_vQuickIO2.size() + 2;
+
+	m_pGrd[afIdx]->MoveWindow(rctSize);
+	
+	bool useAF = GlobalVariables::GetInstance()->GetAutofocus().GetUseAF();
+	m_pGrd[afIdx]->SetItemText(0, 0, _T("Use AF"));
+	m_pGrd[afIdx]->SetItemText(1, 0, useAF ? _T("ON") : _T("OFF"));
+	m_pGrd[afIdx]->SetItemBkColour(1, 0, useAF ? LIGHT_RED : DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+	m_pGrd[afIdx]->Refresh();
+
+	afIdx+=1;//한개 씀.
+	
+	for (int i= afIdx; i < eGRD_MAX; i++)
 	{
-		m_pGrd[nGridIndex]->ShowWindow(SW_HIDE);
+		m_pGrd[i]->ShowWindow(SW_HIDE);
 	}
 }
 

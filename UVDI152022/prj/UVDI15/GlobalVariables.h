@@ -868,6 +868,8 @@ class AutoFocus
 {
 	friend class AFstate;
 	map<int, AFstate> afState;
+	
+	bool useAF = false;
 
 public:
 
@@ -897,7 +899,10 @@ public:
 	bool GetAFisOn(int phNum, bool& on);
 	bool GetAFWorkRange(int phNum, int& below, int& above);
 	
-	
+	//stats
+
+	bool GetUseAF() { return useAF; }
+	void SetUseAF(bool use) { useAF = use; }
 	
 };
 

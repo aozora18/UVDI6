@@ -11,7 +11,7 @@ public:
 	//CWorkExpoOnly(LPG_CPHE expo);
 	CWorkExpoOnly(LPG_CELA expo);
 	virtual ~CWorkExpoOnly();
-	bool useAFtemp = true;
+	bool useAFtemp = false;
 /* 가상함수 재정의 */
 protected:
 public:

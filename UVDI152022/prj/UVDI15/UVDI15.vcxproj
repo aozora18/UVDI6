@@ -171,6 +171,7 @@
     <ClInclude Include="menu\calb\accuracy\DlgCalbAccuracyMeasure.h" />
     <ClInclude Include="menu\calb\camera\DlgCalbCameraSpec.h" />
     <ClInclude Include="menu\calb\DlgCalbAccuracy.h" />
+    <ClInclude Include="menu\calb\DlgCalbAutofocus.h" />
     <ClInclude Include="menu\calb\DlgCalbCamera.h" />
     <ClInclude Include="menu\calb\DlgCalbExposure.h" />
     <ClInclude Include="menu\calb\DlgCalbFlatness.h" />
@@ -311,6 +312,7 @@
     <ClCompile Include="menu\calb\accuracy\DlgCalbAccuracyMeasure.cpp" />
     <ClCompile Include="menu\calb\camera\DlgCalbCameraSpec.cpp" />
     <ClCompile Include="menu\calb\DlgCalbAccuracy.cpp" />
+    <ClCompile Include="menu\calb\DlgCalbAutofocus.cpp" />
     <ClCompile Include="menu\calb\DlgCalbCamera.cpp" />
     <ClCompile Include="menu\calb\DlgCalbExposure.cpp" />
     <ClCompile Include="menu\calb\DlgCalbFlatness.cpp" />

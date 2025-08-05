@@ -160,6 +160,8 @@ typedef enum class __en_child_submenu_dialog_id__ : UINT8
 	en_menu_sub_calb_flatness		= 0x05,		/* Flatness Dialog */
 	en_menu_sub_conf_setting_option = 0x06,		/* Setting Dialog */
 	en_menu_sub_conf_teach			= 0x07,		/* Teach Dialog */
+	en_menu_sub_conf_autofocus		= 0x08,		/* 오토포커스 */
+
 }	ENG_CMDI_SUB;
 // by sysandj : submenu
 

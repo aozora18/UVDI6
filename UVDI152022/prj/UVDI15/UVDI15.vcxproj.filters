@@ -531,6 +531,9 @@
     <ClInclude Include="work\step\WorkIdle.h">
       <Filter>04.작업 파일\작업 이름</Filter>
     </ClInclude>
+    <ClInclude Include="menu\calb\DlgCalbAutofocus.h">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -931,6 +934,9 @@
     </ClCompile>
     <ClCompile Include="work\step\WorkIdle.cpp">
       <Filter>04.작업 파일\작업 이름</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\DlgCalbAutofocus.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

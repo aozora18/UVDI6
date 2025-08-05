@@ -4459,7 +4459,7 @@ API_EXPORT BOOL uvLuria_ReqSetAutoFocus(UINT8 ph_no, UINT8 enable)
 	if (!IsPhNoValid(ph_no))	return FALSE;
 	if (ph_no == 0xff)	ph_no = 0x00;	/* You must convert it. */
 
-	if (!IsFocusMotorInitialized())	return FALSE;
+	if (!IsFocusMotorInitialized() && enable == true)	return FALSE; //끄는건 초기화 없이도 가능하게 해줘야함.
 	if (ENG_PZMT(g_pstShMemLuria->machine.z_drive_type) == ENG_PZMT::en_stepper)
 	{
 		LOG_WARN(ENG_EDIC::en_luria, L"Only linear motors are supported functions.");

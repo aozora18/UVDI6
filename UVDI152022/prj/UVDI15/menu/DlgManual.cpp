@@ -228,8 +228,15 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	m_bBlink = !m_bBlink;
 	DrawMarkData();
 
+	
+
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto motionType = motions.markParams.alignMotion;
+
+
+	
+	
+	
 
 	if (motionType == ENG_AMOS::none)
 		return;
@@ -259,6 +266,8 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 		m_pBtn[EN_MANUAL_BTN::ALIGN_EXPOSE]->SetTextColor(DEF_COLOR_BTN_PAGE_NORMAL_TEXT);
 	}
 
+	
+
 	USES_CONVERSION;
 	m_pBtn[EN_MANUAL_BTN::CHANGE_ALIGN_MODE]->SetWindowTextW(A2T(temp.str().c_str()));
 
@@ -282,6 +291,11 @@ VOID CDlgManual::UpdateBtn(UINT64 tick, BOOL is_busy)
 	{
 		m_pBtn[i]->SetBgColor(DEF_COLOR_BTN_PAGE_NORMAL);
 	}
+
+	m_pBtn[EN_MANUAL_BTN::USE_AF]->SetBgColor(GlobalVariables::GetInstance()->GetAutofocus().GetUseAF() ? LIGHT_RED : DEF_COLOR_BTN_PAGE_NORMAL);
+	m_pBtn[EN_MANUAL_BTN::USE_AF]->RedrawWindow();
+	
+
 
 	int nBtnIndex = -1;
 	if (100 > uvEng_GetWorkStepRate())
@@ -346,6 +360,8 @@ VOID CDlgManual::UpdateBtn(UINT64 tick, BOOL is_busy)
 				TRACE(_T("m_pBtn[%d]=NORMAL\n"), nBtnIndex);
 			}
 		}
+
+
 		/*동작 초기헤 UI 파라미터값 초기화*/
 		if (uvEng_GetWorkStepRate() < 10)
 		{
@@ -496,7 +512,7 @@ VOID CDlgManual::InitCtrl()
 		m_pBtn[nBtnIndex]->SetTextColor(DEF_COLOR_BTN_PAGE_NORMAL_TEXT);
 	}
 
-	uiBtnWidth	= (rtStt.Width() - DEF_UI_OFFSET * 2) / 3;
+	uiBtnWidth	= (rtStt.Width() - DEF_UI_OFFSET * 3) / 4;
 	rtBtn.left	= rtStt.left;
 	rtBtn.right = rtBtn.left + uiBtnWidth;
 	rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
@@ -525,7 +541,7 @@ VOID CDlgManual::InitCtrl()
 	//rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
 
 	//uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 2) / 3;
-	uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 2) / 4;
+	uiBtnWidth = (rtStt.Width() - DEF_UI_OFFSET * 3) / 4;
 	rtBtn.left = rtStt.left;
 	rtBtn.right = rtBtn.left + uiBtnWidth;
 	rtBtn.OffsetRect(0, uiBtnHeight + DEF_UI_OFFSET);
@@ -1114,6 +1130,20 @@ VOID CDlgManual::OnBtnClick(UINT32 id)
 
 	switch (nID)
 	{
+	case EN_MANUAL_BTN::USE_AF:
+	{
+		if (m_pDlgMain->IsBusyWorkJob())
+		{
+			CDlgMesg dlgMesg;
+			dlgMesg.MyDoModal(L"cannnot change af method, on working.", 0x01);
+			return;
+		}
+
+		GlobalVariables::GetInstance()->GetAutofocus().SetUseAF(!GlobalVariables::GetInstance()->GetAutofocus().GetUseAF());
+		
+	}
+	break;
+
 	case EN_MANUAL_BTN::DIRECT_EXPOSE:
 		ExposeDirect();
 		break;

@@ -14,7 +14,7 @@ public:
 /* 가상함수 재정의 */
 protected:
 public:
-	bool useAFtemp = true;
+	bool useAFtemp = false;
 	virtual	BOOL		InitWork();
 	virtual VOID		DoWork();
 

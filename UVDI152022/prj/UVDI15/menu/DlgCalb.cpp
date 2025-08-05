@@ -8,6 +8,7 @@
 #include "./calb/DlgCalbExposure.h"
 #include "./calb/DlgCalbAccuracy.h"
 #include "./calb/DlgCalbFlatness.h"
+#include "./calb/DlgCalbAutofocus.h"
 #include "afxdialogex.h"
 
 
@@ -266,6 +267,10 @@ BOOL CDlgCalb::CreateMenu(UINT32 id)
 		break;
 	case IDC_CALB_BTN_SUBMENU_ACCURACY:		m_pDlgMenu = new CDlgCalbAccuracy(u32DlgID, this);		break;
 	case IDC_CALB_BTN_SUBMENU_FLATNESS:		m_pDlgMenu = new CDlgCalbFlatness(u32DlgID, this);		break;
+	case IDC_CALB_BTN_SUBMENU_AUTOFOCUS:		
+		m_pDlgMenu = new CDlgCalbAutofocus(u32DlgID, this);		
+		break;
+
 	}
 
 	/* 자식 (메뉴) 윈도 생성 */

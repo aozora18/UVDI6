@@ -5,34 +5,40 @@
 
 enum EnCalbAFBtn : int
 {
-	btn_1,
+	loadSetting,
+	saveSetting,
+	getZpos,
+	setZpos,
+	readStoredvalue,
+	writeStoredvalue,
+	readPlot,
+	dummy,
+	focusInit,
+	setInternal,
+	setExternal,
+	sensorOn,
+	sensorOff,
+	afOn,
+	afOff,
+	controlPanel,
 	btnmax,
 };
 
-enum EnCalbAFStt : int
-{
-	stt_1,
-	sttmax,
-};
 
 enum EnCalbAFGrd : int
 {
 	setting,
+	zpos,
+	storedvalue,
+	plot,
 	grdmax,
 };
 
-enum EN_GRID_OPTION
+
+enum EnCalbAFLabs : int
 {
-	eOPTION_COL_NAME = 0,
-	eOPTION_COL_VALUE1,
-	eOPTION_COL_VALUE2,
-	eOPTION_COL_UNIT,
-	eOPTION_COL_MAX,
-
-	eOPTION_ROW_STOREDVALUE = 0,
-	eOPTION_ROW_ZPOS,
-	eOPTION_ROW_MAX,
-
+	
+	labelmax=4,
 };
 
 // CDlgCalbFlatness 대화 상자
@@ -44,8 +50,8 @@ public:
 	virtual ~CDlgCalbAutofocus();
 
 	CMacButton			btns[btnmax];
-	CMyStatic			labels[sttmax];
 	CGridCtrl			grids[grdmax];
+	CMyStatic			labels[labelmax];
 
 	/* 가상함수 선언 */
 protected:
@@ -53,10 +59,16 @@ protected:
 	virtual BOOL		PreTranslateMessage(MSG* msg);
 	virtual VOID		DoDataExchange(CDataExchange* dx);
 	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
-
+	BOOL PopupKBDN(ENM_DITM enType, CString& strOutput, double dMin, double dMax, UINT8 u8DecPts/* = 0*/);
 
 public:
-	void InitGridOption();
+	void InitGrid();
+	void InitGridSetting();
+	void InitGridZPos();
+	void InitGridStoredValue();
+	void InitGridPlot();
+	void MoveBtns();
+
 	virtual BOOL		OnInitDlg();
 	virtual VOID		OnExitDlg();
 	virtual VOID		OnPaintDlg(CDC* dc);
@@ -64,26 +76,18 @@ public:
 	virtual void		RegisterUILevel() {}
 	virtual VOID		UpdatePeriod(UINT64 tick, BOOL is_busy);
 
+	void OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult);
 
-	/* 로컬 변수 */
+	
 protected:
-
-	 
 
 public:
 	VOID LoadDataConfig();
-	
-
 	VOID SaveDataConfig();
 	
-
-	/* 로컬 함수 */
 protected:
-
 	VOID				InitCtrl();
 
- 
-	/* 메시지 맵 */
 protected:
 	DECLARE_MESSAGE_MAP()
 	afx_msg VOID		OnBtnClick(UINT32 id);

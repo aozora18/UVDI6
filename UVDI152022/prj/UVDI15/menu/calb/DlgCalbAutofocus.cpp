@@ -43,10 +43,416 @@ VOID CDlgCalbAutofocus::UpdatePeriod(UINT64 tick, BOOL is_busy)
 }
 
 
-VOID CDlgCalbAutofocus::InitGridOption()
+VOID CDlgCalbAutofocus::InitGrid()
 {
-	
+	InitGridSetting();
+
+	InitGridZPos();// 이 둘은 순서 지켜야함. 
+	InitGridPlot();//이 둘은 순서 지켜야함.
+
+	InitGridStoredValue();
 }
+
+
+VOID CDlgCalbAutofocus::InitGridZPos()
+{
+	CResizeUI	clsResizeUI;
+	CRect		rGrid;
+	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
+	std::vector <int>			vColSize;
+	std::vector <int>			vRowSize;
+
+	vector< std::vector <std::wstring>> vTitle;
+	
+	vTitle.push_back({ _T("Focus Inited"), _T("NO"), _T("YES,NO") });
+	vTitle.push_back({ _T("Run AF"), _T("ON"), _T("ON,OFF")});
+	vTitle.push_back({ _T("SensorType"), _T("IN"), _T("IN,EX") });
+	vTitle.push_back({ _T("Sensor Active"), _T("ON"), _T("ON,OFF") });
+
+
+
+	vRowSize.resize(vTitle.size());
+	vColSize.resize(vTitle.begin()->size());
+
+	CGridCtrl* pGrid = &grids[zpos];
+	
+	clsResizeUI.ResizeControl(this, pGrid);
+	pGrid->GetWindowRect(rGrid);
+	this->ScreenToClient(rGrid);
+
+	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
+	int nTotalHeight = 0;
+
+	for (auto& height : vRowSize)
+	{
+		height = nHeight;
+		nTotalHeight += height;
+	}
+
+	if (rGrid.Height() < nTotalHeight)
+	{
+		nTotalHeight = 0;
+
+		for (auto& height : vRowSize)
+		{
+			height = (rGrid.Height()) / (int)vRowSize.size();
+			nTotalHeight += height;
+		}
+	}
+
+	int nTotalWidth = 0;
+	for (auto& width : vColSize)
+	{
+		width = rGrid.Width() / (int)vColSize.size();
+		nTotalWidth += width;
+	}
+
+	vColSize.front() += rGrid.Width() - nTotalWidth - 2;
+
+	/* 객체 기본 설정 */
+	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
+	pGrid->SetRowCount((int)vRowSize.size());
+	pGrid->SetColumnCount((int)vColSize.size());
+	pGrid->SetFixedColumnCount(0);
+	pGrid->SetBkColor(RGB(255, 255, 255));
+	pGrid->SetFixedColumnSelection(0);
+
+	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
+	{
+		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
+
+		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
+		{
+			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			pGrid->SetColumnWidth(nCol, vColSize[nCol]);
+			pGrid->SetItemText(nRow, nCol, vTitle[nRow][nCol].c_str());
+			pGrid->SetItemBkColour(nRow, nCol, vColColor[nCol]);
+			pGrid->SetItemState(nRow, nCol, GVIS_READONLY);
+		}
+	}
+
+	/* Grid Size 재구성 */
+	rGrid.bottom = rGrid.top + nTotalHeight + 1;
+	pGrid->MoveWindow(rGrid);
+
+	/* 기본 속성 및 갱신 */
+	pGrid->EnableDragAndDrop(FALSE);
+	pGrid->EnableSelection(FALSE);
+	pGrid->SetEditable();
+	pGrid->Refresh();
+}
+
+void CDlgCalbAutofocus::InitGridPlot()
+{
+	CRect rStt, rStt2, rStt3;
+	
+
+	CResizeUI	clsResizeUI;
+	CRect		rGrid;
+	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
+	std::vector <int>			vColSize;
+	std::vector <int>			vRowSize;
+
+	vector< std::vector <std::wstring>> vTitle;
+
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count + 4; i++)
+	{
+		std::wstringstream ss;
+		ss << "PH" << i + 1 << "PLOT";
+		vTitle.push_back({ ss.str(), _T("0"), _T("trig") });
+	}
+
+	vRowSize.resize(vTitle.size());
+	vColSize.resize(vTitle.begin()->size());
+
+	CGridCtrl* pGrid = &grids[plot];
+
+	clsResizeUI.ResizeControl(this, pGrid);
+	pGrid->GetWindowRect(rGrid);
+	this->ScreenToClient(rGrid);
+
+	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
+	int nTotalHeight = 0;
+
+	for (auto& height : vRowSize)
+	{
+		height = nHeight;
+		nTotalHeight += height;
+	}
+
+	if (rGrid.Height() < nTotalHeight)
+	{
+		nTotalHeight = 0;
+
+		for (auto& height : vRowSize)
+		{
+			height = (rGrid.Height()) / (int)vRowSize.size();
+			nTotalHeight += height;
+		}
+	}
+
+	int nTotalWidth = 0;
+	for (auto& width : vColSize)
+	{
+		width = rGrid.Width() / (int)vColSize.size();
+		nTotalWidth += width;
+	}
+
+	vColSize.front() += rGrid.Width() - nTotalWidth - 2;
+
+	/* 객체 기본 설정 */
+	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
+	pGrid->SetRowCount((int)vRowSize.size());
+	pGrid->SetColumnCount((int)vColSize.size());
+	pGrid->SetFixedColumnCount(0);
+	pGrid->SetBkColor(RGB(255, 255, 255));
+	pGrid->SetFixedColumnSelection(0);
+
+	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
+	{
+		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
+
+		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
+		{
+			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			pGrid->SetColumnWidth(nCol, vColSize[nCol]);
+			pGrid->SetItemText(nRow, nCol, vTitle[nRow][nCol].c_str());
+			pGrid->SetItemBkColour(nRow, nCol, vColColor[nCol]);
+			pGrid->SetItemState(nRow, nCol, GVIS_READONLY);
+		}
+	}
+
+	/* Grid Size 재구성 */
+	rGrid.bottom = rGrid.top + nTotalHeight + 1;
+	pGrid->MoveWindow(rGrid);
+
+	/* 기본 속성 및 갱신 */
+	pGrid->EnableDragAndDrop(FALSE);
+	pGrid->EnableSelection(FALSE);
+	pGrid->SetEditable();
+	pGrid->Refresh();
+
+	//안씀//
+	//grids[zpos].GetWindowRect(rStt);
+	//GetParent()->ScreenToClient(&rStt);
+
+	//grids[plot].GetWindowRect(rStt2);
+	//GetParent()->ScreenToClient(&rStt2);
+
+	//labels[plot].GetWindowRect(rStt3);
+	//GetParent()->ScreenToClient(&rStt3);
+
+	//labels[plot].MoveWindow(rStt.left, rStt.bottom + 40, rStt3.Width(), rStt3.Height());
+	//grids[plot].MoveWindow(rStt.left, rStt.bottom + 85, rStt2.Width(), rStt2.Height());
+
+}
+
+
+void CDlgCalbAutofocus::InitGridStoredValue()
+{
+	CResizeUI	clsResizeUI;
+	CRect		rGrid;
+	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
+	std::vector <int>			vColSize;
+	std::vector <int>			vRowSize;
+
+	vector< std::vector <std::wstring>> vTitle;
+	
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count+4; i++)
+	{
+		std::wstringstream ss;
+		ss << "PH" << i + 1;
+		vTitle.push_back({ ss.str(), _T("0"), _T("trig") });
+	}
+
+	vRowSize.resize(vTitle.size());
+	vColSize.resize(vTitle.begin()->size());
+
+	CGridCtrl* pGrid = &grids[storedvalue];
+
+	clsResizeUI.ResizeControl(this, pGrid);
+	pGrid->GetWindowRect(rGrid);
+	this->ScreenToClient(rGrid);
+
+	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
+	int nTotalHeight = 0;
+	for (auto& height : vRowSize)
+	{
+		height = nHeight;
+		nTotalHeight += height;
+	}
+
+	if (rGrid.Height() < nTotalHeight)
+	{
+		nTotalHeight = 0;
+
+		for (auto& height : vRowSize)
+		{
+			height = (rGrid.Height()) / (int)vRowSize.size();
+			nTotalHeight += height;
+		}
+	}
+
+	int nTotalWidth = 0;
+	for (auto& width : vColSize)
+	{
+		width = rGrid.Width() / (int)vColSize.size() ;
+		nTotalWidth += width;
+	}
+
+	vColSize.front() += rGrid.Width() - nTotalWidth - 2;
+
+	/* 객체 기본 설정 */
+	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
+	pGrid->SetRowCount((int)vRowSize.size());
+	pGrid->SetColumnCount((int)vColSize.size());
+	pGrid->SetFixedColumnCount(0);
+	pGrid->SetBkColor(RGB(255, 255, 255));
+	pGrid->SetFixedColumnSelection(0);
+
+	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
+	{
+		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
+
+		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
+		{
+			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			pGrid->SetColumnWidth(nCol, vColSize[nCol]);
+			pGrid->SetItemText(nRow, nCol, vTitle[nRow][nCol].c_str());
+			pGrid->SetItemBkColour(nRow, nCol, vColColor[nCol]);
+			pGrid->SetItemState(nRow, nCol, GVIS_READONLY);
+		}
+	}
+
+	/* Grid Size 재구성 */
+	rGrid.bottom = rGrid.top + nTotalHeight + 1;
+	pGrid->MoveWindow(rGrid);
+
+	/* 기본 속성 및 갱신 */
+	pGrid->EnableDragAndDrop(FALSE);
+	pGrid->EnableSelection(FALSE);
+	pGrid->SetEditable();
+	pGrid->Refresh();
+}
+
+void CDlgCalbAutofocus::InitGridSetting()
+{
+	CResizeUI	clsResizeUI;
+	CRect		rGrid;
+	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
+	std::vector <int>			vColSize;
+	std::vector <int>			vRowSize;
+	
+	vector< std::vector <std::wstring>> vTitle;
+	vTitle.push_back({ _T("Use AF"),_T("True"),_T("bool") });
+	vTitle.push_back({ _T("Sensor Type"),_T("EXTERNAL"),_T("type") });
+	
+	//uvEng_Luria_GetShMem()->focus.
+	
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count+4; i++)
+	{
+		std::wstringstream ss;
+		ss << "StoredValue_PH" << i+1;
+		vTitle.push_back({ ss.str(), _T("0"), _T("trig")});
+	}
+	
+	vRowSize.resize(vTitle.size());
+	vColSize.resize(vTitle.begin()->size());
+	
+	CGridCtrl* pGrid = &grids[setting];
+
+	clsResizeUI.ResizeControl(this, pGrid);
+	pGrid->GetWindowRect(rGrid);
+	this->ScreenToClient(rGrid);
+
+	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
+	int nTotalHeight = 0;
+	for (auto& height : vRowSize)
+	{
+		height = nHeight;
+		nTotalHeight += height;
+	}
+
+	if (rGrid.Height() < nTotalHeight)
+	{
+		nTotalHeight = 0;
+
+		for (auto& height : vRowSize)
+		{
+			height = (rGrid.Height()) / (int)vRowSize.size();
+			nTotalHeight += height;
+		}
+	}
+
+	int nTotalWidth = 0;
+	for (auto& width : vColSize)
+	{
+		width = rGrid.Width() / (int)vColSize.size() ;
+		nTotalWidth += width;
+	}
+
+	vColSize.front() += rGrid.Width() - nTotalWidth - 2;
+
+	/* 객체 기본 설정 */
+	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
+	pGrid->SetRowCount((int)vRowSize.size());
+	pGrid->SetColumnCount((int)vColSize.size());
+	pGrid->SetFixedColumnCount(0);
+	pGrid->SetBkColor(RGB(255, 255, 255));
+	pGrid->SetFixedColumnSelection(0);
+
+	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
+	{
+		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
+
+		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
+		{
+			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			pGrid->SetColumnWidth(nCol, vColSize[nCol]);
+			pGrid->SetItemText(nRow, nCol, vTitle[nRow][nCol].c_str());
+			pGrid->SetItemBkColour(nRow, nCol, vColColor[nCol]);
+			
+		}
+	}
+
+	/* Grid Size 재구성 */
+	rGrid.bottom = rGrid.top + nTotalHeight + 1;
+	pGrid->MoveWindow(rGrid);
+
+
+	//셀속성
+	CStringArray options1, options2;
+
+	pGrid->SetCellType(0, 1, RUNTIME_CLASS(CGridCellCombo)); // af 사용여부 
+	options1.Add(_T("YES"));
+	options1.Add(_T("NO"));
+
+	CGridCellCombo* pComboCell = (CGridCellCombo*)pGrid->GetCell(0, 1);
+	pComboCell->SetOptions(options1);
+	pComboCell->SetStyle(CBS_DROPDOWN);
+	
+	pGrid->SetCellType(1, 1, RUNTIME_CLASS(CGridCellCombo)); // 센서타입
+	options2.Add(_T("EXTERNAL"));
+	options2.Add(_T("INTERNAL"));
+
+	CGridCellCombo* pComboCell2 = (CGridCellCombo*)pGrid->GetCell(1, 1);	
+	pComboCell2->SetOptions(options2);
+	pComboCell2->SetStyle(CBS_DROPDOWN);
+	
+
+
+	/* 기본 속성 및 갱신 */
+	pGrid->EnableDragAndDrop(FALSE);
+	pGrid->EnableSelection(FALSE);
+	pGrid->SetEditable();
+	pGrid->Refresh();
+
+
+
+
+}
+
+
 
 
 /*
@@ -56,19 +462,143 @@ VOID CDlgCalbAutofocus::InitGridOption()
 */
 VOID CDlgCalbAutofocus::DoDataExchange(CDataExchange* dx)
 {
+	
+	for (int i = 0; i < btnmax; i++)		
+		DDX_Control(dx, IDC_AF_SETTING_LOAD + i, btns[i]);
+
+	for (int i = 0; i < grdmax; i++)		
+		DDX_Control(dx, IDC_CALB_AF_GRD_SETTING + i, grids[i]);
+
+	for (int i = 0; i < labelmax; i++)		
+		DDX_Control(dx, IDC_CALB_AF_SETTING + i, labels[i]);
+
 	CDlgSubMenu::DoDataExchange(dx);
 }
 
+
+void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
+{
+	CGridCtrl* pGrid = nullptr;	
+	UINT clickedGridID = pNotifyStruct->idFrom;
+
+	map<int, int> gridMap = { {IDC_CALB_AF_GRD_SETTING,setting},
+		{IDC_CALB_AF_GRD_ZPOS,zpos},
+		{IDC_CALB_AF_GRD_STOREDVALUE,storedvalue},
+		{IDC_CALB_AF_GRD_PLOTVALUE,plot},};
+
+	pGrid = &grids[gridMap[clickedGridID]];
+	pGrid->SetFocusCell(-1, -1);
+
+	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
+	if (pItem == nullptr) return;
+
+	int selRow = pItem->iRow;
+	int selCol = pItem->iColumn;
+
+	if (selCol != 1)
+		return;
+
+	ENM_DITM enType = ENM_DITM::en_int8;
+	double	minV = 0;
+	double	maxV = 9999.9999;
+	UINT8 u8DecPts = 3;
+	CString strOutput;
+
+	switch (clickedGridID)
+	{
+		case IDC_CALB_AF_GRD_SETTING:
+		{
+			minV = 21284; maxV = 44252; //<-이건 비지텍에서 정의된 값임 변경불가. 1유닛 = 0.0174um (대략)
+			u8DecPts = 5;
+		}
+		break;
+
+		case IDC_CALB_AF_GRD_ZPOS:
+		{
+			int debug = 0;
+		}
+		break;
+
+		case IDC_CALB_AF_GRD_STOREDVALUE:
+		{
+			int debug = 0;
+		}
+		break;
+
+		case IDC_CALB_AF_GRD_PLOTVALUE:
+		{
+			int debug = 0;
+		}
+		break;
+	}
+
+	if (PopupKBDN(enType, strOutput,minV, maxV, u8DecPts))
+	{
+		pGrid->SetItemTextFmt(selRow, selCol, _T("%s"), strOutput);
+	}
+
+	pGrid->Refresh();
+	*pResult = 0;
+}
+
+BOOL CDlgCalbAutofocus::PopupKBDN(ENM_DITM enType, CString& strOutput, double dMin, double dMax, UINT8 u8DecPts/* = 0*/)
+{
+	TCHAR tzTitle[1024] = { NULL }, tzPoint[512] = { NULL }, tzMinMax[2][32] = { NULL };
+	CDlgKBDN dlg;
+
+	wcscpy_s(tzMinMax[0], 32, L"Min");
+	wcscpy_s(tzMinMax[1], 32, L"Max");
+
+	switch (enType)
+	{
+	case ENM_DITM::en_int8:
+	case ENM_DITM::en_int16:
+	case ENM_DITM::en_int32:
+	case ENM_DITM::en_int64:
+	case ENM_DITM::en_uint8:
+	case ENM_DITM::en_uint16:
+	case ENM_DITM::en_uint32:
+	case ENM_DITM::en_uint64:
+		swprintf_s(tzPoint, 512, L"%s:%%.%df,%s:%%.%df", tzMinMax[0], u8DecPts, tzMinMax[1], u8DecPts);
+		swprintf_s(tzTitle, 1024, tzPoint, dMin, dMax);
+		if (IDOK != dlg.MyDoModal(tzTitle, FALSE, TRUE, dMin, dMax))	return FALSE;	break;
+	case ENM_DITM::en_float:
+	case ENM_DITM::en_double:
+		swprintf_s(tzPoint, 512, L"%s:%%.%df,%s:%%.%df", tzMinMax[0], u8DecPts, tzMinMax[1], u8DecPts);
+		swprintf_s(tzTitle, 1024, tzPoint, dMin, dMax);
+		if (IDOK != dlg.MyDoModal(tzTitle, TRUE, TRUE, dMin, dMax))	return FALSE;	break;
+	}
+	switch (enType)
+	{
+	case ENM_DITM::en_int8:
+	case ENM_DITM::en_int16:
+	case ENM_DITM::en_int32:
+	case ENM_DITM::en_int64:
+	case ENM_DITM::en_uint8:
+	case ENM_DITM::en_uint16:
+	case ENM_DITM::en_uint32:
+	case ENM_DITM::en_uint64:
+		strOutput.Format(_T("%d"), dlg.GetValueInt32());
+		break;
+	case ENM_DITM::en_float:
+	case ENM_DITM::en_double:
+		swprintf_s(tzPoint, 512, L"%%.%df", u8DecPts);
+		strOutput.Format(tzPoint, dlg.GetValueDouble());
+	}
+
+	return TRUE;
+}
+
+
 BEGIN_MESSAGE_MAP(CDlgCalbAutofocus, CDlgSubMenu)
-	ON_CONTROL_RANGE(BN_CLICKED, IDC_CALB_FLATNESS_BTN_SAVE_DATA, IDC_CALB_FLATNESS_BTN_OPEN_CTRL_PANEL, OnBtnClick)
+	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_SETTING, &CDlgCalbAutofocus::OnClickGrid)
+	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_ZPOS, &CDlgCalbAutofocus::OnClickGrid)
+	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_STOREDVALUE, &CDlgCalbAutofocus::OnClickGrid)
+	ON_CONTROL_RANGE(BN_CLICKED, IDC_AF_SETTING_LOAD, IDC_AF_SETTING_LOAD + btnmax, OnBtnClick)
 	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-/*
- desc : 모든 메시지 가로채기 ㅋㅋㅋ
- parm : msg	- 메시지 정보가 저장된 구조체 포인터
- retn : 상위 부모 메시지 함수 호출... 혹은 1 or 0
-*/
+
 BOOL CDlgCalbAutofocus::PreTranslateMessage(MSG* msg)
 {
 	if (msg->message == WM_KEYDOWN)
@@ -90,7 +620,7 @@ BOOL CDlgCalbAutofocus::PreTranslateMessage(MSG* msg)
 BOOL CDlgCalbAutofocus::OnInitDlg()
 {
 	InitCtrl();
-	InitGridOption();
+	
 	return TRUE;
 }
 
@@ -121,9 +651,70 @@ VOID CDlgCalbAutofocus::OnPaintDlg(CDC* dc)
 */
 VOID CDlgCalbAutofocus::InitCtrl()
 {
-	 
+	CResizeUI clsResizeUI;
+	CString strTemp;
+	CRect rStt;
+
+	
+
+	for (int i = 0; i < labelmax; i++)
+	{
+		labels[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
+		labels[i].SetDrawBg(1);
+		labels[i].SetBaseProp(0, 1, 0, 0, DEF_COLOR_BTN_MENU_NORMAL, 0, WHITE_);
+
+		clsResizeUI.ResizeControl(this, &labels[i]);
+
+		labels[i].GetWindowRect(rStt);
+		this->ScreenToClient(rStt);
+		rStt.right += 2;
+
+		labels[i].MoveWindow(rStt);
+	}
+
+	InitGrid();
+
+	for (int i = 0; i < grdmax; i++)
+	{
+		grids[i].SetParent(this);
+	}
+
+	for (int i = 0; i < btnmax; i++)
+	{
+		btns[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
+		btns[i].SetBgColor(g_clrBtnColor);
+		btns[i].SetTextColor(g_clrBtnTextColor);
+		clsResizeUI.ResizeControl(this, &btns[i]);
+
+	}
+	MoveBtns();
 }
-   
+
+void CDlgCalbAutofocus::MoveBtns()
+{
+	CRect rStt;
+	CRect btnRect;
+	int pair = 2;
+	for (int i = 0; i < grdmax; i++)
+	{
+		grids[i].GetWindowRect(rStt);
+		GetParent()->ScreenToClient(&rStt);
+
+		btns[(i*pair)].GetWindowRect(btnRect);
+		GetParent()->ScreenToClient(&btnRect);
+
+		int btnWidth = btnRect.Width();
+		int btnHeight = btnRect.Height();
+
+		btns[(i * pair)].MoveWindow(rStt.left, rStt.bottom + 10, btnWidth, btnHeight);
+
+		int btnLeft = rStt.right - btnWidth;
+		int btnTop = rStt.bottom;
+
+		btns[(i * pair) + 1].MoveWindow(btnLeft, btnTop + 10, btnWidth, btnHeight);
+	}
+}
+
 
 VOID CDlgCalbAutofocus::LoadDataConfig()
 {
@@ -146,11 +737,38 @@ VOID CDlgCalbAutofocus::SaveDataConfig()
 */
 VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 {
- 
 
 	switch (id)
-	{
-	
+	{	
+		case IDC_AF_SETTING_LOAD:
+		case IDC_AF_SETTING_SAVE:
+		case IDC_AF_ZPOS_GET:
+		case IDC_AF_ZPOS_SET:
+		case IDC_AF_STORED_READ:
+		case IDC_AF_STORED_WRITE:
+		case IDC_AF_PLOT_READ:
+		case IDC_AF_PLOT_READ2:
+		case IDC_BTN_AF_FOCUSINIT:
+		case IDC_BTN_AF_SET_INTERNAL:
+		case IDC_BTN_AF_SET_EXTERNAL:
+		case IDC_BTN_AF_SENSOR_ON:
+		case IDC_BTN_AF_SENSOR_OFF:
+		case IDC_BTN_AF_AF_ON:
+		case IDC_BTN_AF_AF_OFF:
+		{
+			int debug = 0;
+		}
+		break;
+
+		case IDC_BTN_AF_CONTROLPANEL    :
+		{
+			if (AfxGetMainWnd()->GetSafeHwnd()) //모션 컨트롤패널.
+			{
+				::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), eMSG_MAIN_OPEN_CONSOLE, NULL, NULL);
+			}
+		}
+		break;
+
 	default:
 		break;
 	}

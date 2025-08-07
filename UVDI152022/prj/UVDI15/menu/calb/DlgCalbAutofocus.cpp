@@ -57,7 +57,7 @@ void CDlgCalbAutofocus::UpdateGridInfo()
 
 	AFstate* state[MAX_PH] = { nullptr, };
 
-	for (int i = 0; i > uvEng_GetConfig()->luria_svc.ph_count; i++)
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 		state[i] = af.GetAFState(i + 1);
 	}
@@ -91,6 +91,7 @@ void CDlgCalbAutofocus::UpdateGridInfo()
 		pGrid->SetItemText(afRangeMin, 1 + i, state[i]->AFworkRange[0]);
 		pGrid->SetItemText(afRangeMax, 1 + i, state[i]->AFworkRange[1]);
 	}
+	pGrid->Refresh();
 }
 
 VOID CDlgCalbAutofocus::InitGridRealtimeState()
@@ -670,7 +671,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				ss << "Read AF Z Workrange Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
-			
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
 		}
 		break;
 
@@ -693,6 +697,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				ss << "Write AF Z Workrange Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
 		}
 		break;
 
@@ -714,6 +722,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 			{
 				ss << "stored value read Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
 			}
 		}
 		break;
@@ -739,6 +751,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				ss << "stored value write Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
 		}
 		break;
 
@@ -761,6 +777,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				ss << "PLOT value read Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
 		}
 		break;
 		
@@ -771,7 +791,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				if (headSelect[i] == false)
 					continue;
 
-				if(gv->GetAutofocus().SetAFSensorType(1, AFstate::internal) == false)
+				if(gv->GetAutofocus().SetAFSensorType(i+1, AFstate::internal) == false)
 					ss << i + 1 << ',';
 
 				needRefresh = true;
@@ -780,6 +800,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 			{
 				ss << "Set Internal Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
 			}
 		}
 		break;
@@ -791,7 +815,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				if (headSelect[i] == false)
 					continue;
 
-				if (gv->GetAutofocus().SetAFSensorType(1, AFstate::external) == false)
+				if (gv->GetAutofocus().SetAFSensorType(i+1, AFstate::external) == false)
 					ss << i + 1 << ',';
 
 				needRefresh = true;
@@ -801,6 +825,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 			{
 				ss << "Set Internal Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
 			}
 		}
 		break;
@@ -823,6 +851,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				ss << "AF Sensor Turn On Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
 		}
 		break;
 
@@ -839,10 +871,15 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				needRefresh = true;
 			}
 
+
 			if (ss.str().size() != 0)
 			{
 				ss << "AF Sensor Turn Off Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
 			}
 		}
 		break;
@@ -865,6 +902,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				ss << "AF Turn On Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
 		}
 		break;
 
@@ -885,6 +926,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 			{
 				ss << "AF Turn Off Failed.";
 				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
 			}
 		}
 		break;

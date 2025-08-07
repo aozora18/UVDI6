@@ -7,12 +7,9 @@ enum EnCalbAFBtn : int
 {
 	loadSetting,
 	saveSetting,
-	getZpos,
-	setZpos,
 	readStoredvalue,
 	writeStoredvalue,
 	readPlot,
-	dummy,
 	focusInit,
 	setInternal,
 	setExternal,
@@ -21,6 +18,10 @@ enum EnCalbAFBtn : int
 	afOn,
 	afOff,
 	controlPanel,
+	selectPhAll,
+	selectPhNone,
+	readAFZWorkRange,
+	writeAFZWorkRange,
 	btnmax,
 };
 
@@ -28,17 +29,24 @@ enum EnCalbAFBtn : int
 enum EnCalbAFGrd : int
 {
 	setting,
-	zpos,
-	storedvalue,
-	plot,
+	realState,
 	grdmax,
 };
 
 
 enum EnCalbAFLabs : int
 {
-	
-	labelmax=4,
+	labelmax=2,
+};
+
+enum EnCalbAFGroups : int
+{
+	groupmax = 2,
+};
+
+enum EnCalbAFChks : int
+{
+	chkmax = 6,
 };
 
 // CDlgCalbFlatness 대화 상자
@@ -52,7 +60,9 @@ public:
 	CMacButton			btns[btnmax];
 	CGridCtrl			grids[grdmax];
 	CMyStatic			labels[labelmax];
-	CMyGrpBox			group;
+	CMyGrpBox			group[groupmax];
+
+	CMacCheckBox checks[chkmax];
 
 	/* 가상함수 선언 */
 protected:
@@ -65,9 +75,7 @@ protected:
 public:
 	void InitGrid();
 	void InitGridSetting();
-	void InitGridZPos();
-	void InitGridStoredValue();
-	void InitGridPlot();
+	void InitGridRealtimeState();
 	void MoveBtns();
 
 	virtual BOOL		OnInitDlg();

@@ -47,35 +47,36 @@ VOID CDlgCalbAutofocus::UpdatePeriod(UINT64 tick, BOOL is_busy)
 VOID CDlgCalbAutofocus::InitGrid()
 {
 	InitGridSetting();
-
-	InitGridZPos();// 이 둘은 순서 지켜야함. 
-	InitGridPlot();//이 둘은 순서 지켜야함.
-
-	InitGridStoredValue();
+	InitGridRealtimeState();
 }
 
 
-VOID CDlgCalbAutofocus::InitGridZPos()
+VOID CDlgCalbAutofocus::InitGridRealtimeState()
 {
 	CResizeUI	clsResizeUI;
 	CRect		rGrid;
-	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
+	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_,WHITE_,WHITE_,WHITE_,WHITE_,WHITE_, ALICE_BLUE };
 	std::vector <int>			vColSize;
 	std::vector <int>			vRowSize;
 
 	vector< std::vector <std::wstring>> vTitle;
 	
-	vTitle.push_back({ _T("Focus Inited"), _T("NO"), _T("YES,NO") });
-	vTitle.push_back({ _T("Run AF"), _T("ON"), _T("ON,OFF")});
-	vTitle.push_back({ _T("SensorType"), _T("IN"), _T("IN,EX") });
-	vTitle.push_back({ _T("Sensor Active"), _T("ON"), _T("ON,OFF") });
-
-
+	vTitle.push_back({ _T(""),				_T("PH1"),_T("PH2"),_T("PH3"),_T("PH4"),_T("PH5"),_T("PH6"), _T("") });
+	vTitle.push_back({ _T("Focus Init"),	_T("NO"),_T("NO"),_T("NO"),_T("NO"),_T("NO"),_T("NO"), _T("YES,NO") });
+	vTitle.push_back({ _T("AF Active"),		_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"), _T("ON,OFF") });
+	vTitle.push_back({ _T("Sensor Type"),	_T("IN"),_T("IN"),_T("IN"),_T("IN"),_T("IN"),_T("IN"), _T("IN,EX") });
+	vTitle.push_back({ _T("Sensor Active"), _T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"), _T("ON,OFF") });
+	vTitle.push_back({ _T("Stored Value"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
+	vTitle.push_back({ _T("PLOT Value"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
+	vTitle.push_back({ _T("AF Range Min"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
+	vTitle.push_back({ _T("AF Range Max"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
+	vTitle.push_back({ _T("-"),				_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-") });
+	
 
 	vRowSize.resize(vTitle.size());
 	vColSize.resize(vTitle.begin()->size());
 
-	CGridCtrl* pGrid = &grids[zpos];
+	CGridCtrl* pGrid = &grids[realState];
 	
 	clsResizeUI.ResizeControl(this, pGrid);
 	pGrid->GetWindowRect(rGrid);
@@ -143,198 +144,7 @@ VOID CDlgCalbAutofocus::InitGridZPos()
 	pGrid->Refresh();
 }
 
-void CDlgCalbAutofocus::InitGridPlot()
-{
-	CRect rStt, rStt2, rStt3;
-	
 
-	CResizeUI	clsResizeUI;
-	CRect		rGrid;
-	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
-	std::vector <int>			vColSize;
-	std::vector <int>			vRowSize;
-
-	vector< std::vector <std::wstring>> vTitle;
-
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
-	{
-		std::wstringstream ss;
-		ss << "PH" << i + 1 << "PLOT";
-		vTitle.push_back({ ss.str(), _T("0"), _T("trig") });
-	}
-
-	vRowSize.resize(vTitle.size());
-	vColSize.resize(vTitle.begin()->size());
-
-	CGridCtrl* pGrid = &grids[plot];
-
-	clsResizeUI.ResizeControl(this, pGrid);
-	pGrid->GetWindowRect(rGrid);
-	this->ScreenToClient(rGrid);
-
-	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
-	int nTotalHeight = 0;
-
-	for (auto& height : vRowSize)
-	{
-		height = nHeight;
-		nTotalHeight += height;
-	}
-
-	if (rGrid.Height() < nTotalHeight)
-	{
-		nTotalHeight = 0;
-
-		for (auto& height : vRowSize)
-		{
-			height = (rGrid.Height()) / (int)vRowSize.size();
-			nTotalHeight += height;
-		}
-	}
-
-	int nTotalWidth = 0;
-	for (auto& width : vColSize)
-	{
-		width = rGrid.Width() / (int)vColSize.size();
-		nTotalWidth += width;
-	}
-
-	vColSize.front() += rGrid.Width() - nTotalWidth - 2;
-
-	/* 객체 기본 설정 */
-	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
-	pGrid->SetRowCount((int)vRowSize.size());
-	pGrid->SetColumnCount((int)vColSize.size());
-	pGrid->SetFixedColumnCount(0);
-	pGrid->SetBkColor(RGB(255, 255, 255));
-	pGrid->SetFixedColumnSelection(0);
-
-	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
-	{
-		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
-
-		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
-		{
-			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-			pGrid->SetColumnWidth(nCol, vColSize[nCol]);
-			pGrid->SetItemText(nRow, nCol, vTitle[nRow][nCol].c_str());
-			pGrid->SetItemBkColour(nRow, nCol, vColColor[nCol]);
-			pGrid->SetItemState(nRow, nCol, GVIS_READONLY);
-		}
-	}
-
-	/* Grid Size 재구성 */
-	rGrid.bottom = rGrid.top + nTotalHeight + 1;
-	pGrid->MoveWindow(rGrid);
-
-	/* 기본 속성 및 갱신 */
-	pGrid->EnableDragAndDrop(FALSE);
-	pGrid->EnableSelection(FALSE);
-	pGrid->SetEditable();
-	pGrid->Refresh();
-
-	//안씀//
-	//grids[zpos].GetWindowRect(rStt);
-	//GetParent()->ScreenToClient(&rStt);
-
-	//grids[plot].GetWindowRect(rStt2);
-	//GetParent()->ScreenToClient(&rStt2);
-
-	//labels[plot].GetWindowRect(rStt3);
-	//GetParent()->ScreenToClient(&rStt3);
-
-	//labels[plot].MoveWindow(rStt.left, rStt.bottom + 40, rStt3.Width(), rStt3.Height());
-	//grids[plot].MoveWindow(rStt.left, rStt.bottom + 85, rStt2.Width(), rStt2.Height());
-
-}
-
-
-void CDlgCalbAutofocus::InitGridStoredValue()
-{
-	CResizeUI	clsResizeUI;
-	CRect		rGrid;
-	std::vector <COLORREF>		vColColor = { ALICE_BLUE, WHITE_, ALICE_BLUE };
-	std::vector <int>			vColSize;
-	std::vector <int>			vRowSize;
-
-	vector< std::vector <std::wstring>> vTitle;
-	
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
-	{
-		std::wstringstream ss;
-		ss << "PH" << i + 1;
-		vTitle.push_back({ ss.str(), _T("0"), _T("trig") });
-	}
-
-	vRowSize.resize(vTitle.size());
-	vColSize.resize(vTitle.begin()->size());
-
-	CGridCtrl* pGrid = &grids[storedvalue];
-
-	clsResizeUI.ResizeControl(this, pGrid);
-	pGrid->GetWindowRect(rGrid);
-	this->ScreenToClient(rGrid);
-
-	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
-	int nTotalHeight = 0;
-	for (auto& height : vRowSize)
-	{
-		height = nHeight;
-		nTotalHeight += height;
-	}
-
-	if (rGrid.Height() < nTotalHeight)
-	{
-		nTotalHeight = 0;
-
-		for (auto& height : vRowSize)
-		{
-			height = (rGrid.Height()) / (int)vRowSize.size();
-			nTotalHeight += height;
-		}
-	}
-
-	int nTotalWidth = 0;
-	for (auto& width : vColSize)
-	{
-		width = rGrid.Width() / (int)vColSize.size() ;
-		nTotalWidth += width;
-	}
-
-	vColSize.front() += rGrid.Width() - nTotalWidth - 2;
-
-	/* 객체 기본 설정 */
-	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
-	pGrid->SetRowCount((int)vRowSize.size());
-	pGrid->SetColumnCount((int)vColSize.size());
-	pGrid->SetFixedColumnCount(0);
-	pGrid->SetBkColor(RGB(255, 255, 255));
-	pGrid->SetFixedColumnSelection(0);
-
-	for (int nRow = 0; nRow < (int)vRowSize.size(); nRow++)
-	{
-		pGrid->SetRowHeight(nRow, vRowSize[nRow]);
-
-		for (int nCol = 0; nCol < (int)vColSize.size(); nCol++)
-		{
-			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-			pGrid->SetColumnWidth(nCol, vColSize[nCol]);
-			pGrid->SetItemText(nRow, nCol, vTitle[nRow][nCol].c_str());
-			pGrid->SetItemBkColour(nRow, nCol, vColColor[nCol]);
-			pGrid->SetItemState(nRow, nCol, GVIS_READONLY);
-		}
-	}
-
-	/* Grid Size 재구성 */
-	rGrid.bottom = rGrid.top + nTotalHeight + 1;
-	pGrid->MoveWindow(rGrid);
-
-	/* 기본 속성 및 갱신 */
-	pGrid->EnableDragAndDrop(FALSE);
-	pGrid->EnableSelection(FALSE);
-	pGrid->SetEditable();
-	pGrid->Refresh();
-}
 
 void CDlgCalbAutofocus::InitGridSetting()
 {
@@ -473,7 +283,11 @@ VOID CDlgCalbAutofocus::DoDataExchange(CDataExchange* dx)
 	for (int i = 0; i < labelmax; i++)		
 		DDX_Control(dx, IDC_CALB_AF_SETTING + i, labels[i]);
 
-	DDX_Control(dx, IDC_AF_CONTROLGROUP, group);
+	for (int i = 0; i < groupmax; i++)
+		DDX_Control(dx, IDC_AF_CONTROLGROUP + i, group[i]);
+
+	for (int i = 0; i < chkmax; i++)
+		DDX_Control(dx, IDC_AF_CHK_PH1 + i, checks[i]);
 
 	CDlgSubMenu::DoDataExchange(dx);
 }
@@ -485,9 +299,7 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 	UINT clickedGridID = pNotifyStruct->idFrom;
 
 	map<int, int> gridMap = { {IDC_CALB_AF_GRD_SETTING,setting},
-		{IDC_CALB_AF_GRD_STATUS,zpos},
-		{IDC_CALB_AF_GRD_STOREDVALUE,storedvalue},
-		{IDC_CALB_AF_GRD_PLOTVALUE,plot},};
+		{IDC_CALB_AF_GRD_STATUS,realState},};
 
 	pGrid = &grids[gridMap[clickedGridID]];
 	pGrid->SetFocusCell(-1, -1);
@@ -522,19 +334,7 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 
 		case IDC_CALB_AF_GRD_STATUS:
 		{
-			int debug = 0;  //이거는 읽기전용
-		}
-		break;
-
-		case IDC_CALB_AF_GRD_STOREDVALUE:
-		{
-			int debug = 0; //이것도 읽기전용
-		}
-		break;
-
-		case IDC_CALB_AF_GRD_PLOTVALUE:
-		{
-			int debug = 0;//이것도 읽기전용
+			return;
 		}
 		break;
 	}
@@ -600,7 +400,7 @@ BOOL CDlgCalbAutofocus::PopupKBDN(ENM_DITM enType, CString& strOutput, double dM
 BEGIN_MESSAGE_MAP(CDlgCalbAutofocus, CDlgSubMenu)
 	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_SETTING, &CDlgCalbAutofocus::OnClickGrid)
 	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_STATUS, &CDlgCalbAutofocus::OnClickGrid)
-	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_STOREDVALUE, &CDlgCalbAutofocus::OnClickGrid)
+	
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_AF_SETTING_LOAD, IDC_AF_SETTING_LOAD + btnmax, OnBtnClick)
 	ON_WM_TIMER()
 END_MESSAGE_MAP()
@@ -662,12 +462,25 @@ VOID CDlgCalbAutofocus::InitCtrl()
 	CString strTemp;
 	CRect rStt;
 
-	//groupbox
-	clsResizeUI.ResizeControl(this, &group);
-	group.GetWindowRect(rStt);
-	this->ScreenToClient(rStt);
-	group.MoveWindow(rStt);
 
+	//check box
+	for (int i = 0; i < chkmax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &checks[i]);
+		checks[i].GetWindowRect(rStt);
+		this->ScreenToClient(rStt);
+		checks[i].MoveWindow(rStt);
+	}
+
+	//groupbox
+	for (int i = 0; i < groupmax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &group[i]);
+		group[i].GetWindowRect(rStt);
+		this->ScreenToClient(rStt);
+		group[i].MoveWindow(rStt);
+	}
+	
 	//lebel
 	for (int i = 0; i < labelmax; i++)
 	{
@@ -707,24 +520,35 @@ void CDlgCalbAutofocus::MoveBtns()
 	CRect rStt;
 	CRect btnRect;
 	int pair = 2;
-	for (int i = 0; i < grdmax; i++)
-	{
-		grids[i].GetWindowRect(rStt);
-		GetParent()->ScreenToClient(&rStt);
+	//setting grid
+	grids[setting].GetWindowRect(rStt);
+	GetParent()->ScreenToClient(&rStt);
 
-		btns[(i*pair)].GetWindowRect(btnRect);
-		GetParent()->ScreenToClient(&btnRect);
+	btns[loadSetting].GetWindowRect(btnRect);
+	GetParent()->ScreenToClient(&btnRect);
 
-		int btnWidth = btnRect.Width();
-		int btnHeight = btnRect.Height();
+	int btnWidth = btnRect.Width();
+	int btnHeight = btnRect.Height();
 
-		btns[(i * pair)].MoveWindow(rStt.left, rStt.bottom + 10, btnWidth, btnHeight);
+	btns[loadSetting].MoveWindow(rStt.left, rStt.bottom + 10, btnWidth, btnHeight);
 
-		int btnLeft = rStt.right - btnWidth;
-		int btnTop = rStt.bottom;
+	int btnLeft = rStt.right - btnWidth;
+	int btnTop = rStt.bottom;
 
-		btns[(i * pair) + 1].MoveWindow(btnLeft, btnTop + 10, btnWidth, btnHeight);
-	}
+	btns[saveSetting].MoveWindow(btnLeft, btnTop + 10, btnWidth, btnHeight);
+
+	//state그리드
+	grids[realState].GetWindowRect(rStt);
+	GetParent()->ScreenToClient(&rStt);
+
+	btns[controlPanel].GetWindowRect(btnRect);
+	GetParent()->ScreenToClient(&btnRect);
+
+	btnWidth = btnRect.Width();
+	btnHeight = btnRect.Height();
+
+	btns[controlPanel].MoveWindow(rStt.left, rStt.bottom + 10, btnWidth, btnHeight);
+
 }
 
 
@@ -765,41 +589,184 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		case IDC_AF_SETTING_LOAD:
 		case IDC_AF_SETTING_SAVE:
 		{
+			//저장 및 통신
+		}
+		break;
+
+		case IDC_BTN_AF_AF_SELECTALL:
+		{
 
 		}
 		break;
 
-		
+		case IDC_BTN_AF_AF_SELECTNONE:
+		{
+
+		}
+		break;
+
+		case IDC_BTN_AF_READZWORKRANGE:
+		{
+
+		}
+		break;
+
+		case IDC_BTN_AF_WRITEZWORKRANGE:
+		{
+
+		}
+		break;
+
 		case IDC_AF_STORED_READ:
 		{
 			int ph[MAX_PH] = { 0, };
-			bool res[MAX_PH] = { false, };
+			
 
 			for (int i = 0; i < phCnt; i++)
 			{
-				res[i] = gv->GetAutofocus().GetStoredAFPosition(i + 1, ph[i]);
-				if (res[i] == false)
+				if (gv->GetAutofocus().GetStoredAFPosition(i + 1, ph[i]) == false)
 				{
-					ss << "PH" << i + 1 << "stored value read Failed.";
-					MessageBox(nullptr, ss.str().c_str(), L"failed", MB_OK);
+					ss << i + 1 << ',';
 				}
 			}
 
+			if (ss.str().size() != 0)
+			{
+				ss << "stored value read Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
 		}
 		break;
 
 		case IDC_AF_STORED_WRITE:
+		{
+			int ph[MAX_PH] = { 0, };
+			bool res = false;
+
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (gv->GetAutofocus().SetStoredAFPosition(i + 1, ph[i]) == false)
+					ss << i + 1 << ',';
+			
+			}
+			
+			if (ss.str().size() != 0)
+			{
+				ss << "stored value write Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
+
 		case IDC_AF_PLOT_READ:
-		case IDC_AF_PLOT_READ2:
+		{
+			int ph[MAX_PH] = { 0, };
+			for (int i = 0; i < phCnt; i++)
+			{
+				if(gv->GetAutofocus().GetCurrentAFSensingPosition(i+1, ph[i]) == false)
+					ss << i + 1 << ',';
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "PLOT value read Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
 		
 		case IDC_BTN_AF_SET_INTERNAL:
+		{
+			for (int i = 0; i < phCnt; i++)
+			{
+				if(gv->GetAutofocus().SetAFSensorType(1, AFstate::internal) == false)
+					ss << i + 1 << ',';
+			}
+			if (ss.str().size() != 0)
+			{
+				ss << "Set Internal Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
+
 		case IDC_BTN_AF_SET_EXTERNAL:
+		{
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (gv->GetAutofocus().SetAFSensorType(1, AFstate::external) == false)
+					ss << i + 1 << ',';
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "Set Internal Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
+
 		case IDC_BTN_AF_SENSOR_ON:
+		{
+			for (int i = 0; i < phCnt; i++)
+			{
+				if(gv->GetAutofocus().SetAFSensorOnOff(i+1, true) == false)
+					ss << i + 1 << ',';
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "AF Sensor Turn On Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
+
 		case IDC_BTN_AF_SENSOR_OFF:
+		{
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (gv->GetAutofocus().SetAFSensorOnOff(i + 1, false) == false)
+					ss << i + 1 << ',';
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "AF Sensor Turn Off Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
+
 		case IDC_BTN_AF_AF_ON:
+		{
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (gv->GetAutofocus().SetAFOnOff(i + 1, true) == false)
+					ss << i + 1 << ',';
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "AF Turn On Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+		}
+		break;
+
 		case IDC_BTN_AF_AF_OFF:
 		{
-			int debug = 0;
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (gv->GetAutofocus().SetAFOnOff(i + 1, false) == false)
+					ss << i + 1 << ',';
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "AF Turn Off Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
 		}
 		break;
 

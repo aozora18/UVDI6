@@ -62,7 +62,12 @@ void CMainApp::InitLoginLevel()
 	GetModuleFileName(NULL, szPath, MAX_PATH);
 	PathRemoveFileSpec(szPath);
 	PathAppend(szPath, _T("key"));
+#if _DEBUG
+	g_loginLevel = (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_ADMIN;
+#else
 	g_loginLevel = PathFileExists(szPath) ? (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_ADMIN : (UINT)EN_LOGIN_LEVEL::eLOGIN_LEVEL_UNKNOWN;
+#endif
+	
 	
 }
 

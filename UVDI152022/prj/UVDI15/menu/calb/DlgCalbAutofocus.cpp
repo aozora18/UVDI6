@@ -6,6 +6,7 @@
 #include "pch.h"
 #include "DlgCalbAutofocus.h"
 #include "afxdialogex.h"
+#include "../../GlobalVariables.h"
 
 #define DEF_DEFAULT_GRID_ROW_SIZE 35
 
@@ -155,7 +156,7 @@ void CDlgCalbAutofocus::InitGridPlot()
 
 	vector< std::vector <std::wstring>> vTitle;
 
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count + 4; i++)
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 		std::wstringstream ss;
 		ss << "PH" << i + 1 << "PLOT";
@@ -258,7 +259,7 @@ void CDlgCalbAutofocus::InitGridStoredValue()
 
 	vector< std::vector <std::wstring>> vTitle;
 	
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count+4; i++)
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 		std::wstringstream ss;
 		ss << "PH" << i + 1;
@@ -349,7 +350,7 @@ void CDlgCalbAutofocus::InitGridSetting()
 	
 	//uvEng_Luria_GetShMem()->focus.
 	
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count+4; i++)
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
 		std::wstringstream ss;
 		ss << "StoredValue_PH" << i+1;
@@ -472,6 +473,8 @@ VOID CDlgCalbAutofocus::DoDataExchange(CDataExchange* dx)
 	for (int i = 0; i < labelmax; i++)		
 		DDX_Control(dx, IDC_CALB_AF_SETTING + i, labels[i]);
 
+	DDX_Control(dx, IDC_AF_CONTROLGROUP, group);
+
 	CDlgSubMenu::DoDataExchange(dx);
 }
 
@@ -482,7 +485,7 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 	UINT clickedGridID = pNotifyStruct->idFrom;
 
 	map<int, int> gridMap = { {IDC_CALB_AF_GRD_SETTING,setting},
-		{IDC_CALB_AF_GRD_ZPOS,zpos},
+		{IDC_CALB_AF_GRD_STATUS,zpos},
 		{IDC_CALB_AF_GRD_STOREDVALUE,storedvalue},
 		{IDC_CALB_AF_GRD_PLOTVALUE,plot},};
 
@@ -503,36 +506,40 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 	double	maxV = 9999.9999;
 	UINT8 u8DecPts = 3;
 	CString strOutput;
-
+	bool open = false;
 	switch (clickedGridID)
 	{
 		case IDC_CALB_AF_GRD_SETTING:
 		{
+			if (selRow < 2)
+				return;
+
 			minV = 21284; maxV = 44252; //<-이건 비지텍에서 정의된 값임 변경불가. 1유닛 = 0.0174um (대략)
 			u8DecPts = 5;
+			open = true;
 		}
 		break;
 
-		case IDC_CALB_AF_GRD_ZPOS:
+		case IDC_CALB_AF_GRD_STATUS:
 		{
-			int debug = 0;
+			int debug = 0;  //이거는 읽기전용
 		}
 		break;
 
 		case IDC_CALB_AF_GRD_STOREDVALUE:
 		{
-			int debug = 0;
+			int debug = 0; //이것도 읽기전용
 		}
 		break;
 
 		case IDC_CALB_AF_GRD_PLOTVALUE:
 		{
-			int debug = 0;
+			int debug = 0;//이것도 읽기전용
 		}
 		break;
 	}
 
-	if (PopupKBDN(enType, strOutput,minV, maxV, u8DecPts))
+	if (open && PopupKBDN(enType, strOutput,minV, maxV, u8DecPts))
 	{
 		pGrid->SetItemTextFmt(selRow, selCol, _T("%s"), strOutput);
 	}
@@ -592,7 +599,7 @@ BOOL CDlgCalbAutofocus::PopupKBDN(ENM_DITM enType, CString& strOutput, double dM
 
 BEGIN_MESSAGE_MAP(CDlgCalbAutofocus, CDlgSubMenu)
 	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_SETTING, &CDlgCalbAutofocus::OnClickGrid)
-	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_ZPOS, &CDlgCalbAutofocus::OnClickGrid)
+	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_STATUS, &CDlgCalbAutofocus::OnClickGrid)
 	ON_NOTIFY(NM_CLICK, IDC_CALB_AF_GRD_STOREDVALUE, &CDlgCalbAutofocus::OnClickGrid)
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_AF_SETTING_LOAD, IDC_AF_SETTING_LOAD + btnmax, OnBtnClick)
 	ON_WM_TIMER()
@@ -655,8 +662,13 @@ VOID CDlgCalbAutofocus::InitCtrl()
 	CString strTemp;
 	CRect rStt;
 
-	
+	//groupbox
+	clsResizeUI.ResizeControl(this, &group);
+	group.GetWindowRect(rStt);
+	this->ScreenToClient(rStt);
+	group.MoveWindow(rStt);
 
+	//lebel
 	for (int i = 0; i < labelmax; i++)
 	{
 		labels[i].SetTextFont(&g_lf[eFONT_LEVEL2_BOLD]);
@@ -737,18 +749,49 @@ VOID CDlgCalbAutofocus::SaveDataConfig()
 */
 VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 {
+	auto gv = GlobalVariables::GetInstance();
+	int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
+
+	std::wstringstream ss;
 
 	switch (id)
 	{	
+		case IDC_BTN_AF_FOCUSINIT:
+		{
+			gv->GetAutofocus().InitFocusDrive();
+		}
+		break;
+
 		case IDC_AF_SETTING_LOAD:
 		case IDC_AF_SETTING_SAVE:
-		case IDC_AF_ZPOS_GET:
-		case IDC_AF_ZPOS_SET:
+		{
+
+		}
+		break;
+
+		
 		case IDC_AF_STORED_READ:
+		{
+			int ph[MAX_PH] = { 0, };
+			bool res[MAX_PH] = { false, };
+
+			for (int i = 0; i < phCnt; i++)
+			{
+				res[i] = gv->GetAutofocus().GetStoredAFPosition(i + 1, ph[i]);
+				if (res[i] == false)
+				{
+					ss << "PH" << i + 1 << "stored value read Failed.";
+					MessageBox(nullptr, ss.str().c_str(), L"failed", MB_OK);
+				}
+			}
+
+		}
+		break;
+
 		case IDC_AF_STORED_WRITE:
 		case IDC_AF_PLOT_READ:
 		case IDC_AF_PLOT_READ2:
-		case IDC_BTN_AF_FOCUSINIT:
+		
 		case IDC_BTN_AF_SET_INTERNAL:
 		case IDC_BTN_AF_SET_EXTERNAL:
 		case IDC_BTN_AF_SENSOR_ON:

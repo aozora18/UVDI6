@@ -52,6 +52,7 @@ public:
 	CMacButton			btns[btnmax];
 	CGridCtrl			grids[grdmax];
 	CMyStatic			labels[labelmax];
+	CMyGrpBox			group;
 
 	/* 가상함수 선언 */
 protected:

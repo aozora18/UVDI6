@@ -158,15 +158,6 @@ void CDlgCalbAutofocus::InitGridSetting()
 	vTitle.push_back({ _T("Use AF"),_T("True"),_T("bool") });
 	vTitle.push_back({ _T("Sensor Type"),_T("EXTERNAL"),_T("type") });
 	
-	//uvEng_Luria_GetShMem()->focus.
-	
-	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
-	{
-		std::wstringstream ss;
-		ss << "StoredValue_PH" << i+1;
-		vTitle.push_back({ ss.str(), _T("0"), _T("trig")});
-	}
-	
 	vRowSize.resize(vTitle.size());
 	vColSize.resize(vTitle.begin()->size());
 	
@@ -458,6 +449,8 @@ VOID CDlgCalbAutofocus::OnPaintDlg(CDC* dc)
 */
 VOID CDlgCalbAutofocus::InitCtrl()
 {
+	int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
+
 	CResizeUI clsResizeUI;
 	CString strTemp;
 	CRect rStt;
@@ -470,6 +463,7 @@ VOID CDlgCalbAutofocus::InitCtrl()
 		checks[i].GetWindowRect(rStt);
 		this->ScreenToClient(rStt);
 		checks[i].MoveWindow(rStt);
+		checks[i].EnableWindow(i < phCnt ? true : false);
 	}
 
 	//groupbox
@@ -578,6 +572,11 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 	std::wstringstream ss;
 
+	int headSelect[MAX_PH] = { 0, };
+
+	for (int i = 0; i < chkmax; i++)
+		headSelect[i] = checks[i].GetCheck() != 0 ? true : false;
+
 	switch (id)
 	{	
 		case IDC_BTN_AF_FOCUSINIT:
@@ -595,25 +594,56 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_AF_SELECTALL:
 		{
-
+			for (int i = 0; i < phCnt; i++)
+				checks[i].SetCheck(1);
 		}
 		break;
 
 		case IDC_BTN_AF_AF_SELECTNONE:
 		{
-
+			for (int i = 0; i < phCnt; i++)
+				checks[i].SetCheck(0);
 		}
 		break;
 
 		case IDC_BTN_AF_READZWORKRANGE:
 		{
+			
+			int ph[MAX_PH][2] = { 0, };
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (headSelect[i] == false)
+					continue;
 
+				if (gv->GetAutofocus().GetAFWorkRange(i + 1, ph[i][0], ph[i][1]) == false)
+					ss << i + 1 << ',';
+
+				if (ss.str().size() != 0)
+				{
+					ss << "Read AF Z Workrange Failed.";
+					MessageBox(ss.str().c_str(), L"failed", MB_OK);
+				}
+			}
 		}
 		break;
 
 		case IDC_BTN_AF_WRITEZWORKRANGE:
 		{
+			int ph[MAX_PH][2] = { 0, };
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (headSelect[i] == false)
+					continue;
 
+				if (gv->GetAutofocus().SetAFWorkRange(i + 1, ph[i][0], ph[i][1]) == false)
+					ss << i + 1 << ',';
+			
+				if (ss.str().size() != 0)
+				{
+					ss << "Write AF Z Workrange Failed.";
+					MessageBox(ss.str().c_str(), L"failed", MB_OK);
+				}
+			}
 		}
 		break;
 
@@ -621,13 +651,13 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			int ph[MAX_PH] = { 0, };
 			
-
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
 				if (gv->GetAutofocus().GetStoredAFPosition(i + 1, ph[i]) == false)
-				{
 					ss << i + 1 << ',';
-				}
+				
 			}
 
 			if (ss.str().size() != 0)
@@ -645,6 +675,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if (gv->GetAutofocus().SetStoredAFPosition(i + 1, ph[i]) == false)
 					ss << i + 1 << ',';
 			
@@ -663,6 +696,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 			int ph[MAX_PH] = { 0, };
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if(gv->GetAutofocus().GetCurrentAFSensingPosition(i+1, ph[i]) == false)
 					ss << i + 1 << ',';
 			}
@@ -679,6 +715,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if(gv->GetAutofocus().SetAFSensorType(1, AFstate::internal) == false)
 					ss << i + 1 << ',';
 			}
@@ -694,6 +733,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if (gv->GetAutofocus().SetAFSensorType(1, AFstate::external) == false)
 					ss << i + 1 << ',';
 			}
@@ -710,6 +752,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if(gv->GetAutofocus().SetAFSensorOnOff(i+1, true) == false)
 					ss << i + 1 << ',';
 			}
@@ -726,6 +771,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if (gv->GetAutofocus().SetAFSensorOnOff(i + 1, false) == false)
 					ss << i + 1 << ',';
 			}
@@ -742,6 +790,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if (gv->GetAutofocus().SetAFOnOff(i + 1, true) == false)
 					ss << i + 1 << ',';
 			}
@@ -758,6 +809,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		{
 			for (int i = 0; i < phCnt; i++)
 			{
+				if (headSelect[i] == false)
+					continue;
+
 				if (gv->GetAutofocus().SetAFOnOff(i + 1, false) == false)
 					ss << i + 1 << ',';
 			}

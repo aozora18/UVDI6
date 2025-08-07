@@ -24,7 +24,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cmath>
-
+#include <optional>
 #include "../../inc/conf/conf_uvdi15.h"
 #include "../../inc/conf/conf_comn.h"
 #include "../../inc/conf/luria.h"
@@ -829,14 +829,9 @@ public:
 		none,
 	};
 
-protected:
-	LDStype ldsType = LDStype::none;
-	bool isAFOn;
-	bool isSensorOn;
-	int phIndex;
-	int sensingAFValue;
-	int storedAFValue;
-	int AFworkRange[2];
+
+	
+
 public:
 	AFstate() = default;
 	AFstate(int phIdx)
@@ -846,7 +841,19 @@ public:
 		isSensorOn = false;
 		sensingAFValue = 0;
 		storedAFValue = 0;
+		AFworkRange[0] = 0;
+		AFworkRange[1] = 0;
+		
 	}
+
+	int phIndex;
+	LDStype ldsType = LDStype::none;
+	bool isAFOn;
+	bool isSensorOn;
+	int sensingAFValue;
+	int storedAFValue;
+	int AFworkRange[2];
+
 public:
 	//set
 	bool SetAFSensorOnOff(bool on);

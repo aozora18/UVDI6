@@ -50,6 +50,48 @@ VOID CDlgCalbAutofocus::InitGrid()
 	InitGridRealtimeState();
 }
 
+void CDlgCalbAutofocus::UpdateGridInfo()
+{
+	auto gv = GlobalVariables::GetInstance();
+	auto af = gv->GetAutofocus();
+
+	AFstate* state[MAX_PH] = { nullptr, };
+
+	for (int i = 0; i > uvEng_GetConfig()->luria_svc.ph_count; i++)
+	{
+		state[i] = af.GetAFState(i + 1);
+	}
+
+	
+
+	//vTitle.push_back({ _T(""),				_T("PH1"),_T("PH2"),_T("PH3"),_T("PH4"),_T("PH5"),_T("PH6"), _T("") });
+	//vTitle.push_back({ _T("Focus Init"),	_T("NO"),_T("NO"),_T("NO"),_T("NO"),_T("NO"),_T("NO"), _T("YES,NO") });
+	//vTitle.push_back({ _T("AF Active"),		_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"), _T("ON,OFF") });
+	//vTitle.push_back({ _T("Sensor Type"),	_T("IN"),_T("IN"),_T("IN"),_T("IN"),_T("IN"),_T("IN"), _T("IN,EX") });
+	//vTitle.push_back({ _T("Sensor Active"), _T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"), _T("ON,OFF") });
+	//vTitle.push_back({ _T("Stored Value"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
+	//vTitle.push_back({ _T("PLOT Value"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
+	//vTitle.push_back({ _T("AF Range Min"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
+	//vTitle.push_back({ _T("AF Range Max"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
+	//vTitle.push_back({ _T("-"),				_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-") });
+
+	CGridCtrl* pGrid = &grids[realState];
+	int stIdx = 1;
+	int focusInit = stIdx++, afActive = stIdx++, sensorType = stIdx++, sensorActive = stIdx++, storedValue = stIdx++,plotValue = stIdx++, afRangeMin = stIdx++, afRangeMax = stIdx++;
+
+	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+	{
+		pGrid->SetItemText(focusInit, 1 + i, uvEng_Luria_GetShMem()->focus.initialized ? L"YES" : L"NO");
+		pGrid->SetItemText(afActive, 1 + i, state[i]->isAFOn ? L"ON" : L"OFF");
+		pGrid->SetItemText(sensorType, 1 + i, state[i]->ldsType == AFstate::LDStype::none ? L"-" : 
+											  state[i]->ldsType == AFstate::LDStype::external ? L"EX" : L"IN");
+		pGrid->SetItemText(sensorActive, 1 + i, state[i]->isSensorOn ? L"ON" : L"OFF");
+		pGrid->SetItemText(storedValue, 1 + i, state[i]->storedAFValue);
+		pGrid->SetItemText(plotValue, 1 + i, state[i]->sensingAFValue);
+		pGrid->SetItemText(afRangeMin, 1 + i, state[i]->AFworkRange[0]);
+		pGrid->SetItemText(afRangeMax, 1 + i, state[i]->AFworkRange[1]);
+	}
+}
 
 VOID CDlgCalbAutofocus::InitGridRealtimeState()
 {
@@ -62,17 +104,16 @@ VOID CDlgCalbAutofocus::InitGridRealtimeState()
 	vector< std::vector <std::wstring>> vTitle;
 	
 	vTitle.push_back({ _T(""),				_T("PH1"),_T("PH2"),_T("PH3"),_T("PH4"),_T("PH5"),_T("PH6"), _T("") });
-	vTitle.push_back({ _T("Focus Init"),	_T("NO"),_T("NO"),_T("NO"),_T("NO"),_T("NO"),_T("NO"), _T("YES,NO") });
-	vTitle.push_back({ _T("AF Active"),		_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"), _T("ON,OFF") });
-	vTitle.push_back({ _T("Sensor Type"),	_T("IN"),_T("IN"),_T("IN"),_T("IN"),_T("IN"),_T("IN"), _T("IN,EX") });
-	vTitle.push_back({ _T("Sensor Active"), _T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"),_T("ON"), _T("ON,OFF") });
-	vTitle.push_back({ _T("Stored Value"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
-	vTitle.push_back({ _T("PLOT Value"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
-	vTitle.push_back({ _T("AF Range Min"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
-	vTitle.push_back({ _T("AF Range Max"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
+	vTitle.push_back({ _T("Focus Init"),	_T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("YES,NO") });
+	vTitle.push_back({ _T("AF Active"),		_T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("ON,OFF") });
+	vTitle.push_back({ _T("Sensor Type"),	_T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("IN,EX") });
+	vTitle.push_back({ _T("Sensor Active"), _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("ON,OFF") });
+	vTitle.push_back({ _T("Stored Value"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
+	vTitle.push_back({ _T("PLOT Value"),    _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
+	vTitle.push_back({ _T("AF Range Min"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("um") });
+	vTitle.push_back({ _T("AF Range Max"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("um") });
 	vTitle.push_back({ _T("-"),				_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-") });
 	
-
 	vRowSize.resize(vTitle.size());
 	vColSize.resize(vTitle.begin()->size());
 
@@ -577,11 +618,14 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 	for (int i = 0; i < chkmax; i++)
 		headSelect[i] = checks[i].GetCheck() != 0 ? true : false;
 
+	bool needRefresh = false;
+
 	switch (id)
 	{	
 		case IDC_BTN_AF_FOCUSINIT:
 		{
 			gv->GetAutofocus().InitFocusDrive();
+			needRefresh = true;
 		}
 		break;
 
@@ -618,12 +662,15 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				if (gv->GetAutofocus().GetAFWorkRange(i + 1, ph[i][0], ph[i][1]) == false)
 					ss << i + 1 << ',';
 
-				if (ss.str().size() != 0)
-				{
-					ss << "Read AF Z Workrange Failed.";
-					MessageBox(ss.str().c_str(), L"failed", MB_OK);
-				}
+			
+				needRefresh = true;
 			}
+			if (ss.str().size() != 0)
+			{
+				ss << "Read AF Z Workrange Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			
 		}
 		break;
 
@@ -638,11 +685,13 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				if (gv->GetAutofocus().SetAFWorkRange(i + 1, ph[i][0], ph[i][1]) == false)
 					ss << i + 1 << ',';
 			
-				if (ss.str().size() != 0)
-				{
-					ss << "Write AF Z Workrange Failed.";
-					MessageBox(ss.str().c_str(), L"failed", MB_OK);
-				}
+				needRefresh = true;
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "Write AF Z Workrange Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
 			}
 		}
 		break;
@@ -658,6 +707,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				if (gv->GetAutofocus().GetStoredAFPosition(i + 1, ph[i]) == false)
 					ss << i + 1 << ',';
 				
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -681,6 +731,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 				if (gv->GetAutofocus().SetStoredAFPosition(i + 1, ph[i]) == false)
 					ss << i + 1 << ',';
 			
+				needRefresh = true;
 			}
 			
 			if (ss.str().size() != 0)
@@ -701,6 +752,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if(gv->GetAutofocus().GetCurrentAFSensingPosition(i+1, ph[i]) == false)
 					ss << i + 1 << ',';
+				
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -720,6 +773,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if(gv->GetAutofocus().SetAFSensorType(1, AFstate::internal) == false)
 					ss << i + 1 << ',';
+
+				needRefresh = true;
 			}
 			if (ss.str().size() != 0)
 			{
@@ -738,6 +793,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if (gv->GetAutofocus().SetAFSensorType(1, AFstate::external) == false)
 					ss << i + 1 << ',';
+
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -757,6 +814,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if(gv->GetAutofocus().SetAFSensorOnOff(i+1, true) == false)
 					ss << i + 1 << ',';
+
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -776,6 +835,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if (gv->GetAutofocus().SetAFSensorOnOff(i + 1, false) == false)
 					ss << i + 1 << ',';
+			
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -795,6 +856,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if (gv->GetAutofocus().SetAFOnOff(i + 1, true) == false)
 					ss << i + 1 << ',';
+
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -814,6 +877,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 				if (gv->GetAutofocus().SetAFOnOff(i + 1, false) == false)
 					ss << i + 1 << ',';
+
+				needRefresh = true;
 			}
 
 			if (ss.str().size() != 0)
@@ -836,5 +901,8 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 	default:
 		break;
 	}
+
+	if (needRefresh)
+		UpdateGridInfo();
 }
              

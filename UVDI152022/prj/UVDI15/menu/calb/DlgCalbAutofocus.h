@@ -76,6 +76,7 @@ public:
 	void InitGrid();
 	void InitGridSetting();
 	void InitGridRealtimeState();
+	void UpdateGridInfo();
 	void MoveBtns();
 
 	virtual BOOL		OnInitDlg();

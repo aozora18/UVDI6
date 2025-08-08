@@ -839,20 +839,21 @@ public:
 		phIndex = phIdx;
 		isAFOn = false;
 		isSensorOn = false;
+		isPlottingOn = false;
 		sensingAFValue = 0;
 		storedAFValue = 0;
 		AFworkRange[0] = 0;
 		AFworkRange[1] = 0;
-		
 	}
 
 	int phIndex;
-	LDStype ldsType = LDStype::none;
-	bool isAFOn;
-	bool isSensorOn;
 	int sensingAFValue;
 	int storedAFValue;
 	int AFworkRange[2];
+	bool isAFOn;
+	bool isPlottingOn;
+	bool isSensorOn;
+	LDStype ldsType = LDStype::none;
 
 public:
 	//set
@@ -861,7 +862,10 @@ public:
 	bool SetAFSensorType(LDStype type);
 	bool SetAFOnOff(bool on);
 	bool SetAFWorkRange(int below, int above);
+	bool SetPlottingOnOff(bool on);
 	//get
+	
+	bool GetPlottingIsOn(bool& on);
 	bool GetAFSensorIsOn(bool& on);
 	bool GetCurrentAFSensingPosition(int& position);
 	bool GetStoredAFPosition(int& position);
@@ -896,9 +900,10 @@ public:
 	bool SetAFOnOff(int phNum, bool on);
 	bool SetAFSensorType(int phNum, AFstate::LDStype type);
 	bool SetAFWorkRange(int phNum, int below, int above);
-
+	bool SetPlottingOnOff(int phNum, bool on);
 
 	//get
+	bool GetPlottingIsOn(int phNum, bool& on);
 	bool GetAFSensorIsOn(int phNum, bool& on);
 	bool GetCurrentAFSensingPosition(int phNum, int& position);
 	bool GetStoredAFPosition(int phNum, int& position);

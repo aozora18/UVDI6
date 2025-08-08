@@ -1028,6 +1028,9 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 				{
 					MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
+
+				
+
 			}
 			else if (spilt[1] == "_afOff")
 			{
@@ -1036,6 +1039,9 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 				{
 					MessageBox(nullptr, L"failed", L"failed", MB_OK);
 				}
+
+
+
 			}
 
 			else if (spilt[1] == "_IsafOn")
@@ -1812,7 +1818,21 @@ bool AutoFocus::SetAFOnOff(int phNum, bool on)
 	return value == nullptr ? false : value->SetAFOnOff(on);
 }
 
+bool AutoFocus::SetPlottingOnOff(int phNum, bool on)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->SetPlottingOnOff(on);
+}
+
+
 //get
+
+bool AutoFocus::GetPlottingIsOn(int phNum, bool& on)
+{
+	auto* value = GetAFState(phNum);
+	return value == nullptr ? false : value->GetPlottingIsOn(on);
+}
+
 bool AutoFocus::GetAFSensorIsOn(int phNum, bool& on)
 {
 	auto* value = GetAFState(phNum);
@@ -1862,12 +1882,14 @@ bool AutoFocus::SetAFWorkRange(int phNum, int below, int above)
 bool AFstate::SetAFSensorOnOff(bool on)
 {
 	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
-	uvEng_Luria_ReqSetAFSensorOnOff(phIndex, on);
-
-	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+	bool res = uvEng_Luria_ReqSetAFSensorOnOff(phIndex, on);
+	
+	if(res)
+	res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
 			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm,1);
 		});
+
 	this->isSensorOn = res ? on : this->isSensorOn;
 	return res;
 }
@@ -1914,7 +1936,37 @@ bool AFstate::SetAFOnOff(bool on)
 	return res;
 }
 
+bool AFstate::SetPlottingOnOff(bool on)
+{
+	
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqSetLineSensorPlot(phIndex, on);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm, 1);
+		});
+	this->isPlottingOn = res ? on : this->isPlottingOn;
+	return res;
+}
+
 //get
+bool AFstate::GetPlottingIsOn(bool& on)
+{
+	uvEng_Luria_GetShMem()->ResetLastRecvCmd();
+	uvEng_Luria_ReqGetLineSensorPlot(phIndex);
+
+	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+		{
+			return uvEng_Luria_GetShMem()->IsRecvCmd((UINT8)ENG_LUDF::en_direct_photo_comm,
+			(UINT8)ENG_LLRN::en_res_plot_enable);
+		});
+	
+	this->isPlottingOn = res ? uvEng_Luria_GetShMem()->directph.line_sensor_plot[phIndex-1] == 0 ? false : true : this->isPlottingOn;
+	on = this->isPlottingOn;
+	return res;
+}
+
 bool AFstate::GetAFSensorIsOn(bool& on)
 {
 	uvEng_Luria_GetShMem()->ResetLastRecvCmd();

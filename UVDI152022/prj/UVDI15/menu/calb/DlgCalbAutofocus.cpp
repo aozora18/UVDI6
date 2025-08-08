@@ -73,11 +73,11 @@ void CDlgCalbAutofocus::UpdateGridInfo()
 	//vTitle.push_back({ _T("PLOT Value"),    _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("trig") });
 	//vTitle.push_back({ _T("AF Range Min"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
 	//vTitle.push_back({ _T("AF Range Max"),  _T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"),_T("32312"), _T("um") });
-	//vTitle.push_back({ _T("-"),				_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-") });
+	//vTitle.push_back({ _T("Plotting "),  	 _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("ON,OFF") });
 
 	CGridCtrl* pGrid = &grids[realState];
 	int stIdx = 1;
-	int focusInit = stIdx++, afActive = stIdx++, sensorType = stIdx++, sensorActive = stIdx++, storedValue = stIdx++,plotValue = stIdx++, afRangeMin = stIdx++, afRangeMax = stIdx++;
+	int focusInit = stIdx++, afActive = stIdx++, sensorType = stIdx++, sensorActive = stIdx++, storedValue = stIdx++, plotValue = stIdx++, afRangeMin = stIdx++, afRangeMax = stIdx++, plotting = stIdx++;
 
 	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
@@ -90,6 +90,8 @@ void CDlgCalbAutofocus::UpdateGridInfo()
 		pGrid->SetItemText(plotValue, 1 + i, state[i]->sensingAFValue);
 		pGrid->SetItemText(afRangeMin, 1 + i, state[i]->AFworkRange[0]);
 		pGrid->SetItemText(afRangeMax, 1 + i, state[i]->AFworkRange[1]);
+		pGrid->SetItemText(afRangeMax, 1 + i, state[i]->AFworkRange[1]);
+		pGrid->SetItemText(plotting, 1 + i, state[i]->isPlottingOn ? L"ON" : L"OFF");
 	}
 	pGrid->Refresh();
 }
@@ -110,11 +112,11 @@ VOID CDlgCalbAutofocus::InitGridRealtimeState()
 	vTitle.push_back({ _T("Sensor Type"),	_T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("IN,EX") });
 	vTitle.push_back({ _T("Sensor Active"), _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("ON,OFF") });
 	vTitle.push_back({ _T("Stored Value"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
-	vTitle.push_back({ _T("PLOT Value"),    _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
-	vTitle.push_back({ _T("AF Range Min"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("um") });
-	vTitle.push_back({ _T("AF Range Max"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("um") });
-	vTitle.push_back({ _T("-"),				_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-") });
-	
+	vTitle.push_back({ _T("Actual Value"),    _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
+	vTitle.push_back({ _T("AF Range Min"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
+	vTitle.push_back({ _T("AF Range Max"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
+	vTitle.push_back({ _T("Plotting"),		_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("ON,OFF") });
+
 	vRowSize.resize(vTitle.size());
 	vColSize.resize(vTitle.begin()->size());
 
@@ -343,8 +345,7 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 	int selRow = pItem->iRow;
 	int selCol = pItem->iColumn;
 
-	if (selCol != 1)
-		return;
+	
 
 	ENM_DITM enType = ENM_DITM::en_int8;
 	double	minV = 0;
@@ -352,22 +353,27 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 	UINT8 u8DecPts = 3;
 	CString strOutput;
 	bool open = false;
+	int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
+
 	switch (clickedGridID)
 	{
-		case IDC_CALB_AF_GRD_SETTING:
+		case IDC_CALB_AF_GRD_STATUS:
 		{
+
+			if (selCol == 0 || selCol > phCnt)
+				return;
+
+			vector<int> active = { 5,7,8 };
+			if(find(active.begin(),active.end(),selRow) == active.end())
+			return;
+
 			if (selRow < 2)
 				return;
 
 			minV = 21284; maxV = 44252; //<-이건 비지텍에서 정의된 값임 변경불가. 1유닛 = 0.0174um (대략)
 			u8DecPts = 5;
 			open = true;
-		}
-		break;
 
-		case IDC_CALB_AF_GRD_STATUS:
-		{
-			return;
 		}
 		break;
 	}
@@ -585,6 +591,11 @@ void CDlgCalbAutofocus::MoveBtns()
 
 	btns[controlPanel].MoveWindow(rStt.left, rStt.bottom + 10, btnWidth, btnHeight);
 
+	btnLeft = rStt.right - btnWidth;
+	btnTop = rStt.bottom;
+
+	btns[refresh].MoveWindow(btnLeft, btnTop + 10, btnWidth, btnHeight);
+
 }
 
 
@@ -619,7 +630,20 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 	for (int i = 0; i < chkmax; i++)
 		headSelect[i] = checks[i].GetCheck() != 0 ? true : false;
 
+	std::vector<int> v(std::begin(headSelect), std::end(headSelect));
+
+	bool noneSelect = std::find(v.begin(), v.end(), 1) == v.end();
+
 	bool needRefresh = false;
+
+	auto err = [&]()->bool
+		{
+			if (noneSelect)
+				MessageBox(L"no ph selected.");
+			return noneSelect;
+		};
+	
+	CGridCtrl* pGrid = nullptr;
 
 	switch (id)
 	{	
@@ -653,7 +677,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_READZWORKRANGE:
 		{
-			
+			if (err())return;
 			int ph[MAX_PH][2] = { 0, };
 			for (int i = 0; i < phCnt; i++)
 			{
@@ -680,11 +704,17 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_WRITEZWORKRANGE:
 		{
+			pGrid = &grids[realState];
+
+			if (err())return;
 			int ph[MAX_PH][2] = { 0, };
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
 					continue;
+
+				ph[i][0] = pGrid->GetItemTextToInt(7, i + 1);
+				ph[i][1] = pGrid->GetItemTextToInt(8, i + 1);
 
 				if (gv->GetAutofocus().SetAFWorkRange(i + 1, ph[i][0], ph[i][1]) == false)
 					ss << i + 1 << ',';
@@ -706,6 +736,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_AF_STORED_READ:
 		{
+			if (err())return;
 			int ph[MAX_PH] = { 0, };
 			
 			for (int i = 0; i < phCnt; i++)
@@ -732,14 +763,19 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_AF_STORED_WRITE:
 		{
+			if (err())return;
 			int ph[MAX_PH] = { 0, };
 			bool res = false;
 
+			int storedvRow = 5;
+			pGrid = &grids[realState];
+			
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
 					continue;
 
+				ph[i] = pGrid->GetItemTextToInt(5, i + 1);
 				if (gv->GetAutofocus().SetStoredAFPosition(i + 1, ph[i]) == false)
 					ss << i + 1 << ',';
 			
@@ -760,6 +796,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_AF_PLOT_READ:
 		{
+			if (err())return;
 			int ph[MAX_PH] = { 0, };
 			for (int i = 0; i < phCnt; i++)
 			{
@@ -786,6 +823,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		
 		case IDC_BTN_AF_SET_INTERNAL:
 		{
+			if (err())return;
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
@@ -810,6 +848,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_SET_EXTERNAL:
 		{
+			if (err())return;
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
@@ -835,6 +874,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_SENSOR_ON:
 		{
+			if (err())return;
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
@@ -860,6 +900,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_SENSOR_OFF:
 		{
+			if (err())return;
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
@@ -886,6 +927,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_AF_ON:
 		{
+			if (err())return;
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
@@ -911,6 +953,7 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 
 		case IDC_BTN_AF_AF_OFF:
 		{
+			if (err())return;
 			for (int i = 0; i < phCnt; i++)
 			{
 				if (headSelect[i] == false)
@@ -934,7 +977,89 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		}
 		break;
 
-		case IDC_BTN_AF_CONTROLPANEL    :
+
+		case IDC_BTN_AF_PLOTTING_ON:
+		{
+			if (err())return;
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (headSelect[i] == false)
+					continue;
+
+				if (gv->GetAutofocus().SetPlottingOnOff(i + 1, true) == false)
+					ss << i + 1 << ',';
+
+				needRefresh = true;
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "Plotting on Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
+		}
+		break;
+
+		case IDC_BTN_AF_PLOTTING_OFF:
+		{
+			if (err())return;
+			for (int i = 0; i < phCnt; i++)
+			{
+				if (headSelect[i] == false)
+					continue;
+
+				if (gv->GetAutofocus().SetPlottingOnOff(i + 1, false) == false)
+					ss << i + 1 << ',';
+
+				needRefresh = true;
+			}
+
+			if (ss.str().size() != 0)
+			{
+				ss << "Plotting off Failed.";
+				MessageBox(ss.str().c_str(), L"failed", MB_OK);
+			}
+			else
+			{
+				MessageBox(L"done.", L"", MB_OK);
+			}
+		}
+		break;
+
+		case IDC_BTN_AF_REFRESH:
+		{
+			
+			if (uvEng_Luria_GetShMem()->focus.initialized != 1)
+			{
+				gv->GetAutofocus().InitFocusDrive();
+				Sleep(5000);
+			}
+
+			for (int i = 0; i < phCnt; i++)
+			{
+				bool on;
+				int low, high, pos;
+				AFstate::LDStype type;
+
+				gv->GetAutofocus().GetAFisOn(i + 1, on);
+				gv->GetAutofocus().GetAFSensorIsOn(i + 1, on);
+				gv->GetAutofocus().GetAFSensorType(i + 1, type);
+				gv->GetAutofocus().GetPlottingIsOn(i + 1, on);
+				gv->GetAutofocus().GetAFWorkRange(i + 1, low, high);
+				gv->GetAutofocus().GetStoredAFPosition(i + 1, pos);
+				gv->GetAutofocus().GetCurrentAFSensingPosition(i + 1, pos);
+
+			}
+			MessageBox(L"done.", L"", MB_OK);
+			needRefresh = true;
+		}
+		break;
+
+		case IDC_BTN_AF_CONTROLPANEL:
 		{
 			if (AfxGetMainWnd()->GetSafeHwnd()) //모션 컨트롤패널.
 			{
@@ -942,6 +1067,9 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 			}
 		}
 		break;
+
+		
+
 
 	default:
 		break;

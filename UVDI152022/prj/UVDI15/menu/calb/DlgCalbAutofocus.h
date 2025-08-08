@@ -22,6 +22,9 @@ enum EnCalbAFBtn : int
 	selectPhNone,
 	readAFZWorkRange,
 	writeAFZWorkRange,
+	plottingOn,
+	plottingOff,
+	refresh,
 	btnmax,
 };
 

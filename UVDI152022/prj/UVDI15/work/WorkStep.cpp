@@ -622,7 +622,7 @@ ENG_JWNS CWorkStep::IsJobNameLoaded()
 	/* 거버 적재가 모두 완료 되었는지 여부 */
 	if (!pstJobMgt->IsJobNameRegistedSelectedLoaded() )
 	{
-		if (!uvEng_GetConfig()->luria_svc.use_announcement)
+		if (!uvEng_GetConfig()->luria_svc.use_announcement || true)
 		{
 			/* 주기적으로 적재 상태 확인을 위해 요청 */
 			if (IsSendCmdTime(250))
@@ -4129,21 +4129,6 @@ ENG_JWNS CWorkStep::SetTrigOutOneACam(UINT8 cam_id)
 
 	return ENG_JWNS::en_next;
 }
-
-bool CWorkStep::SetAutoFocusFeatures()
-{
-	if (uvEng_GetConfig()->luria_svc.useAF == false) return true;
-
-	bool res = true;
-
-	//오토포커스 설정
-
-
-
-	return res;
-	//여기서 설정.
-}
-
 
 /*
  desc : 레시피 관련 연결된 정보들이 유효한지 확인

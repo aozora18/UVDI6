@@ -887,6 +887,7 @@ public:
 	AutoFocus() = default;
 	AutoFocus(int phNum)
 	{
+		auto& svc = uvEng_GetConfig()->luria_svc;
 		for (int i = 1; i <= phNum; i++)
 			afState[i] = AFstate(i);
 	}
@@ -916,6 +917,74 @@ public:
 	bool GetUseAF() { return useAF; }
 	void SetUseAF(bool use) { useAF = use; }
 	
+	//command
+
+	bool SetAFActivate(bool activate)
+	{
+		if (activate)
+		{
+			AFstate::LDStype _1LDStype, _2LDStype;
+			vector<bool> ress;
+			int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
+			bool res = true;
+
+			if(uvEng_Luria_GetShMem()->focus.initialized != 1)
+				res = InitFocusDrive();
+
+			if (res == false) return res;
+			
+			for (int i = 0; i < phCnt; i++)
+				ress.push_back(SetAFSensorType(i + 1, uvEng_GetConfig()->luria_svc.useExternalSensor ? AFstate::external : AFstate::internal));
+
+			res = find(ress.begin(), ress.end(), false) == ress.end();
+			ress.clear();
+
+			if (res == false) return res;
+
+			for (int i = 0; i < phCnt; i++)
+				ress.push_back(SetAFSensorOnOff(i + 1, true));
+
+			res = find(ress.begin(), ress.end(), false) == ress.end();
+			ress.clear();
+
+			if (res == false) return res;
+		
+			for (int i = 0; i < phCnt; i++)
+				ress.push_back(SetAFOnOff(i + 1, true));
+	
+			res = find(ress.begin(), ress.end(), false) == ress.end();
+
+			return res;
+
+		}
+		else
+			return ClearAFActivate();
+	}
+
+
+	bool ClearAFActivate()
+	{
+
+		if (uvEng_Luria_GetShMem()->focus.initialized != 1)
+			InitFocusDrive();
+
+		int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
+		
+		vector<bool> res;
+		bool success = true;
+
+		for (int i = 0; i < phCnt; i++)
+			res.push_back(SetAFSensorOnOff(i + 1, false));
+
+		if (find(res.begin(), res.end(), false) == res.end())
+			for (int i = 0; i < phCnt; i++)
+			{
+				res.push_back(SetAFOnOff(i + 1, false));
+			}
+
+		return find(res.begin(), res.end(), false) == res.end();
+	}
+
 };
 
 

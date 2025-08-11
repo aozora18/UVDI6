@@ -192,7 +192,6 @@ protected:
 	ENG_JWNS			SetTrigOutOneACam(UINT8 cam_id);
 	ENG_JWNS			GetJobLists(UINT32 time);
 
-	bool SetAutoFocusFeatures();
 	bool MoveCamToSafetypos(ENG_MMDI callbackAxis = ENG_MMDI::en_axis_none, double pos = 0);
 	BOOL MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting);
 

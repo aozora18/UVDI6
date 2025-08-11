@@ -28,7 +28,7 @@ CWorkRecipeLoad::CWorkRecipeLoad(ENG_BWOK workType, UINT8 offset, ENG_BWOK relay
 	m_u8Offset		= offset;
 	m_enWorkJobID = workType; //ENG_BWOK::en_gerb_load;
 	m_lastUniqueID = 0;
-	
+	useAFtemp = GlobalVariables::GetInstance()->GetAutofocus().GetUseAF();
 	/*UI에 표시되는 추기값 초기화*/
 	LPG_PPTP pstParams = &uvEng_ShMem_GetLuria()->panel.get_transformation_params;
 	pstParams->rotation = 0;
@@ -79,41 +79,20 @@ BOOL CWorkRecipeLoad::InitWork()
 VOID CWorkRecipeLoad::DoWork()
 {
 
+	auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
+	int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
+
 	/* 작업 단계 별로 동작 처리 */
 	switch (m_u8StepIt)
 	{
 	case 0x01 : 
 	{
 		uvEng_Camera_ResetGrabbedImage();
+
 		m_enWorkState = CheckValidRecipe();
 
-		if (useAFtemp)
-		{
-			auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
-
-			if (uvEng_Luria_GetShMem()->focus.initialized == false)
-			{
-				m_enWorkState = afInst.InitFocusDrive() == false ? ENG_JWNS::en_error : m_enWorkState;
-			}
-			
-			if (m_enWorkState != ENG_JWNS::en_error)
-			{
-				auto res1 = afInst.SetAFOnOff(1, false);
-				auto res2 = afInst.SetAFOnOff(2, false);
-
-				m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
-
-				if (m_enWorkState != ENG_JWNS::en_error)
-				{
-
-					res1 = afInst.SetAFSensorOnOff(1, false);
-					res2 = afInst.SetAFSensorOnOff(2, false);
-
-					m_enWorkState = res1 && res2 ? m_enWorkState : ENG_JWNS::en_error;
-				}
-			}
-		}
-		m_enWorkState = m_enWorkState == ENG_JWNS::en_next && SetAutoFocusFeatures() ? m_enWorkState : ENG_JWNS::en_error;
+		if(m_enWorkState != ENG_JWNS::en_error)
+			m_enWorkState = GlobalVariables::GetInstance()->GetAutofocus().ClearAFActivate() ? m_enWorkState : ENG_JWNS::en_error;	
 	}
 	break;
 

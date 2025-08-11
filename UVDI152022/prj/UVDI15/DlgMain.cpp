@@ -282,7 +282,7 @@ BOOL CDlgMain::OnInitDlg()
 	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
 	/*딱 한번만 초기화 필요*/
 	uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
-
+	GlobalVariables::GetInstance()->GetAutofocus().SetUseAF(uvEng_GetConfig()->luria_svc.useAF);
 	return TRUE;
 }
 

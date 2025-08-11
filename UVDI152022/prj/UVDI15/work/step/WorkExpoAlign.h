@@ -32,7 +32,7 @@ public:
 	
 	ENG_AMOS alignMotion = ENG_AMOS::en_onthefly_2cam;
 	ENG_ATGL aligntype = ENG_ATGL::en_global_4_local_0_point;
-	
+	bool useAFtemp = false;
 	int globalMarkCnt, localMarkCnt = 0;
 
 	void DoInitOnthefly2cam();

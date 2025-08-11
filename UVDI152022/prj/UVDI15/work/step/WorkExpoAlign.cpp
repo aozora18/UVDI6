@@ -48,6 +48,8 @@ CWorkExpoAlign::CWorkExpoAlign()
 	LPG_GMLV pstMarkDiff = &uvEng_GetConfig()->mark_diff;
 	pstMarkDiff->ResetMarkLen();
 	GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_none;
+
+	useAFtemp = GlobalVariables::GetInstance()->GetAutofocus().GetUseAF();
 }
 
 /*
@@ -494,6 +496,8 @@ void CWorkExpoAlign::DoInitOnthefly2cam()
 void CWorkExpoAlign::DoAlignOnthefly2cam()
 {
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& afInst = GlobalVariables::GetInstance()->GetAutofocus();
+
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
 	case 0x01:
@@ -507,6 +511,9 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 			uvEng_Camera_ResetGrabbedImage();
 			motions.SetAlignComplete(false);
 		}
+
+		if(m_enWorkState != ENG_JWNS::en_error)
+			m_enWorkState = afInst.ClearAFActivate() ? m_enWorkState : ENG_JWNS::en_error;
 	}
 	break;
 
@@ -744,7 +751,14 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 
 	case 0x24:
 	{
-		m_enWorkState = SetPrinting();
+		
+		
+		bool useAF = afInst.GetUseAF();
+		if(useAF)
+			m_enWorkState = afInst.SetAFActivate(true) ? m_enWorkState : ENG_JWNS::en_error;
+
+		if (m_enWorkState != ENG_JWNS::en_error)
+			m_enWorkState = SetPrinting();
 	}
 	break;	/* Luria Control - Printing */
 	case 0x25: m_enWorkState = IsPrinted();								break;	/* Luria Control - Printed 확인 */
@@ -927,7 +941,7 @@ void CWorkExpoAlign::DoAlignStaticCam()
 
 	AlignMotion& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	RefindMotion& refindMotion = GlobalVariables::GetInstance()->GetRefindMotion();
-
+	auto& afInst = GlobalVariables::GetInstance()->GetAutofocus();
 	int CENTER_CAM = motions.markParams.centerCamIdx;
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	const int PAIR = 2;
@@ -960,6 +974,10 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		[&]()
 		{
 			m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
+
+			if (m_enWorkState != ENG_JWNS::en_error)
+				m_enWorkState = afInst.ClearAFActivate() ? m_enWorkState : ENG_JWNS::en_error;
+
 		},
 
 		[&]()
@@ -1339,6 +1357,12 @@ void CWorkExpoAlign::DoAlignStaticCam()
 		},
 		[&]()
 		{
+			if(useAFtemp)
+				m_enWorkState = afInst.SetAFActivate(useAFtemp) ? m_enWorkState : ENG_JWNS::en_error;
+
+			if (m_enWorkState != ENG_JWNS::en_error)
+				m_enWorkState = SetPrinting();
+
 			m_enWorkState = SetPrePrinting();
 		},
 		[&]()
@@ -1396,6 +1420,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 	if (CWork::GetAbort())
 	{
+		GlobalVariables::GetInstance()->GetAutofocus().ClearAFActivate();
 		CWork::EndWork();
 		return;
 	}
@@ -1465,9 +1490,9 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 					SetPhilProcessCompelet();
 				}
 
-
-				m_enWorkState = ENG_JWNS::en_comp;
 				
+				m_enWorkState = ENG_JWNS::en_comp;
+				GlobalVariables::GetInstance()->GetAutofocus().ClearAFActivate();
 				GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 				/* 항상 호출*/
 				CWork::EndWork();

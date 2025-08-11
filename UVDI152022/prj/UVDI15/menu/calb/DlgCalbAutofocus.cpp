@@ -81,7 +81,7 @@ void CDlgCalbAutofocus::UpdateGridInfo()
 
 	for (int i = 0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
-		pGrid->SetItemText(focusInit, 1 + i, uvEng_Luria_GetShMem()->focus.initialized ? L"YES" : L"NO");
+		pGrid->SetItemText(focusInit, 1 + i, uvEng_Luria_GetShMem()->focus.initialized == 1 ? L"YES" : L"NO");
 		pGrid->SetItemText(afActive, 1 + i, state[i]->isAFOn ? L"ON" : L"OFF");
 		pGrid->SetItemText(sensorType, 1 + i, state[i]->ldsType == AFstate::LDStype::none ? L"-" : 
 											  state[i]->ldsType == AFstate::LDStype::external ? L"EX" : L"IN");
@@ -113,8 +113,8 @@ VOID CDlgCalbAutofocus::InitGridRealtimeState()
 	vTitle.push_back({ _T("Sensor Active"), _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("ON,OFF") });
 	vTitle.push_back({ _T("Stored Value"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
 	vTitle.push_back({ _T("Actual Value"),    _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
-	vTitle.push_back({ _T("AF Range Min"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
-	vTitle.push_back({ _T("AF Range Max"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("trig") });
+	vTitle.push_back({ _T("AF Range Min"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("um") });
+	vTitle.push_back({ _T("AF Range Max"),  _T("-"),_T("-"),_T("-"),_T("-"),_T("-"),_T("-"), _T("um") });
 	vTitle.push_back({ _T("Plotting"),		_T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("-"), _T("ON,OFF") });
 
 	vRowSize.resize(vTitle.size());
@@ -199,8 +199,9 @@ void CDlgCalbAutofocus::InitGridSetting()
 	std::vector <int>			vRowSize;
 	
 	vector< std::vector <std::wstring>> vTitle;
-	vTitle.push_back({ _T("Use AF"),_T("True"),_T("bool") });
-	vTitle.push_back({ _T("Sensor Type"),_T("EXTERNAL"),_T("type") });
+
+	vTitle.push_back({ _T("Use AF"),uvEng_GetConfig()->luria_svc.useAF == 1 ?  _T("YES") : _T("NO") ,_T("bool") });
+	vTitle.push_back({ _T("Sensor Type"), uvEng_GetConfig()->luria_svc.useExternalSensor == 1 ? _T("EXTERNAL") : _T("INTERNAL") ,_T("type") });
 	
 	vRowSize.resize(vTitle.size());
 	vColSize.resize(vTitle.begin()->size());
@@ -345,8 +346,6 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 	int selRow = pItem->iRow;
 	int selCol = pItem->iColumn;
 
-	
-
 	ENM_DITM enType = ENM_DITM::en_int8;
 	double	minV = 0;
 	double	maxV = 9999.9999;
@@ -370,7 +369,15 @@ void CDlgCalbAutofocus::OnClickGrid(NMHDR* pNotifyStruct, LRESULT* pResult)
 			if (selRow < 2)
 				return;
 
-			minV = 21284; maxV = 44252; //<-이건 비지텍에서 정의된 값임 변경불가. 1유닛 = 0.0174um (대략)
+			if (selRow == 5)
+			{
+				minV = 21284; maxV = 44252; //<-이건 비지텍에서 정의된 값임 변경불가. 1유닛 = 0.0174um (대략)
+			}
+			else if (selRow == 6 || selRow == 7)
+			{
+				minV = 0; maxV = 4000;
+			}
+
 			u8DecPts = 5;
 			open = true;
 
@@ -599,14 +606,12 @@ void CDlgCalbAutofocus::MoveBtns()
 }
 
 
-VOID CDlgCalbAutofocus::LoadDataConfig()
-{
-	
-}
-
 VOID CDlgCalbAutofocus::SaveDataConfig()
 {
-	 
+
+	auto pGrid = &grids[setting];
+	uvEng_GetConfig()->luria_svc.useAF = pGrid->GetItemText(0, 1) == "YES" ? 1 : 0;
+	uvEng_GetConfig()->luria_svc.useExternalSensor = pGrid->GetItemText(1, 1) == "EXTERNAL" ? 1 : 0;
 	uvEng_SaveConfig();
 }
 
@@ -654,10 +659,10 @@ VOID CDlgCalbAutofocus::OnBtnClick(UINT32 id)
 		}
 		break;
 
-		case IDC_AF_SETTING_LOAD:
+		//case IDC_AF_SETTING_LOAD:
 		case IDC_AF_SETTING_SAVE:
 		{
-			//저장 및 통신
+			SaveDataConfig();
 		}
 		break;
 

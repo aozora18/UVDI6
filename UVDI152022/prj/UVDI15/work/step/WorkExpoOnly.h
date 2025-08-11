@@ -38,7 +38,7 @@ protected:
 protected:
 
 	VOID				SetWorkNext();
-	void ClearAF();
+	
 	VOID				CalcStepRate();
 
 	BOOL				SetMovingACamSide();

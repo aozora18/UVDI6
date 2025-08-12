@@ -450,6 +450,7 @@ PH_Z_SELECT_VELO_1	= 21.0000
 PH_Z_SELECT_VELO_2	= 22.0000
 PH_Z_SELECT_VELO_3	= 23.0000
 USE_EDGE_TRIGGER= 0
+USE_EXTERNALSENSOR= 0
 
 ;-------------------------------------------------------------------------------------------------
 ; [MC2_SERVICE]
@@ -1306,17 +1307,17 @@ BOX_ANGLE_DELTA_POS     = 25
 STEP_MOVE_Z             	= 0.050
 POINT_DIST              	= 1.0000
 
-QUARTZ_STAGE_X          	= 265.5000
-QUARTZ_STAGE_Y1         	= 691.6167
-QUARTZ_STAGE_Y2         	= 691.6166
-QUARTZ_STAGE_Y3         	= 691.7069
-QUARTZ_ACAM_1           	= 247.6017
-QUARTZ_ACAM_2           	= 30.0000
-QUARTZ_ACAM_3          	 = 265.7917
+QUARTZ_STAGE_X          	= 131.9880
+QUARTZ_STAGE_Y1         	= 689.2622
+QUARTZ_STAGE_Y2         	= 689.3690
+QUARTZ_STAGE_Y3         	= 689.2633
+QUARTZ_ACAM_1           	= 130.0004
+QUARTZ_ACAM_2           	= 130.0005
+QUARTZ_ACAM_3          	 = 262.8302
 
-ACAM_ANGLE_1            	= 0.16602309
-ACAM_ANGLE_2            	= 0.02738860
-ACAM_ANGLE_3            	= 0.09200000
+ACAM_ANGLE_1            	= 0.16600000
+ACAM_ANGLE_2            	= 0.02230000
+ACAM_ANGLE_3            	= 0.10253760
 
 IN_RING_SIZE            	= 1.000
 IN_RING_SCALE_MIN       	= 0.8
@@ -1324,8 +1325,8 @@ IN_RING_SCALE_MAX       	= 1.3
 IN_RING_COLOR          		= 256.0
 
 ACAM_PIXEL_UM_1         	= 2.93468627
-ACAM_PIXEL_UM_2         	= 2.93487840
-ACAM_PIXEL_UM_3         	= 2.93360000
+ACAM_PIXEL_UM_2         	= 2.93470000
+ACAM_PIXEL_UM_3         	= 2.93429781
 ACAM_Z_FOCUS_1          	= 5.0000
 ACAM_Z_FOCUS_2          	= 4.2000
 ACAM_Z_FOCUS_3          	= 3.4800
@@ -1412,7 +1413,7 @@ MARK_ACAM2_X            = 436.9230
 
 STEP_MOVE_Y             = 17.0000
 STEP_MOVE_Z             = 20.0000
-STEP_Y_COUNT            = 15
+STEP_Y_COUNT            = 14
 REPEAT_COUNT            = 10
 
 PH_VS_PH_DIST           = 103.4700
@@ -1426,8 +1427,8 @@ STEP_FOCUS= 0.010
 STEP_ENERGY= 0.000
 STEP_MOVE_X= 17.0000
 
-START_FOCUS_1= 2.360
-START_FOCUS_2= 1.860
+START_FOCUS_1= 2.290
+START_FOCUS_2= 1.780
 START_FOCUS_3= 1.460
 START_FOCUS_4= 2.340
 START_FOCUS_5= 1.790

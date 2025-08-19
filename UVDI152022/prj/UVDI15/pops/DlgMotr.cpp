@@ -644,28 +644,36 @@ VOID CDlgMotr::MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL 
 		if (postiveDir)
 		{
 			if(axisInfo[axisIdx].isMaxLimit)
-			strTemp.Format(_T("%d 축이 이동할 Position이 Max Position을 넘어서 움직일수 없습니다."), (int)drv_id);
+			strTemp.Format(_T("%d 축이 이동할 Position이 Max Position을 넘어서 움직일수 없습니다."), (int)axisIdx);
 			
 		}
 		else
 		{
 			if (axisInfo[axisIdx].IsMinlimit)
-				strTemp.Format(_T("%d 축이 이동할 Position이 Min Position을 넘어서 움직일수 없습니다."), (int)drv_id);
+				strTemp.Format(_T("%d 축이 이동할 Position이 Min Position을 넘어서 움직일수 없습니다."), (int)axisIdx);
 		}
 		if (strTemp.GetLength() != 0)
 		{
 			AfxMessageBox(strTemp);
 			return;
 		}
-
+		string errDesc;
 		if (FALSE == bIsRel) //상대
 		{
-			ajinInst.MoveAbs(axisIdx, dTargetPos, 5);
+			auto res = ajinInst.MoveAbs(axisIdx, dTargetPos, 5, errDesc);
 		}
 		else //절대
 		{
-			ajinInst.MoveRel(axisIdx, dTargetPos, 5); 
+			auto res = ajinInst.MoveRel(axisIdx, dTargetPos, 5, errDesc);
 		}
+
+		if (errDesc.length() != 0)
+		{
+			strTemp = CString(errDesc.c_str());
+			AfxMessageBox(strTemp);
+			return;
+		}
+
 	}
 
 }

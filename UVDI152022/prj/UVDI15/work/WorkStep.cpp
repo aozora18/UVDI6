@@ -2591,6 +2591,8 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long& lastUniqueID)
 	i32ACamDiffZ = (INT32)ROUNDED(pstRecipe->material_thick * 10.0f, 0) -
 		(INT32)ROUNDED(pstAlign->dof_film_thick * 10000.0f, 0);
 
+	double		dACamDiffZ = 0;	/* 단위: 0.1 um or 100 nm */
+	double		dACamZAxisSet[2];
 #if (USE_IO_LINK_PHILHMI == 0)
 
 	for (; i < uvEng_GetConfig()->set_cams.acam_count; i++)
@@ -2611,44 +2613,54 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long& lastUniqueID)
 	//	return ENG_JWNS::en_error;
 	//}
 #elif (USE_IO_LINK_PHILHMI == 1)
-	double		dACamDiffZ = 0;	/* 단위: 0.1 um or 100 nm */
-	double		dACamZAxisSet[2];
+	
 	/* 현재 높이 조절하려는 얼라인 카메라의 Z Axis 높이에 소재 두께 만큼 증가 or 감소 처리 */
 	dACamDiffZ = pstRecipe->material_thick / 1000.0f - pstAlign->dof_film_thick;
 	dACamZAxisSet[0] = (pstACamSpec->acam_z_focus[0] * 10000.0f) + i32ACamDiffZ;
 	dACamZAxisSet[1] = (pstACamSpec->acam_z_focus[1] * 10000.0f) + i32ACamDiffZ;
 
-	STG_PP_P2C_ABS_MOVE stSend;
-	STG_PP_P2C_ABS_MOVE_ACK stRecv;
-	stSend.Reset();
-	stRecv.Reset();
+	bool res1 = GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(0, dACamZAxisSet[0] / 10000.0f , 10);
+	bool res2 = GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(1, dACamZAxisSet[1] / 10000.0f , 10);
 
-	stSend.usCount = 2;
-	sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z1");
-	sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z2");
-	//sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z1");
-	//sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z2");
-	stSend.stMove[0].dPosition = dACamZAxisSet[0] / 10000.0f;
-	stSend.stMove[1].dPosition = dACamZAxisSet[1] / 10000.0f;
-	stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo / 2;
-	stSend.stMove[1].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo / 2;
-	stSend.stMove[0].dAcc = 300;
-	stSend.stMove[1].dAcc = 300;
-
-	/* 이동하려는 위치 설정 */
-	uvEng_Philhmi_Send_P2C_ABS_MOVE(stSend, stRecv);
-	lastUniqueID = stRecv.ulUniqueID;
-	if (stRecv.usErrorCode)
+	if (!res1 || !res2)
 	{
 		/* Set the error message */
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move failed");
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"ajin axis is ABS Move failed");
 		return ENG_JWNS::en_wait;
 	}
+
+
+	//STG_PP_P2C_ABS_MOVE stSend;
+	//STG_PP_P2C_ABS_MOVE_ACK stRecv;
+	//stSend.Reset();
+	//stRecv.Reset();
+
+	//stSend.usCount = 2;
+	//sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z1");
+	//sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "ALIGN_CAMERA_Z2");
+	////sprintf_s(stSend.stMove[0].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z1");
+	////sprintf_s(stSend.stMove[1].szAxisName, DEF_MAX_RECIPE_NAME_LENGTH, "CAMERA_Z2");
+	//stSend.stMove[0].dPosition = dACamZAxisSet[0] / 10000.0f;
+	//stSend.stMove[1].dPosition = dACamZAxisSet[1] / 10000.0f;
+	//stSend.stMove[0].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo / 2;
+	//stSend.stMove[1].dSpeed = uvEng_GetConfig()->mc2_svc.move_velo / 2;
+	//stSend.stMove[0].dAcc = 300;
+	//stSend.stMove[1].dAcc = 300;
+
+	///* 이동하려는 위치 설정 */
+	//uvEng_Philhmi_Send_P2C_ABS_MOVE(stSend, stRecv);
+	//lastUniqueID = stRecv.ulUniqueID;
+	//if (stRecv.usErrorCode)
+	//{
+	//	/* Set the error message */
+	//	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Philhmi is ABS Move failed");
+	//	return ENG_JWNS::en_wait;
+	//}
 
 #endif
 
 	TCHAR tzMsg[256] = { NULL };
-	swprintf_s(tzMsg, 256, L"Cam1 Z Axis : %.4f, Cam2 Z Axis : %.4f", stSend.stMove[0].dPosition, stSend.stMove[1].dPosition);
+	swprintf_s(tzMsg, 256, L"Cam1 Z Axis : %.4f, Cam2 Z Axis : %.4f", dACamZAxisSet[0], dACamZAxisSet[1]);
 	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
 	return ENG_JWNS::en_next;

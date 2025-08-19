@@ -157,8 +157,8 @@ int main()
 							bc.axis[i].isEnable = v.isEnable;
 							bc.axis[i].isInposition = v.isInposition;
 							bc.axis[i].isHommed = v.isHommed;
-							bc.axis[i].IsMinlimit = v.Islimit[axisStatus::limit::pos];
-							bc.axis[i].isMaxLimit = v.Islimit[axisStatus::limit::neg];
+							bc.axis[i].IsMinlimit = v.Islimit[axisStatus::limit::neg];
+							bc.axis[i].isMaxLimit = v.Islimit[axisStatus::limit::pos];
 
 						}
 					server.broadcast(bc);

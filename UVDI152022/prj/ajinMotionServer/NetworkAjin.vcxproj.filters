@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="소스 파일\Comm">
+      <UniqueIdentifier>{d31be951-ad8c-4d65-8ff9-828fd5759353}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Ajin">
+      <UniqueIdentifier>{f904fb24-6f53-4582-ae5d-4b95b74f9980}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Ajin\src">
+      <UniqueIdentifier>{63903726-1155-47e0-b6a0-f699e8a1e38f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Ajin\lib">
+      <UniqueIdentifier>{70055c9a-500e-4bb4-a7c4-4c01d11157b3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="NetworkAjin.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="AjinMgr.cpp">
+      <Filter>소스 파일\Ajin\src</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniTcpProto.cpp">
+      <Filter>소스 파일\Comm</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="protocol.h">
+      <Filter>소스 파일\Comm</Filter>
+    </ClInclude>
+    <ClInclude Include="AjinMgr.h">
+      <Filter>소스 파일\Ajin\src</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CommWrapper.h">
+      <Filter>소스 파일\Comm</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniTcpProto.h">
+      <Filter>소스 파일\Comm</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="Ajin\Lib\AXL.lib">
+      <Filter>소스 파일\Ajin\lib</Filter>
+    </Library>
+  </ItemGroup>
+</Project>

@@ -1772,6 +1772,170 @@ bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool
 	return res;
 }
 
+//아진모션 네트워크
+bool AjinMotionNetwork::Connect()
+{
+	client.SetEndpoint("100.100.100.43", 7777);
+	BindEvent();
+	client.start();
+
+	Sleep(1000);
+	return client.isConnected();
+}
+
+void AjinMotionNetwork::BindEvent()
+{
+	client.on<MsgSrvBroadcast>(broadcast, Info, [&](const MsgSrvBroadcast& b)
+	{
+		memcpy(&info, &b.axis, sizeof(axisInfo) * maxAjinAxis);
+	});
+
+	client.on<MsgResult>(etc, result, [&](const MsgResult& b)
+	{
+		
+	});
+}
+
+void AjinMotionNetwork::Disconnect()
+{
+	client.stop();
+	Sleep(1000);
+}
+
+bool AjinMotionNetwork::CanMovePos(int axis, bool positiveDir, string& desc)
+{
+	
+	
+	if (info[axis].isFault)
+		desc =  string("axis") + std::to_string(axis) + string("is faulted");
+	if (!info[axis].isHommed)
+		desc = string("axis") + std::to_string(axis) + string("is not homed");
+	if (info[axis].isMaxLimit && positiveDir)
+		desc = string("axis") + std::to_string(axis) + string("is P Limited");
+	if (info[axis].IsMinlimit && !positiveDir)
+		desc = string("axis") + std::to_string(axis) + string("is N Limited");
+	if (!info[axis].isInposition)
+		desc = string("axis") + std::to_string(axis) + string("is busy");
+	
+	return desc.length() == 0 ? true : false;
+}
+
+bool AjinMotionNetwork::ResetMotor(int axis)
+{
+	MsgReset t;
+	t.axisIndex = axis;
+	if (client.send(t))
+	{
+		bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return !info[axis].isFault;
+			}, 10000);
+
+		return res;
+	}
+	return false;
+}
+
+bool AjinMotionNetwork::StopMotor(int axis,bool all)
+{
+	MsgStop t;
+	t.axisIndex = axis;
+	t.all = all;
+
+	if (client.send(t))
+	{
+		bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return info[axis].isInposition;
+			}, 10000);
+
+		return res;
+	}
+	return false;
+}
+
+
+bool AjinMotionNetwork::MotorEnable(int axis, bool set)
+{
+	MsgMotorEnable t;
+	t.axisIndex = axis;
+	t.enable = set;
+
+	if (client.send(t))
+	{
+		bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return info[axis].isEnable == set;
+			}, 10000);
+
+		return res;
+	}
+	return false;
+}
+
+bool AjinMotionNetwork::MoveAbs(int axis, double pos, double velo)
+{
+	string desc;
+	if (CanMovePos(axis, pos > 0 ? true : false, desc) == false)
+		return false;
+
+	MsgMoveAbs t;
+	t.axisIndex = axis;
+	t.pos = pos;
+	t.velocity = velo;
+
+	if (client.send(t))
+	{
+		bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return info[axis].isInposition;
+			}, 10000);
+
+		return res;
+	}
+	return false;
+
+}
+
+bool AjinMotionNetwork::MoveRel(int axis, double pos, double velo)
+{
+	string desc;
+	if (CanMovePos(axis, pos > 0 ? true : false, desc) == false)
+		return false;
+
+	MsgMoveRel t;
+	t.axisIndex = axis;
+	t.pos = pos;
+	t.velocity = velo;
+
+	if (client.send(t))
+	{
+		bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return info[axis].isInposition;
+			}, 10000);
+
+		return res;
+	}
+	return false;
+}
+
+bool AjinMotionNetwork::HomeMotor(int axis)
+{
+	MsgHome t;
+	t.axisIndex = axis;
+	if (client.send(t))
+	{
+		bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return info[axis].isHommed && info[axis].isInposition;
+			}, 10000);
+
+		return res;
+	}
+	return false;
+}
+
 
 AFstate* AutoFocus::GetAFState(int phIndex)
 {

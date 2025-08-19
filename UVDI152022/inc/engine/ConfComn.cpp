@@ -438,6 +438,7 @@ BOOL CConfComn::LoadConfigLuriaSvc()
 
 	//AF°ü·Ã
 	m_pstCfg->luria_svc.useAF = GetConfigUint8(L"USE_AF");
+	m_pstCfg->luria_svc.useExternalSensor = GetConfigUint8(L"USE_EXTERNAL");
 	m_pstCfg->luria_svc.useAAQ = GetConfigUint8(L"USE_AAQ");
 	m_pstCfg->luria_svc.afGain = GetConfigUint16(L"AF_GAIN");
 	m_pstCfg->luria_svc.DOFofPh = GetConfigUint8(L"PH_DOF");
@@ -601,6 +602,8 @@ BOOL CConfComn::SaveConfigLuriaSvc()
 
 	////
 	SetConfigInt32(L"USE_AF", (INT32)m_pstCfg->luria_svc.useAF);
+	SetConfigInt32(L"USE_EXTERNAL", (INT32)m_pstCfg->luria_svc.useExternalSensor);
+	
 	SetConfigInt32(L"USE_AAQ", (INT32)m_pstCfg->luria_svc.useAAQ);
 	SetConfigInt32(L"USE_EDGE_TRIGGER", (INT32)m_pstCfg->luria_svc.useEdgeTrigger);
 

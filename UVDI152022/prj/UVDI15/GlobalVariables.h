@@ -36,9 +36,14 @@
 #include "../../inc/itfe/EItfcRcpUVDI15.h"
 #include "../../inc/itfe/EItfcThickCali.h"
 #include "../../inc/itfc/ItfcUVDI15.h"
+#include "Ajinprotocol.h"
+#include "CommWrapper.h"
 
 
 using namespace std;
+using namespace mini;
+using namespace mini::wrap;
+
 class CaliCalc;
 class AutoFocus;
 class AFstate;
@@ -829,9 +834,6 @@ public:
 		none,
 	};
 
-
-	
-
 public:
 	AFstate() = default;
 	AFstate(int phIdx)
@@ -987,7 +989,44 @@ public:
 
 };
 
+class AjinMotionNetwork
+{
+	enum ajinAxis : int
+	{
+		cam1z,cam2z,cam3z,tableTheta,maxAjinAxis
+	};
+	private:
+		TcpProtoClient client;
+		axisInfo info[maxAjinAxis];
 
+	public:
+		axisInfo* GetAxisInfo()
+		{
+			return client.isConnected() ? info : nullptr;
+		}
+
+		AjinMotionNetwork()
+		{
+			Connect();
+		}
+
+		~AjinMotionNetwork()
+		{
+			//Disconnect();
+		}
+
+	bool Connect();
+	void BindEvent();
+	void Disconnect();
+	
+	bool CanMovePos(int axis, bool positiveDir, string& desc);
+	bool ResetMotor(int axis);
+	bool MoveAbs(int axis, double pos, double velo);
+	bool MoveRel(int axis, double pos, double velo);
+	bool HomeMotor(int axis);
+	bool MotorEnable(int axis, bool set);
+	bool StopMotor(int axis, bool all);
+};
 
 
 
@@ -1013,7 +1052,7 @@ private:
 	unique_ptr<WebMonitor> webMonitor;
 	unique_ptr<Environmental> environmental;
 	unique_ptr<AutoFocus> autoFocus;
-	
+	unique_ptr <AjinMotionNetwork> ajinMotion;
 	
 	template <typename MapType>
 	bool IsKeyExist(const MapType& map, string key)
@@ -1057,6 +1096,11 @@ public:
 		return *environmental;
 	}
 
+	AjinMotionNetwork& GetAjinMotion()
+	{
+		return *ajinMotion;
+	}
+
 	void Destroy()
 	{
 		
@@ -1071,10 +1115,7 @@ public:
 		webMonitor->StopWebServer();
 		webMonitor.reset();
 		environmental.reset();
-		
-
-		
-		
+		ajinMotion.reset();
 	}
 
 	void waitForAllWaiter()
@@ -1166,6 +1207,7 @@ public:
 		webMonitor = make_unique<WebMonitor>();
 		triggerManager = make_unique<TriggerManager>();
 		autoFocus = make_unique<AutoFocus>(AutoFocus(2));
+		ajinMotion = make_unique<AjinMotionNetwork>();
 	}
 
 	/*GlobalVariables()

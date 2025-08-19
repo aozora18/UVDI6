@@ -9,7 +9,7 @@
 #include "../mesg/DlgMesg.h"
 #include "../param/InterLockManager.h"
 #include <afxtaskdialog.h>
-
+#include "..\GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -40,9 +40,9 @@ CDlgMotr::CDlgMotr(CWnd* pParent /*=NULL*/)
 	m_u8ACamCount = uvEng_GetConfig()->set_cams.acam_count;		/* 카메라 개수를 가져온다. */
 	m_u8HeadCount = uvEng_GetConfig()->luria_svc.ph_count;		/* Photo Head 개수를 가져온다. */
 	m_u8StageCount = uvEng_GetConfig()->luria_svc.table_count;	/* Table의 개수를 가져온다. */
-
+	const int thetaTable = 1;
 	// Stage 개수(x, y축) + Head 개수 + Align Camera 개수
-	m_u8AllMotorCount = (m_u8StageCount * 2) + m_u8HeadCount + (m_u8ACamCount * 2);
+	m_u8AllMotorCount = (m_u8StageCount * 2) + m_u8HeadCount + (m_u8ACamCount * 2) + thetaTable;
 	
 	/* 멤버 변수 초기화 */
 	m_u8SelMotor = 0;
@@ -310,6 +310,15 @@ VOID CDlgMotr::InitMotionIndex()
 		stTemp.DeviceNum = ENG_MMDI((int)ENG_MMDI::en_axis_acam1 + i);
 		m_stVctMotion.push_back(stTemp);
 	}
+
+	// 세타테이블
+	for (int i = 0; i < 1; i++)
+	{
+		stTemp.strMotorName.Format(_T("Table θ"), i + 1);
+		stTemp.DeviceNum = ENG_MMDI((int)ENG_MMDI::en_axis_theta);
+		m_stVctMotion.push_back(stTemp);
+	}
+
 }
 
 /*
@@ -616,9 +625,6 @@ VOID CDlgMotr::MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL 
 			}
 		}
 
-		
-		
-
 		if (CInterLockManager::GetInstance()->CheckMoveInterlock(drv_id, dTargetPos))
 		{
 			AfxMessageBox(CInterLockManager::GetInstance()->GetLastError());
@@ -627,48 +633,38 @@ VOID CDlgMotr::MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL 
 		
 		uvEng_MC2_SendDevAbsMove(drv_id, dTargetPos, dSpeed);
 	}
-	/*Philhmi 제어*/
 	else
 	{
-		if (FALSE == bIsRel)
+		int axisIdx = (int)drv_id - (int)ENG_MMDI::en_axis_acam1;
+		auto& ajinInst = GlobalVariables::GetInstance()->GetAjinMotion();
+		auto* axisInfo = ajinInst.GetAxisInfo();
+		bool postiveDir = dTargetPos > 0;
+		CString strTemp;
+
+		if (postiveDir)
 		{
-			STG_PP_P2C_ABS_MOVE stSend;
-			STG_PP_P2C_ABS_MOVE_ACK stRecv;
-
-			stSend.Reset();
-			stRecv.Reset();
-
-			stSend.usCount = 1;
-			if (drv_id == ENG_MMDI::en_axis_acam1)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z1", DEF_MAX_RECIPE_NAME_LENGTH);
-			else if (drv_id == ENG_MMDI::en_axis_acam2)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z2", DEF_MAX_RECIPE_NAME_LENGTH);
-#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
-			else if (drv_id == ENG_MMDI::en_axis_acam3)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN_CAMERA_Z3", DEF_MAX_RECIPE_NAME_LENGTH);
-#endif
-			stSend.stMove[0].dPosition = dPosition;
-			stSend.stMove[0].dSpeed = 10;// dSpeed;
-			stSend.stMove[0].dAcc = DEF_DEFAULT_ACC;
-			uvEng_Philhmi_Send_P2C_ABS_MOVE(stSend, stRecv);
+			if(axisInfo[axisIdx].isMaxLimit)
+			strTemp.Format(_T("%d 축이 이동할 Position이 Max Position을 넘어서 움직일수 없습니다."), (int)drv_id);
+			
 		}
 		else
 		{
-			STG_PP_P2C_REL_MOVE stSend;
-			STG_PP_P2C_REL_MOVE_ACK stRecv;
+			if (axisInfo[axisIdx].IsMinlimit)
+				strTemp.Format(_T("%d 축이 이동할 Position이 Min Position을 넘어서 움직일수 없습니다."), (int)drv_id);
+		}
+		if (strTemp.GetLength() != 0)
+		{
+			AfxMessageBox(strTemp);
+			return;
+		}
 
-			stSend.Reset();
-			stRecv.Reset();
-
-			stSend.usCount = 1;
-			if (drv_id == ENG_MMDI::en_axis_acam1)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN CAMERA Z 1", DEF_MAX_RECIPE_NAME_LENGTH);
-			else if (drv_id == ENG_MMDI::en_axis_acam2)
-				strncpy_s(stSend.stMove[0].szAxisName, "ALIGN CAMERA Z 2", DEF_MAX_RECIPE_NAME_LENGTH);
-			stSend.stMove[0].dPosition = dPosition;
-			stSend.stMove[0].dSpeed = 10;
-			stSend.stMove[0].dAcc = DEF_DEFAULT_ACC;
-			uvEng_Philhmi_Send_P2C_REL_MOVE(stSend, stRecv);
+		if (FALSE == bIsRel) //상대
+		{
+			ajinInst.MoveAbs(axisIdx, dTargetPos, 5);
+		}
+		else //절대
+		{
+			ajinInst.MoveRel(axisIdx, dTargetPos, 5); 
 		}
 	}
 
@@ -755,9 +751,6 @@ VOID CDlgMotr::InputParameter(UINT8 u8Sel)
 			strTemp = strArrVelo.GetAt(nSelectRecipe);
 		}
 	}
-
-	
-
 
 	// UI 화면에 적용
 	switch (u8Sel)
@@ -859,8 +852,8 @@ VOID CDlgMotr::UpdateMotorStatus()
 {
 	double dPosition = 0.;
 	CString strPosition;
-
-	for (int nRow = 0; nRow < m_u8AllMotorCount; nRow++)
+	const int ajinMotorAxisConut = 4;
+	for (int nRow = 0; nRow < m_u8AllMotorCount- ajinMotorAxisConut; nRow++)
 	{
 		// On/Off 상태 확인
 		// 230516 mhbaek Modify : Flag 반대
@@ -884,6 +877,42 @@ VOID CDlgMotr::UpdateMotorStatus()
 
 		m_pGrid[eGRD_MOTOR]->SetItemText(nRow, eCELL_MOTOR_POS_VALUE, strPosition);
 	}
+
+	auto* axisInfo = GlobalVariables::GetInstance()->GetAjinMotion().GetAxisInfo();
+
+	for (int nRow = m_u8AllMotorCount - ajinMotorAxisConut,j=0; nRow < m_u8AllMotorCount; nRow++,j++)
+	{
+
+		dPosition = axisInfo == nullptr ? 0 : axisInfo[j].position;
+
+		bool moving = axisInfo == nullptr ? false : axisInfo[j].isInposition;
+		bool enable = axisInfo == nullptr ? false : axisInfo[j].isEnable;
+		bool fault = axisInfo == nullptr ? false : axisInfo[j].isFault;
+		bool hommed = axisInfo == nullptr ? false : axisInfo[j].isHommed;
+
+		// On/Off 상태 확인
+		// 230516 mhbaek Modify : Flag 반대
+		if (!enable)
+		{
+			m_pGrid[eGRD_MOTOR]->SetItemBkColour(nRow, eCELL_MOTOR_LED_STATUS, DEF_RGB_TAB_NORMAL);
+		}
+		// 에러 상태 확인
+		else if (fault)
+		{
+			m_pGrid[eGRD_MOTOR]->SetItemBkColour(nRow, eCELL_MOTOR_LED_STATUS, LIGHT_RED);
+		}
+		// 동작이 가능한 상태
+		else
+		{
+			m_pGrid[eGRD_MOTOR]->SetItemBkColour(nRow, eCELL_MOTOR_LED_STATUS, LIGHT_GREEN);
+		}
+
+		dPosition = axisInfo == nullptr ? 0 : axisInfo[j].position;
+		strPosition.Format(_T("%.4f"), dPosition);
+
+		m_pGrid[eGRD_MOTOR]->SetItemText(nRow, eCELL_MOTOR_POS_VALUE, strPosition);
+	}
+
 
 	// 화면 갱신
 	m_pGrid[eGRD_MOTOR]->Refresh();
@@ -910,9 +939,17 @@ void CDlgMotr::OnClickButtonEvent(UINT ID)
 		MoveStart(m_stVctMotion[m_u8SelMotor].DeviceNum, dPos, m_dSetSpeed, m_bMoveType);
 		break;
 	case eBTN_STOP:
+	{
 		// 전체 정지
 		uvEng_MC2_SendDevStopped(m_stVctMotion[m_u8SelMotor].DeviceNum);
-		break;
+		auto& ajinInst = GlobalVariables::GetInstance()->GetAjinMotion();
+		const int ajinMotorAxisConut = 4;
+
+		for (int i = 0; i < ajinMotorAxisConut; i++)
+			ajinInst.StopMotor(0, true);
+	}
+	break;
+
 	default:
 		break;
 	}

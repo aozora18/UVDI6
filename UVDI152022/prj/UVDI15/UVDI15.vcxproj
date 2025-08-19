@@ -160,6 +160,8 @@
     <ClInclude Include="..\..\inc\grid\TitleTip.h" />
     <ClInclude Include="..\..\inc\kybd\DlgKBDN.h" />
     <ClInclude Include="..\..\inc\kybd\DlgKBDT.h" />
+    <ClInclude Include="Ajinprotocol.h" />
+    <ClInclude Include="CommWrapper.h" />
     <ClInclude Include="db\DBData.h" />
     <ClInclude Include="db\DBDefine.h" />
     <ClInclude Include="db\DBMgr.h" />
@@ -221,6 +223,7 @@
     <ClInclude Include="menu\stat\GridDrive.h" />
     <ClInclude Include="menu\stat\GridTempDI.h" />
     <ClInclude Include="mesg\DlgMesg.h" />
+    <ClInclude Include="MiniTcpProto.h" />
     <ClInclude Include="param\enum.h" />
     <ClInclude Include="param\FileManager.h" />
     <ClInclude Include="param\InterLockManager.h" />
@@ -362,6 +365,7 @@
     <ClCompile Include="menu\stat\GridDrive.cpp" />
     <ClCompile Include="menu\stat\GridTempDI.cpp" />
     <ClCompile Include="mesg\DlgMesg.cpp" />
+    <ClCompile Include="MiniTcpProto.cpp" />
     <ClCompile Include="param\FileManager.cpp" />
     <ClCompile Include="param\InterLockManager.cpp" />
     <ClCompile Include="param\IOManager.cpp" />

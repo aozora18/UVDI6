@@ -207,7 +207,7 @@ BOOL CDlgMain::OnInitDlg()
 	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
 	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	LPG_RAAF pstAlign = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(rcp->align_recipe));
-
+	GlobalVariables::GetInstance()->GetAutofocus().SetUseAF(uvEng_GetConfig()->luria_svc.useAF);
 	
 
 	if (nullptr != pstAlign)	// 20230814 mhbaek Add : 경계검사 추가
@@ -282,7 +282,7 @@ BOOL CDlgMain::OnInitDlg()
 	GlobalVariables::GetInstance()->GetAlignMotion().DoInitial(uvEng_GetConfig());
 	/*딱 한번만 초기화 필요*/
 	uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
-	GlobalVariables::GetInstance()->GetAutofocus().SetUseAF(uvEng_GetConfig()->luria_svc.useAF);
+	
 	return TRUE;
 }
 

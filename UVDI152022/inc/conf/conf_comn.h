@@ -305,6 +305,7 @@ typedef enum class __en_mc2_motion_drive_id__ : UINT8
 	en_axis_acam1					= 0x12,
 	en_axis_acam2					= 0x13,
 	en_axis_acam3					= 0x14,
+	en_axis_theta					= 0x15,
 #endif
 
 	en_axis_none					= 0xf0,
@@ -601,6 +602,7 @@ typedef struct __st_config_luria_service_info__
 	//오토포커스 관련은 여기부터
 	
 	UINT8				useAF;										/*Auto Foucs 사용 여부*/
+	UINT8				useExternalSensor;
 	UINT8				useAAQ;// Active Area Qualifier
 	UINT8				useEdgeTrigger;
 	

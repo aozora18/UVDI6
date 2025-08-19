@@ -10,7 +10,7 @@
 #include "./ctrl/GridMotor.h"
 #include "./ctrl/GridPLC.h"
 #include <bitset>
-
+#include "..\GlobalVariables.h"
 
 #ifdef	_DEBUG
 #define	new DEBUG_NEW
@@ -49,9 +49,9 @@ CDlgCtrl::CDlgCtrl(UINT32 id, CWnd* parent)
 	m_u8ACamCount = uvEng_GetConfig()->set_cams.acam_count;		/* 카메라 개수를 가져온다. */
 	m_u8HeadCount = uvEng_GetConfig()->luria_svc.ph_count;		/* Photo Head 개수를 가져온다. */
 	m_u8StageCount = uvEng_GetConfig()->luria_svc.table_count;	/* Table의 개수를 가져온다. */
-
+	const int thetaTable = 1;
 	// Stage 개수(x, y축) + Head 개수 + Align Camera 개수
-	m_u8AllMotorCount = (m_u8StageCount * 2) + m_u8HeadCount + (m_u8ACamCount * 2);
+	m_u8AllMotorCount = (m_u8StageCount * 2) + m_u8HeadCount + (m_u8ACamCount * 2) + thetaTable;
 
 	m_vMotor.clear();
 
@@ -494,6 +494,16 @@ VOID CDlgCtrl::InitMotionIndex()
 		stTemp.DeviceNum = ENG_MMDI((int)ENG_MMDI::en_axis_acam1 + i);
 		m_vMotor.push_back(stTemp);
 	}
+
+	// 세타테이블
+	for (int i = 0; i < 1; i++)
+	{
+		stTemp.strMotorName.Format(_T("Table θ"), i + 1);
+		stTemp.DeviceNum = ENG_MMDI((int)ENG_MMDI::en_axis_none);
+		m_vMotor.push_back(stTemp);
+	}
+
+
 }
 
 /*
@@ -576,7 +586,9 @@ VOID CDlgCtrl::UpdateMotorStatus()
 	double dPosition = 0.;
 	CString strPosition;
 
-	for (int nRow = 0; nRow < m_u8AllMotorCount; nRow++)
+	const int ajinMotorAxisConut = 4;
+
+	for (int nRow = 0; nRow < m_u8AllMotorCount - ajinMotorAxisConut; nRow++) //캠Z3개 + 세타테이블 1개 총 4개 뺌
 	{
 		
 		m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::MOTOR_NAME, m_vMotor.at(nRow).strMotorName);
@@ -634,6 +646,73 @@ VOID CDlgCtrl::UpdateMotorStatus()
 			m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::HOME, _T("DO HOME"));
 		}
 	}
+
+	for (int nRow = m_u8AllMotorCount - ajinMotorAxisConut,j=0; nRow < m_u8AllMotorCount; nRow++,j++) //캠Z3개 + 세타테이블 1개
+	{
+		m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::MOTOR_NAME, m_vMotor.at(nRow).strMotorName);
+		
+		auto* axisInfo =  GlobalVariables::GetInstance()->GetAjinMotion().GetAxisInfo();
+
+		dPosition = axisInfo == nullptr ? 0 : axisInfo[j].position;
+
+		bool moving = axisInfo == nullptr ? false : axisInfo[j].isInposition;
+		bool enable = axisInfo == nullptr ? false : axisInfo[j].isEnable;
+		bool fault = axisInfo == nullptr ? false : axisInfo[j].isFault;
+		bool hommed = axisInfo == nullptr ? false : axisInfo[j].isHommed;
+
+		strPosition.Format(_T("%.4f [mm]"), dPosition);
+		m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::POS, strPosition);
+
+		if (false == moving)
+		{
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::POS, WHITE_);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::MOTOR_NAME, WHITE_);
+		}
+		else
+		{
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::POS, SEA_GREEN);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::MOTOR_NAME, SEA_GREEN);
+		}
+
+		if (false == enable)
+		{
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::SERVO, DEF_COLOR_BTN_PAGE_NORMAL);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::SERVO, _T("SERVO OFF"));
+		}
+		else
+		{
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::SERVO, SEA_GREEN);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::SERVO, _T("SERVO ON"));
+		}
+
+		// 에러 상태 확인
+		if (fault)
+		{
+			int nErrorCode = uvCmn_MC2_GetDriveError(m_vMotor[nRow].DeviceNum);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::STATUS, TOMATO);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemTextFmt(nRow + 1, EN_MOTOR_STATUS::STATUS, _T("ERR-%d RESET"), nErrorCode);
+		}
+		// 동작이 가능한 상태
+		else
+		{
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::STATUS, SEA_GREEN);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::STATUS, _T("OK"));
+		}
+
+		if (hommed)
+		{
+			int nErrorCode = uvCmn_MC2_GetDriveError(m_vMotor[nRow].DeviceNum);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::HOME, SEA_GREEN);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::HOME, _T("HOME COMP"));
+		}
+		// 동작이 가능한 상태
+		else
+		{
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemBkColour(nRow + 1, EN_MOTOR_STATUS::HOME, DEF_COLOR_BTN_PAGE_NORMAL);
+			m_pGrd[eGRD_MOTOR_LIST]->SetItemText(nRow + 1, EN_MOTOR_STATUS::HOME, _T("DO HOME"));
+		}
+	}
+
 
 	// 화면 갱신
 	m_pGrd[eGRD_MOTOR_LIST]->Refresh();
@@ -1081,12 +1160,20 @@ void CDlgCtrl::OnGrdMotorList(NMHDR* pNotifyStruct)
 		return;
 	}
 
+	const int ajinAxisNum = 4;
+	const int ajinSide = nIndex >= (m_vMotor.size() - ajinAxisNum);
+	int ajinAxisIdx = ajinSide ? nIndex - (m_vMotor.size() - ajinAxisNum) : 0;
+	auto* axisInfo = GlobalVariables::GetInstance()->GetAjinMotion().GetAxisInfo();
+	auto& ajinInst = GlobalVariables::GetInstance()->GetAjinMotion();
+	
 	CString strMsg;
 	switch (pItem->iColumn)
 	{
 	case EN_MOTOR_STATUS::SERVO:
 	{
-		BOOL bOnOff = uvCmn_MC2_IsDevLocked(m_vMotor.at(nIndex).DeviceNum);
+		BOOL bOnOff = FALSE;
+		
+		bOnOff = ajinSide ? (axisInfo == NULL ? false : axisInfo[ajinAxisIdx].isEnable) : uvCmn_MC2_IsDevLocked(m_vMotor.at(nIndex).DeviceNum);
 
 		if (bOnOff)
 		{
@@ -1099,19 +1186,27 @@ void CDlgCtrl::OnGrdMotorList(NMHDR* pNotifyStruct)
 
 		if (IDYES == AfxMessageBox(strMsg, MB_YESNO))
 		{
-			uvEng_MC2_SendDevLocked(m_vMotor.at(nIndex).DeviceNum, !bOnOff); break;
+			if (ajinSide)
+				ajinInst.MotorEnable(ajinAxisIdx,!bOnOff);
+			else
+				uvEng_MC2_SendDevLocked(m_vMotor.at(nIndex).DeviceNum, !bOnOff); break;
 		}
 	}
 		break;
 	case EN_MOTOR_STATUS::STATUS:
 	{
-		if (TRUE == uvCmn_MC2_IsDriveError(m_vMotor.at(nIndex).DeviceNum))
+		bool inFault = ajinSide ? (axisInfo == NULL ? false : axisInfo[ajinAxisIdx].isFault) : uvCmn_MC2_IsDriveError(m_vMotor.at(nIndex).DeviceNum);
+		
+		if (inFault)
 		{
 			strMsg.Format(_T("Do you want to motor error reset?"));
 
 			if (IDYES == AfxMessageBox(strMsg, MB_YESNO))
 			{
-				uvEng_MC2_SendDevFaultReset(m_vMotor.at(nIndex).DeviceNum);
+				if (ajinSide)
+					ajinInst.ResetMotor(ajinAxisIdx);
+				else
+					uvEng_MC2_SendDevFaultReset(m_vMotor.at(nIndex).DeviceNum);
 			}
 		}
 	}
@@ -1122,7 +1217,11 @@ void CDlgCtrl::OnGrdMotorList(NMHDR* pNotifyStruct)
 
 		if (IDYES == AfxMessageBox(strMsg, MB_YESNO))
 		{
-			SetMotionHoming(m_vMotor.at(nIndex).DeviceNum);
+
+			if (ajinSide)
+				ajinInst.HomeMotor(ajinAxisIdx);
+			else
+				SetMotionHoming(m_vMotor.at(nIndex).DeviceNum);
 		}
 	}
 		break;

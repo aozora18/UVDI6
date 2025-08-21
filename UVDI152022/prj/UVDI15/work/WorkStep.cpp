@@ -1006,6 +1006,21 @@ ENG_JWNS CWorkStep::SetAlignMovingInit()
 	m_dbPosACam[0] = GetACamMark2MotionX(2);	/* 얼라인 Mark 2 (Left/Bottom)번에 해당되는 카메라 1번의 X 축 실제 모션 위치 */
 	m_dbPosACam[1] = GetACamMark2MotionX(4);	/* Camera 1대비 Camera2 값을 벌리려는 간격 */
 
+	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
+	auto& alignInst = GlobalVariables::GetInstance()->GetAlignMotion();
+
+	auto globalFid = uvEng_Luria_GetGlobalFiducial();
+
+	STG_XMXY fid1, fid2;
+	globalFid->GetMark(0, fid1); globalFid->GetMark(1, fid2);
+	alignInst.GetStagePosUseGerberPos(1, fid1, fid1);
+	alignInst.GetStagePosUseGerberPos(1, fid2, fid2);
+	
+	thetaInst.SetStagePosbyFiducial(ThetaControl::nPoint(fid1.mark_x, fid1.mark_y), 0);
+	thetaInst.SetStagePosbyFiducial(ThetaControl::nPoint(fid2.mark_x, fid2.mark_y), 1);
+	thetaInst.SetCam1Pos(m_dbPosACam[0]);
+	
+
 	/* 각 Axis 별로 기본 동작 속도 값 얻기 */
 	dbStageVeloY = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_stage_y];
 	dbACamVeloX = uvEng_GetConfig()->mc2_svc.max_velo[(UINT8)ENG_MMDI::en_align_cam1];
@@ -2018,7 +2033,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motion.status;
 	ENG_AMOS motionType = motion.markParams.alignMotion; //이건 실시간으로 바뀔수있음을 참고하고, 테스트용으로 사용한다. 
-
+	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Align.Mark.Regist");
 
@@ -2068,6 +2083,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		return ENG_JWNS::en_next;
 
 	TCHAR tzMsg[256] = { NULL };
+	
+	
+	
+
+
 	/* Global Fiducial 적재 */
 	for (i = 0; bSucc && i < u8MarkG; i++)
 	{
@@ -2124,6 +2144,15 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 			if (pstGrab->marked == 0x01)
 			{
+
+				
+				
+				if (i == 0 || i == 1)
+				{
+					thetaInst.SetOffsetValue(ThetaControl::nPoint(pstGrab->move_mm_x, pstGrab->move_mm_y),i);
+				}
+
+
 				lstMarkAt.mark_x -= pstGrab->move_mm_x;
 				lstMarkAt.mark_y -= pstGrab->move_mm_y;
 
@@ -2136,7 +2165,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					{
 						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
 						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-						bSucc = FALSE;
+						//bSucc = FALSE;
 					}
 
 					lstMarkAt.mark_x += std::get<0>(val);
@@ -2159,6 +2188,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			}
 		}
 
+		bool thetaRes = thetaInst.Judge();
+		
 		if (IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
 		{
 			for (i = 0; i < u8MarkL; i++)
@@ -2619,8 +2650,9 @@ ENG_JWNS CWorkStep::SetACamZAxisMovingAll(unsigned long& lastUniqueID)
 	dACamZAxisSet[0] = (pstACamSpec->acam_z_focus[0] * 10000.0f) + i32ACamDiffZ;
 	dACamZAxisSet[1] = (pstACamSpec->acam_z_focus[1] * 10000.0f) + i32ACamDiffZ;
 
-	bool res1 = GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(0, dACamZAxisSet[0] / 10000.0f , 10);
-	bool res2 = GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(1, dACamZAxisSet[1] / 10000.0f , 10);
+	string desc;
+	bool res1 = GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(0, dACamZAxisSet[0] / 10000.0f , 10,desc);
+	bool res2 = GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(1, dACamZAxisSet[1] / 10000.0f , 10,desc);
 
 	if (!res1 || !res2)
 	{

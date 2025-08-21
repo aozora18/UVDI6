@@ -989,6 +989,9 @@ public:
 
 };
 
+////////////////////////////////////////////////////////////
+///			아진모터 통신관련
+////////////////////////////////////////////////////////////
 class AjinMotionNetwork
 {
 	enum ajinAxis : int
@@ -1021,11 +1024,126 @@ class AjinMotionNetwork
 	
 	bool CanMovePos(int axis, bool positiveDir, string& desc);
 	bool ResetMotor(int axis);
-	bool MoveAbs(int axis, double pos, double velo);
-	bool MoveRel(int axis, double pos, double velo);
+	bool MoveAbs(int axis, double pos, double velo, string& desc);
+	bool MoveRel(int axis, double pos, double velo, string& desc);
 	bool HomeMotor(int axis);
 	bool MotorEnable(int axis, bool set);
 	bool StopMotor(int axis, bool all);
+};
+
+
+////////////////////////////////////////////////////////////
+///			세타테이블 컨트롤 관련
+////////////////////////////////////////////////////////////
+class ThetaControl
+{
+public:
+
+	
+	class nPoint
+	{
+		public:
+			double x, y;
+			nPoint() = default;
+			nPoint(double x, double y)
+			{
+				this->x = x; this->y = y;
+			}
+	};
+	
+	using OffsetMap = std::map<double, nPoint>;
+
+
+	ThetaControl()
+	{
+		
+		SetBasicFeatures(260.7314f, 1019.5877f,
+			{ { -0.2f, nPoint(-0.3681,-0.3685)},
+			{-0.1f, nPoint(-0.7360,-0.7358)},
+			{0, nPoint(0,0)},
+			{0.1f, nPoint(0.3659,0.3684)},
+			{0.2f, nPoint(0.7320,0.7370)} },
+				(462.627 - 260.7314),
+				(1011.032 - 1019.5877));
+		
+	}
+	
+	bool Judge();
+
+	void SetCam1Pos(double pos);
+	void SetStagePosbyFiducial(nPoint xyByFid, int fidIdx);
+	void SetOffsetValue(nPoint xyByFid, int fidIdx);
+
+	float GetMotorTheta();
+	bool MoveMotorTheta(double theta);
+	double GetBestTheta();
+	bool ResetPosition(float theta = 0.2f);
+
+	
+
+	struct feature
+	{
+		double centerOfStageX;
+		double centerOfStageY;
+		OffsetMap thetaMapping;
+		float dist3to1X; 
+		float dist3to1Y;
+
+		double cam1Pos;
+		nPoint stagexyByFid[2];
+		nPoint offsetOfFid[2];
+
+		bool needThetaControl = false;
+		double threshold = 0.050; //50um이상
+		double correctionTheta = 0; 
+
+		feature() = default;
+		feature(double centerOfStageX,
+			double centerOfStageY,
+			OffsetMap thetaMapping,
+			float dist3to1X, float dist3to1Y)
+		{
+			this->centerOfStageX = centerOfStageX;
+			this->centerOfStageY = centerOfStageY;
+			this->thetaMapping = thetaMapping;
+			this->dist3to1X = dist3to1X;
+			this->dist3to1Y = dist3to1Y;
+		}
+	};
+
+	void SetBasicFeatures(double centerOfStageX,
+		double centerOfStageY,
+		OffsetMap thetaMapping,
+		float dist3to1X, float dist3to1Y);
+
+private:
+
+
+	static double CaclThetaRadianMakeSameX(double cx, double cy, double w1x, double w1y, double w2x, double w2y)
+	{
+		double u1x = w1x - cx, u1y = w1y - cy;
+		double u2x = w2x - cx, u2y = w2y - cy;
+		double dx = u1x - u2x;
+		double dy = u1y - u2y;
+		return std::atan2(dx, dy); // tanθ = dx/dy
+	}
+
+	static double rad2deg(double r) { return r * 180.0 / M_PI; }
+	static double deg2rad(double d) { return d * M_PI / 180.0; }
+
+	static double NormalizeDegree180(double d) 
+	{
+		while (d <= -180.0) d += 360.0;
+		while (d > 180.0) d -= 360.0;
+		return d;
+	}
+	
+	double CaclThetaDegreeMakeSameX(double cx, double cy, double w1x, double w1y, double w2x, double w2y)
+	{
+		return NormalizeDegree180(rad2deg(CaclThetaRadianMakeSameX(cx, cy, w1x, w1y, w2x, w2y)));
+	}
+
+	feature thetaFeature;
 };
 
 
@@ -1053,6 +1171,7 @@ private:
 	unique_ptr<Environmental> environmental;
 	unique_ptr<AutoFocus> autoFocus;
 	unique_ptr <AjinMotionNetwork> ajinMotion;
+	unique_ptr <ThetaControl> thetaControl;
 	
 	template <typename MapType>
 	bool IsKeyExist(const MapType& map, string key)
@@ -1101,6 +1220,11 @@ public:
 		return *ajinMotion;
 	}
 
+	ThetaControl& GetThetaControl()
+	{
+		return *thetaControl;
+	}
+
 	void Destroy()
 	{
 		
@@ -1116,6 +1240,7 @@ public:
 		webMonitor.reset();
 		environmental.reset();
 		ajinMotion.reset();
+		thetaControl.reset();
 	}
 
 	void waitForAllWaiter()
@@ -1208,6 +1333,7 @@ public:
 		triggerManager = make_unique<TriggerManager>();
 		autoFocus = make_unique<AutoFocus>(AutoFocus(2));
 		ajinMotion = make_unique<AjinMotionNetwork>();
+		thetaControl = make_unique<ThetaControl>();
 	}
 
 	/*GlobalVariables()

@@ -1771,8 +1771,9 @@ bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool
 
 	return res;
 }
-
+/////////////////////////////////////////////////////////
 //아진모션 네트워크
+/////////////////////////////////////////////////////////
 bool AjinMotionNetwork::Connect()
 {
 	client.SetEndpoint("100.100.100.43", 7777);
@@ -1873,9 +1874,8 @@ bool AjinMotionNetwork::MotorEnable(int axis, bool set)
 	return false;
 }
 
-bool AjinMotionNetwork::MoveAbs(int axis, double pos, double velo)
+bool AjinMotionNetwork::MoveAbs(int axis, double pos, double velo, string& desc)
 {
-	string desc;
 	if (CanMovePos(axis, pos > 0 ? true : false, desc) == false)
 		return false;
 
@@ -1897,9 +1897,9 @@ bool AjinMotionNetwork::MoveAbs(int axis, double pos, double velo)
 
 }
 
-bool AjinMotionNetwork::MoveRel(int axis, double pos, double velo)
+bool AjinMotionNetwork::MoveRel(int axis, double pos, double velo, string& desc)
 {
-	string desc;
+	
 	if (CanMovePos(axis, pos > 0 ? true : false, desc) == false)
 		return false;
 
@@ -1937,6 +1937,81 @@ bool AjinMotionNetwork::HomeMotor(int axis)
 }
 
 
+float ThetaControl::GetMotorTheta()
+{
+	const int thetaAxis = 3;
+	auto axisInfo =  GlobalVariables::GetInstance()->GetAjinMotion().GetAxisInfo();
+	return axisInfo == nullptr ? 0 : axisInfo[thetaAxis].position;
+}
+
+bool ThetaControl::MoveMotorTheta(double theta)
+{
+	const int thetaAxis = 3; const int defaultVelo = 5; string desc;
+	return GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(thetaAxis, theta, defaultVelo,desc);
+}
+
+
+void ThetaControl::SetCam1Pos(double pos)
+{
+	thetaFeature.cam1Pos = pos;
+}
+
+void ThetaControl::SetStagePosbyFiducial(nPoint xyByFid,int fidIdx)
+{	
+	thetaFeature.stagexyByFid[fidIdx] = xyByFid;	
+}
+
+void ThetaControl::SetOffsetValue(nPoint xyByFid, int fidIdx)
+{
+	thetaFeature.offsetOfFid[fidIdx] = xyByFid;
+}
+
+bool ThetaControl::Judge()
+{
+	 return GetBestTheta() == -1 ? true : false;
+}
+
+
+double ThetaControl::GetBestTheta() //<-양 2점 스테이지 ,xy포지션
+{
+	double distFromCentercamToCam1x = (uvEng_GetConfig()->mc2_svc.max_dist[(int)ENG_MMDI::en_axis_acam1] - thetaFeature.cam1Pos) + thetaFeature.dist3to1X;
+	double distFromCentercamToCam1y = thetaFeature.dist3to1Y;
+
+	nPoint nP1 = nPoint(thetaFeature.stagexyByFid[0].x + thetaFeature.offsetOfFid[0].x + distFromCentercamToCam1x,
+						thetaFeature.stagexyByFid[0].y + thetaFeature.offsetOfFid[0].y + distFromCentercamToCam1y);
+
+	nPoint nP2 = nPoint(thetaFeature.stagexyByFid[1].x + thetaFeature.offsetOfFid[1].x + distFromCentercamToCam1x,
+						thetaFeature.stagexyByFid[1].y + thetaFeature.offsetOfFid[1].y + distFromCentercamToCam1y);
+
+	thetaFeature.needThetaControl =  fabs(nP1.x - nP2.x) > thetaFeature.threshold;
+
+	thetaFeature.correctionTheta = thetaFeature.needThetaControl ? CaclThetaDegreeMakeSameX(thetaFeature.centerOfStageX, thetaFeature.centerOfStageY,
+		nP1.x, nP1.y,
+		nP2.x, nP2.y) : -1;
+
+	return thetaFeature.correctionTheta;
+}
+
+bool ThetaControl::ResetPosition(float theta)
+{
+	thetaFeature.needThetaControl = false;
+	thetaFeature.correctionTheta = 0;
+	return MoveMotorTheta(0.2f);
+}
+
+void ThetaControl::SetBasicFeatures(double centerOfStageX,
+									double centerOfStageY,
+									OffsetMap thetaMapping,
+									float dist3to1X, float dist3to1Y)
+{
+	thetaFeature = feature(centerOfStageX, centerOfStageY, thetaMapping, dist3to1X, dist3to1Y);
+}
+
+
+
+////////////////////////////////////////////////////////////
+///			세타테이블 컨트롤 관련
+////////////////////////////////////////////////////////////
 AFstate* AutoFocus::GetAFState(int phIndex)
 {
 	auto value = afState.find(phIndex);
@@ -2242,8 +2317,6 @@ bool AFstate::SetAFWorkRange( int below, int above)
 
 	return res;
 }
-
-
 
 bool AFstate::GetAFisOn(bool& on)
 {

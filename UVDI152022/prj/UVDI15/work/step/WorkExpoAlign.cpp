@@ -497,11 +497,13 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 {
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto& afInst = GlobalVariables::GetInstance()->GetAutofocus();
+	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
 
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
 	case 0x01:
 	{
+		thetaInst.ProcessThetaCorrection();
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		offsetPool.clear();
 		motions.SetFiducialPool();
@@ -607,7 +609,7 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 					SetAlignMeasMode() == ENG_JWNS::en_next)
 				{
 					res = ENG_JWNS::en_wait;
-					while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next)
+					while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next && this->aborted == false)
 					{
 						res = IsAlignMeasMode(); Sleep(100);
 					}
@@ -725,15 +727,18 @@ void CWorkExpoAlign::DoAlignOnthefly2cam()
 	break;
 	case 0x1e:
 	{
-
 		m_enWorkState = IsSetMarkValidAll(0x01);
+		
+		if(m_enWorkState == ENG_JWNS::en_next)
+			m_enWorkState = CheckThetaCorrection();
+		
 	}
 	break;
 
 	case 0x1f:
 	{
-		m_enWorkState = SetAlignMarkRegist();
-
+		
+			m_enWorkState = SetAlignMarkRegist();
 	}
 	break;
 	case 0x20:

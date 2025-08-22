@@ -623,12 +623,14 @@ void CWorkMarkTest::DoAlignStaticCam()
 void CWorkMarkTest::DoAlignOnthefly2cam()
 {
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
 	switch (m_u8StepIt)/* 작업 단계 별로 동작 처리 */
 	{
 	case 0x01:
 	{
 		m_enWorkState = SetExposeReady(TRUE, TRUE, TRUE, 1);
 		motions.SetAlignComplete(false);
+		thetaInst.ProcessThetaCorrection();
 		if (m_enWorkState == ENG_JWNS::en_next)
 			GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
 
@@ -653,7 +655,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 			{
 				doNextJob = true;cv.notify_one();//여기서 bundleAction[1]이 실행해야함 flag 
 				res = ENG_JWNS::en_wait;
-				while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next)
+				while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next && this->aborted == false)
 				{
 					res = IsAlignMovedInit();Sleep(100);
 				}
@@ -681,7 +683,7 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 					SetAlignMeasMode() == ENG_JWNS::en_next)
 				{
 					res = ENG_JWNS::en_wait;
-					while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next)
+					while (res != ENG_JWNS::en_error && res != ENG_JWNS::en_next && this->aborted == false)
 					{
 						res = IsAlignMeasMode(); Sleep(100);
 					}
@@ -760,15 +762,19 @@ void CWorkMarkTest::DoAlignOnthefly2cam()
 		m_enWorkState = IsGrabbedImageCount(m_u8MarkCount, 3000);
 	}
 	break;
+
 	case 0x19:
 	{
 		m_enWorkState = IsSetMarkValidAll(0x00);
+
+		if (m_enWorkState == ENG_JWNS::en_next)
+			m_enWorkState = CheckThetaCorrection();
 	}
 	break;
 	case 0x1a:
 	{
+		
 		m_enWorkState = SetAlignMarkRegist();
-		//m_enWorkState = ENG_JWNS::en_next;
 	}
 	break;
 

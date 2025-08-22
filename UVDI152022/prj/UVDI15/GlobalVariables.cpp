@@ -1944,10 +1944,35 @@ float ThetaControl::GetMotorTheta()
 	return axisInfo == nullptr ? 0 : axisInfo[thetaAxis].position;
 }
 
-bool ThetaControl::MoveMotorTheta(double theta)
+
+void ThetaControl::ProcessThetaCorrection()
 {
+	
+	if (thetaFeature.needThetaControl)
+	{
+		MoveMotorTheta(thetaFeature.correctionTheta, false);
+	}
+	else
+	{
+		ResetPosition();
+	}
+
+	thetaFeature.needThetaControl = false;
+}
+
+bool ThetaControl::MoveMotorTheta(float theta,bool absMove)
+{
+	auto cut3 = [=](double v)->double
+		{
+			return std::round(v * 1000.0) / 1000.0;
+		};
+	
+	theta = cut3(theta);
+
 	const int thetaAxis = 3; const int defaultVelo = 5; string desc;
-	return GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(thetaAxis, theta, defaultVelo,desc);
+	
+	return absMove ? GlobalVariables::GetInstance()->GetAjinMotion().MoveAbs(thetaAxis, theta, defaultVelo, desc) : 
+					 GlobalVariables::GetInstance()->GetAjinMotion().MoveRel(thetaAxis, theta, defaultVelo, desc);
 }
 
 
@@ -1977,17 +2002,22 @@ double ThetaControl::GetBestTheta() //<-양 2점 스테이지 ,xy포지션
 	double distFromCentercamToCam1x = (uvEng_GetConfig()->mc2_svc.max_dist[(int)ENG_MMDI::en_axis_acam1] - thetaFeature.cam1Pos) + thetaFeature.dist3to1X;
 	double distFromCentercamToCam1y = thetaFeature.dist3to1Y;
 
+
+
 	nPoint nP1 = nPoint(thetaFeature.stagexyByFid[0].x + thetaFeature.offsetOfFid[0].x + distFromCentercamToCam1x,
 						thetaFeature.stagexyByFid[0].y + thetaFeature.offsetOfFid[0].y + distFromCentercamToCam1y);
 
 	nPoint nP2 = nPoint(thetaFeature.stagexyByFid[1].x + thetaFeature.offsetOfFid[1].x + distFromCentercamToCam1x,
 						thetaFeature.stagexyByFid[1].y + thetaFeature.offsetOfFid[1].y + distFromCentercamToCam1y);
 
-	thetaFeature.needThetaControl =  fabs(nP1.x - nP2.x) > thetaFeature.threshold;
+	thetaFeature.needThetaControl =  fabs(thetaFeature.offsetOfFid[0].x - thetaFeature.offsetOfFid[1].x) > thetaFeature.threshold;
 
 	thetaFeature.correctionTheta = thetaFeature.needThetaControl ? CaclThetaDegreeMakeSameX(thetaFeature.centerOfStageX, thetaFeature.centerOfStageY,
 		nP1.x, nP1.y,
 		nP2.x, nP2.y) : -1;
+
+	float magicFeature = 0.168f;
+	thetaFeature.correctionTheta = (thetaFeature.needThetaControl ? thetaFeature.correctionTheta + (thetaFeature.correctionTheta * magicFeature) : thetaFeature.correctionTheta) * -1;
 
 	return thetaFeature.correctionTheta;
 }
@@ -1996,7 +2026,7 @@ bool ThetaControl::ResetPosition(float theta)
 {
 	thetaFeature.needThetaControl = false;
 	thetaFeature.correctionTheta = 0;
-	return MoveMotorTheta(0.2f);
+	return MoveMotorTheta(0.2f,true);
 }
 
 void ThetaControl::SetBasicFeatures(double centerOfStageX,

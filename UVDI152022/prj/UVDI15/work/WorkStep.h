@@ -115,6 +115,8 @@ protected:
 	ENG_JWNS			SetPrinting();
 	ENG_JWNS			IsPrinted();
 
+	ENG_JWNS CheckThetaCorrection();
+
 	ENG_JWNS			SetAlignMarkRegist();
 	ENG_JWNS			SetAlignMarkRegistforStatic();
 	ENG_JWNS			IsAlignMarkRegist();

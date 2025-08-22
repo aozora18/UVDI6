@@ -40,6 +40,11 @@ API_EXPORT BOOL uvEng_Luria_GetGlobalMark(UINT16 index, LPG_XMXY point)
 	return uvLuria_GetGlobalMark(index, *point);
 }
 
+API_EXPORT BOOL uvEng_Luria_GetGlobalMarkTGT(UINT16 index, LPG_XMXY point)
+{
+	return uvLuria_GetGlobalMarkTGT(index, *point);
+}
+
 /*
  desc : Global Mark 좌표 두 개의 위치 값 얻기
  parm : direct	- [in]  두 개의 좌표를 얻고자하는 방향 정보 구분 값

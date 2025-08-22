@@ -274,6 +274,7 @@ API_IMPORT UINT16 uvLuria_GetGlobalMark3PType();
 		point	- [out] Gerber X / Y Position (unit: mm)
  retn : TRUE or FALSE
 */
+API_IMPORT BOOL uvLuria_GetGlobalMarkTGT(UINT16 index, STG_XMXY& point);
 API_IMPORT BOOL uvLuria_GetGlobalMark(UINT16 index, STG_XMXY &point);
 /*
  desc : Get the position for two coordinates of the global fiducial

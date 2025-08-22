@@ -27,6 +27,8 @@ extern "C"
 		data	- [out] Gerber X / Y Position (unit: mm)
  retn : TRUE or FALSE
 */
+	API_IMPORT BOOL uvEng_Luria_GetGlobalMarkTGT(UINT16 index, LPG_XMXY point);
+
 API_IMPORT BOOL uvEng_Luria_GetGlobalMark(UINT16 index, LPG_XMXY point);
 /*
  desc : Global Mark 좌표 두 개의 위치 값 얻기

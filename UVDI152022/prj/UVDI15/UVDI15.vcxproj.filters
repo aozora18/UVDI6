@@ -97,6 +97,9 @@
     <Filter Include="03.메뉴 파일\dlgs\calb\accuracy">
       <UniqueIdentifier>{3edc2e9e-0fb4-4588-a48f-1e02a8dbcd30}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02.메인 파일\AjinNetwork">
+      <UniqueIdentifier>{1ab5fbf9-5a16-4ecc-8d13-250ad8ff324f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -534,6 +537,15 @@
     <ClInclude Include="menu\calb\DlgCalbAutofocus.h">
       <Filter>03.메뉴 파일\dlgs\calb</Filter>
     </ClInclude>
+    <ClInclude Include="Ajinprotocol.h">
+      <Filter>02.메인 파일\AjinNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="CommWrapper.h">
+      <Filter>02.메인 파일\AjinNetwork</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniTcpProto.h">
+      <Filter>02.메인 파일\AjinNetwork</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -937,6 +949,9 @@
     </ClCompile>
     <ClCompile Include="menu\calb\DlgCalbAutofocus.cpp">
       <Filter>03.메뉴 파일\dlgs\calb</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniTcpProto.cpp">
+      <Filter>02.메인 파일\AjinNetwork</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

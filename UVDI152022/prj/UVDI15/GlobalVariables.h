@@ -1075,9 +1075,9 @@ public:
 	void SetOffsetValue(nPoint xyByFid, int fidIdx);
 
 	float GetMotorTheta();
-	bool MoveMotorTheta(double theta);
+	
 	double GetBestTheta();
-	bool ResetPosition(float theta = 0.2f);
+	
 
 	
 
@@ -1116,8 +1116,12 @@ public:
 		OffsetMap thetaMapping,
 		float dist3to1X, float dist3to1Y);
 
+	void ProcessThetaCorrection();
 private:
+	bool MoveMotorTheta(float theta, bool absMove);
+	bool ResetPosition(float theta = 0.2f);
 
+	
 
 	static double CaclThetaRadianMakeSameX(double cx, double cy, double w1x, double w1y, double w2x, double w2y)
 	{

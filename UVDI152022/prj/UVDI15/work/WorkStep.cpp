@@ -1153,6 +1153,9 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 {
 	if (!IsWorkRepeat())	SetStepName(L"Is.Align.Moved.Global");
 
+	if(this->aborted) 
+		return ENG_JWNS::en_error;
+
 	if (uvCmn_MC2_IsDrvDoneToggled(ENG_MMDI::en_stage_y))
 	{
 		auto& measureFlat = uvEng_GetConfig()->measure_flat;
@@ -2003,7 +2006,74 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	return ENG_JWNS::en_next;
 
 }
+ENG_JWNS CWorkStep::CheckThetaCorrection()
+{
+	TCHAR tzMesg[256] = { NULL };
+	STG_XMXY stMarkPos[2] = { STG_XMXY(), };
+	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
 
+	if(m_enWorkJobID != ENG_BWOK::en_expo_align && 
+		m_enWorkJobID != ENG_BWOK::en_mark_test)
+		return ENG_JWNS::en_next;
+	
+	if(uvEng_Luria_GetMarkCount(ENG_AMTF::en_global) != 4)
+		return ENG_JWNS::en_next;
+	
+	SetStepName(L"Check.Thetatable.correction");
+
+	auto grabFindFunc = 
+	[&](int markTgt, CAtlList <LPG_ACGR>* grabPtr, STG_XMXY_RESERVE_FLAG matchingFlags) -> LPG_ACGR
+	{
+		if (grabPtr == NULL)
+			return nullptr;
+
+		for (int i = 0; i < grabPtr->GetCount(); i++)
+		{
+			auto grab = grabPtr->GetAt(grabPtr->FindIndex(i));
+			if (grab != nullptr && grab->fiducialMarkIndex == markTgt && (grab->reserve & matchingFlags) == matchingFlags)
+				return grab;
+		}
+		return nullptr;
+	};
+	int firstIdx = 0;
+	int secondIdx = 1;
+	uvEng_Luria_GetGlobalMarkTGT(firstIdx, &stMarkPos[0]);
+	uvEng_Luria_GetGlobalMarkTGT(secondIdx, &stMarkPos[1]);
+	
+	auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
+
+	auto* pstGrab1 = grabFindFunc(stMarkPos[0].tgt_id, grabMark, STG_XMXY_RESERVE_FLAG::GLOBAL);
+	auto* pstGrab2 = grabFindFunc(stMarkPos[1].tgt_id, grabMark, STG_XMXY_RESERVE_FLAG::GLOBAL);
+
+	if (!pstGrab1 || 
+		!pstGrab2)
+	{
+		swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (global mark)");
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		return ENG_JWNS::en_next;
+	}
+
+	if (pstGrab1->marked != 0x01 ||
+		pstGrab2->marked != 0x01)
+	{
+		swprintf_s(tzMesg, 128, L"no align mark in grab.");
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		return ENG_JWNS::en_next;
+	}
+
+	thetaInst.SetOffsetValue(ThetaControl::nPoint(pstGrab1->move_mm_x, pstGrab1->move_mm_y), 0);
+	thetaInst.SetOffsetValue(ThetaControl::nPoint(pstGrab2->move_mm_x, pstGrab2->move_mm_y), 1);
+
+	if (thetaInst.Judge() == false)
+	{
+		swprintf_s(tzMesg, 128, L"Horizontal alignment exceeded 50 um. Retrying alignment.");
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		this->m_u8StepIt = 0x01;
+		return ENG_JWNS::en_error;
+	}
+
+	return ENG_JWNS::en_next;
+}
 
 /*
  desc : Luria Service에 측정된 Align Mark 오차 값 등록
@@ -2033,7 +2103,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motion.status;
 	ENG_AMOS motionType = motion.markParams.alignMotion; //이건 실시간으로 바뀔수있음을 참고하고, 테스트용으로 사용한다. 
-	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
+	
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Align.Mark.Regist");
 
@@ -2084,10 +2154,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 	TCHAR tzMsg[256] = { NULL };
 	
-	
-	
-
-
 	/* Global Fiducial 적재 */
 	for (i = 0; bSucc && i < u8MarkG; i++)
 	{
@@ -2128,6 +2194,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 		//-------------------------    글로벌 마크 (옵셋 미적용)   아주 일관성이 없어 아주 ------------------------
 		auto grabMark = uvEng_Camera_GetGrabbedMarkAll();
 
+
+		
+
 		for (i = 0; bSucc && i < u8MarkG; i++)
 		{
 			auto& lstMarkAt = lstMarks.GetAt(lstMarks.FindIndex(i));
@@ -2144,15 +2213,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 
 			if (pstGrab->marked == 0x01)
 			{
-
-				
-				
-				if (i == 0 || i == 1)
-				{
-					thetaInst.SetOffsetValue(ThetaControl::nPoint(pstGrab->move_mm_x, pstGrab->move_mm_y),i);
-				}
-
-
 				lstMarkAt.mark_x -= pstGrab->move_mm_x;
 				lstMarkAt.mark_y -= pstGrab->move_mm_y;
 
@@ -2188,8 +2248,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			}
 		}
 
-		bool thetaRes = thetaInst.Judge();
+
 		
+
 		if (IsMarkTypeOnlyGlobal() == false && uvEng_Luria_GetMarkCount(ENG_AMTF::en_local) != 0)
 		{
 			for (i = 0; i < u8MarkL; i++)

@@ -1180,6 +1180,16 @@ API_EXPORT UINT16 uvLuria_GetGlobalMark3PType()
 		point	- [out] Gerber X / Y Position (unit: mm)
  retn : TRUE or FALSE
 */
+
+API_EXPORT BOOL uvLuria_GetGlobalMarkTGT(UINT16 index, STG_XMXY& point)
+{
+	if (!g_pSelJobXml)	return FALSE;
+	auto* marks = g_pSelJobXml->GetGlobalMark();
+	if (marks == nullptr) return FALSE;
+	return marks->GetTgtMark(index, point);
+}
+
+
 API_EXPORT BOOL uvLuria_GetGlobalMark(UINT16 index, STG_XMXY &point)
 {
 	if (!g_pSelJobXml)	return FALSE;

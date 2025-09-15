@@ -353,14 +353,17 @@ HYS_TYPE_1_DELAY_POSITIVE   = 0.000000
 HYS_TYPE_1_DELAY_NEGATIVE   = 0.000000
 
 ; 2023-11-07 Old CAM_Spec
-PH_OFFSET_X_2	= 260.625900
-PH_OFFSET_Y_2	= -0.027050
+;PH_OFFSET_X_2	= 260.625900
+;PH_OFFSET_Y_2	= -0.027050
+PH_OFFSET_X_2= 260.646700
+PH_OFFSET_Y_2= -0.072250
+
 
 
 ; 노광 시작 위치 (기본:X10, Y56)
 
-TABLE_EXPO_START_X_1  	= 125.434
-TABLE_EXPO_START_Y_1  	= 139.462
+TABLE_EXPO_START_X_1  	= 121.765
+TABLE_EXPO_START_Y_1  	= 137.4466
 
 
 PH_PITCH		= 27
@@ -428,8 +431,8 @@ ILLUM_GARBAGE_PWR           = 0.0010
 ILLUM_MEAS_TYPE             = 1
 
 ; AutoFocus
-USE_AF			= 1
-USE_EXTERNAL 		= 1
+USE_AF			= 0
+USE_EXTERNAL 		= 0
 USE_AAQ 		= 1
 USE_EDGE_TRIGER 		= 1
 PH_DOF = 50
@@ -535,13 +538,13 @@ MAX_AXIS_0_DIST         = 520.0000
 MAX_AXIS_1_DIST         = 1355.0000
 MAX_AXIS_4_DIST         = 260.0000
 MAX_AXIS_5_DIST         = 260.0000
-MAX_AXIS_0_VELO         = 200.0000
-MAX_AXIS_1_VELO         = 200.0000
+MAX_AXIS_0_VELO         = 100.0000
+MAX_AXIS_1_VELO         = 100.0000
 MAX_AXIS_4_VELO         = 200.0000
 MAX_AXIS_5_VELO         = 200.0000
 
 ; 2022-03-21
-MOVE_VELO               = 200.0000
+MOVE_VELO               = 100.0000
 MARK_VELO               = 100.0000
 STEP_VELO               = 200.0000
 MOVE_DIST               = 1.0000
@@ -680,7 +683,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 6um_MasterGlass_D12
+RECIPE_NAME= 250807_6um_FEM_Dyn_25_26
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -812,7 +815,7 @@ CAM7_SAFETY_POS= 0.0000
 
 [CAMERA_BASLER]
 
-CAM_1_GAIN_LEVEL    = 80
+CAM_1_GAIN_LEVEL    = 10
 CAM_2_GAIN_LEVEL    = 50
 CAM_3_GAIN_LEVEL    = 10
 
@@ -924,7 +927,7 @@ DOF_FILM_THICK              = 0.0000
 
 ;TABLE_UNLOADER_X_1          = 243.0000
 TABLE_UNLOADER_X_1          = 263.0000
-TABLE_UNLOADER_Y_1          = 1350.0000
+TABLE_UNLOADER_Y_1          = 1000.0000
 
 MARK2_ORG_GERB_X            = 21.8250
 MARK2_ORG_GERB_Y            = 24.8580
@@ -1411,9 +1414,9 @@ MARK_STAGE_Y            = 750.0000
 MARK_ACAM1_X            = 434.4485
 MARK_ACAM2_X            = 436.9230
 
-STEP_MOVE_Y             = 17.0000
+STEP_MOVE_Y             = 27.0000
 STEP_MOVE_Z             = 20.0000
-STEP_Y_COUNT            = 14
+STEP_Y_COUNT            = 25
 REPEAT_COUNT            = 10
 
 PH_VS_PH_DIST           = 103.4700
@@ -1422,13 +1425,13 @@ MODEL_DIA_SIZE          = 2.000
 MODEL_COLOR             = 256.000
 STEP_X_COUNT= 1
 START_FOCUS= 0.000
-START_ENERGY= 40.000
+START_ENERGY= 50.000
 STEP_FOCUS= 0.010
-STEP_ENERGY= 0.000
+STEP_ENERGY= 5.000
 STEP_MOVE_X= 17.0000
 
-START_FOCUS_1= 2.290
-START_FOCUS_2= 1.780
+START_FOCUS_1= 1.915
+START_FOCUS_2= 1.455
 START_FOCUS_3= 1.460
 START_FOCUS_4= 2.340
 START_FOCUS_5= 1.790
@@ -1467,21 +1470,23 @@ PRINT_TYPE= 1
 MAX_PH_STEP             = 64
 
 MODEL_TYPE              = 8
-MODEL_DIA_SIZE          = 1.000
+;MODEL_DIA_SIZE          = 1.000
+MODEL_DIA_SIZE          = 1.050
 MODEL_COLOR             = 256.000
 
-MARK_STAGE_X            = 215.9000
-MARK_STAGE_Y            = 807.7000
+MARK_STAGE_X            = 226.6962
+MARK_STAGE_Y            = 804.2817
 MARK_ACAM1_X            = 260.0000
 
 SCROLL_MODE             = 1
-STRIPE_WIDTH            = 22.5000
+;STRIPE_WIDTH            = 22.5000
+STRIPE_WIDTH            = 9.5000
 
 PH_SCAN                 = 20
 MARK_PERIOD             = 3.0000
 CENTER_OFFSET           = 0.5000
 
-EXPOSE_ROUND	= 2
+EXPOSE_ROUND	= 4
 Y_POS_PLUS	= 20
 
 ;-------------------------------------------------------------------------------------------------
@@ -1729,7 +1734,7 @@ STROBE_VALUE[8]		= 8 채널별 조명 밝기값
 ;-------------------------------------------------------------------------------------------------
 [STROBE_LAMP] 
 
-STROBE_LAMP[0]		= 200 
+STROBE_LAMP[0]		= 100 
 STROBE_LAMP[1]		= 250
 STROBE_LAMP[2]		= 200
 STROBE_LAMP[3]		= 100 

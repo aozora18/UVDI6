@@ -363,7 +363,7 @@ PH_OFFSET_Y_2= -0.072250
 ; 노광 시작 위치 (기본:X10, Y56)
 
 TABLE_EXPO_START_X_1  	= 121.764
-TABLE_EXPO_START_Y_1  	= 137.4446
+TABLE_EXPO_START_Y_1  	= 137.449
 
 
 PH_PITCH		= 27
@@ -1416,29 +1416,29 @@ MARK_ACAM2_X            = 436.9230
 
 STEP_MOVE_Y             = 27.0000
 STEP_MOVE_Z             = 20.0000
-STEP_Y_COUNT            = 25
+STEP_Y_COUNT            = 1
 REPEAT_COUNT            = 10
 
 PH_VS_PH_DIST           = 103.4700
 
 MODEL_DIA_SIZE          = 2.000
 MODEL_COLOR             = 256.000
-STEP_X_COUNT= 1
+STEP_X_COUNT= 7
 START_FOCUS= 0.000
 START_ENERGY= 50.000
-STEP_FOCUS= 0.010
+STEP_FOCUS= 0.030
 STEP_ENERGY= 5.000
 STEP_MOVE_X= 17.0000
 
-START_FOCUS_1= 1.915
-START_FOCUS_2= 1.455
+START_FOCUS_1= 2.575
+START_FOCUS_2= 2.115
 START_FOCUS_3= 1.460
 START_FOCUS_4= 2.340
 START_FOCUS_5= 1.790
 START_FOCUS_6= 2.685
 START_FOCUS_7= 0.000
 START_FOCUS_8= 0.000
-PRINT_TYPE= 1
+PRINT_TYPE= 0
 
 ;-------------------------------------------------------------------------------------------------
 ; [PH_STEP]             : 광학계 단차 측정에 필요한 파라미터

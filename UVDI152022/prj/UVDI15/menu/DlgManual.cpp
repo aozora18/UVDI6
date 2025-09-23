@@ -255,7 +255,7 @@ VOID CDlgManual::UpdatePeriod(UINT64 tick, BOOL is_busy)
 	}
 	else if (workerror == ENG_WETE::en_lds_thick_check)
 	{
-		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->SetBgColor(LIGHT_RED);
+		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->SetBgColor(LIGHT_YELLOW);
 		m_pBtn[EN_MANUAL_BTN::ERROR_THICK]->RedrawWindow();
 	}
 

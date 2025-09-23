@@ -1255,8 +1255,7 @@ BOOL CDlgCalbAccuracyMeasure::MarkGrab(double* pdErrX, double* pdErrY)
 	CTactTimeCheck cTime;
 	
 
-	/* 기존 Live & Edge & Calibration 데이터 초기화 */
-	uvEng_Camera_ResetGrabbedImage();
+	
 
 	if (ENG_VCCM::en_image_mode != uvEng_Camera_GetCamMode())
 	{
@@ -1281,23 +1280,30 @@ BOOL CDlgCalbAccuracyMeasure::MarkGrab(double* pdErrX, double* pdErrY)
 		// uvEng_Camera_ResetGrabbedImage();
 
 		/* Camera 쪽에 Trigger Event 강제로 1개 발생 */
-		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
-		{
-			uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
-			AfxMessageBox(L"Failed to send the event for trigger", MB_ICONSTOP | MB_TOPMOST);
-			return FALSE;
-		}
+		
 	}
 
 	/* 타이머 초기화 및 시작 */
 	cTime.Init();
 	cTime.Start();
 
+	/* 기존 Live & Edge & Calibration 데이터 초기화 */
+	uvEng_Camera_ResetGrabbedImage();
+
 	LPG_ACGR pstResult = nullptr;
 	/* 일정 시간동안 동작 */
-	while (1000 > (int)cTime.GetTactMs())
+	while (2000 > (int)cTime.GetTactMs())
 	{
-		
+		if (!uvEng_Mvenc_ReqTrigOutOne(u8ACamID))
+		{
+			uvEng_Camera_SetCamMode(ENG_VCCM::en_none);
+			AfxMessageBox(L"Failed to send the event for trigger", MB_ICONSTOP | MB_TOPMOST);
+			return FALSE;
+		}
+		Wait_(100);
+		if(uvEng_Camera_GetLastGrab(u8ACamID, pstResult) == false)
+			continue;
+
 		/* 검색된 결과가 있는지 조사 */
 		auto searchMode = CAccuracyMgr::GetInstance()->GetSearchMode();
 		//여기서 그려야됨

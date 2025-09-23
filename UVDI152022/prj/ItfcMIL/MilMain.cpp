@@ -964,22 +964,26 @@ BOOL CMilMain::RunModelExam2(PUINT8 image, UINT32 width, UINT32 height,
 			
 			if (pstGet->IsValidMark(score, scale))
 			{
-				valid[i] = true;
+				int modelIdx = pstGet->model_index;
+
+				valid[modelIdx] = true;
 				m_pLastGrabResult->SetGrabbedMark(0xff, pstGet,
 					m_pMilModel[0]->GetFindMarkAll(),
 					m_pMilModel[0]->GetFindMarkAllCount(),
 					pstGet->mark_width, pstGet->mark_height);
 				if (results)
 				{
+					
+					
 					/* 반환 구조체에 복사 진행 (포인트 주소까지 복사해버리면 안되므로 ...) */
-					memcpy(&results[i], m_pLastGrabResult->GetGrabbedMark(),
+					memcpy(&results[modelIdx], m_pLastGrabResult->GetGrabbedMark(),
 						sizeof(STG_ACGR) - sizeof(PUINT8));
 					/* Grabbed Image까지 포함됨 */
 					//memcpy(results[i].grab_data, image, width * height);
 					/* 검색된 Mark 크기 값은 별도로 다시 저장해야 함 */
-					results[i].mark_width_px = m_pMilModel[0]->GetModelWidth(j);
-					results[i].mark_height_px = m_pMilModel[0]->GetModelHeight(j);
-					results[i].marked = valid[i];
+					results[modelIdx].mark_width_px = m_pMilModel[0]->GetModelWidth(j);
+					results[modelIdx].mark_height_px = m_pMilModel[0]->GetModelHeight(j);
+					results[modelIdx].marked = valid[modelIdx];
 					//theApp.clMilDisp.AddCrossList(DISP_TYPE_CALB_ACCR, 0, results[i].mark_width_px - results[i].mark_cent_px_x, results[i].mark_height_px - results[i].mark_cent_px_y,  30, 30, COLOR_BLUE);
 					//uvEng_Camera_DrawImageBitmap((UINT8)DISP_TYPE_CALB_ACCR, 0, 1, 0, 1);
 

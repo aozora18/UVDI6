@@ -2837,7 +2837,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 	/* 복합 마크 검색 방식일 경우, 검색 대상 개수만큼 찾지 못했는지 여부 확인 */
 	if (true)
 	{
-		if (miModResults < u32MaxCount)
+		if (miModResults == 0)
 		{
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miModResults));
@@ -2845,50 +2845,50 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 			bSucc = FALSE;	/* 작업 실패 */
 		}
 		/* 만약 찾고자 하는 개수보다 많이 검색된 경우, Score or Scale 값이 가장 높은 순 (내림차순)으로 정렬 */
-		else
-		{
-			/* 마지막 원소 전까지 비교하면 되므로 n-1 개수만큼 비교 */
-			for (i = 0; i < miModResults - 1; i++)
-			{
-				k = i;	/* 기준 인덱스 */
-				for (j = i + 1; j < miModResults; j++)
-				{
-#if 0
-					/* SCALE 값이 0.000f 값에 가장 가까운 값일수록 좋음  */
-					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 값에 가장 가까운 값이 높은 점수임 */
-#else
-					/* SCORE 값이 100.000 값에 가장 가까운 값일수록 좋음 */
-					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* 가장 높은 값일수록 높음 점수임 */
-#endif
-				}
-				/* 기존 위치 값 임시 백업 */
-				dbPosX = m_pFindPosX[i];
-				dbPosY = m_pFindPosY[i];
-				dbScore = m_pFindScore[i];
-				dbScale = m_pFindScale[i];
-				dbAngle = m_pFindAngle[i];
-				dbCovg = m_pFindCovg[i];
-				dbFitErr = m_pFindFitErr[i];
-				/* 현재 검색 기준 위치에 가장 높은 값으로 변경 */
-				m_pFindPosX[i] = m_pFindPosX[k];
-				m_pFindPosY[i] = m_pFindPosY[k];
-				m_pFindScore[i] = m_pFindScore[k];
-				m_pFindScale[i] = m_pFindScale[k];
-				m_pFindAngle[i] = m_pFindAngle[k];
-				m_pFindCovg[i] = m_pFindCovg[k];
-				m_pFindFitErr[i] = m_pFindFitErr[k];
-				/* 기존 가장 높은 값을 검색 기준 값으로 변경 */
-				m_pFindPosX[k] = dbPosX;
-				m_pFindPosY[k] = dbPosY;
-				m_pFindScore[k] = dbScore;
-				m_pFindScale[k] = dbScale;
-				m_pFindAngle[k] = dbAngle;
-				m_pFindCovg[k] = dbCovg;
-				m_pFindFitErr[k] = dbFitErr;
-			}
-		}
+//		else
+//		{
+//			/* 마지막 원소 전까지 비교하면 되므로 n-1 개수만큼 비교 */
+//			for (i = 0; i < miModResults ; i++)
+//			{
+////				k = i;	/* 기준 인덱스 */
+////				for (j = i + 1; j < miModResults; j++)
+////				{
+////#if 0
+////					/* SCALE 값이 0.000f 값에 가장 가까운 값일수록 좋음  */
+////					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 값에 가장 가까운 값이 높은 점수임 */
+////#else
+////					/* SCORE 값이 100.000 값에 가장 가까운 값일수록 좋음 */
+////					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* 가장 높은 값일수록 높음 점수임 */
+////#endif
+////				}
+//				/* 기존 위치 값 임시 백업 */
+//				dbPosX = m_pFindPosX[i];
+//				dbPosY = m_pFindPosY[i];
+//				dbScore = m_pFindScore[i];
+//				dbScale = m_pFindScale[i];
+//				dbAngle = m_pFindAngle[i];
+//				dbCovg = m_pFindCovg[i];
+//				dbFitErr = m_pFindFitErr[i];
+//				/* 현재 검색 기준 위치에 가장 높은 값으로 변경 */
+//				m_pFindPosX[i] = m_pFindPosX[k];
+//				m_pFindPosY[i] = m_pFindPosY[k];
+//				m_pFindScore[i] = m_pFindScore[k];
+//				m_pFindScale[i] = m_pFindScale[k];
+//				m_pFindAngle[i] = m_pFindAngle[k];
+//				m_pFindCovg[i] = m_pFindCovg[k];
+//				m_pFindFitErr[i] = m_pFindFitErr[k];
+//				/* 기존 가장 높은 값을 검색 기준 값으로 변경 */
+//				m_pFindPosX[k] = dbPosX;
+//				m_pFindPosY[k] = dbPosY;
+//				m_pFindScore[k] = dbScore;
+//				m_pFindScale[k] = dbScale;
+//				m_pFindAngle[k] = dbAngle;
+//				m_pFindCovg[k] = dbCovg;
+//				m_pFindFitErr[k] = dbFitErr;
+//			}
+//		}
 		/* 강제로 검색 개수를 최종 찾고자 하는 개수로 설정 */
-		miModResults = u32MaxCount;
+		//miModResults = u32MaxCount;
 	}
 
 	if (bSucc)

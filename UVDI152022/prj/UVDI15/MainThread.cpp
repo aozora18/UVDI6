@@ -366,7 +366,10 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 			case ENG_BWOK::en_env_calib: m_pWorkJob = new EnvironmentalCalibWork();	break;
 
 			//case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CPHE(data));	break;
-			case ENG_BWOK::en_expo_only		: m_pWorkJob = new CWorkExpoOnly(LPG_CELA(data));	break;
+			case ENG_BWOK::en_expo_only		: 
+				m_pWorkJob = new CWorkExpoOnly(LPG_CELA(data));	
+			break;
+
 			case ENG_BWOK::en_expo_align	: 
 			{
 				bool loaded = uvCmn_Luria_IsJobNameLoaded();
@@ -375,8 +378,17 @@ BOOL CMainThread::RunWorkJob(ENG_BWOK job_id, PUINT64 data, bool calledByRelayWo
 					m_pWorkJob = new CWorkRecipeLoad(job_id,0xff, ENG_BWOK::en_expo_align);
 				else
 				{
-					auto expoAlign = new CWorkExpoAlign();
-					m_pWorkJob = static_cast<CWorkStep*>(expoAlign);
+					auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+
+					if (motion.markParams.alignMotion == ENG_AMOS::none || motion.markParams.alignType == ENG_ATGL::en_global_0_local_0x0_n_point)
+					{
+						m_pWorkJob = new CWorkExpoOnly(data == nullptr ? nullptr :  LPG_CELA(data));
+					}
+					else
+					{
+						auto expoAlign = new CWorkExpoAlign();
+						m_pWorkJob = static_cast<CWorkStep*>(expoAlign);
+					}
 				}
 			}
 			break;

@@ -32,7 +32,9 @@ CWorkExpoOnly::CWorkExpoOnly(LPG_CELA expo)
 	//memcpy(&m_stExpoInfo, expo, sizeof(STG_CPHE));
 	
 	m_stExpoLog.Init();
-	memcpy(&m_stExpoLog, expo, sizeof(STG_CELA));
+
+	if(expo != nullptr)
+		memcpy(&m_stExpoLog, expo, sizeof(STG_CELA));
 
 }
 

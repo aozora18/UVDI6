@@ -341,53 +341,70 @@ void CMilDisp::OverlayDC_Flip(MIL_ID fi_MilBuf, FlipDir dir)
 /* desc : Overlay 관련 함수 - Box List DC 출력 */
 void CMilDisp::OverlayDC_Box(MIL_ID fi_MilBuf, int fi_iDispType, int fi_iNo, double fi_dRateX, double fi_dRateY)
 {
-
-
 #ifndef _NOT_USE_MIL_
 	MbufControl(fi_MilBuf, M_DC_ALLOC, M_DEFAULT);
-	HDC	OverlayDC = (HDC)MbufInquire(fi_MilBuf, M_DC_HANDLE, M_NULL);
-
-	int iCnt;
-	int x1, x2, y1, y2;
-	unsigned long oc_red = 0L, oc_green = 150L, oc_blue = 0L;
-
-	if (OverlayDC != M_NULL)
+	try
 	{
-		CDC NewDC;
+		HDC	OverlayDC = (HDC)MbufInquire(fi_MilBuf, M_DC_HANDLE, M_NULL);
 
-		NewDC.Attach(OverlayDC);
-		
-		NewDC.SetBkMode(TRANSPARENT);
-		NewDC.SelectStockObject(NULL_BRUSH);
 
-		CPen     m_pen;
-		CPen* m_penOld;
-		
+		int iCnt;
+		int x1, x2, y1, y2;
+		unsigned long oc_red = 0L, oc_green = 150L, oc_blue = 0L;
 
-		for (iCnt = 0; iCnt < clBoxList[fi_iDispType][fi_iNo].cnt; iCnt++)
+		if (MappGetError(M_CURRENT, M_NULL) != M_NULL)
 		{
-			oc_red = (unsigned long)GetRValue(clBoxList[fi_iDispType][fi_iNo].c[iCnt]);
-			oc_green = (unsigned long)GetGValue(clBoxList[fi_iDispType][fi_iNo].c[iCnt]);
-			oc_blue = (unsigned long)GetBValue(clBoxList[fi_iDispType][fi_iNo].c[iCnt]);
-
-			m_pen.CreatePen(clBoxList[fi_iDispType][fi_iNo].style[iCnt], 1, RGB(oc_red, oc_green, oc_blue));
-			m_penOld = NewDC.SelectObject(&m_pen);
-
-			x1 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].left * fi_dRateX + 0.5);
-			x2 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].right * fi_dRateX + 0.5);
-			y1 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].top * fi_dRateY + 0.5);
-			y2 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].bottom * fi_dRateY + 0.5);
-
-			NewDC.Rectangle(x1, y1, x2, y2);
-
-			NewDC.SelectObject(m_penOld);
-			m_pen.DeleteObject();
+			// MIL 내부 에러 → null 반환
+			OverlayDC = M_NULL;
+			MappGetError(M_CURRENT + M_PRINT_DISABLE, M_NULL); // 에러 플래그 클리어
 		}
 
-		// Detach the device context.
-		NewDC.Detach();
+
+		if (OverlayDC != M_NULL)
+		{
+			CDC NewDC;
+
+			NewDC.Attach(OverlayDC);
+
+			NewDC.SetBkMode(TRANSPARENT);
+			NewDC.SelectStockObject(NULL_BRUSH);
+
+			CPen     m_pen;
+			CPen* m_penOld;
+
+
+			for (iCnt = 0; iCnt < clBoxList[fi_iDispType][fi_iNo].cnt; iCnt++)
+			{
+				oc_red = (unsigned long)GetRValue(clBoxList[fi_iDispType][fi_iNo].c[iCnt]);
+				oc_green = (unsigned long)GetGValue(clBoxList[fi_iDispType][fi_iNo].c[iCnt]);
+				oc_blue = (unsigned long)GetBValue(clBoxList[fi_iDispType][fi_iNo].c[iCnt]);
+
+				m_pen.CreatePen(clBoxList[fi_iDispType][fi_iNo].style[iCnt], 1, RGB(oc_red, oc_green, oc_blue));
+				m_penOld = NewDC.SelectObject(&m_pen);
+
+				x1 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].left * fi_dRateX + 0.5);
+				x2 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].right * fi_dRateX + 0.5);
+				y1 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].top * fi_dRateY + 0.5);
+				y2 = (long)(clBoxList[fi_iDispType][fi_iNo].r[iCnt].bottom * fi_dRateY + 0.5);
+
+				NewDC.Rectangle(x1, y1, x2, y2);
+
+				NewDC.SelectObject(m_penOld);
+				m_pen.DeleteObject();
+			}
+
+			// Detach the device context.
+			NewDC.Detach();
+		}
+		MbufControl(fi_MilBuf, M_DC_FREE, M_DEFAULT);
+
 	}
-	MbufControl(fi_MilBuf, M_DC_FREE, M_DEFAULT);
+	catch(exception e)
+	{
+	
+	}
+	
+
 #endif
 }
 

@@ -882,10 +882,10 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 
 					CStringArray options;
 					options.Add(_T("Single"));
-					options.Add(_T("Cent_side"));
+//					options.Add(_T("Cent_side"));
 					options.Add(_T("Multi_only"));
-					options.Add(_T("Ring_cirecle"));
-					options.Add(_T("Ph_step"));
+					//options.Add(_T("Ring_cirecle"));
+					//options.Add(_T("Ph_step"));
 
 					CGridCellCombo* pComboCell1 = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
 
@@ -899,22 +899,22 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 					{
 						pComboCell1->SetText(_T("Single"));
 					}
-					else if (2 == stParam.GetInt())
+					/*else if (2 == stParam.GetInt())
 					{
 						pComboCell1->SetText(_T("Cent_side"));
-					}
-					else if (3 == stParam.GetInt())
+					}*/
+					else if (2 == stParam.GetInt())
 					{
 						pComboCell1->SetText(_T("Multi_only"));
 					}
-					else if (4 == stParam.GetInt())
+					/*else if (4 == stParam.GetInt())
 					{
 						pComboCell1->SetText(_T("Ring_cirecle"));
 					}
 					else if (5 == stParam.GetInt())
 					{
 						pComboCell1->SetText(_T("Ph_step"));
-					}
+					}*/
 				}
 				else if (stParam.strName == _T("ALIGN_MOTION"))
 				{
@@ -2256,10 +2256,10 @@ void CDlgJob::OnClickGridAlignParameterChanged(NMHDR* pNotifyStruct, LRESULT* pR
 		{
 			options = 0;
 			if (_T("Single") == strValue)				options = 1;
-			else if (_T("Cent_side") == strValue)		options = 2;
-			else if (_T("Multi_only") == strValue)		options = 3;
-			else if (_T("Ring_cirecle") == strValue)	options = 4;
-			else if (_T("Ph_step") == strValue)			options = 5;
+			//else if (_T("Cent_side") == strValue)		options = 2;
+			else if (_T("Multi_only") == strValue)		options = 2;
+			//else if (_T("Ring_cirecle") == strValue)	options = 4;
+			//else if (_T("Ph_step") == strValue)			options = 5;
 			else
 			{
 				return;

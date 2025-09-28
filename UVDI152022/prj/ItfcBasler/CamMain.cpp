@@ -202,20 +202,27 @@ BOOL CCamMain::AttachDevice()
 */
 VOID CCamMain::DetachDevice()
 {
-#if 0
-	if (m_pCamera && m_pCamera->IsGrabbing())
-#else
-	if (m_pCamera && m_pCamera->IsPylonDeviceAttached())
-#endif
+	__try
 	{
-		m_pCamera->StopGrabbing();
-#if 1
-		m_pCamera->DeregisterConfiguration(this);
-		m_pCamera->DeregisterImageEventHandler(this);
+#if 0
+		if (m_pCamera && m_pCamera->IsGrabbing())
+#else
+		if (m_pCamera && m_pCamera->IsPylonDeviceAttached())
 #endif
-		if (m_pCamera->IsOpen())	m_pCamera->Close();
-		m_pCamera->DetachDevice();
-		m_pCamera->DestroyDevice();
+		{
+			m_pCamera->StopGrabbing();
+#if 1
+			m_pCamera->DeregisterConfiguration(this);
+			m_pCamera->DeregisterImageEventHandler(this);
+#endif
+			if (m_pCamera->IsOpen())	m_pCamera->Close();
+			m_pCamera->DetachDevice();
+			m_pCamera->DestroyDevice();
+		}
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+
 	}
 }
 

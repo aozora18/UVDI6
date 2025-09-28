@@ -6,6 +6,15 @@
 #include "MainApp.h"
 #include "MilModel.h"
 #include "stdafx.h"
+#include <vector>
+#include <cmath>
+#include <random>
+#include <algorithm>
+#include <utility>
+
+#ifdef max
+#undef max
+#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -15,7 +24,7 @@ static CHAR THIS_FILE[] = __FILE__;
 
 #define USE_MIXED_MARK_CALC_AVERAGE	0	/* 여러 개의 검색된 마크들의 평균 값 구할지 여부 */
 #define	MAX_EDGE_LINE_FIND_COUNT	25
-
+std::pair<double, double> EstimateCircleCenterRobust(int n, const double* xs, const double* ys);
 /*
  desc : 생성자
  parm : config		- [in]  Config Info.
@@ -651,34 +660,23 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 	/* 검색된 모든 Mark 값에 대한 유효 여부 설정 */
 	for (i = 0x00; i < m_u8MarkFindGet; i++)
 	{
+		if (m_pstModResult[i].model_index != 0) continue;;
 		/* 기본 값 설정 */
 		m_pstModResult[i].mark_width = UINT32(ROUNDED(m_pstModelSize[m_pstModResult[i].model_index].x, 0));
 		m_pstModResult[i].mark_height = UINT32(ROUNDED(m_pstModelSize[m_pstModResult[i].model_index].y, 0));
 		m_pstModResult[i].mark_method = (UINT8)m_enMarkMethod;
 		/* 이미 ModDefine 함수에서 Scale Rate Min ~ Max 값과 Acceptance (Score) Rate 이상 값만 검색 */
 		/* 하기 위한 검색 조건을 설정 했기 때문에 아래, 필터 (Interlock) 조건은 필요 없음. 주석처리 */
-#if 0
-		/* 여기서 검색 조건 (Only score_rate, scale_rate)에 맞지 않는 것은 걸러 낸다 */
-		/* 찾고자 하는 모델 (Mark)의 크기가 대부분 작기 때문에, scale보다 score에 비중을 둠 */
-#if 1
-		if (m_pstModResult[i].score_rate >= m_dbRecipeScore &&
-			m_pstModResult[i].scale_rate >= m_dbRecipeScale)
-#else
-		if (m_pstModResult[i].score_rate >= m_dbRecipeScore)
-#endif
-#endif
 		{
 			m_pstModResult[i].valid_multi = 0x01;
-			/* 중심 마크가 여러 개인 경우, 1개만 인정해야 하므로 */
+//		/* 찾고자 하는 모델 (Mark)의 크기가 대부분 작기 때문에, scale보다 score에 비중을 둠 */
 			if (ENG_MMSM::en_cent_side == m_enMarkMethod &&
 				m_pstModResult[i].model_index == 0x00)
 			{
 				if (!pstMain)	pstMain = &m_pstModResult[i];
 				else
 				{
-					/* 기존 검색된 마크와 비교. (Scale로만 비교. Score는 배제) 진행 */
-					/* 검색된 마크가 뚜렷해야 하기 때문에, scale이 가장 좋은게 우선 */
-					/* 보통 2중 링 구조로 되어 있다보니, score보다 scale에 가장 가까운게 맞을듯 */
+
 					if (pstMain->scale_rate < m_pstModResult[i].scale_rate)
 					{
 						pstMain->valid_multi = 0x00;		/* 기존 값은 유효하지 않다고 플래그 설정 */
@@ -688,43 +686,7 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 			}
 		}
 	}
-#if 0	/* 일단 마크 검색 속도 저하 때문에, 일단 소스에서 배제 처리 */
-	/* 검색된 외곽 마크들의 간격이 최소한의 자신의 반지름 이상 (중심 간의 거리) 떨어져 있는지 확인 */
-	if (ENG_MMSM::en_ring_circle != m_enMarkMethod)
-	{
-		for (i = 0x00; i < m_u8MarkFindGet; i++)
-		{
-			/* 값이 유효한 경우만 검색 */
-			if (!m_pstModResult[i].IsValid())	continue;
-			/* 마크 중심에 있는 경우는 검사하지 않음 */
-			if (ENG_MMSM::en_cent_side == m_enMarkMethod &&
-				m_pstModResult[i].model_index == 0x00)	continue;
-			/* 중심 마크 이외의 검색된 마크들 간의 떨어진 간격 */
-			for (j = i + 1; j < m_u8MarkFindGet; j++)
-			{
-				/* 값이 유효한 경우만 검색 */
-				if (!m_pstModResult[j].IsValid())	continue;
-				/* 마크 중심에 있는 경우는 검사하지 않음 */
-				if (ENG_MMSM::en_cent_side == m_enMarkMethod &&
-					m_pstModResult[i].model_index == 0x00)	continue;
-				/* 2개의 마크의 중심 간의 떨어진 거리 (Pixel) 구하기 */
-				dbDistCent = sqrt(pow(m_pstModResult[j].cent_x - m_pstModResult[i].cent_x, 2) +
-					pow(m_pstModResult[j].cent_y - m_pstModResult[i].cent_y, 2));
-				/* 해당 모델의 크기 */
-				dbMarkSize = m_pstModResult[j].GetMarkSize() > m_pstModResult[i].GetMarkSize() ?
-					m_pstModResult[j].GetMarkSize() : m_pstModResult[i].GetMarkSize();
-				/* 2개의 검색된 마크의 중심 거리가 각각 반지름 크기보다 가깝다면 1개를 버린다 */
-				/* 1개를 버릴 때는, 2개 중 가장 높은 점수 (score)를 남겨두고, 나머지는 버린다 */
-				if (dbMarkSize / 2.0f > dbDistCent)
-				{
-					/* 가장 높은 점수 검색 */
-					k = m_pstModResult[j].score_rate > m_pstModResult[i].score_rate ? i : j;
-					m_pstModResult[k].valid_multi = 0x00;
-				}
-			}
-		}
-	}
-#endif
+
 
 	/* 각 마크 검색 조건에 따라, 검색된 마크가 유효한지 다시 한번 검사 진행 */
 	switch (m_enMarkMethod) 
@@ -1018,6 +980,31 @@ BOOL CMilModel::CalcMarkMultiOnly(STG_DBXY& cent, DOUBLE& rate)
 	/* 반환 값 초기화 */
 	cent.x = cent.y = 0.0f;
 	rate = 0.0f;
+
+	std::vector<double> vxs, vys;
+	
+	for (; i < m_u8MarkFindGet; i++)
+	{
+		if (m_pstModResult[i].valid_multi == false)continue;
+		vxs.push_back(m_pstModResult[i].cent_x);
+		vys.push_back(m_pstModResult[i].cent_y);
+	}
+
+	std::pair<double, double> center = std::make_pair(nan(""), nan(""));
+
+	if(vxs.empty() == false && vys.empty() == false)
+		center = EstimateCircleCenterRobust(vxs.size(), &(*vxs.begin()), &(*vys.begin()));
+
+	if (!std::isnan(center.first) && !std::isnan(center.second))
+	{
+		cent.x = center.first;
+		cent.y = center.second;
+		rate = 100.0f;
+		return true; 
+	}
+	return false; //아래안씀 씨벌.
+	
+
 
 	/* 사각형 영역의 Boundary 값 구하기 */
 	for (; i < m_u8MarkFindGet; i++)
@@ -1762,11 +1749,15 @@ VOID CMilModel::SetMarkMethod(ENG_MMSM method, UINT8 count)
 	m_enMarkMethod = method;
 	switch (method)
 	{
-	case ENG_MMSM::en_single:	m_u8MarkFindSet = 0x01;	break;
+	case ENG_MMSM::en_single:	
+		m_u8MarkFindSet = 0x01;	
+	break;
 	case ENG_MMSM::en_ring_circle:	m_u8MarkFindSet = 0x02;	break;
 	case ENG_MMSM::en_ph_step:	m_u8MarkFindSet = 0x02;	break;
 	case ENG_MMSM::en_cent_side:
-	case ENG_MMSM::en_multi_only:	m_u8MarkFindSet = count;	break;
+	case ENG_MMSM::en_multi_only:	
+		m_u8MarkFindSet = count;	
+		break;
 	}
 }
 
@@ -2844,51 +2835,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
 			bSucc = FALSE;	/* 작업 실패 */
 		}
-		/* 만약 찾고자 하는 개수보다 많이 검색된 경우, Score or Scale 값이 가장 높은 순 (내림차순)으로 정렬 */
-//		else
-//		{
-//			/* 마지막 원소 전까지 비교하면 되므로 n-1 개수만큼 비교 */
-//			for (i = 0; i < miModResults ; i++)
-//			{
-////				k = i;	/* 기준 인덱스 */
-////				for (j = i + 1; j < miModResults; j++)
-////				{
-////#if 0
-////					/* SCALE 값이 0.000f 값에 가장 가까운 값일수록 좋음  */
-////					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 값에 가장 가까운 값이 높은 점수임 */
-////#else
-////					/* SCORE 값이 100.000 값에 가장 가까운 값일수록 좋음 */
-////					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* 가장 높은 값일수록 높음 점수임 */
-////#endif
-////				}
-//				/* 기존 위치 값 임시 백업 */
-//				dbPosX = m_pFindPosX[i];
-//				dbPosY = m_pFindPosY[i];
-//				dbScore = m_pFindScore[i];
-//				dbScale = m_pFindScale[i];
-//				dbAngle = m_pFindAngle[i];
-//				dbCovg = m_pFindCovg[i];
-//				dbFitErr = m_pFindFitErr[i];
-//				/* 현재 검색 기준 위치에 가장 높은 값으로 변경 */
-//				m_pFindPosX[i] = m_pFindPosX[k];
-//				m_pFindPosY[i] = m_pFindPosY[k];
-//				m_pFindScore[i] = m_pFindScore[k];
-//				m_pFindScale[i] = m_pFindScale[k];
-//				m_pFindAngle[i] = m_pFindAngle[k];
-//				m_pFindCovg[i] = m_pFindCovg[k];
-//				m_pFindFitErr[i] = m_pFindFitErr[k];
-//				/* 기존 가장 높은 값을 검색 기준 값으로 변경 */
-//				m_pFindPosX[k] = dbPosX;
-//				m_pFindPosY[k] = dbPosY;
-//				m_pFindScore[k] = dbScore;
-//				m_pFindScale[k] = dbScale;
-//				m_pFindAngle[k] = dbAngle;
-//				m_pFindCovg[k] = dbCovg;
-//				m_pFindFitErr[k] = dbFitErr;
-//			}
-//		}
-		/* 강제로 검색 개수를 최종 찾고자 하는 개수로 설정 */
-		//miModResults = u32MaxCount;
+		
 	}
 
 	if (bSucc)
@@ -2936,27 +2883,137 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 	return miModResults > 0;
 }
 
+static inline bool CircleFrom3(double x1, double y1, double x2, double y2, double x3, double y3,
+	double& cx, double& cy, double& R) {
+	const double d = 2.0 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+	if (std::fabs(d) < 1e-9) return false;
+	const double x1p = x1 * x1 + y1 * y1, x2p = x2 * x2 + y2 * y2, x3p = x3 * x3 + y3 * y3;
+	cx = (x1p * (y2 - y3) + x2p * (y3 - y1) + x3p * (y1 - y2)) / d;
+	cy = (x1 * (x2p - x3p) + x2 * (x3p - x1p) + x3 * (x1p - x2p)) / d;
+	R = std::hypot(x1 - cx, y1 - cy);
+	return std::isfinite(cx) && std::isfinite(cy) && std::isfinite(R);
+}
+
+static inline bool FitCircleLS(const std::vector<std::pair<double, double>>& P,
+	double& cx, double& cy, double& R) {
+	const int n = (int)P.size(); if (n < 3) return false;
+	double Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0, Sxxx = 0, Syyy = 0, Sxxy = 0, Sxyy = 0;
+	for (auto& p : P) {
+		double x = p.first, y = p.second, xx = x * x, yy = y * y;
+		Sx += x; Sy += y; Sxx += xx; Syy += yy; Sxy += x * y;
+		Sxxx += xx * x; Syyy += yy * y; Sxxy += xx * y; Sxyy += x * yy;
+	}
+	double A[3][4] = {
+		{2 * Sx,  2 * Sy,  -2.0 * n, Sxx + Syy},
+		{2 * Sxx, 2 * Sxy, -2 * Sx,  Sxxx + Sxyy},
+		{2 * Sxy, 2 * Syy, -2 * Sy,  Sxxy + Syyy}
+	};
+	for (int col = 0; col < 3; ++col) {
+		int piv = col;
+		for (int r = col + 1; r < 3; ++r) if (std::fabs(A[r][col]) > std::fabs(A[piv][col])) piv = r;
+		if (std::fabs(A[piv][col]) < 1e-12) return false;
+		if (piv != col) for (int c = col; c < 4; c++) std::swap(A[piv][c], A[col][c]);
+		double div = A[col][col];
+		for (int c = col; c < 4; c++) A[col][c] /= div;
+		for (int r = 0; r < 3; r++) {
+			if (r == col) continue;
+			double f = A[r][col];
+			for (int c = col; c < 4; c++) A[r][c] -= f * A[col][c];
+		}
+	}
+	double Cx = A[0][3], Cy = A[1][3], C0 = A[2][3];
+	cx = Cx; cy = Cy;
+	double r2 = cx * cx + cy * cy - C0;
+	R = (r2 > 0) ? std::sqrt(r2) : 0.0;
+	return true;
+}
+
+// n: 검출된 점 개수, xs/ys: 각 점 좌표. 기대 개수 K=16 고정.
+// 리턴: (cx, cy). 실패 시 (NaN, NaN)
+std::pair<double, double> EstimateCircleCenterRobust(int n, const double* xs, const double* ys)
+{
+	const int K = 16;                 // 기대 도트 수
+	if (n < 3) return { NAN,NAN };
+
+	// --- 1) RANSAC로 대략 원 추정 ---
+	std::mt19937 rng(0xC0FFEE);
+	std::uniform_int_distribution<int> uni(0, n - 1);
+	int bestInl = -1; double Cx = 0, Cy = 0, R = 0;
+	for (int it = 0; it < 300; ++it) {
+		int i = uni(rng), j = uni(rng), k = uni(rng);
+		if (i == j || j == k || i == k) continue;
+		double cx, cy, r;
+		if (!CircleFrom3(xs[i], ys[i], xs[j], ys[j], xs[k], ys[k], cx, cy, r)) continue;
+		double tol = std::max(1.0, r * 0.03); // 반지름 3% or 최소 1px
+		int inl = 0;
+		for (int t = 0; t < n; ++t) {
+			double rr = std::hypot(xs[t] - cx, ys[t] - cy);
+			if (std::fabs(rr - r) <= tol) ++inl;
+		}
+		if (inl > bestInl) { bestInl = inl; Cx = cx; Cy = cy; R = r; }
+	}
+	if (bestInl < 3) return { NAN,NAN };
+
+	// --- 2) 반지름 밴드 컷 & 섹터링으로 고스트 제거 ---
+	// 반지름 밴드
+	std::vector<int> keepIdx;
+	keepIdx.reserve(n);
+	double rTol = std::max(1.0, R * 0.03);
+	for (int t = 0; t < n; ++t) {
+		double rr = std::hypot(xs[t] - Cx, ys[t] - Cy);
+		if (std::fabs(rr - R) <= rTol) keepIdx.push_back(t);
+	}
+	if (keepIdx.size() < 3) return { NAN,NAN };
+
+	// 섹터링(각도 기반 K등분, 섹터당 1개만)
+	std::vector<std::vector<int>> buckets(K);
+	buckets.assign(K, {});
+	for (int idx : keepIdx) {
+		double th = std::atan2(ys[idx] - Cy, xs[idx] - Cx);
+		if (th < 0) th += 2 * M_PI;
+		int bin = (int)std::floor(th * (K / (2 * M_PI)));
+		if (bin >= K) bin -= K;
+		buckets[bin].push_back(idx);
+	}
+
+	std::vector<std::pair<double, double>> finalPts;
+	finalPts.reserve(K);
+	for (int b = 0; b < K; ++b) {
+		if (buckets[b].empty()) continue;
+		// 섹터 안에서 반지름 편차가 최소인 점 선택
+		auto& v = buckets[b];
+		std::sort(v.begin(), v.end(), [&](int i, int j) {
+			double di = std::fabs(std::hypot(xs[i] - Cx, ys[i] - Cy) - R);
+			double dj = std::fabs(std::hypot(xs[j] - Cx, ys[j] - Cy) - R);
+			return di < dj;
+			});
+		finalPts.emplace_back(xs[v[0]], ys[v[0]]);
+	}
+	if (finalPts.size() < 3) return { NAN,NAN };
+
+	// --- 3) 최종 원 재피팅(최소제곱) 및 센터 산출 ---
+	double fx, fy, fR;
+	if (!FitCircleLS(finalPts, fx, fy, fR)) {
+		// 실패 시 fallback: 단순 평균
+		double sx = 0, sy = 0; for (auto& p : finalPts) { sx += p.first; sy += p.second; }
+		fx = sx / finalPts.size(); fy = sy / finalPts.size();
+	}
+	return { fx, fy };
+}
+
+
 /* desc : Geometric Model Find */
 BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 img_id, UINT8 dlg_id, UINT8 mark_no, BOOL useMilDisp, UINT8 img_proc)
 {
+	std::pair < double, double > center;
+
 	if (!m_mlModelID[mark_no])
 		return FALSE;
-
+	
 	if (dlg_id == DISP_TYPE_MARK_LIVE || dlg_id == DISP_TYPE_MARK)
 		dlg_id = DISP_TYPE_MARK_LIVE;
 	
-	// lk91 ProcImage() 사용..
-	//theApp.clMilMain.ProcImage(m_camid-1, 0);
-	
 	theApp.clMilMain.ProcImage(m_camid - 1, img_proc == 1 ? 1 : 0);
-
-	//if (img_proc == 1)// lk91 이미지 처리 전역 변수 추가
-	//{
-	//	theApp.clMilMain.ProcImage(m_camid-1, 1);
-	//}
-	//else {
-	//	theApp.clMilMain.ProcImage(m_camid-1, 0);
-	//}
 
 	if(m_findMode[mark_no] == 1)
 	{
@@ -2964,39 +3021,6 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		return brtn;
 	}
 
-	// lk91 임시!!!!!!!!!!!!!!!
-	//int HIST_NUM_INTENSITIES = 256;
-	//MIL_ID HistResult;
-	//MIL_INT    HistValues[256];
-	//MimAllocResult(theApp.clMilMain.m_mSysID, HIST_NUM_INTENSITIES, M_HIST_LIST, &HistResult);
-	//MimHistogram(theApp.clMilMain.m_mImgProc[m_camid - 1], HistResult);
-	//MimGetResult(HistResult, M_VALUE, HistValues);
-
-	//int    Contrast[256] = { 0, };
-	//int cnt = 0;
-	//bool Chk = true;
-
-	//for (int i = 0; i < 256; i++) {
-	//	if (Chk && HistValues[i] > 10000) { // lk91 10000은 자잘한거 제거한 것...좀더 확실한 값을... 찾아보쟈
-	//		Contrast[cnt] = i;
-	//		cnt++;
-	//		Chk = false;
-	//	}
-	//	else if (!Chk && HistValues[i] < 10000) {
-	//		Contrast[cnt] = i;
-	//		cnt++;
-	//		Chk = true;
-	//	}
-	//}
-	//
-	//int result_con;
-	//if (cnt == 1)
-	//	result_con = 255 - Contrast[0];
-	//else
-	//	result_con = Contrast[cnt - 1] - Contrast[0];
-
-	//MimFree(HistResult);
-	// lk91 임시!!!!!!!!!!!!!!!
 
 	UINT8 u8ScaleSize = 0x00 /* equal */; /* 0x01 : ScaleUp, 0x02 : ScaleDown */
 	BOOL bSucc = TRUE;
@@ -3004,12 +3028,13 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	UINT32 u32GrabWidth = 0, u32GrabHeight = 0, i, j, k;
 	UINT32 u32MaxCount;
 	if (dlg_id != DISP_TYPE_CALB_EXPO)
-		u32MaxCount = m_pstConfig->mark_find.max_mark_find;
+		u32MaxCount = m_u8MarkFindSet;
 	else if (dlg_id == DISP_TYPE_CALB_ACCR)
 		u32MaxCount = theApp.clMilMain.GetMarkFindedCount(m_camid);
 	else
 		u32MaxCount = 2;
-
+	
+	
 	DOUBLE dbGrabCentX = 0.0f, dbGrabCentY = 0.0f/*,*/ /*dbLineDist = 0.0f,*/ /*dbModelSize*/;
 	DOUBLE dbPosX, dbPosY, dbScore, dbScale, dbAngle, dbCovg, dbFitErr, dbCircleR;
 	MIL_ID mlResult = M_NULL, miModResults = 0, miOperation;
@@ -3052,7 +3077,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SIZE_X, theApp.clMilMain.rectSearhROI[m_camid - 1].right - theApp.clMilMain.rectSearhROI[m_camid - 1].left);
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SIZE_Y, theApp.clMilMain.rectSearhROI[m_camid - 1].bottom - theApp.clMilMain.rectSearhROI[m_camid - 1].top);
 	}
-	MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
+	MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 40);
 	MmodPreprocess(m_mlModelID[mark_no], M_DEFAULT); // find 할때 Preprocess 하도록...
 
 	MIL_DOUBLE m_ModelType;
@@ -3066,6 +3091,9 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 
 	/* Get the number of models found. */
 	MmodGetResult(mlResult, M_DEFAULT, M_NUMBER + M_TYPE_MIL_INT, &miModResults);
+
+
+
 	if (miModResults < 1)
 	{
 		swprintf_s(tzData, 128, L"Not all mark were found : search (%u) / found (%u)",
@@ -3091,7 +3119,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	TRACE(L"CMilModel::RunModelFind::Mark Find Count = %d\n", miModResults);
 #endif
 	/* If a model was found above the acceptance threshold */
-	if (miModResults > u32MaxCount)	miModResults = u32MaxCount;
+	
 	/* Read results */
 	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* 모델 여러개 등록했을 때, 검색된 모델의 번호 */
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_X, m_pFindPosX);
@@ -3104,11 +3132,47 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	if (m_ModelType == M_CIRCLE)
 		MmodGetResult(mlResult, M_DEFAULT, M_RADIUS, m_pFindCircleRadius);
 
+
+	
+
 	/* 복합 마크 검색 방식일 경우, 검색 대상 개수만큼 찾지 못했는지 여부 확인 */
 	if (ENG_MMSM::en_cent_side == m_enMarkMethod || ENG_MMSM::en_multi_only == m_enMarkMethod)
 	{
-		if (miModResults < m_u8MarkFindSet)
+
+		const double scoreCut = 10;
+		std::vector<int> validIdx;
+		validIdx.reserve(miModResults);
+		for (int i = 0; i < miModResults; ++i)
 		{
+			if (m_pFindFitErr[i] < scoreCut && m_pFindScore[i] > 80 && m_pFindPosX[i] > 100 && m_pFindPosY[i] > 100)
+				validIdx.push_back(i);
+		}
+		miModResults = (int)validIdx.size();
+
+		for (int k = 0; k < miModResults; ++k)
+		{
+			int idx = validIdx[k];
+			m_pFindPosX[k] = m_pFindPosX[idx];
+			m_pFindPosY[k] = m_pFindPosY[idx];
+			m_pFindScore[k] = m_pFindScore[idx];
+			m_pFindScale[k] = m_pFindScale[idx];
+			m_pFindAngle[k] = m_pFindAngle[idx];
+			m_pFindCovg[k] = m_pFindCovg[idx];
+			m_pFindFitErr[k] = m_pFindFitErr[idx];
+			if (m_ModelType == M_CIRCLE)
+				m_pFindCircleRadius[k] = m_pFindCircleRadius[idx];
+		}
+
+
+		if (miModResults > u32MaxCount)
+			miModResults = u32MaxCount;
+		
+		 center = EstimateCircleCenterRobust(miModResults, m_pFindPosX, m_pFindPosY);
+
+		if (miModResults < m_u8MarkFindSet && (std::isnan(center.first) || std::isnan(center.second))) //다 찾지못했거나, 찾은결과가 영 시원찮을때./
+		{
+			center.first = 0;
+			center.second = 0;
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miModResults));
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
@@ -3161,11 +3225,12 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 			}
 		}
 		/* 강제로 검색 개수를 최종 찾고자 하는 개수로 설정 */
-		miModResults = m_u8MarkFindSet;
+		
 	}
 	// X 기준 sorting 
 	//if (ENG_MMSM::en_ph_step == m_enMarkMethod) {
-	if (dlg_id == DISP_TYPE_CALB_EXPO) {
+	if (dlg_id == DISP_TYPE_CALB_EXPO) 
+	{
 		if (miModResults < m_u8MarkFindSet)
 		{
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
@@ -3219,15 +3284,16 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 
 		}
 		
+		
+
 		/* 강제로 검색 개수를 최종 찾고자 하는 개수로 설정 */
 		miModResults = m_u8MarkFindSet;
 	}
 
 	//if (useMilDisp && (dlg_id == DISP_TYPE_MARK_LIVE || dlg_id == DISP_TYPE_MARK)) {
 	if (useMilDisp && (dlg_id != DISP_TYPE_EXPO && dlg_id != DISP_TYPE_CALB_EXPO)) {
-		if (bSucc)
+		if (bSucc || (miModResults != 0 && (ENG_MMSM::en_cent_side == m_enMarkMethod || ENG_MMSM::en_multi_only == m_enMarkMethod)))
 		{
-
 			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid-1,FlipDir::X); //lk91 임시, fi_No인데.. m_camid 넣음
 			for (i = 0; i < miModResults; i++) {
 				CRect	rectArea;
@@ -3238,12 +3304,13 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 
 				//if (dlg_id == DISP_TYPE_CALB_CAMSPEC || dlg_id == DISP_TYPE_CALB_EXPO) {
 				if (dlg_id == DISP_TYPE_CALB_CAMSPEC || dlg_id == DISP_TYPE_CALB_ACCR) {
-					theApp.clMilDisp.AddCrossList(dlg_id, m_camid - 1, (int)m_pFindPosX[i]- tmpSearchROI.left, (int)m_pFindPosY[i]- tmpSearchROI.top, 200, 200, COLOR_GREEN);
+					theApp.clMilDisp.AddCrossList(dlg_id, m_camid - 1, (int)m_pFindPosX[i]- tmpSearchROI.left, (int)m_pFindPosY[i]- tmpSearchROI.top, 100, 100, COLOR_GREEN);
 					theApp.clMilDisp.AddBoxList(dlg_id, m_camid - 1, rectArea.left- tmpSearchROI.left, rectArea.top- tmpSearchROI.top,
 						rectArea.right- tmpSearchROI.left, rectArea.bottom- tmpSearchROI.top, PS_SOLID, COLOR_GREEN);
 				}
-				else {
-					theApp.clMilDisp.AddCrossList(dlg_id, m_camid - 1, (int)m_pFindPosX[i], (int)m_pFindPosY[i], 200, 200, COLOR_GREEN);
+				else 
+				{
+					theApp.clMilDisp.AddCrossList(dlg_id, m_camid - 1, (int)m_pFindPosX[i], (int)m_pFindPosY[i], 100, 100, COLOR_GREEN);
 					theApp.clMilDisp.AddBoxList(dlg_id, m_camid - 1, rectArea.left, rectArea.top, rectArea.right, rectArea.bottom, PS_SOLID, COLOR_GREEN);
 				}
 
@@ -3268,15 +3335,15 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
 					m_pFindPosX[i], m_pFindPosY[i], u8ScaleSize, m_pFindCircleRadius[i]);
 			}
-			// lk91 model 찾고 싶은데 못찾음....
-			//miOperation = M_MODEL + M_DRAW_BOX + M_DRAW_EDGES + M_DRAW_POSITION;
-			////MgraColor(graph_id/*M_DEFAULT*/, M_COLOR_RED);
-			//MgraColor(M_DEFAULT, M_COLOR_RED);
-			////MmodDraw(M_DEFAULT, mlResult, theApp.clMilMain.m_mOverlay_Mark_Live, miOperation, 0, M_DEFAULT);
-			//MmodDraw(M_DEFAULT, mlResult, theApp.clMilMain.m_mImgDisp_Mark_Live, miOperation, 0, M_DEFAULT);
+
+			
+			if (ENG_MMSM::en_cent_side == m_enMarkMethod || ENG_MMSM::en_multi_only == m_enMarkMethod)
+				theApp.clMilDisp.AddCrossList(dlg_id, m_camid - 1, (int)center.first, (int)center.second, 200, 200, eM_COLOR_DARK_RED);
+
 			theApp.clMilDisp.DrawOverlayDC(true, dlg_id, m_camid - 1,FlipDir::X);
 		}
-		else {
+		else 
+		{
 			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid - 1);
 			CString sTmp = _T("NG");
 			//AddTextList(int fi_iDispType, int fi_iNo, int fi_iX, int fi_iY, CString fi_sText, int fi_color, int fi_iSizeX, int fi_iSizeY, CString fi_sFont, bool fi_bEgdeFlag)
@@ -3857,11 +3924,15 @@ BOOL CMilModel::SetModelDefinePAT(PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, C
 	return TRUE;
 }
 
+
+
+
 BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, UINT8 mark_no, TCHAR* file,
 	DOUBLE scale_min, DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt)
 {
 #ifndef _NOT_USE_MIL_
-	if (ENG_MMDT(m_pstMarkModel[mark_no].type) != ENG_MMDT::en_image ) {
+	if (ENG_MMDT(m_pstMarkModel[mark_no].type) != ENG_MMDT::en_image ) 
+	{
 
 		/* 기존 설정되어 있다면 일단 해제 */
 		ReleaseMarkModel(mark_no, 0);

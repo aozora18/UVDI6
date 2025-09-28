@@ -324,7 +324,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE s
 			{
 				bmmfFile = true;
 				for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
-					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
+					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, pstMark->findCount, dbSmooth,
 						pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(pstMark->file),
 						dbScaleMin, dbScaleMax, dbScoreRate);
 			}
@@ -595,10 +595,17 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2:
 					stAlignRecipe.gain_level[nCntParam - EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
-				case EN_RECIPE_ALIGN::SEARCH_TYPE: stAlignRecipe.search_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
-					break;
-				case EN_RECIPE_ALIGN::SEARCH_COUNT: stAlignRecipe.search_count = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
-					break;
+
+				case EN_RECIPE_ALIGN::SEARCH_TYPE: 
+					
+				break;
+
+				case EN_RECIPE_ALIGN::SEARCH_COUNT: 
+
+					stAlignRecipe.search_count = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+					stAlignRecipe.search_type = stAlignRecipe.search_count == 1 ? 1 : 3; //3 은 멀티온리// GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				break;
+
 				case EN_RECIPE_ALIGN::MARK_AREA_WIDTH: stAlignRecipe.mark_area[0] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
 				case EN_RECIPE_ALIGN::MARK_AREA_HEIGHT: stAlignRecipe.mark_area[1] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);

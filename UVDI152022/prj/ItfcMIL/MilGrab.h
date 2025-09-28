@@ -40,8 +40,8 @@ protected:
 	DOUBLE				m_dbRecipeScore;
 	DOUBLE				m_dbRecipeScale;
 
-	LPG_GMSR			m_pstResultAll;		/* 기타 결과 저장 (검색된 Mark 영역을 그리기 위함) */
-	LPG_ACGR			m_pstGrabResult;	/* 최종 결과 저장 */
+	LPG_GMSR			m_pstResultAll = nullptr;		/* 기타 결과 저장 (검색된 Mark 영역을 그리기 위함) */
+	LPG_ACGR			m_pstGrabResult = nullptr;	/* 최종 결과 저장 */
 
 
 /* 로컬 함수 */

@@ -80,37 +80,44 @@ BOOL CCamThread::StartWork()
 VOID CCamThread::RunWork() 
 {
 	UINT8 u8CamID	= (m_u8CamNext % m_u8CamCount);
-
-	/* 현재 카메라가 연결되어 있는지 확인 */
-	if (!m_pCamMain[u8CamID]->IsConnected())
+	__try
 	{
-		/* 연결 해제 상태 */
-		UpdateLinkTime(u8CamID+1, 0x00);
-
-		/* 기존 연결되어 있는 카메라 연결 강제로 해제 시킴 */
-		m_pCamMain[u8CamID]->DetachDevice();
-		/* 특정 시간 마다 주기적으로 Open 수행 */
-		if (m_u64AttachTime+1000 < GetTickCount64())
+		/* 현재 카메라가 연결되어 있는지 확인 */
+		if (!m_pCamMain[u8CamID]->IsConnected())
 		{
-			/* 연결 시도 */
-			m_pCamMain[u8CamID]->AttachDevice();
-			m_u64AttachTime	= GetTickCount64();
+			/* 연결 해제 상태 */
+			UpdateLinkTime(u8CamID + 1, 0x00);
+
+			/* 기존 연결되어 있는 카메라 연결 강제로 해제 시킴 */
+			m_pCamMain[u8CamID]->DetachDevice();
+			/* 특정 시간 마다 주기적으로 Open 수행 */
+			if (m_u64AttachTime + 1000 < GetTickCount64())
+			{
+				/* 연결 시도 */
+				m_pCamMain[u8CamID]->AttachDevice();
+				m_u64AttachTime = GetTickCount64();
+			}
 		}
+		else
+		{
+			/* 연결 완료 상태 */
+			UpdateLinkTime(u8CamID + 1, 0x01);
+
+			/* 연결되어 있다면, 현재 Grabbed Image가 존재하는지 확인 후, 검색 진행 */
+			if (ENG_VCCM::en_grab_mode == m_pCamMain[u8CamID]->GetCamMode())
+			{
+				ProcGrabbedImage(u8CamID + 1, m_pCamMain[u8CamID]->GetDispType(), m_u8ImgProc);
+			}
+		}
+
+		/* 등록된 카메라 대수보다 크면, 0 값으로 초기화 수행 */
+		if (++m_u8CamNext == m_u8CamCount)	m_u8CamNext = 0x00;
 	}
-	else
+	__except (EXCEPTION_EXECUTE_HANDLER)
 	{
-		/* 연결 완료 상태 */
-		UpdateLinkTime(u8CamID+1, 0x01);
 
-		/* 연결되어 있다면, 현재 Grabbed Image가 존재하는지 확인 후, 검색 진행 */
-		if (ENG_VCCM::en_grab_mode == m_pCamMain[u8CamID]->GetCamMode())
-		{
-			ProcGrabbedImage(u8CamID+1, m_pCamMain[u8CamID]->GetDispType(), m_u8ImgProc);
-		}
 	}
-
-	/* 등록된 카메라 대수보다 크면, 0 값으로 초기화 수행 */
-	if (++m_u8CamNext == m_u8CamCount)	m_u8CamNext	= 0x00;
+	
 }
 
 /*

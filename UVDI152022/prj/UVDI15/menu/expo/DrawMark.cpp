@@ -126,7 +126,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 	UINT8 i, j, k		= 0x00;
 	UINT8 u8ACams = motion == ENG_AMOS::en_onthefly_2cam || motion == ENG_AMOS::en_static_2cam ? 2 : alignMotion.markParams.centerCamIdx;
 	UINT8 u8ImgNo		= (page_no - 1) * u8ACams, u8ImgId, u8Index, u8Mark=0x00;
-	TCHAR tzMark[128]	= {NULL};
+	TCHAR tzMark[512]	= {NULL};
 	/*BOOL bRedraw		= FALSE;*/
 	LPG_ACGR pstMark	= NULL;
 
@@ -153,7 +153,7 @@ VOID CDrawMark::DrawMark(UINT8 page_no)
 
 				uvEng_Camera_DrawMarkMBufID(m_hDraw[i], m_rDraw[i], u8ACams, i, pstMark->img_id);
 				
-				swprintf_s(tzMark, 128, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.3f] [Y %+4.3f] [mm]",
+				swprintf_s(tzMark, 512, L"[%d.%02d] [SCORE %6.3f] [SCALE %6.3f %u] [%%] [X %+4.3f] [Y %+4.3f] [mm]",
 					u8ACams, u8ImgId + 1, pstMark->score_rate, pstMark->scale_rate, pstMark->scale_size,
 					pstMark->move_mm_x , pstMark->move_mm_y );
 				

@@ -223,7 +223,7 @@ BOOL CMarkUVDI15::ParseModel(PCHAR data, UINT32 size)
 
 	
 	///* 일단, 주어진 문자열 중에서 콤마(',') 개수가 7개인지 확인 */
-	if (u32Find != 7)
+	if (u32Find != 7 && u32Find != 8)
 	{
 		AfxMessageBox(L"Failed to analyse the value from model <mark_model> file", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
@@ -247,6 +247,7 @@ BOOL CMarkUVDI15::ParseModel(PCHAR data, UINT32 size)
 
 	/* 모델 형식이 MMF 파일이 아닌 경우 */
 	//if (pstData->find_type == 0 && ENG_MMDT(pstData->type) != ENG_MMDT::en_image)
+	const int searchCount = 7;
 	if (ENG_MMDT(pstData->type) != ENG_MMDT::en_image)
 	{
 		const int param1 = 2, param2 = 3, param3 = 4, param4 = 5, param5 = 6;
@@ -265,6 +266,9 @@ BOOL CMarkUVDI15::ParseModel(PCHAR data, UINT32 size)
 		pstData->iOffsetP.x = stoi(tokens[markCenterX]);
 		pstData->iOffsetP.y = stoi(tokens[markCenterY]);
 	}
+
+	if (u32Find == 8) //신규추가 찾기카운트
+		pstData->findCount = stoi(tokens[searchCount]);
 
 	/* 메모리에 분석된 Model 데이터 등록 */
 	m_lstModel.AddTail(pstData);
@@ -1115,16 +1119,16 @@ BOOL CMarkUVDI15::SaveModel()
 		//if (pstModel->find_type == 1 || ENG_MMDT(pstModel->type) == ENG_MMDT::en_image)
 		if (ENG_MMDT(pstModel->type) == ENG_MMDT::en_image)
 		{
-			sprintf_s(szData, 256, "%s,%u,%s,%d,%d,%d,%d,",
+			sprintf_s(szData, 256, "%s,%u,%s,%d,%d,%d,%d,%d,",
 				pstModel->name, pstModel->type, pstModel->file,
-				pstModel->iSizeP.x, pstModel->iSizeP.y, pstModel->iOffsetP.x, pstModel->iOffsetP.y);
+				pstModel->iSizeP.x, pstModel->iSizeP.y, pstModel->iOffsetP.x, pstModel->iOffsetP.y,pstModel->findCount);
 				//pstModel->name, pstModel->type, pstModel->find_type, pstModel->file,
 				//pstModel->iSizeP.x, pstModel->iSizeP.y, pstModel->iOffsetP.x, pstModel->iOffsetP.y);
 		}
 		else
 		{
 			//sprintf_s(szData, 256, "%s,%u,%u,%.1f,%.4f,%.4f,%.4f,%.4f,",
-			sprintf_s(szData, 256, "%s,%u,%.1f,%.4f,%.4f,%.4f,%.4f,",
+			sprintf_s(szData, 256, "%s,%u,%.1f,%.4f,%.4f,%.4f,%.4f,%d,",
 				pstModel->name,
 				pstModel->type,
 				//pstModel->find_type,
@@ -1132,7 +1136,8 @@ BOOL CMarkUVDI15::SaveModel()
 				pstModel->param[1],
 				pstModel->param[2],
 				pstModel->param[3],
-				pstModel->param[4]);
+				pstModel->param[4],
+				pstModel->findCount);
 		}
 		fputs(szData, fp);
 		fputs("\n", fp);

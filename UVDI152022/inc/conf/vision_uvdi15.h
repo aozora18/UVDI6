@@ -502,8 +502,9 @@ typedef struct __st_config_model_parameter_value__
 	CPoint	iOffsetP;		// Mark Center	(AreaBox의 (left,top)를 원점으로 봤을 때의 좌표..) - mark_model.dat에 값 저장
 	CRect	rectSearchArea;	// Search Area - cam or 시퀀스별 진행
 	double	dScore;			// 매칭률... 공통
+	int findCount = 1;
 	// lk91 vision 추가
-
+	
 	/*
 	 desc : 초기화
 	 parm : None
@@ -524,6 +525,10 @@ typedef struct __st_config_model_parameter_value__
 	*/
 	BOOL IsValid()
 	{
+
+		if (findCount < 1)
+			return FALSE;
+
 		if (ENG_MMDT(type) == ENG_MMDT::en_image)
 			return (strlen(file) != 0) ? TRUE : FALSE;
 			//return TRUE; 

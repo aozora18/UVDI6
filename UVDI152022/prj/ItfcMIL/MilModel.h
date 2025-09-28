@@ -178,7 +178,10 @@ public:
 #endif
 
 	/* 검색 결과 반환 */
-	LPG_GMFR			GetFindMark(UINT8 index)		{	return &m_pstModResult[index];		};
+	LPG_GMFR			GetFindMark(UINT8 index)		
+	{	
+		return &m_pstModResult[index];		
+	};
 	LPG_GMFR			GetFindMarkAll()				
 	{	
 		return m_pstModResult;				

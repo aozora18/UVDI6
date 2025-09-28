@@ -2,6 +2,11 @@
 /*
  desc : Mark Model
 */
+
+#ifdef max
+#undef max
+#endif
+
 using namespace std;
 
 #include "pch.h"
@@ -107,10 +112,15 @@ VOID CDlgMark::DoDataExchange(CDataExchange* dx)
 	//DDX_Control(dx, IDC_MARK_IDC_MARK_GRP_SEARCH_RESULT_2, m_pic_img[eMARK_PIC_MAX - 1]); 
 	/* static - normal */
 	u32StartID	= IDC_MARK_TXT_SIZE_1;
-	for (i=0; i< eMARK_TXT_MAX; i++)	DDX_Control(dx, u32StartID+i,	m_txt_ctl[i]);
+	for (i=0; i<= eMARK_TXT_CALIB_SUB; i++)	DDX_Control(dx, u32StartID+i,	m_txt_ctl[i]);
+
+	DDX_Control(dx, IDC_STATIC_MARK_SEARCH_COUNT, m_txt_ctl[eMARK_TXT_SEARCH_COUNT]);
+
 	/* edit - recipe */
-	u32StartID	= IDC_MARK_EDT_MODEL_NAME;
-	for (i=0; i< eMARK_EDT_TXT_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_edt_txt[i]);
+	
+	DDX_Control(dx, IDC_MARK_EDT_MODEL_NAME,m_edt_txt[eMARK_EDT_TXT_MODEL_NAME]);
+	DDX_Control(dx, IDC_EDIT_FINDCOUNT, m_edt_txt[eMARK_EDT_TXT_SEARCH_COUNT]); //<-신규추가 찾을마크갯수.
+
 	/* edit - recipe */
 	u32StartID	= IDC_MARK_EDT_MMF;
 	for (i=0; i< eMARK_EDT_CTL_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_edt_ctl[i]);
@@ -119,7 +129,8 @@ VOID CDlgMark::DoDataExchange(CDataExchange* dx)
 	for (i=0; i< eMARK_EDT_FLOAT_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_edt_flt[i]);
 	/* edit - float for input */
 	u32StartID	= IDC_MARK_EDT_CENT_ERR_X;
-	for (i=0; i< eMARK_EDT_OUT_MAX; i++)		DDX_Control(dx, u32StartID+i,	m_edt_out[i]);
+	for (i=0; i< eMARK_EDT_OUT_MAX; i++)		
+		DDX_Control(dx, u32StartID+i,	m_edt_out[i]);
 	/* button - normal */
 	u32StartID	= IDC_MARK_BTN_MODEL_APPEND;
 	for (i=0; i< eMARK_BTN_MARK_TEST_GRAB; i++)	DDX_Control(dx, u32StartID+i,	m_btn_ctl[i]);
@@ -556,6 +567,7 @@ VOID CDlgMark::InitCtrl()
 		// by sysandj : Resize UI
 	}
 
+
 // 	for (i = 0; i < eMARK_CHK_AXS_MAX; i++)
 // 	{
 // 		m_chk_axs[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
@@ -603,6 +615,8 @@ VOID CDlgMark::InitCtrl()
 	{
 		clsResizeUI.ResizeControl(this, GetDlgItem(IDC_MARK_PIC_MODEL_1 + i));
 	}
+
+
 
 	for (i = 0; i < eMARK_CHK_IMG_MAX; i++)
 	{
@@ -918,14 +932,22 @@ VOID CDlgMark::OnGridMarkList(NMHDR *nm_hdr, LRESULT *result) // lk91 미사용.
 */
 VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result) 
 {
+	
+
 	NM_GRIDVIEW* pstGrid = (NM_GRIDVIEW*)nm_hdr;
+	if (pstGrid == nullptr || pstGrid->iRow < 0)
+		return;
+
 	LPG_CMPV pstRecipe = m_pGridModel->GetRecipe(pstGrid->iRow);
 	CUniToChar csCnv;
 
 	//UINT8 u8ACamID = m_chk_cam[eMARK_CHK_CAM_ACAM_1].GetCheck() ? 0x01 : 0x02;
 	UINT8 u8ACamID = CheckSelectCam();
 
-	uvEng_Camera_SetMarkMethod(ENG_MMSM::en_single, 0);
+	if(pstRecipe->findCount > 1)
+		uvEng_Camera_SetMarkMethod(ENG_MMSM::en_multi_only, pstRecipe->findCount);
+	else
+		uvEng_Camera_SetMarkMethod(ENG_MMSM::en_single);
 
 	if (pstRecipe)
 	{
@@ -964,7 +986,7 @@ VOID CDlgMark::OnGridModelList(NMHDR* nm_hdr, LRESULT* result)
 			stModel.type = (UINT32)m_pDrawModel[0]->GetModelType();		// lk91 m_pDrawModel[0] 고정하는 이유는 mark 탭에서는 한개만 사용(동일한 값)
 			for (int j = 0; j < 5; j++)	stModel.param[j] = m_pDrawModel[0]->GetParam(j);
 			for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++) {
-				uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
+				uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, pstRecipe->findCount, dbSmooth,
 					&stModel, TMP_MARK, csCnv2.Ansi2Uni(stModel.file),	
 					dbScaleMin, dbScaleMax, dbScoreRate);
 			}
@@ -1143,6 +1165,8 @@ VOID CDlgMark::UpdateModel(LPG_CMPV recipe)
 		}
 		/* 나머지 Model Size 비우기 */
 		for (; i< 4; i++)	m_edt_flt[i].SetTextToStr(L"", TRUE);
+
+		
 	}
 	else
 	{
@@ -1155,6 +1179,7 @@ VOID CDlgMark::UpdateModel(LPG_CMPV recipe)
 		for (i=0x00; i<4; i++)	m_edt_flt[i].SetTextToStr(L"", TRUE);
 		OutputFileMARK(csCnv.Ansi2Uni(recipe->file));
 	}
+	m_edt_txt[eMARK_EDT_TXT_SEARCH_COUNT].SetTextToNum(recipe->findCount);
 }
 
 /*
@@ -1176,7 +1201,7 @@ VOID CDlgMark::RecipeReset(UINT8 mode)
 	/* 갱신 활성화 */
 	SetRedraw(TRUE);
 	Invalidate(TRUE);
-
+	m_edt_txt[eMARK_EDT_TXT_SEARCH_COUNT].SetTextToStr(L"1");
 	/* ModelInMark 그리드 초기화 */
 	m_pGridModelInMark->UpdateModels(NULL);
 }
@@ -1278,6 +1303,8 @@ VOID CDlgMark::ModelAppend(UINT8 mode)
 	else if (m_chk_clr[eMARK_CHK_CLR_WHITE	].GetCheck())		stRecipe.param[0] = 2;
 	else if (m_chk_clr[eMARK_CHK_CLR_ANY	].GetCheck())		stRecipe.param[0] = 3;
 
+	int temp = m_edt_txt[eMARK_EDT_TXT_SEARCH_COUNT].GetTextToNum();
+	stRecipe.findCount = temp < 1 ? 1 : temp;
  
 	/* Model Type */
 	stRecipe.type	= (UINT32)GetModelType();
@@ -1288,6 +1315,9 @@ VOID CDlgMark::ModelAppend(UINT8 mode)
 		stRecipe.param[2]	= m_edt_flt[eMARK_EDT_FLOAT_SIZE_2].GetTextToDouble();
 		stRecipe.param[3]	= m_edt_flt[eMARK_EDT_FLOAT_SIZE_3].GetTextToDouble();
 		stRecipe.param[4]	= m_edt_flt[eMARK_EDT_FLOAT_SIZE_4].GetTextToDouble();
+		
+		
+		
 	}
 	else
 	{
@@ -1469,6 +1499,8 @@ VOID CDlgMark::UpdateModelText()
 	/* 컨트롤 갱신 비활성화 */
 	for (i=0; i<= eMARK_TXT_SIZE_4; i++)	m_txt_ctl[i].SetRedraw(FALSE);
 	
+//	m_edt_txt[eMARK_EDT_TXT_SEARCH_COUNT].SetTextToNum(1);
+
 	if (m_chk_typ[eMARK_CHK_TYP_MODEL_CIRCLE].GetCheck())
 	{
 		m_txt_ctl[eMARK_TXT_SIZE_1].SetWindowTextW(L"Circle Size(um)");
@@ -1515,6 +1547,8 @@ VOID CDlgMark::UpdateModelText()
 			m_edt_flt[i].SetWindowTextW(L"");
 		}
 	}
+
+
 
 	/* 컨트롤 갱신 비활성화 */
 	for (i = eMARK_TXT_SIZE_1; i <= eMARK_TXT_SIZE_4; i++)

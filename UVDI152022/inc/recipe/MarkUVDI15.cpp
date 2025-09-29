@@ -392,6 +392,11 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 		}
 	}
 
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[0] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[1] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[2] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[3] = (UINT8)std::atoi(szValue); });
+
 	/* 메모리에 분석된 Model 데이터 등록 */
 	m_lstAlignRecipe.AddTail(pstRecipe);
 	stTempRecipe.Close();

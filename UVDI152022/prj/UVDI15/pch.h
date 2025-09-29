@@ -455,6 +455,14 @@ public:
 
 		return TRUE;
 	}
+
+	__int64 ElapsedTicks() const
+	{
+		__int64 now = m_nTickCountStop ? m_nTickCountStop : const_cast<CTactTimeCheck*>(this)->GetTickCount();
+		__int64 pause = m_nTickCountPauseStop - m_nTickCountPauseStart; // 사용 안 했으면 0
+		return (now - m_nTickCountStart) - pause;
+	}
+
 	__int64 GetTickCount()
 	{
 		LARGE_INTEGER li;
@@ -486,9 +494,8 @@ public:
 	}
 	__int64 GetTactMs()
 	{
-		ASSERT(m_nTickPerSec);
-		__int64	lnTickCountPauseTime = m_nTickCountPauseStop - m_nTickCountPauseStart;
-		return (__int64)((double)((m_nTickCountStop - m_nTickCountStart) - lnTickCountPauseTime) / m_dTickPerMs);
+		if (m_nTickPerSec == 0) return -1;   // Init 실패 방어
+		return (__int64)((double)ElapsedTicks() / m_dTickPerMs);
 	}
 	__int64 GetTactUs()
 	{

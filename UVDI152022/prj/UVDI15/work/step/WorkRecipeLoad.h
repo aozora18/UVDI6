@@ -24,6 +24,7 @@ protected:
 
 	UINT8				m_u8Offset;
 	UINT8				m_u8WaitLoaded;
+	UINT16				m_u16LampValue[8];
 
 	UINT64				m_u64TickLoaded;
 
@@ -48,6 +49,8 @@ protected:
 #if 1
 	ENG_JWNS			IsGerberJobLoaded();
 #endif
+	ENG_JWNS			SetLampJobParam();
+	ENG_JWNS			IsLampJobParam();
 	VOID				PhilRecipeLoadComp(UINT8 state);
 	VOID				PhilRecipeInit();
 /* 공용 함수 */

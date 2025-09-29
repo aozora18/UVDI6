@@ -62,7 +62,12 @@ BOOL CWorkRecipeLoad::InitWork()
 	/* InitWork 에서는 1 값으로 고정 됐지만, 여기서는 다시 2 값으로 변경해야 함 */
 	m_u8SetPhNo		= 2;	/* Photohead Offset 값 적용 대상은 2번 Photohead 부터 임 */
 	/* 전체 작업 단계 */
-	m_u8StepTotal	= 0x25;
+#if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
+	m_u8StepTotal = 0x27;
+#elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
+	m_u8StepTotal = 0x25;
+	//m_u8StepTotal = 0x27;
+#endif
 	//m_u8StepTotal = 37;
 
 	/*Recipe Comp 이벤트 Falue 변경*/
@@ -159,6 +164,8 @@ VOID CWorkRecipeLoad::DoWork()
 	/* 작업 적재 여부 화면 */
 	case 0x25 : m_enWorkState = IsGerberJobLoaded();			break;
 #endif
+	case 0x26: m_enWorkState = SetLampJobParam();			break;
+	case 0x27: m_enWorkState = IsLampJobParam();			break;
 	}
 
 	/* 다음 작업 진행 여부 판단 */
@@ -546,6 +553,92 @@ ENG_JWNS CWorkRecipeLoad::IsGerberJobLoaded()
 	/* Job Param 데이터가 설정되어 있는지 여부 */
 	return bLoaded ? ENG_JWNS::en_next : ENG_JWNS::en_wait;
 }
+#endif
+
+
+/*
+ desc : Camera Lamp 값 설정
+ parm : None
+ retn : wait, error, complete or next
+*/
+ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
+{
+	CUniToChar	csCnv;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	//LPG_RAAF pstAlignRecipe = uvEng_Mark_GetSelectAlignRecipe();
+	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
+
+	/*선택된 Lamp값 외에 값 0 값으로 변경*/
+	for (int i = 0; i < 8; i++)
+	{
+		m_u16LampValue[i] = 0;
+	}
+	/*Camra Lamp Type Amber*/
+	if (pstAlignRecipe->lamp_type == 0)
+	{
+		m_u16LampValue[0] = (UINT16)pstAlignRecipe->lamp_value[0];
+		m_u16LampValue[1] = (UINT16)pstAlignRecipe->lamp_value[1];
+	}
+	/*Camra Lamp Type IR*/
+	else if (pstAlignRecipe->lamp_type == 1)
+	{
+		m_u16LampValue[2] = (UINT16)pstAlignRecipe->lamp_value[2];
+		m_u16LampValue[3] = (UINT16)pstAlignRecipe->lamp_value[3];
+	}
+	/*Camra Lamp Type Coaxial*/
+	else if (pstAlignRecipe->lamp_type == 2)
+	{
+		m_u16LampValue[4] = (UINT16)pstAlignRecipe->lamp_value[4];
+		m_u16LampValue[5] = (UINT16)pstAlignRecipe->lamp_value[5];
+	}
+
+	GlobalVariables::GetInstance()->ResetCounter("strobeRecved");
+
+	/*Strobe 값 입력*/
+	/*Cam1*/
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, m_u16LampValue[0]);
+	Sleep(100);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 1, m_u16LampValue[2]);
+	Sleep(100);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 2, m_u16LampValue[4]);
+	Sleep(100);
+
+	/*Cam2*/
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 4, m_u16LampValue[1]);
+	Sleep(100);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, m_u16LampValue[3]);
+	Sleep(100);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, m_u16LampValue[5]);
+	Sleep(100);
+
+	/*빈 채널 초기화*/
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 3, 0);
+	Sleep(100);
+	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 7, 0);
+	Sleep(100);
+
+	return ENG_JWNS::en_next;
+}
+
+/*
+ desc : Camera Lamp 세팅 확인
+ parm : None
+ retn : wait, error, complete or next
+*/
+ENG_JWNS CWorkRecipeLoad::IsLampJobParam()
+{
+	/*Strobe 총 받은 메시지 갯수 확인*/
+	if (GlobalVariables::GetInstance()->GetCount("strobeRecved") == 8)
+	{
+		return ENG_JWNS::en_next;
+	}
+	else
+	{
+		return ENG_JWNS::en_wait;
+	}
+}
+
 
 /*
  desc : Philhmi에 Reicpe Load 완료 신호 보내기
@@ -600,4 +693,3 @@ VOID CWorkRecipeLoad::PhilRecipeInit()
 
 
 }
-#endif

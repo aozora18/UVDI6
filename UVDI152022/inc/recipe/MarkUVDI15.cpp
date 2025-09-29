@@ -351,6 +351,13 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	commandList.push([&](char* szValue) { stTempRecipe.mark_area[0] = (UINT32)std::atoi(szValue); });
 	commandList.push([&](char* szValue) { stTempRecipe.mark_area[1] = (UINT32)std::atoi(szValue); });
 
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[0] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[1] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[2] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[3] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[4] = (UINT8)std::atoi(szValue); });
+	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[5] = (UINT8)std::atoi(szValue); });
+
 	if (commandList.size() > u32Find)
 		throw new exception("over sized!");
 	
@@ -391,11 +398,6 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 			pData = ++pFind;
 		}
 	}
-
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[0] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[1] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[2] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[3] = (UINT8)std::atoi(szValue); });
 
 	/* 메모리에 분석된 Model 데이터 등록 */
 	m_lstAlignRecipe.AddTail(pstRecipe);
@@ -763,12 +765,32 @@ BOOL CMarkUVDI15::SaveAlignRecipe()
 			sprintf_s(szData, 256, "%u,", pstRecipe->mark_area[1]);
 			fputs(szData, fp);
 
+			/* Cam1 Amber 조명 밝기값 (0 ~ 255) */
+			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[0]);
+			fputs(szData, fp);
+			/* Cam2 Amber 조명 밝기값 (0 ~ 255) */
+			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[1]);
+			fputs(szData, fp);
+			/* Cam1 IR 조명 밝기값 (0 ~ 255) */
+			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[2]);
+			fputs(szData, fp);
+			/* Cam2 IR 조명 밝기값 (0 ~ 255) */
+			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[3]);
+			fputs(szData, fp);
+			/* Cam1 Coaxial 조명 밝기값 (0 ~ 255) */
+			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[4]);
+			fputs(szData, fp);
+			/* Cam2 Coaxial 조명 밝기값 (0 ~ 255) */
+			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[5]);
+			fputs(szData, fp);
+
 			/* 모델 정보 저장 */
 			for (i=0; i<pstRecipe->save_count; i++)
 			{
 				sprintf_s(szData, 256,	"%u,", pstRecipe->acam_num[i]);	fputs(szData, fp);
 				sprintf_s(szData, 256,	"%s,", pstRecipe->m_name[i]);	fputs(szData, fp);
 			}
+
 			fputs("\n", fp);
 		}
 	}
@@ -813,6 +835,12 @@ VOID CMarkUVDI15::CopyAlignRecipe(LPG_RAAF source, LPG_RAAF target)
 
 
 	target->lamp_type		= source->lamp_type;
+	target->lamp_value[0] = source->lamp_value[0];
+	target->lamp_value[1] = source->lamp_value[1];
+	target->lamp_value[2] = source->lamp_value[2];
+	target->lamp_value[3] = source->lamp_value[3];
+	target->lamp_value[4] = source->lamp_value[4];
+	target->lamp_value[5] = source->lamp_value[5];
 	target->gain_level[0]	= source->gain_level[0];
 	target->gain_level[1]	= source->gain_level[1];
 	target->search_type		= source->search_type;

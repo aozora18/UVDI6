@@ -591,13 +591,13 @@ BOOL CRecipeManager::SaveRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 
 				case EN_RECIPE_ALIGN::LAMP_TYPE: stAlignRecipe.lamp_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
-				case EN_RECIPE_ALIGN::LAMP_RING_CAM1:
-				case EN_RECIPE_ALIGN::LAMP_RING_CAM2:
-				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
-				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+				case EN_RECIPE_ALIGN::LAMP_AMBER_CAM1:
+				case EN_RECIPE_ALIGN::LAMP_AMBER_CAM2:
 				case EN_RECIPE_ALIGN::LAMP_IR_CAM1:
 				case EN_RECIPE_ALIGN::LAMP_IR_CAM2:
-					stAlignRecipe.lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_RING_CAM1] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
+				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+					stAlignRecipe.lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_AMBER_CAM1] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 					break;
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
 				case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2:
@@ -864,13 +864,13 @@ BOOL CRecipeManager::UpdateAlignRecipe(STG_RAAF& stRecipe, EN_RECIPE_MODE eRecip
 				break;
 			case EN_RECIPE_ALIGN::LAMP_TYPE: stRecipe.lamp_type = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 				break;
-			case EN_RECIPE_ALIGN::LAMP_RING_CAM1:
-			case EN_RECIPE_ALIGN::LAMP_RING_CAM2:
-			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
-			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+			case EN_RECIPE_ALIGN::LAMP_AMBER_CAM1:
+			case EN_RECIPE_ALIGN::LAMP_AMBER_CAM2:
 			case EN_RECIPE_ALIGN::LAMP_IR_CAM1:
 			case EN_RECIPE_ALIGN::LAMP_IR_CAM2:
-				stRecipe.lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_RING_CAM1] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
+			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
+			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+				stRecipe.lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_AMBER_CAM1] = GetRecipe(eRecipeMode)->GetInt(nCntTab, nCntParam);
 				break;
 			case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
 			case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2:
@@ -1075,13 +1075,13 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 					break;
 				case EN_RECIPE_ALIGN::LAMP_TYPE: stParam.SetValue(pstAlignRecipe->lamp_type);
 					break;
-				case EN_RECIPE_ALIGN::LAMP_RING_CAM1:
-				case EN_RECIPE_ALIGN::LAMP_RING_CAM2:
-				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
-				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+				case EN_RECIPE_ALIGN::LAMP_AMBER_CAM1:
+				case EN_RECIPE_ALIGN::LAMP_AMBER_CAM2:
 				case EN_RECIPE_ALIGN::LAMP_IR_CAM1:
 				case EN_RECIPE_ALIGN::LAMP_IR_CAM2:
-					stParam.SetValue(pstAlignRecipe->lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_RING_CAM1]);
+				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
+				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+					stParam.SetValue(pstAlignRecipe->lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_AMBER_CAM1]);
 
 				case EN_RECIPE_ALIGN::ALIGN_MOTION:
 					stParam.SetValue(pstAlignRecipe->align_motion);
@@ -1288,13 +1288,13 @@ BOOL CRecipeManager::LoadRecipe(CString strJobName, CString strExpoName, CString
 					break;
 				case EN_RECIPE_ALIGN::LAMP_TYPE: stParam.SetValue(pstAlignRecipe->lamp_type);
 					break;
-				case EN_RECIPE_ALIGN::LAMP_RING_CAM1:
-				case EN_RECIPE_ALIGN::LAMP_RING_CAM2:
-				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
-				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+				case EN_RECIPE_ALIGN::LAMP_AMBER_CAM1:
+				case EN_RECIPE_ALIGN::LAMP_AMBER_CAM2:
 				case EN_RECIPE_ALIGN::LAMP_IR_CAM1:
 				case EN_RECIPE_ALIGN::LAMP_IR_CAM2:
-					stParam.SetValue(pstAlignRecipe->lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_RING_CAM1]);
+				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
+				case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+					stParam.SetValue(pstAlignRecipe->lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_AMBER_CAM1]);
 					break;
 				case EN_RECIPE_ALIGN::ALIGN_MOTION: stParam.SetValue(pstAlignRecipe->align_motion);
 					break;
@@ -1504,13 +1504,13 @@ BOOL CRecipeManager::LoadAlignRecipe(CString strName, EN_RECIPE_MODE eRecipeMode
 
 			case EN_RECIPE_ALIGN::LAMP_TYPE: stParam.SetValue(pstAlignRecipe->lamp_type);
 				break;
-			case EN_RECIPE_ALIGN::LAMP_RING_CAM1:
-			case EN_RECIPE_ALIGN::LAMP_RING_CAM2:
-			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
-			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+			case EN_RECIPE_ALIGN::LAMP_AMBER_CAM1:
+			case EN_RECIPE_ALIGN::LAMP_AMBER_CAM2:
 			case EN_RECIPE_ALIGN::LAMP_IR_CAM1:
 			case EN_RECIPE_ALIGN::LAMP_IR_CAM2:
-				stParam.SetValue(pstAlignRecipe->lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_RING_CAM1]);
+			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM1:
+			case EN_RECIPE_ALIGN::LAMP_COAXIAL_CAM2:
+				stParam.SetValue(pstAlignRecipe->lamp_value[nCntParam - EN_RECIPE_ALIGN::LAMP_AMBER_CAM1]);
 				break;
 			case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM1:
 			case EN_RECIPE_ALIGN::GAIN_LEVEL_CAM2:

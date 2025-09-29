@@ -826,34 +826,7 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 						pComboCell->SetText(_T("Pattern Image"));
 					}
 				}
-				else if (stParam.strName == _T("LAMP_TYPE"))
-				{
-					CStringArray options;
-					options.Add(_T("Ring"));
-					options.Add(_T("Coaxial"));
-					options.Add(_T("IR"));
 
-					CGridCellCombo* pComboCell = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
-
-					pGrid->SetListMode(FALSE);
-					pGrid->EnableDragAndDrop(TRUE);
-					pGrid->SetItemState(nRow, eJOB_GRD_COL_PARAMETER_VALUE, 0x00);
-
-					pComboCell->SetOptions(options);
-					pComboCell->SetStyle(CBS_DROPDOWN);
-					if (0 == stParam.GetInt())
-					{
-						pComboCell->SetText(_T("Ring"));
-					}
-					else if (1 == stParam.GetInt())
-					{
-						pComboCell->SetText(_T("Coaxial"));
-					}
-					else
-					{
-						pComboCell->SetText(_T("IR"));
-					}
-				}
 				else
 				{
 					CStringArray options;
@@ -921,6 +894,7 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 						pComboCell1->SetText(_T("Ph_step"));
 					}*/
 				}
+
 				else if (stParam.strName == _T("ALIGN_MOTION"))
 				{
 					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
@@ -1042,6 +1016,37 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 					//	pComboCell2->SetText(_T("Global 4 Local 2_5"));
 					//}
 				}
+				else if (stParam.strName == _T("LAMP_TYPE"))
+				{
+					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
+
+					CStringArray options;
+					options.Add(_T("Amber"));
+					options.Add(_T("IR"));
+					options.Add(_T("Coaxial"));
+
+					CGridCellCombo* pComboCell2 = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
+
+					pGrid->SetListMode(FALSE);
+					pGrid->EnableDragAndDrop(TRUE);
+					pGrid->SetItemState(nRow, eJOB_GRD_COL_PARAMETER_VALUE, 0x00);
+
+					pComboCell2->SetOptions(options);
+					pComboCell2->SetStyle(CBS_DROPDOWN);
+
+					if (0 == stParam.GetInt())
+					{
+						pComboCell2->SetText(_T("Amber"));
+					}
+					else if (1 == stParam.GetInt())
+					{
+						pComboCell2->SetText(_T("IR"));
+					}
+					else if (2 == stParam.GetInt())
+					{
+						pComboCell2->SetText(_T("Coaxial"));
+					}
+					}
 				else
 				{
 					CString strTemp = stParam.GetScaledValue();
@@ -1975,7 +1980,7 @@ void CDlgJob::OnClickGridAlignParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 				{
 					return;
 				}
-				else if (stParam.strName == _T("ALIGN_TYPE") || stParam.strName == _T("ALIGN_MOTION")) 
+				else if (stParam.strName == _T("ALIGN_TYPE") || stParam.strName == _T("ALIGN_MOTION") || stParam.strName == _T("LAMP_TYPE"))
 				{
 					return;
 				}
@@ -2296,6 +2301,20 @@ void CDlgJob::OnClickGridAlignParameterChanged(NMHDR* pNotifyStruct, LRESULT* pR
 			else if (_T("Global 4 Local 2_3") == strValue)		options = 0x22;
 			else if (_T("Global 4 Local 2_4") == strValue)		options = 0x23;
 			else if (_T("Global 4 Local 2_5") == strValue)		options = 0x24;*/
+			else
+			{
+				return;
+			}
+
+		}
+
+		else if (stParam.strName == _T("LAMP_TYPE"))
+		{
+			options = 0;
+			if (_T("Amber") == strValue)			options = 0x00;
+			else if (_T("IR") == strValue)			options = 0x01;
+			else if (_T("Coaxial") == strValue)		options = 0x02;
+
 			else
 			{
 				return;

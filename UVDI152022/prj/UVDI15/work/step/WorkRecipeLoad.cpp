@@ -165,7 +165,7 @@ VOID CWorkRecipeLoad::DoWork()
 	case 0x25 : m_enWorkState = IsGerberJobLoaded();			break;
 #endif
 	case 0x26: m_enWorkState = SetLampJobParam();			break;
-	case 0x27: m_enWorkState = IsLampJobParam();			break;
+	case 0x27: m_enWorkState = ENG_JWNS::en_next;			break;
 	}
 
 	/* 다음 작업 진행 여부 판단 */
@@ -593,32 +593,65 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 		m_u16LampValue[5] = (UINT16)pstAlignRecipe->lamp_value[5];
 	}
 
-	GlobalVariables::GetInstance()->ResetCounter("strobeRecved");
+	ENG_JWNS res = ENG_JWNS::en_error;
 
-	/*Strobe 값 입력*/
-	/*Cam1*/
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, m_u16LampValue[0]);
-	Sleep(100);
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 1, m_u16LampValue[2]);
-	Sleep(100);
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 2, m_u16LampValue[4]);
-	Sleep(100);
+	auto setter = [&]() -> bool
+	{
+		GlobalVariables::GetInstance()->ResetCounter("strobeRecved");
+		vector<UINT16> values =
+		{
+			m_u16LampValue[0],m_u16LampValue[2],m_u16LampValue[4],0,m_u16LampValue[1],m_u16LampValue[3],m_u16LampValue[5],0
+		};
 
-	/*Cam2*/
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 4, m_u16LampValue[1]);
-	Sleep(100);
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, m_u16LampValue[3]);
-	Sleep(100);
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, m_u16LampValue[5]);
-	Sleep(100);
+		std::for_each(values.begin(), values.end(), [&](const UINT16& v)
+			{
+				bool exit = false;
+				volatile int cnt = GlobalVariables::GetInstance()->GetCount("strobeRecved");
+				uvEng_StrobeLamp_Send_ChannelStrobeControl(0, cnt, v);
+				bool changed = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					return cnt != GlobalVariables::GetInstance()->GetCount("strobeRecved");
+				}, 500);
 
-	/*빈 채널 초기화*/
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 3, 0);
-	Sleep(100);
-	uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 7, 0);
-	Sleep(100);
+				if (changed == false)
+					return false;
+			});
+		return true;
+	};
+	const int retry = 3;
+	for (int i = 0; i < retry; i++)
+	{
+		if (setter() == true)
+		{
+			res = ENG_JWNS::en_next;
+			break;
+		}
+	}
+	return res;
 
-	return ENG_JWNS::en_next;
+	///*Strobe 값 입력*/
+	///*Cam1*/
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 0, m_u16LampValue[0]);
+	//Sleep(100);
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 1, m_u16LampValue[2]);
+	//Sleep(100);
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 2, m_u16LampValue[4]);
+	//Sleep(100);
+
+	///*Cam2*/
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 4, m_u16LampValue[1]);
+	//Sleep(100);
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 5, m_u16LampValue[3]);
+	//Sleep(100);
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 6, m_u16LampValue[5]);
+	//Sleep(100);
+
+	///*빈 채널 초기화*/
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 3, 0);
+	//Sleep(100);
+	//uvEng_StrobeLamp_Send_ChannelStrobeControl(0, 7, 0);
+	//Sleep(100);
+
 }
 
 /*

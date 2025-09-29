@@ -50,7 +50,7 @@ protected:
 	ENG_JWNS			IsGerberJobLoaded();
 #endif
 	ENG_JWNS			SetLampJobParam();
-	ENG_JWNS			IsLampJobParam();
+	//ENG_JWNS			IsLampJobParam();
 	VOID				PhilRecipeLoadComp(UINT8 state);
 	VOID				PhilRecipeInit();
 /* 공용 함수 */

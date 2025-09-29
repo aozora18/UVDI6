@@ -569,30 +569,18 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 	//LPG_RAAF pstAlignRecipe = uvEng_Mark_GetSelectAlignRecipe();
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 
-	/*선택된 Lamp값 외에 값 0 값으로 변경*/
-	for (int i = 0; i < 8; i++)
-	{
-		m_u16LampValue[i] = 0;
-	}
 	/*Camra Lamp Type Amber*/
-	if (pstAlignRecipe->lamp_type == 0)
-	{
-		m_u16LampValue[0] = (UINT16)pstAlignRecipe->lamp_value[0];
-		m_u16LampValue[1] = (UINT16)pstAlignRecipe->lamp_value[1];
-	}
+	m_u16LampValue[0] = pstAlignRecipe->lamp_type == 0 ? (UINT16)pstAlignRecipe->lamp_value[0] : 0;
+	m_u16LampValue[1] = pstAlignRecipe->lamp_type == 0 ? (UINT16)pstAlignRecipe->lamp_value[1] : 0;
 	/*Camra Lamp Type IR*/
-	else if (pstAlignRecipe->lamp_type == 1)
-	{
-		m_u16LampValue[2] = (UINT16)pstAlignRecipe->lamp_value[2];
-		m_u16LampValue[3] = (UINT16)pstAlignRecipe->lamp_value[3];
-	}
+	
+	m_u16LampValue[2] = pstAlignRecipe->lamp_type == 1 ? (UINT16)pstAlignRecipe->lamp_value[2] : 0;
+	m_u16LampValue[3] = pstAlignRecipe->lamp_type == 1 ? (UINT16)pstAlignRecipe->lamp_value[3] : 0;
+	
 	/*Camra Lamp Type Coaxial*/
-	else if (pstAlignRecipe->lamp_type == 2)
-	{
-		m_u16LampValue[4] = (UINT16)pstAlignRecipe->lamp_value[4];
-		m_u16LampValue[5] = (UINT16)pstAlignRecipe->lamp_value[5];
-	}
-
+	m_u16LampValue[4] = pstAlignRecipe->lamp_type == 2 ? (UINT16)pstAlignRecipe->lamp_value[4] : 0;
+	m_u16LampValue[5] = pstAlignRecipe->lamp_type == 2 ? (UINT16)pstAlignRecipe->lamp_value[5] : 0;
+	
 	ENG_JWNS res = ENG_JWNS::en_error;
 
 	auto setter = [&]() -> bool
@@ -605,7 +593,6 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 
 		std::for_each(values.begin(), values.end(), [&](const UINT16& v)
 			{
-				bool exit = false;
 				volatile int cnt = GlobalVariables::GetInstance()->GetCount("strobeRecved");
 				uvEng_StrobeLamp_Send_ChannelStrobeControl(0, cnt, v);
 				bool changed = GlobalVariables::GetInstance()->Waiter([&]()->bool
@@ -659,18 +646,18 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
  parm : None
  retn : wait, error, complete or next
 */
-ENG_JWNS CWorkRecipeLoad::IsLampJobParam()
-{
-	/*Strobe 총 받은 메시지 갯수 확인*/
-	if (GlobalVariables::GetInstance()->GetCount("strobeRecved") == 8)
-	{
-		return ENG_JWNS::en_next;
-	}
-	else
-	{
-		return ENG_JWNS::en_wait;
-	}
-}
+//ENG_JWNS CWorkRecipeLoad::IsLampJobParam()
+//{
+//	/*Strobe 총 받은 메시지 갯수 확인*/
+//	if (GlobalVariables::GetInstance()->GetCount("strobeRecved") == 8)
+//	{
+//		return ENG_JWNS::en_next;
+//	}
+//	else
+//	{
+//		return ENG_JWNS::en_wait;
+//	}
+//}
 
 
 /*

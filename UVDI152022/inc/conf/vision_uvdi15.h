@@ -583,7 +583,8 @@ typedef struct __st_recipe_align_additional_function_
 	UINT16				align_motion;					/* align 모션타입*/
 #endif
 
-	UINT8				lamp_type;						/* 램프 조명 타입 (0:Ring, 1:Coaxial)					*/
+	UINT8				lamp_type;						/* 램프 조명 타입 (0:Ring, 1:Coaxial 2:IR)				*/
+	UINT8				lamp_value[6];					/* 램프 조명 밝기값 (0: Cam1 Ring, 1: Cam2 Ring, 2: Cam1 Coaxial, Cam2 Coaxial, Cam1 IR, Cam2 IR)*/
 	UINT8				gain_level[2];					/* Align Camera에 대한 Gain Level 값 (0 ~ 255)      */
 	UINT8				search_type;					/* [ENG_MMSM] Mark 검색 방법(0~5) single, cent_side, multi_only, ring_cirecle, ph_step [mark_model]*/
 	UINT8				search_count;					/* 거버 내부에 Global Mark 기준으로 마크 영역마다 표시된 마크 개수 (멀티마크가 아닌 경우는 무조건 1)  */

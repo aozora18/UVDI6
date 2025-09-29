@@ -1589,13 +1589,13 @@ BOOL CConfUvdi15::LoadConfigTrigger(UINT8 mode)
 
 	for (i=0; i<pstCfg->ch_count; i++)
 	{
-		swprintf_s(tzKey, MAX_KEY_STRING, L"TRIG_ON_TIME_%d",	(i % 2)+1);
+		swprintf_s(tzKey, MAX_KEY_STRING, L"TRIG_ON_TIME_%d",	i+1);
 		pstCfg->trig_on_time[i]		= GetConfigUint32(tzKey);
 
-		swprintf_s(tzKey, MAX_KEY_STRING, L"STROBE_ON_TIME_%d",	(i % 2)+1);
+		swprintf_s(tzKey, MAX_KEY_STRING, L"STROBE_ON_TIME_%d", i + 1);
 		pstCfg->strob_on_time[i]	= GetConfigUint32(tzKey);
 
-		swprintf_s(tzKey, MAX_KEY_STRING, L"TRIG_DELAY_TIME_%d",(i % 2)+1);
+		swprintf_s(tzKey, MAX_KEY_STRING, L"TRIG_DELAY_TIME_%d", i + 1);
 		pstCfg->trig_delay_time[i]	= GetConfigUint32(tzKey);
 	}
 	pstCfg->trig_forward	= GetConfigUint32(L"TRIG_FORWARD");

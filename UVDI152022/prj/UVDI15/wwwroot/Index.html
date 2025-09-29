@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absolics UVDI_15</title>
+    <title>Device Monitoring Web Panel</title>
     <style>
         body {
             font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
@@ -101,6 +101,14 @@
         connection = new signalR.HubConnectionBuilder()
             .withUrl("/monitoringhub")
             .configureLogging(signalR.LogLevel.Information)
+            .withAutomaticReconnect({
+            nextRetryDelayInMilliseconds: retryContext => {
+                if (retryContext.previousRetryCount < 1000) {
+                    return 10000; // 10초마다 시도, 최대 1000번 (즉, 약 3시간 시도)
+                }
+                return null; // 포기
+            }
+        })
             .build();
 
         connection.on("ReceiveValues", (str) => {
@@ -199,12 +207,13 @@
 </script>
 </head>
 <body>
-    <H1>Absolics UVDI_15</H1>
+    <H1>Device Monitoring Web Panel</H1>
     <div class="tabs">
         <div class="tab active">Log</div>
         <div class="tab">Monitoring Values</div>
         <div class="tab">Control</div>
         <div class='tab'>Config</div>
+        <div class="tab">Capture</div>
     </div>
 
     <div class="tab-content active">
@@ -223,73 +232,43 @@
         <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
             <input type="text" id="commonParam" placeholder="여기에 입력" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;" />
         </div>
-        <div class="category-title">개별시퀀스 동작</div>
-        <button onclick="sendCommandWithParam('ae')">얼라인 노광</button>
-        <div class="category-title">Config설정초기화</div>
-        <button onclick="sendCommandWithParam('cr')">초기화</button>
+        <button onclick="sendCommandWithParam('_initAF')">af초기화</button>
+        <button onclick="sendCommandWithParam('_internalLDS')">set internal</button>
+        <button onclick="sendCommandWithParam('_externalLDS')">set external</button>
+        <button onclick="sendCommandWithParam('_getLDStype')">센서타입 읽기</button>
+        <button onclick="sendCommandWithParam('_IsldsOn')">센서 on/off상태</button>
+        <button onclick="sendCommandWithParam('_ldsOn')">센서 켜기</button>
+        <button onclick="sendCommandWithParam('_ldsOff')">센서 끄기</button>
+        <button onclick="sendCommandWithParam('_readLDS')">현재 LDS값 읽기</button>
+        <button onclick="sendCommandWithParam('_readSV')">AF STORED VALUE 읽기</button>
+        <button onclick="sendCommandWithParam('_writeSV')">AF STORED VALUE 쓰기</button>
+        <button onclick="sendCommandWithParam('_IsafOn')">AF on/off상태</button>
+        <button onclick="sendCommandWithParam('_afOn')">AF 켜기</button>
+        <button onclick="sendCommandWithParam('_afOff')">AF 끄기</button>
+        <button onclick="sendCommandWithParam('_readAFworkRange')">AF 작동범위 읽기</button>
+        <button onclick="sendCommandWithParam('_writeAFworkRange')">AF 작동범위 쓰기</button>
         <div class="category-title">명령 로그</div>
         <pre id="CmdLogText"></pre>
     </div>
 
     <div class='tab-content'>
-        <div class="category-title">환경변수</div>
-<div class="config-item" data-config-label="lds ThresHold(um)">
-<span>lds ThresHold(um)</span>
-<input type="text" value="50" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('lds ThresHold(um)', 1)" style="height: 30px;">Confirm</button>
 </div>
-<div class="config-item" data-config-label="ups voltage(v)">
-<span>ups voltage(v)</span>
-<input type="text" value="150" style="width: 80px;"/>
-<input type="text" value="330" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('ups voltage(v)', 2)" style="height: 30px;">Confirm</button>
+
+<div class="tab-content">
+        <div class="category-title">캡쳐 이미지</div>
+        <div style="text-align:center;">
+            <img id="captureImage" src="/image.png" style="max-width:100%; border:1px solid #ccc;" />
+            <br />
+            <button onclick="refreshCaptureImage()" style="margin-top:10px;">이미지 새로고침</button>
+        </div>
+        <script>
+        function refreshCaptureImage() {
+            const img = document.getElementById('captureImage');
+            img.src = '/image.png?ts=' + Date.now();
+        }
+        </script>
 </div>
-        <div class="category-title">노광조건</div>
-<div class="config-item" data-config-label="led power1">
-<span>led power1</span>
-<input type="text" value="100" style="width: 80px;"/>
-<input type="text" value="101" style="width: 80px;"/>
-<input type="text" value="102" style="width: 80px;"/>
-<input type="text" value="103" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('led power1', 4)" style="height: 30px;">Confirm</button>
-</div>
-<div class="config-item" data-config-label="led power2">
-<span>led power2</span>
-<input type="text" value="200" style="width: 80px;"/>
-<input type="text" value="201" style="width: 80px;"/>
-<input type="text" value="202" style="width: 80px;"/>
-<input type="text" value="203" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('led power2', 4)" style="height: 30px;">Confirm</button>
-</div>
-<div class="config-item" data-config-label="led power3">
-<span>led power3</span>
-<input type="text" value="300" style="width: 80px;"/>
-<input type="text" value="301" style="width: 80px;"/>
-<input type="text" value="302" style="width: 80px;"/>
-<input type="text" value="303" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('led power3', 4)" style="height: 30px;">Confirm</button>
-</div>
-<div class="config-item" data-config-label="led power4">
-<span>led power4</span>
-<input type="text" value="400" style="width: 80px;"/>
-<input type="text" value="401" style="width: 80px;"/>
-<input type="text" value="402" style="width: 80px;"/>
-<input type="text" value="403" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('led power4', 4)" style="height: 30px;">Confirm</button>
-</div>
-        <div class="category-title">티칭 파라메터</div>
-<div class="config-item" data-config-label="x limit(H,L)">
-<span>x limit(H,L)</span>
-<input type="text" value="1350" style="width: 80px;"/>
-<input type="text" value="0" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('x limit(H,L)', 2)" style="height: 30px;">Confirm</button>
-</div>
-<div class="config-item" data-config-label="y limit(H,L)">
-<span>y limit(H,L)</span>
-<input type="text" value="550" style="width: 80px;"/>
-<input type="text" value="0" style="width: 80px;"/>
-<button onclick="sendConfigUpdate('y limit(H,L)', 2)" style="height: 30px;">Confirm</button>
-</div>
-    </div>
+
+
 </body>
 </html>

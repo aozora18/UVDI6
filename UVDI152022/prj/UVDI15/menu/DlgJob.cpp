@@ -831,6 +831,7 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 					CStringArray options;
 					options.Add(_T("Ring"));
 					options.Add(_T("Coaxial"));
+					options.Add(_T("IR"));
 
 					CGridCellCombo* pComboCell = (CGridCellCombo*)pGrid->GetCell(nRow, eJOB_GRD_COL_PARAMETER_VALUE);
 
@@ -844,9 +845,13 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 					{
 						pComboCell->SetText(_T("Ring"));
 					}
-					else
+					else if (1 == stParam.GetInt())
 					{
 						pComboCell->SetText(_T("Coaxial"));
+					}
+					else
+					{
+						pComboCell->SetText(_T("IR"));
 					}
 				}
 				else

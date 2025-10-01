@@ -650,6 +650,35 @@ void CDlgAuto::UpdateGridProcess()
 	double dPosition = 0.0f;
 	UINT16(*pLed)[8] = uvEng_ShMem_GetLuria()->directph.light_source_driver_temp_led;
 	UINT16 u16TempLed, u16TempBoard;
+	
+	const int sampCnt = 5;
+
+	static map <int, vector<UINT16>> tempBuff;
+	static int callTick = GetTickCount();
+
+	if(callTick + 1000 < GetTickCount())
+	for (int i = 0; i < (int)EN_GRD_PROCESS_COL::_size(); i++) //온도만 따로 뺌.
+	{
+		if (m_pGrd[nGridIndex] == nullptr) continue;
+		if (m_pGrd[nGridIndex]->GetColumnCount() <= i)
+		{
+			break;
+		}
+
+		/* 현재 광학계의 가장 높은 온도를 가진 Led와 Board 값 얻기 */
+		uvEng_ShMem_GetLuria()->directph.GetMaxTempLedBD(i + 1, u16TempLed, u16TempBoard);
+
+		if (tempBuff[i].size() > sampCnt)
+			tempBuff[i].erase(tempBuff[i].begin());
+
+		tempBuff[i].push_back(u16TempLed);
+
+		auto minTemp = min_element(tempBuff[i].begin(), tempBuff[i].end());
+
+		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::TEMP_LED + 1, i + 1, _T("%.1f [°c]"), *minTemp / 10.0f);
+		callTick = GetTickCount();
+	}
+
 
 	for (int i = 0; i < (int)EN_GRD_PROCESS_COL::_size(); i++)
 	{
@@ -662,19 +691,12 @@ void CDlgAuto::UpdateGridProcess()
 		dPosition = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI((int)ENG_MMDI::en_axis_ph1 + i));
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::AF_Z + 1, i + 1, _T("%.1f [mm]"), dPosition);
 
-		//dbTotal = pstPowerI->led_watt[i][0];
-		//dLedTemp = pLed[i][0] / 10.0f;
 		dbTotal = 0;
 		for (int j = 0; j < 4; j++)
 		{
 			dbTotal += pstPowerI->led_watt[i][j];
-			dLedTemp += pLed[i][j] / 10.0f;
 		}
 
-		/* 현재 광학계의 가장 높은 온도를 가진 Led와 Board 값 얻기 */
-		uvEng_ShMem_GetLuria()->directph.GetMaxTempLedBD(i + 1, u16TempLed, u16TempBoard);
-
-		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::TEMP_LED + 1, i + 1, _T("%.1f [°c]"), u16TempLed / 10.0f);
 
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PROCESS_ROW::POWER + 1, i + 1, _T("%.1f [W]"), dbTotal);
 	}

@@ -291,6 +291,7 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	LPG_RAAF pstRecipe = { NULL };
 	const char token = ',';
 
+	
 	if (NULL == data)
 	{
 		return FALSE;
@@ -305,6 +306,10 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	string temp = data;
 	
 	u32Find = std::count(temp.begin(), temp.end(), token);
+
+
+	bool addLightParam = u32Find >= 22;
+
 
 	if (u32Find < 4)
 	{
@@ -351,13 +356,6 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	commandList.push([&](char* szValue) { stTempRecipe.mark_area[0] = (UINT32)std::atoi(szValue); });
 	commandList.push([&](char* szValue) { stTempRecipe.mark_area[1] = (UINT32)std::atoi(szValue); });
 
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[0] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[1] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[2] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[3] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[4] = (UINT8)std::atoi(szValue); });
-	commandList.push([&](char* szValue) { stTempRecipe.lamp_value[5] = (UINT8)std::atoi(szValue); });
-
 	if (commandList.size() > u32Find)
 		throw new exception("over sized!");
 	
@@ -375,11 +373,9 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 	/* 모델 정보 읽어들이기 */
 	if (stTempRecipe.save_count)
 	{
-		CopyAlignRecipe(&stTempRecipe, pstRecipe);
-
 		//pstRecipe->type	= u8MarkType;
 		/* 레시피 이름을 저장할 전체 메모리 할당 */
-		for (i=0; i<UINT16(pstRecipe->save_count); i++)
+		for (i=0; i<UINT16(stTempRecipe.save_count); i++)
 		{
 			/* align camera number (1 or 2) */
 			memset(szValue, 0x00, 32);
@@ -388,16 +384,48 @@ BOOL CMarkUVDI15::ParseAlignRecipe(PCHAR data, UINT32 size)
 			{
 				memcpy(szValue, pData, pFind - pData);
 				pData = ++pFind;
-				pstRecipe->acam_num[i]	= (UINT8)atoi(szValue);
+				stTempRecipe.acam_num[i]	= (UINT8)atoi(szValue);
 			}
 
 			/* Model Name */
 			pFind	= strchr(pData, ',');
 			/* 마크 모델 이름 저장을 위한 버퍼 할당 및 초기화  */
-			memcpy(pstRecipe->m_name[i], pData, pFind - pData);
+			memcpy(stTempRecipe.m_name[i], pData, pFind - pData);
 			pData = ++pFind;
 		}
 	}
+
+	if (addLightParam)
+	{
+		commandList.push([&](char* szValue) { stTempRecipe.lamp_value[0] = (UINT8)std::atoi(szValue); });
+		commandList.push([&](char* szValue) { stTempRecipe.lamp_value[1] = (UINT8)std::atoi(szValue); });
+		commandList.push([&](char* szValue) { stTempRecipe.lamp_value[2] = (UINT8)std::atoi(szValue); });
+		commandList.push([&](char* szValue) { stTempRecipe.lamp_value[3] = (UINT8)std::atoi(szValue); });
+		commandList.push([&](char* szValue) { stTempRecipe.lamp_value[4] = (UINT8)std::atoi(szValue); });
+		commandList.push([&](char* szValue) { stTempRecipe.lamp_value[5] = (UINT8)std::atoi(szValue); });
+
+		while (!commandList.empty())
+		{
+			pFind = strchr(pData, token);
+			memset(szValue, 0x00, _countof(szValue));
+			memcpy(szValue, pData, pFind - pData);
+
+			commandList.front()(szValue); // 람다 호출
+			commandList.pop();
+			pData = ++pFind;
+		}
+	}
+	else
+	{
+		stTempRecipe.lamp_value[0] = 0; //기본값 채워야함.
+		stTempRecipe.lamp_value[1] = 0;
+		stTempRecipe.lamp_value[2] = 0;
+		stTempRecipe.lamp_value[3] = 0;
+		stTempRecipe.lamp_value[4] = 0;
+		stTempRecipe.lamp_value[5] = 0;
+	}
+
+	CopyAlignRecipe(&stTempRecipe, pstRecipe);
 
 	/* 메모리에 분석된 Model 데이터 등록 */
 	m_lstAlignRecipe.AddTail(pstRecipe);
@@ -765,6 +793,13 @@ BOOL CMarkUVDI15::SaveAlignRecipe()
 			sprintf_s(szData, 256, "%u,", pstRecipe->mark_area[1]);
 			fputs(szData, fp);
 
+			/* 모델 정보 저장 */
+			for (i=0; i<pstRecipe->save_count; i++)
+			{
+				sprintf_s(szData, 256,	"%u,", pstRecipe->acam_num[i]);	fputs(szData, fp);
+				sprintf_s(szData, 256,	"%s,", pstRecipe->m_name[i]);	fputs(szData, fp);
+			}
+
 			/* Cam1 Amber 조명 밝기값 (0 ~ 255) */
 			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[0]);
 			fputs(szData, fp);
@@ -783,13 +818,6 @@ BOOL CMarkUVDI15::SaveAlignRecipe()
 			/* Cam2 Coaxial 조명 밝기값 (0 ~ 255) */
 			sprintf_s(szData, 256, "%u,", pstRecipe->lamp_value[5]);
 			fputs(szData, fp);
-
-			/* 모델 정보 저장 */
-			for (i=0; i<pstRecipe->save_count; i++)
-			{
-				sprintf_s(szData, 256,	"%u,", pstRecipe->acam_num[i]);	fputs(szData, fp);
-				sprintf_s(szData, 256,	"%s,", pstRecipe->m_name[i]);	fputs(szData, fp);
-			}
 
 			fputs("\n", fp);
 		}
@@ -835,12 +863,14 @@ VOID CMarkUVDI15::CopyAlignRecipe(LPG_RAAF source, LPG_RAAF target)
 
 
 	target->lamp_type		= source->lamp_type;
+
 	target->lamp_value[0] = source->lamp_value[0];
 	target->lamp_value[1] = source->lamp_value[1];
 	target->lamp_value[2] = source->lamp_value[2];
 	target->lamp_value[3] = source->lamp_value[3];
 	target->lamp_value[4] = source->lamp_value[4];
 	target->lamp_value[5] = source->lamp_value[5];
+
 	target->gain_level[0]	= source->gain_level[0];
 	target->gain_level[1]	= source->gain_level[1];
 	target->search_type		= source->search_type;

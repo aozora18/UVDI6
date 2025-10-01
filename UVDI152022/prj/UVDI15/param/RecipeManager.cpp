@@ -303,6 +303,7 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE s
 	bSuccess = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe)) != nullptr;
 	if (!bSuccess) return FALSE;
 
+	const int GLOBAL_MARK_NAME_INDEX = 0;
 	for (int index = 0; index < 2; index++)
 	{
 		UINT8 u8Speed = (UINT8)uvEng_GetConfig()->mark_find.model_speed;
@@ -315,8 +316,9 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE s
 		bool bpatFile = false, bmmfFile = false;
 		CFileFind finder;
 
-		ST_RECIPE_PARAM stMarkParam = CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_SEL)->GetParam(EN_RECIPE_TAB::ALIGN, EN_RECIPE_ALIGN::GLOBAL_MARK_NAME + index);
-		LPG_CMPV pstMark = uvEng_Mark_GetModelName((PTCHAR)stMarkParam.GetValue().GetString());
+		//ST_RECIPE_PARAM stMarkParam = CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_SEL)->GetParam(EN_RECIPE_TAB::ALIGN, EN_RECIPE_ALIGN::GLOBAL_MARK_NAME + index);
+
+		LPG_CMPV pstMark = uvEng_Mark_GetModelName(csCnv.Ansi2Uni(pstAlignRecipe->m_name[GLOBAL_MARK_NAME_INDEX]));
 
 		if (pstMark)
 		{
@@ -1103,7 +1105,8 @@ BOOL CRecipeManager::LoadRecipe(CString strName, EN_RECIPE_MODE eRecipeMode)
 					break;
 				case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER2: stParam.SetValue(pstAlignRecipe->acam_num[1]);
 					break;
-				case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[0]);
+				case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: 
+					stParam.SetValue(pstAlignRecipe->m_name[0]);
 					break;
 				case EN_RECIPE_ALIGN::LOCAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[1]);
 					break;
@@ -1315,7 +1318,8 @@ BOOL CRecipeManager::LoadRecipe(CString strJobName, CString strExpoName, CString
 					break;
 				case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER2: stParam.SetValue(pstAlignRecipe->acam_num[1]);
 					break;
-				case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[0]);
+				case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: 
+					stParam.SetValue(pstAlignRecipe->m_name[0]);
 					break;
 				case EN_RECIPE_ALIGN::LOCAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[1]);
 					break;
@@ -1528,7 +1532,8 @@ BOOL CRecipeManager::LoadAlignRecipe(CString strName, EN_RECIPE_MODE eRecipeMode
 				break;
 			case EN_RECIPE_ALIGN::ALIGN_CAMERA_NUMBER2: stParam.SetValue(pstAlignRecipe->acam_num[1]);
 				break;
-			case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[0]);
+			case EN_RECIPE_ALIGN::GLOBAL_MARK_NAME: 
+				stParam.SetValue(pstAlignRecipe->m_name[0]);
 				break;
 			case EN_RECIPE_ALIGN::LOCAL_MARK_NAME: stParam.SetValue(pstAlignRecipe->m_name[1]);
 				break;

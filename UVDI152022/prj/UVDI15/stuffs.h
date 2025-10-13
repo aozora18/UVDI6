@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -44,6 +45,55 @@ private:
 		catch (...) {}
 	}
 public: 
+
+
+	template <typename T>
+	std::optional<T> GetLogValue(const std::string& filepath, const std::string& key)
+	{
+		std::ifstream ifs(filepath);
+		if (!ifs) return std::nullopt;
+
+		std::string line;
+		std::string keyColon = key + ":";
+
+		while (std::getline(ifs, line))
+		{
+			auto pos = line.find(keyColon);
+			if (pos == std::string::npos) continue;
+
+			std::string val = line.substr(pos + keyColon.size());
+			// trim
+			val.erase(val.begin(), std::find_if(val.begin(), val.end(), [](unsigned char c) { return !std::isspace(c); }));
+			val.erase(std::find_if(val.rbegin(), val.rend(), [](unsigned char c) { return !std::isspace(c); }).base(), val.end());
+
+			// 변환
+			if constexpr (std::is_same_v<T, std::string>) {
+				return val;
+			}
+			else if constexpr (std::is_same_v<T, int>) {
+				try { return std::stoi(val); }
+				catch (...) { return std::nullopt; }
+			}
+			else if constexpr (std::is_same_v<T, long long>) {
+				try { return std::stoll(val); }
+				catch (...) { return std::nullopt; }
+			}
+			else if constexpr (std::is_same_v<T, double>) {
+				try { return std::stod(val); }
+				catch (...) { return std::nullopt; }
+			}
+			else if constexpr (std::is_same_v<T, bool>) {
+				if (val == "1" || val == "true" || val == "True" || val == "yes") return true;
+				if (val == "0" || val == "false" || val == "False" || val == "no") return false;
+				return std::nullopt;
+			}
+			else {
+				static_assert(!sizeof(T*), "지원하지 않는 타입");
+			}
+		}
+		return std::nullopt;
+	}
+
 
 	std::string GetLastLineOfFile(const std::string& filePath) 
 	{

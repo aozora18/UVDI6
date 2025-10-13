@@ -29,6 +29,7 @@ CMachineConfig::CMachineConfig(LPG_LDSM shmem, CCodeToStr *error)
 	/* 기본 Family ID 설정 */
 	m_enFamily	= ENG_LUDF::en_machine_config;
 	/* Machine Config Structure */
+	shmem->machine.mtc_mode = 18;
 	m_pstShMem	= &shmem->machine;
 }
 
@@ -1811,7 +1812,11 @@ VOID CMachineConfig::SetRecv1Bytes(UINT8 uid, PUINT8 data)
 	case (UINT8)ENG_LCMC::en_z_drive_type				:	m_pstShMem->z_drive_type			= data[0];	break;
 	case (UINT8)ENG_LCMC::en_artwork_complexity			:	m_pstShMem->artwork_complexity		= data[0];	break;
 	case (UINT8)ENG_LCMC::en_over_pressure_mode			:	m_pstShMem->over_pressure_mode		= data[0];	break;
-	case (UINT8)ENG_LCMC::en_mtc_mode					:	m_pstShMem->mtc_mode				= data[0];	break;
+	case (UINT8)ENG_LCMC::en_mtc_mode					:
+	{
+		m_pstShMem->mtc_mode = data[0];
+	}
+		break;
 	case (UINT8)ENG_LCMC::en_use_ethercat_for_af		:	m_pstShMem->use_ethercat_for_af		= data[0];	break;
 	case (UINT8)ENG_LCMC::en_extra_long_stripes			:	m_pstShMem->extra_long_stripes		= data[0];	break;
 	}

@@ -479,14 +479,15 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		STG_XMXY gbrPos = STG_XMXY();
 		STG_XMXY stgPos = STG_XMXY();
 		GetStagePosUseGerberPos(camNum, tgtPos, stgPos);
-
+		float tempCorrectionX = 0.040 + 0.0041;
+		float tempCorrectionY = 0.005 + - 0.0025;
 		if (GetGerberPosUseCamPos(camNum, gbrPos) == false)return false;
 
 		double dx = tgtPos.mark_x - gbrPos.mark_x;
 		double dy = tgtPos.mark_y - gbrPos.mark_y;
 
-		dx = axises["stage"]["x"].currPos + dx - (offsetPos != nullptr ? offsetPos->offsetX : 0);
-		dy = axises["stage"]["y"].currPos + dy - (offsetPos != nullptr ? offsetPos->offsetY : 0);
+		dx = axises["stage"]["x"].currPos + dx - (offsetPos != nullptr ? offsetPos->offsetX : 0) + tempCorrectionX;
+		dy = axises["stage"]["y"].currPos + dy - (offsetPos != nullptr ? offsetPos->offsetY : 0) + tempCorrectionY;
 
 		if (isArrive("stage", "x", dx) == true && isArrive("stage", "y", dy) == true)
 			return true;
@@ -2054,7 +2055,7 @@ bool AutoFocus::InitFocusDrive()
 	Sleep(3000);
 	bool res = GlobalVariables::GetInstance()->Waiter([&]()->bool
 		{
-			return uvCmn_MC2_IsMotorDriveStopAll() && uvCmn_Luria_IsLastError() == false;
+			return uvCmn_MC2_IsMotorDriveStopAll() && uvCmn_Luria_GetLastErrorStatus() != 10079;
 		},10000);
 
 	uvEng_Luria_GetShMem()->focus.initialized = res ? 1 : 0;

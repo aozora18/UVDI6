@@ -14,6 +14,7 @@
 static char THIS_FILE[]	= __FILE__;
 #endif
 
+#include "../../stuffs.h"
 
 /*
  desc : 생성자
@@ -76,6 +77,35 @@ BOOL CWorkRecipeLoad::InitWork()
 	return TRUE;
 }
 
+void SetMTC()
+{
+	LPG_RJAF pstJob = uvEng_JobRecipe_GetSelectRecipe(uvEng_JobRecipe_WhatLastSelectIsLocal());
+
+	if (pstJob)
+	{
+		optional<int> use = Stuffs::GetStuffs().GetLogValue<int>(string(pstJob->gerber_path) + "\\" + string(pstJob->gerber_name) + "\\rlt_log.txt", "MTC");
+		if (use.has_value())
+		{
+			int set = use.value();
+			if (uvEng_ShMem_GetLuria()->machine.mtc_mode != set)
+			{
+				uvEng_Luria_ReqSetMTCMode(set);
+				if(uvEng_Luria_ReqSetHWInit())
+				{
+					Sleep(4000); //메뉴얼상 4초 후 쿼리하라고함.
+					bool res = GlobalVariables::GetInstance()->Waiter([]()
+						{
+							return uvCmn_Luria_GetLastErrorStatus() != 10058;
+						});
+					res = res;
+					uvEng_Luria_GetShMem()->focus.initialized = false;
+				}
+			}
+		}
+	}
+}
+
+
 /*
  desc : 주기적으로 작업 수행
  parm : None
@@ -92,6 +122,7 @@ VOID CWorkRecipeLoad::DoWork()
 	{
 	case 0x01 : 
 	{
+
 		uvEng_Camera_ResetGrabbedImage();
 
 		m_enWorkState = CheckValidRecipe();
@@ -116,7 +147,23 @@ VOID CWorkRecipeLoad::DoWork()
 	case 0x0a : m_enWorkState = SetDeleteSelectedJobName(1000);	break;
 	case 0x0b : m_enWorkState = IsDeleteSelectedJobName(0x05);	break;
 	/* 모든 Photohead Offset 설정 */
-	case 0x0c : m_enWorkState = SetPhOffset();					break;
+	case 0x0c : 
+	{
+
+		if (uvEng_ShMem_GetLuria()->machine.mtc_mode == 18)
+		{
+			uvEng_Luria_ReqGetMTCMode();
+			bool res = GlobalVariables::GetInstance()->Waiter([]()
+			{
+				return uvEng_ShMem_GetLuria()->machine.mtc_mode != 18;
+			});
+		}
+		
+		SetMTC();
+		
+		m_enWorkState = SetPhOffset();
+	}
+	break;
 	case 0x0d : m_enWorkState = IsPhOffset();					break;
 	/* 모든 Photohead Hysteresis 설정 */
 	case 0x0e : m_enWorkState = SetHysteresis(m_u8Offset);		break;

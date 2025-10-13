@@ -366,6 +366,9 @@ bool CCamMain::ChangeTriggerMode(ENG_TRGM mode)
 */
 BOOL CCamMain::SetParamUpdate()
 {
+	bool useCalibExpotime = true;
+	ExposureCalcOptions opt; // 기본(allowed_blur_px=1, safety=1, Global)
+	m_u32ExposeTime  = useCalibExpotime ? CalcExposureWithMagMs(5.86, 2.0, 100.0, opt) : m_u32ExposeTime;
 	BOOL bIsGrab	= FALSE;
 
 	// 현재 Grabbing 중인 경우라면, Grab을 중지하고 값 설정

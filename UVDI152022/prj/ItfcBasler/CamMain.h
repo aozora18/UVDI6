@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma once
 
 class CCamInst;
@@ -49,7 +49,7 @@ public:
 		IOLine,
 		Software,
 	};
-/* »ı¼ºÀÚ & ÆÄ±«ÀÚ */
+/* ìƒì„±ì & íŒŒê´´ì */
 public:
 
 	CCamMain(LPG_CIEA config, UINT8 cam_id);
@@ -57,19 +57,60 @@ public:
 
 public:
 
-///* ±¸Á¶Ã¼ & ¿­°ÅÇü */
+	enum class ShutterType { Global, Rolling };
+
+	struct ExposureCalcOptions 
+	{
+		double   allowed_blur_px = 1.0;  
+		double   safety = 1.0; 
+		uint64_t strobe_on_delay_ns = 0; 
+		uint64_t strobe_off_delay_ns = 0; 
+		ShutterType shutter = ShutterType::Global;
+
+		// Rolling ì „ìš© íŒŒë¼ë¯¸í„°
+		double line_time_ns = 0.0; 
+		int    image_height_px = 0; 
+	};
+
+	inline uint64_t CalcExposureWithMagMs(double camPixelPitchUm,double magnification,double onTheFlySpeedmms,ExposureCalcOptions opt = {})
+	{
+		const int nsToms = 1000;
+		if (camPixelPitchUm <= 0.0 || magnification <= 0.0 || onTheFlySpeedmms <= 0.0)
+			return 0;
+
+		const double pixel_obj_mm = (camPixelPitchUm / magnification) * 1e-3;
+		double t_sec = (pixel_obj_mm * opt.allowed_blur_px) / onTheFlySpeedmms;
+		t_sec *= opt.safety;
+
+		long double t_ns = (long double)(t_sec) * 1e9L;
+
+		if (opt.shutter == ShutterType::Rolling) 
+		{
+			const long double skew_ns = opt.line_time_ns * (long double)(opt.image_height_px);
+			if (skew_ns > 0.0L && t_ns > skew_ns) 
+				t_ns = skew_ns;
+		}
+
+		long double adj = t_ns - (long double)(opt.strobe_on_delay_ns) - (long double)(opt.strobe_off_delay_ns);
+
+		if (adj < 0.0L) adj = 0.0L;
+		return static_cast<uint64_t>(std::llround(adj)) / nsToms;
+	}
+	
+
+///* êµ¬ì¡°ì²´ & ì—´ê±°í˜• */
 //	typedef enum class __en_camera_trigger_run_mode__
 //	{
 //		en_soft_trig	= 0x00,
 //		en_hw_trig		= 0x01,
 //		en_continue		= 0x02,
 //
-//	}	ENM_CTRM; //¾È¾¸.
+//	}	ENM_CTRM; //ì•ˆì”€.
 
-/* °¡»óÇÔ¼ö ÀçÁ¤ÀÇ */
+/* ê°€ìƒí•¨ìˆ˜ ì¬ì •ì˜ */
 public:
 
-	// ¹İµå½Ã ÆÄ¶ó¹ÌÅÍÀÇ ÇüÀ» ¹Ù²ÙÁö ¸»¾Æ¾ß ÇÔ
+	// ë°˜ë“œì‹œ íŒŒë¼ë¯¸í„°ì˜ í˜•ì„ ë°”ê¾¸ì§€ ë§ì•„ì•¼ í•¨
 	virtual VOID		OnImageGrabbed(CInstantCamera& camera, const CGrabResultPtr& grabbed);	
 	void DecreaseGrabCnt() 
 	{
@@ -82,7 +123,7 @@ public:
 
 	}
 
-/* ·ÎÄÃ º¯¼ö */
+/* ë¡œì»¬ ë³€ìˆ˜ */
 protected:
 
 	TCHAR				m_tzCamIPv4[IPv4_LENGTH];
@@ -90,45 +131,45 @@ protected:
 
 	ENG_VCCM			m_enCamMode;		// TRUE - Live Mode / FALSE - Grabbed Mode
 	UINT8				m_u8CamID;			/* Align Camera Index (1 or Later) */
-	UINT8				m_u8GrabIndex;		// ÇöÀç Grabbed ImageÀÇ ÀÎµ¦½º
+	UINT8				m_u8GrabIndex;		// í˜„ì¬ Grabbed Imageì˜ ì¸ë±ìŠ¤
 
-	UINT32				m_u32WhiteCount;	/* Grabbed Image¿¡¼­ °ËÁ¤»öÀÌ ¾Æ´Ñ °³¼ö */
-	UINT32				m_u32ExposeTime;	/* Ä«¸Ş¶óÀÇ Á¶¸®°³°¡ ÀÔ·Â¹Ş±â À§ÇØ Á¶¸®°³¸¦ ¿­°í ÀÖ´Â ½Ã°£ (´ÜÀ§: us) */
+	UINT32				m_u32WhiteCount;	/* Grabbed Imageì—ì„œ ê²€ì •ìƒ‰ì´ ì•„ë‹Œ ê°œìˆ˜ */
+	UINT32				m_u32ExposeTime;	/* ì¹´ë©”ë¼ì˜ ì¡°ë¦¬ê°œê°€ ì…ë ¥ë°›ê¸° ìœ„í•´ ì¡°ë¦¬ê°œë¥¼ ì—´ê³  ìˆëŠ” ì‹œê°„ (ë‹¨ìœ„: us) */
 
-	UINT64				m_u64TickGrab;		/* Live Grabbed ImageÀÇ Ã³¸® ÁÖ±â (´ÜÀ§: ¹Ğ¸®ÃÊ) */
-	UINT64				m_u64HistTotal;		/* Grabbed ImageÀÇ ÀüÃ¼ Gray Index LevelÀÇ ÃÑ ÇÕ */
-	UINT64				m_u64HistMax;		/* Grabbed Imagedml °¢ ³ĞÀÌ ÇÈ¼¿ (Column) Áß¿¡¼­ °¡Àå Å« Level °ª ÀúÀå */
+	UINT64				m_u64TickGrab;		/* Live Grabbed Imageì˜ ì²˜ë¦¬ ì£¼ê¸° (ë‹¨ìœ„: ë°€ë¦¬ì´ˆ) */
+	UINT64				m_u64HistTotal;		/* Grabbed Imageì˜ ì „ì²´ Gray Index Levelì˜ ì´ í•© */
+	UINT64				m_u64HistMax;		/* Grabbed Imagedml ê° ë„“ì´ í”½ì…€ (Column) ì¤‘ì—ì„œ ê°€ì¥ í° Level ê°’ ì €ì¥ */
 
-	PUINT8				*m_pGrabBuff;		/* ¿¬¼ÓÀûÀ¸·Î Grabbed Image ÀúÀå ¹öÆÛ */
+	PUINT8				*m_pGrabBuff;		/* ì—°ì†ì ìœ¼ë¡œ Grabbed Image ì €ì¥ ë²„í¼ */
 
-	PUINT32				m_pGrayCount;		/* Grabbed ImageÀÇ °¢ Bytesº°·Î Gray Index °ª ÀúÀå */
-	PUINT64				m_pHistLevel;		/* °¢ ÀÌ¹ÌÁöÀÇ Column (³ĞÀÌ) ±âÁØÀ¸·Î ³ôÀÌ (Row)¿¡ ºĞÆ÷µÈ RGB °ª ¸ğµÎ ´õÇÑ °ª */
+	PUINT32				m_pGrayCount;		/* Grabbed Imageì˜ ê° Bytesë³„ë¡œ Gray Index ê°’ ì €ì¥ */
+	PUINT64				m_pHistLevel;		/* ê° ì´ë¯¸ì§€ì˜ Column (ë„“ì´) ê¸°ì¤€ìœ¼ë¡œ ë†’ì´ (Row)ì— ë¶„í¬ëœ RGB ê°’ ëª¨ë‘ ë”í•œ ê°’ */
 
-	STG_ACGR			m_stGrab;			// Live or Edge or Calibration Mode ÀÓ½Ã ÀúÀå¿ë
-	LPG_CIEA			m_pstConfig;		/* ÀüÃ¼ È¯°æ Á¤º¸ */
+	STG_ACGR			m_stGrab;			// Live or Edge or Calibration Mode ì„ì‹œ ì €ì¥ìš©
+	LPG_CIEA			m_pstConfig;		/* ì „ì²´ í™˜ê²½ ì •ë³´ */
 
 	CTlFactory&			m_csTransportLayerFactory;
 	CCamInst			*m_pCamera;
 
-	CMySection			m_syncGrab;		// Grabbed ImageÀÇ µ¿±âÈ­ °´Ã¼
+	CMySection			m_syncGrab;		// Grabbed Imageì˜ ë™ê¸°í™” ê°ì²´
 
 	CAtlList <LPG_ACGR>	m_lstMark;
 
-	//UINT8				m_uDispType; // Disp Type, VISION »ç¿ë, MARK, MARKSET, 
-	UINT8				m_uDispType; // VISION »ç¿ë, MARK TAB À¯¹«(1 - Mark Tab, 0 -  ±× ¿Ü)
+	//UINT8				m_uDispType; // Disp Type, VISION ì‚¬ìš©, MARK, MARKSET, 
+	UINT8				m_uDispType; // VISION ì‚¬ìš©, MARK TAB ìœ ë¬´(1 - Mark Tab, 0 -  ê·¸ ì™¸)
 
 	LPG_ACGR pstMark;
 	MarkPoolManager markPool;
 
 
-/* ·ÎÄÃ ÇÔ¼ö */
+/* ë¡œì»¬ í•¨ìˆ˜ */
 protected:
 
 	BOOL				StartGrab();
 	VOID				StopGrab();
 
 
-/* °ø¿ë ÇÔ¼ö */
+/* ê³µìš© í•¨ìˆ˜ */
 public:
 	ENG_TRGM 			triggerMode;
 	BOOL				AttachDevice();

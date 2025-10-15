@@ -436,6 +436,11 @@ bool AlignMotion::GetOffsetFromPool(OffsetType type, int tgtMarkIdx, CaliPoint& 
 	return true;
 }
 
+pair<double, double> AlignMotion::GetCamZOffset(int camIdx, float currZ)
+{
+	return caliCalcInst.GetCamZOffset(camIdx, currZ);
+}
+
 CaliPoint AlignMotion::EstimateExpoOffset(int camIdx,  double gbrX, double gbrY)
 {
 	return caliCalcInst.EstimateExpoOffset(camIdx, gbrX, gbrY);

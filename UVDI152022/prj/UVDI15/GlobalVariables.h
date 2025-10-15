@@ -395,12 +395,12 @@ protected:
 
 	void SortPos(std::vector<CaliPoint>& dataList);
 
-	pair<double, double> GetCamZOffset(int camIdx, float currZ);
+	
 
 	CaliPoint Estimate(vector<CaliPoint>& points, double x, double y);
 	CaliPoint CalculateAverageOffset(const std::vector<CaliPoint>& nearbyPoints);
 public:
-
+	pair<double, double> GetCamZOffset(int camIdx, float currZ);
 	void LoadCaliData(LPG_CIEA cfg);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
 	CaliPoint EstimateExpoOffset(int camIdx, double gbrX, double gbrY);
@@ -676,6 +676,7 @@ public:
 	CaliCalc::CaliFeature GetCalifeature(OffsetType type);
 	CaliPoint EstimateAlignOffset(int camIdx, double stageX, double stageY);
 	CaliPoint EstimateExpoOffset(int camIdx, double gbrX, double gbrY);
+	pair<double, double> GetCamZOffset(int camIdx, float currZ);
 	bool GetOffsetFromPool(OffsetType type, int tgtMarkIdx, CaliPoint& temp);
 	void Destroy();
 

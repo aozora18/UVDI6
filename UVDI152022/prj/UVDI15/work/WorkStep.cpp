@@ -1774,9 +1774,16 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 	auto& webMonitor = GlobalVariables::GetInstance()->GetWebMonitor();
 	auto& motions = GlobalVariables::GetInstance()->GetAlignMotion();
+	auto& ajin = GlobalVariables::GetInstance()->GetAjinMotion();
+
+	auto* axises = ajin.GetAxisInfo();
+	
+
 	auto status = motions.status;
 	bool success = true;
 	const int CENTERCAM = motions.markParams.centerCamIdx;
+
+	pair<double,double> camZoffset = axises == nullptr ? make_pair(0,0) : motions.GetCamZOffset(CENTERCAM, axises[CENTERCAM - 1].position);
 
 	if (status.globalMarkCnt != 4)
 		return ENG_JWNS::en_next;
@@ -1885,6 +1892,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 
 		temp.mark_x -= foffsetX;
 		temp.mark_y -= foffsetY;
+
+		temp.mark_x -= camZoffset.first;
+		temp.mark_y -= camZoffset.second;
 
 		//string fmtFormat = fmt::format("tgt mark {} - 그랩옵셋X = {:.3f}, 그랩옵셋Y = {:.3f},  얼라인옵셋X = {:.3f} ,얼라인옵셋Y = {:.3f} ,  익스포옵셋X = {:.3f}, 익스포옵셋Y = {:.3f}, 원래X = {:.3f} , 원래 Y = {:.3f}, 적용차이X = {:.3f} , 적용차이Y = {:.3f}",
 			//temp.tgt_id, grabOffsetX, grabOffsetY, alignOffset.offsetX, alignOffset.offsetY, expoOffset.offsetX, expoOffset.offsetX, bkx, bky, bkx - temp.mark_x, bky - temp.mark_y);
@@ -2103,9 +2113,14 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
 	auto status = motion.status;
 	ENG_AMOS motionType = motion.markParams.alignMotion; //이건 실시간으로 바뀔수있음을 참고하고, 테스트용으로 사용한다. 
-	
+	auto& ajin = GlobalVariables::GetInstance()->GetAjinMotion();
+	auto* axises = ajin.GetAxisInfo();
+
 	/* 현재 작업 Step Name 설정 */
 	SetStepName(L"Set.Align.Mark.Regist");
+
+	pair<double, double> camZoffset1 = axises == nullptr ? make_pair(0, 0) : motion.GetCamZOffset(1, axises[0].position);
+	pair<double, double> camZoffset2 = axises == nullptr ? make_pair(0, 0) : motion.GetCamZOffset(2, axises[1].position);
 
 	/* XML 파일에 등록된 Mark 개수 확인 */
 	u8MarkG = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
@@ -2216,6 +2231,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				lstMarkAt.mark_x -= pstGrab->move_mm_x;
 				lstMarkAt.mark_y -= pstGrab->move_mm_y;
 
+				lstMarkAt.mark_x -= pstGrab->cam_id == 1 ? camZoffset1.first : camZoffset2.first;
+				lstMarkAt.mark_y -= pstGrab->cam_id == 1 ? camZoffset1.second : camZoffset2.second;
+				
 				swprintf_s(tzMsg, 256, L"Global Mark%d Move_mm: X = %.4f Y = %.4f", lstMarkAt.org_id, pstGrab->move_mm_x, pstGrab->move_mm_y);
 				LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 

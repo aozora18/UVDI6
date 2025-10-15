@@ -387,10 +387,15 @@ public:
 protected:
 	map<OffsetType, CaliFeature> calidataFeature;
 	map<OffsetType, vector<CaliPoint>> caliDataMap;
+
+	map<int, vector<pair<double, pair<double, double>>>> camZMeasure; // cam idx , <z , <offset x, offset y>>
+
 	thread loadseqThread;
 	double LimittoMicro(double val);
 
 	void SortPos(std::vector<CaliPoint>& dataList);
+
+	pair<double, double> GetCamZOffset(int camIdx, float currZ);
 
 	CaliPoint Estimate(vector<CaliPoint>& points, double x, double y);
 	CaliPoint CalculateAverageOffset(const std::vector<CaliPoint>& nearbyPoints);

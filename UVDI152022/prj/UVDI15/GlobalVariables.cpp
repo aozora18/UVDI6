@@ -7,6 +7,8 @@ using namespace std;
 #include "GlobalVariables.h"
 #include "work\Work.h"
 #include "stuffs.h"
+#include <Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
 
 CommonMotionStuffs CommonMotionStuffs::inst;
 
@@ -131,12 +133,49 @@ std::vector<double> tokenize(string str)
 
 		std::vector<double> doubleVector;
 		std::transform(tokenized.begin(), tokenized.end(), std::back_inserter(doubleVector),
-			[](const std::string& str) { return std::stod(str); });
+			[](const std::string& str) { return std::round(std::stod(str) * 1000.0) / 1000.0; });
 
 		return doubleVector;
 }
 
+//camZMeasure용
+void StackVector(TCHAR* name, map<int, vector<pair<double, pair<double, double>>>>& camZMeasurePtr)
+{
+	std::basic_string<TCHAR> str(name);
+	if (str.empty()) return;
 
+	try
+	{
+		int camIdx = 0;
+		float bestZ = 0;
+
+		std::string line = "";
+		std::ifstream file(name);
+
+		if (!file.is_open())
+			return;
+
+		std::getline(file, line);  //cam idx
+		camIdx = atoi(line.c_str());
+
+		std::getline(file, line); //best z
+		bestZ = atof(line.c_str());
+
+		for (std::string line; std::getline(file, line);)
+		{
+			std::string lineCopy = line;
+			const std::vector<double> tokens = tokenize(lineCopy);
+			if (tokens.empty()) continue;
+			camZMeasurePtr[camIdx].push_back(make_pair(tokens[0], make_pair(tokens[1], tokens[2])));
+		}
+	}
+	catch (exception e)
+	{
+
+	}
+}
+
+//static offset맵용
 void StackVector(TCHAR* name, vector<CaliPoint>& dataList, vector<double>& featureStored)
 {
 	const int XCoord = 0, YCoord = 1, OffsetX = 2, OffsetY = 3;
@@ -177,15 +216,18 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 	auto loadSeq = [&](LPG_CIEA cfg)
 		{		
 			
-			TCHAR fileName[2][256];
+			TCHAR fileName[5][256];
 			_tcscpy_s(fileName[0], cfg->file_dat.staticAcamAlignCali);
 			_tcscpy_s(fileName[1], cfg->file_dat.staticAcamExpoCali);
+
+			_tcscpy_s(fileName[2], cfg->file_dat.camZmeasure[0]);
+			_tcscpy_s(fileName[3], cfg->file_dat.camZmeasure[1]);
+			_tcscpy_s(fileName[4], cfg->file_dat.camZmeasure[2]);
 
 			try
 			{
 				vector<double> temp;
 
-				
 				StackVector(fileName[0], caliDataMap[OffsetType::align], temp);
 				if (caliDataMap[OffsetType::align].size() != 0)
 				{
@@ -199,6 +241,11 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 					SortPos(caliDataMap[OffsetType::expo]);
 					calidataFeature[OffsetType::expo] = CaliFeature(temp);
 				}
+
+				StackVector(fileName[2], camZMeasure);
+				StackVector(fileName[3], camZMeasure);
+				StackVector(fileName[4], camZMeasure);
+				
 			}
 			catch (...)
 			{
@@ -214,7 +261,44 @@ void CaliCalc::LoadCaliData(LPG_CIEA cfg)
 		loadseqThread = std::thread([=]() {loadSeq(cfg); });
 }
 
+pair<double,double> CaliCalc::GetCamZOffset(int camIdx, float currZ)
+{
+	auto it = camZMeasure.find(camIdx);
+	if (it == camZMeasure.end() || it->second.empty()) return { 0,0 };
 
+	auto v = it->second;
+	sort(v.begin(), v.end(), [](auto& a, auto& b) { return a.first < b.first; });
+
+	
+	vector<pair<double, pair<double, double>>> u;
+	const double eps = 1e-6;
+	for (size_t i = 0; i < v.size();) {
+		double z = v[i].first, sx = 0, sy = 0; int c = 0;
+		do {
+			sx += v[i].second.first;
+			sy += v[i].second.second;
+			++c; ++i;
+		} while (i < v.size() && fabs(v[i].first - z) < eps);
+		u.push_back({ z,{sx / c, sy / c} });
+	}
+
+	auto lb = lower_bound(u.begin(), u.end(), (double)currZ,
+		[](auto& e, double z) { return e.first < z; });
+
+	if (lb == u.begin()) return lb->second;
+	if (lb == u.end())  return u.back().second;
+
+	auto& a = *prev(lb), & b = *lb;
+	double dz = b.first - a.first;
+	if (fabs(dz) < eps) return a.second;
+
+	double t = (currZ - a.first) / dz;
+	return 
+	{
+		a.second.first + t * (b.second.first - a.second.first),
+		a.second.second + t * (b.second.second - a.second.second)
+	};
+}
 
 CaliPoint CaliCalc::Estimate(vector<CaliPoint>& points, double x, double y)
 {

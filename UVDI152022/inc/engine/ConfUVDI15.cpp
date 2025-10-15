@@ -257,8 +257,10 @@ BOOL CConfUvdi15::LoadConfigFileName()
 
 	GetConfigStr(L"FILE_STATIC_ALIGNCALI_CAM" , m_pstCfg->file_dat.staticAcamAlignCali, MAX_FILE_LEN);
 	GetConfigStr(L"FILE_STATIC_EXPOCALI_CAM" , m_pstCfg->file_dat.staticAcamExpoCali, MAX_FILE_LEN);
-	
 
+	GetConfigStr(L"FILE_CAMZ_MEASURE_1" , m_pstCfg->file_dat.camZmeasure[0], MAX_FILE_LEN);
+	GetConfigStr(L"FILE_CAMZ_MEASURE_2", m_pstCfg->file_dat.camZmeasure[1], MAX_FILE_LEN);
+	GetConfigStr(L"FILE_CAMZ_MEASURE_3", m_pstCfg->file_dat.camZmeasure[2], MAX_FILE_LEN);
 
 	return TRUE;
 }

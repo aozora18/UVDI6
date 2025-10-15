@@ -383,6 +383,7 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	vTitle[eOPTION_DOUBLE_MARK] = { _T("Double Mark"), _T("NO") };
 	
 	vTitle[eOPTION_EXPO_AREA_MEASURE] = { _T("Expo area measure"), _T("NO") };
+	vTitle[eOPTION_CALIB_CAM_Z_OFFSET] = { _T("CamZ offset Measure"), _T("NO") };
 	
 	 //serchmode = ;
 	CAccuracyMgr::GetInstance()->SetSearchMode(CAccuracyMgr::SearchMode::single);
@@ -917,6 +918,8 @@ BOOL CDlgCalbAccuracyMeasure::SaveClacFile()
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
 	CFileDialog fileSaveDialog(FALSE, strExt, strFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter);
 	BOOL expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
+	BOOL camzOffsetMeasure = pGrid->GetItemText(eOPTION_CALIB_CAM_Z_OFFSET, eOPTION_COL_VALUE) == "YES";
+	
 
 	CAccuracyMgr::GetInstance()->SetExpoAreaMeasure(expoAreaMeasure);
 
@@ -1168,6 +1171,7 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 	CAccuracyMgr::GetInstance()->SetUseCalData(bSet);
 
 	bool expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
+	bool camzOffsetMeasure = pGrid->GetItemText(eOPTION_CALIB_CAM_Z_OFFSET, eOPTION_COL_VALUE) == "YES";
 
 	CAccuracyMgr::GetInstance()->SetExpoAreaMeasure(expoAreaMeasure);
 
@@ -1194,18 +1198,11 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 		return;
 	}
 
-
-	if (pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES")
-	{
-		//auto centerCamIdx = GlobalVariables::GetInstance()->GetAlignMotion().markParams.centerCamIdx;
-		UINT8 u8ACamID = GetCheckACam() + 1;
-		CAccuracyMgr::GetInstance()->SetCamID(u8ACamID);
-		CAccuracyMgr::GetInstance()->SetMeasureMode(CAccuracyMgr::MeasureRegion::expo);	
-	}
-
 	if (expoAreaMeasure)
 	{
-
+		UINT8 u8ACamID = GetCheckACam() + 1;
+		CAccuracyMgr::GetInstance()->SetCamID(u8ACamID);
+		CAccuracyMgr::GetInstance()->SetMeasureMode(CAccuracyMgr::MeasureRegion::expo);
 	}
 	else
 	{
@@ -1237,7 +1234,7 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 	
 	HoldControl(TRUE);
 
-	CAccuracyMgr::GetInstance()->MeasureStart(this->GetSafeHwnd());
+	CAccuracyMgr::GetInstance()->MeasureStart(this->GetSafeHwnd(), camzOffsetMeasure);
 	SetTimer(eCALB_ACCURACY_MEASURE_TIMER_WORK, 500, NULL);
 }
 

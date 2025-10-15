@@ -171,7 +171,7 @@ protected:
 
 	BOOL				m_bUseCalData;
 	BOOL				m_bUseCamDrv;
-
+	bool camZMeasure = false;
 	UINT8				m_u8ACamID = 1;
 
 	int					m_nStartIndex;
@@ -242,11 +242,16 @@ public:
 
 	BOOL IsProcessWorking() { return m_bRunnigThread; }
 
-	VOID MeasureStart(HWND hHwnd = NULL);
+	VOID MeasureStart(HWND hHwnd = NULL, bool camZMeasure=false);
 	VOID SetStopProcess() { m_bStop = TRUE; }
 	BOOL IsStopProcess() { return m_bStop; }
 
 	int GetPointCount() { return (int)m_stVctTable.size(); }
+
+	bool IsCamZMeasure() 
+	{
+		return camZMeasure;
+	}
 
 	BOOL SetPointErrValue(int nIndex, double dX, double dY);
 	BOOL GetPointErrValue(int nIndex, double& dX, double& dY);

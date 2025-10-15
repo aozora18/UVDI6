@@ -29,6 +29,20 @@ bool _SortY(ST_ACCR_PARAM& tagA, ST_ACCR_PARAM& tagB)
 	return tagA.dMotorY < tagB.dMotorY;
 }
 
+auto Writefile = [&](CString filename, CString body)->bool
+	{
+		CFileException ex;
+		CStdioFile sFile;
+		if (TRUE == sFile.Open(filename, CFile::modeWrite | CFile::modeCreate, &ex))
+		{
+			sFile.SeekToBegin();
+			sFile.WriteString(body);
+			sFile.Close();
+			return true;
+		}
+		return false;
+	};
+
 /*
  desc : 생성자
  parm : None
@@ -350,7 +364,7 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 	VCT_ACCR_TABLE stVctField = m_stVctTable;
 	ST_FIELD stFieldData = ClacField(stVctField);
 	CFileException ex;
-	CStdioFile sFile;
+	
 	CString strWrite;
 	CString strLine;
 	double dACamPosX = 0.0f, dStagePosY = 0.0f;
@@ -410,17 +424,6 @@ BOOL CAccuracyMgr::SaveCaliFile(CString strFileName)
 		};
 
 	
-	auto Writefile = [&](CString filename, CString body)->bool
-		{
-			if (TRUE == sFile.Open(filename, CFile::modeWrite | CFile::modeCreate, &ex))
-			{
-				sFile.SeekToBegin();
-				sFile.WriteString(body);
-				sFile.Close();
-				return true;
-			}
-			return false;
-		};
 
 	if (expoAreaMeasure)
 	{
@@ -522,6 +525,23 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 	LOG_MESG(ENG_EDIC::en_2d_cali, _T("[2DCal]\tSTART"));
 
 	CWork::SetonExternalWork(true);
+	float storedZ = 0.0f;
+	vector<pair<double, pair<double, double>>> offsetPair;
+	AjinMotionNetwork& ajin = GlobalVariables::GetInstance()->GetAjinMotion();
+	string desc;
+	float minZ, maxZ; int camZDrive;
+
+	auto moveZ = [&](double z)->bool
+		{
+			ajin.MoveAbs(camZDrive, z, 5, desc);
+			if (!desc.empty())
+			{
+				LOG_MESG(ENG_EDIC::en_2d_cali, _T("MOVE Z ERROR!!!"));
+				return false;
+			}
+			Wait(1000);
+			return true;
+		};
 
 	std::vector<std::function<bool()>> caliTask =
 	{
@@ -748,9 +768,91 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			}
 		
 			//fail처리.
+			},
+		[&]()->bool
+		{
+			auto* axises = ajin.GetAxisInfo();
+			if (axises == nullptr) 
+				return false;
+
+			camZDrive = m_u8ACamID - 1;
+			storedZ = axises[camZDrive].position;
+
+			minZ = storedZ - 2.0f < 0 ? 0 : storedZ - 2.0f;
+			maxZ = storedZ + 2.0f;
+			
+			bool keepGoing = true;
+			
+			moveZ(minZ);
+			
+			double currZ = axises[camZDrive].position;
+
+			while (keepGoing)
+			{
+				vector<pair<double, double>> offsets;
+				int failed = 0;
+				while (true)
+				{
+					if (GrabData(stGrab, FALSE, 5))
+					{
+						failed = 0;
+						offsets.push_back(make_pair(stGrab.move_mm_x, stGrab.move_mm_y));
+
+						if (offsets.size() >= 10)
+						{
+							auto med = [](auto v) {sort(v.begin(), v.end()); int n = v.size(); return n % 2 ? v[n / 2] : (v[n / 2 - 1] + v[n / 2]) / 2.0; };
+							vector<double>a, b; for (auto& p : offsets) { a.push_back(p.first); b.push_back(p.second); }
+							double m1 = med(a), m2 = med(b);
+							offsetPair.push_back(make_pair(axises[camZDrive].position, make_pair(m1, m2)));
+							break;
+						}
+					}
+					else
+					{
+						failed++;
+						if (failed > 3)
+						{
+							::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_GRAB_FIAL, NULL, SMTO_NORMAL, 100, NULL);
+							m_bRunnigThread = FALSE;
+							return false;
+						}
+					}
+				}
+				
+				currZ = axises[camZDrive].position;
+				keepGoing = moveZ(currZ + 0.1) && FALSE == m_bStop && CWork::GetAbort() == false;
+
+				if (currZ >= maxZ)
+					return true;
 			}
+			return false;
+		},
 	};
-	bool res = caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
+	bool res = false;
+
+	
+	if (camZMeasure && caliTask[2]())
+	{
+		CString line = _T("");
+		CString fName = _T("");
+		CString body = _T("");
+		fName.Format(_T("camzOffset_%d.dat"), m_u8ACamID);
+
+		line.Format(_T("%d\n%f\n"),
+			m_u8ACamID,storedZ);
+
+		body += line;
+		for each (auto var in offsetPair)
+		{
+			line.Format(_T("%f,%f,%f\n"),
+				var.first, var.second.first,var.second.second);
+			body += line;
+		}
+		Writefile(fName, body);
+		moveZ(storedZ);
+	}
+	
+	res = caliTask[measureRegion == MeasureRegion::align ? 0 : 1]();
 	if (res)
 	{
 		// 동작 완료
@@ -761,8 +863,6 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 			// Grab View 갱신
 			::SendMessageTimeout(hHwnd, eMSG_ACCR_MEASURE_REPORT, (WPARAM)e2DCAL_REPORT_OK, NULL, SMTO_NORMAL, 100, NULL);
 		}
-
-		
 	}
 	else
 	{
@@ -794,7 +894,8 @@ BOOL CAccuracyMgr::SetRegistModel()
 
 	/* 검색 대상에 대한 모델 등록 */
 	dbMSize = pstCfg->acam_spec.in_ring_size * 1000.0f;
-	dbMSize = 1000;
+	//dbMSize = 1000;
+	//dbMSize = 1070;
 	for (i = 0; i < pstCfg->set_cams.acam_count; i++)
 	{
 		if (!uvEng_Camera_SetModelDefineEx(i + 1,
@@ -1182,7 +1283,7 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
  parm : UI 윈도우 핸들
  retn : None
 */
-VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/)
+VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/,bool camZMeasure)
 {
 
 	if (m_bRunnigThread || CommonMotionStuffs::GetInstance().NowOnMoving())
@@ -1199,7 +1300,7 @@ VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/)
 
 	m_bStop = FALSE;
 	m_bRunnigThread = TRUE;
-
+	this->camZMeasure = camZMeasure;
 	m_pMeasureThread = AfxBeginThread(MeasureThread, (LPVOID)hHwnd);
 }
 
@@ -1253,6 +1354,8 @@ bool DoubleMarkAccurcytest::RegistMultiMark()
 			pstCfg->acam_spec.in_ring_scale_min,
 			pstCfg->acam_spec.in_ring_scale_max) == false)
 			return false;
+
+	//	uvCmn_Camera_SetMarkFindMode(i + 1, 0, TMP_MARK); // CALIB는 직접 만든 MARK 사용(MOD)
 	}
 }
 

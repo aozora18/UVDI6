@@ -569,21 +569,24 @@ BOOL CJobSelectXml::SortMarks(UINT16 col, UINT16 row, UINT16 s_cnt, BOOL shared,
 	LPG_XMXY pstXY = NULL, pstNext;
 	STG_XMXY stXY = { STG_XMXY(), };
 
-	map<double, double> mx, my;
+	map<double, vector<double>> mapping;
 
 	for (int i = 0; i < mark_xy.GetCount(); i++)
 	{
 		auto fid = mark_xy.GetAt(mark_xy.FindIndex(i));
-		mx[std::floor(fid.mark_x * 100.0f) / 100.0f] = fid.mark_x;
-		my[std::floor(fid.mark_y * 100.0f) / 100.0f] = fid.mark_y;
+		mapping[std::floor(fid.mark_x * 100.0f) / 100.0f].push_back(std::floor(fid.mark_y * 100.0f) / 100.0f);
 	}
-	row = my.size();
-	col = mx.size();
-	//auto x = mx.size();
-	//auto y = my.size();
+
+	col = mapping.size();
+	row = 0;
+
+	for (const auto& v : mapping) 
+		if (v.second.size() > row) 
+			row = v.second.size();
 
 	if (row * col != mark_xy.GetCount())
 		return false;
+
 
 	if (shared)
 	{

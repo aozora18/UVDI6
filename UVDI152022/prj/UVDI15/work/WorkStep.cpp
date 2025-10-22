@@ -1886,7 +1886,6 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		swprintf_s(tzMsg, 256, L"%s  mark%d_offset_x = %.4f mark_offset_y =%.4f", (isGlobal ? L"Global" : L"Local"), temp.org_id, expoOffset.offsetX, expoOffset.offsetY);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
-
 		auto foffsetX = alignOffset.offsetX - (expoOffset.offsetX);
 		auto foffsetY = alignOffset.offsetY - (expoOffset.offsetY);
 
@@ -2021,6 +2020,10 @@ ENG_JWNS CWorkStep::CheckThetaCorrection()
 	TCHAR tzMesg[256] = { NULL };
 	STG_XMXY stMarkPos[2] = { STG_XMXY(), };
 	auto& thetaInst = GlobalVariables::GetInstance()->GetThetaControl();
+
+	
+	if(thetaInst.Use() == false)
+		return ENG_JWNS::en_next;
 
 	if(m_enWorkJobID != ENG_BWOK::en_expo_align && 
 		m_enWorkJobID != ENG_BWOK::en_mark_test)

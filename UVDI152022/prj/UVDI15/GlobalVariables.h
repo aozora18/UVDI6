@@ -1045,7 +1045,11 @@ class ThetaControl
 {
 public:
 
-	
+	bool Use() 
+	{
+		return thetaFeature.use;
+	}
+
 	class nPoint
 	{
 		public:
@@ -1089,6 +1093,7 @@ public:
 
 	struct feature
 	{
+		bool use = false;
 		double centerOfStageX;
 		double centerOfStageY;
 		OffsetMap thetaMapping;

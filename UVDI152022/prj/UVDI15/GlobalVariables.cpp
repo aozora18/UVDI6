@@ -2037,7 +2037,9 @@ float ThetaControl::GetMotorTheta()
 
 void ThetaControl::ProcessThetaCorrection()
 {
-	
+	if (thetaFeature.use == false)
+		return;
+
 	if (thetaFeature.needThetaControl)
 	{
 		MoveMotorTheta(thetaFeature.correctionTheta, false);

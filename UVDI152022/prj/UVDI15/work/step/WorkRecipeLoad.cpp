@@ -185,7 +185,24 @@ VOID CWorkRecipeLoad::DoWork()
 	case 0x19 : m_enWorkState = IsJobNameLoaded();				break;
 	/* Photohead Z Axis Up & Down */
 	case 0x1a : m_enWorkState = SetPhZAxisMovingAll();			break;
-	case 0x1b : m_enWorkState = IsPhZAxisMovedAll();			break;
+	case 0x1b : 
+	{
+		vector<bool> res;
+		m_enWorkState = IsPhZAxisMovedAll();
+		if (m_enWorkState == ENG_JWNS::en_next && afInst.GetUseAF())
+		{
+			auto afWorkMin = uvEng_GetConfig()->luria_svc.afWorkRangeWithinMicrometer[0];
+			auto afWorkMax = uvEng_GetConfig()->luria_svc.afWorkRangeWithinMicrometer[1];
+
+			for (int i = 0x00; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+			{
+				double dbPhNowZ = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI(0x06 + i));
+				res.push_back(afInst.SetAFWorkRange(i+1, (dbPhNowZ - afWorkMin) * 1000, (dbPhNowZ + afWorkMax) * 1000));
+			}
+			m_enWorkState = std::all_of(res.begin(), res.end(), [](bool v) { return v; }) ? m_enWorkState : ENG_JWNS::en_error;
+		}
+	}
+	break;
 	/* Align Camera Z Axis Up & Down */
 	case 0x1c:
 	{

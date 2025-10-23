@@ -218,11 +218,13 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 
 	const int MOTOR_ONLY = 2;
 	const int WITH_GERBER = 4;
+	const int camZMotion = 5;
 
 
 	if (TRUE == sFile.Open(strPath, CStdioFile::shareDenyNone | CStdioFile::modeRead))
 	{
 		SetGbrPadInitialPos(0, 0);
+		int idx=0;
 		
 		while (sFile.ReadString(strLine))
 		{
@@ -230,24 +232,30 @@ BOOL CAccuracyMgr::LoadMeasureField(CString strPath)
 			vector<string> strToken;
 
 			int cnt = Stuffs::GetStuffs().ParseAndFillVector(strLine, ',', dblTokens, strToken);
-
-			if (cnt == MOTOR_ONLY || cnt == WITH_GERBER)
+			
+			if (cnt == MOTOR_ONLY || cnt == WITH_GERBER || cnt == camZMotion)
 			{
-				stValue.dMotorX = dblTokens[0];
-				stValue.dMotorY = dblTokens[1];
+				stValue.dMotorX = dblTokens[idx++];
+				stValue.dMotorY = dblTokens[idx++];
 
 				if (cnt == WITH_GERBER)
 				{
-					stValue.dGbrX = dblTokens[2];
-					stValue.dGbrY = dblTokens[3];
+					stValue.dGbrX = dblTokens[idx++];
+					stValue.dGbrY = dblTokens[idx++];
 				}
-
+				else if(cnt >= camZMotion)
+				{
+					stValue.dMotorZ = dblTokens[idx++];
+					stValue.dGbrX = dblTokens[idx++];
+					stValue.dGbrY = dblTokens[idx++];
+				}
 				m_stVctTable.push_back(stValue);
 			}
 			else //한개밖에 안나올것같다.
 			{
-				SetGbrPadInitialPos(dblTokens[0], dblTokens[1]);
+				SetGbrPadInitialPos(dblTokens[idx++], dblTokens[idx++]);
 			}
+			idx=0;
 		}
 
 		sFile.Close();
@@ -547,6 +555,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 	{
 		[&]()
 		{
+			camZDrive = m_u8ACamID - 1;
 			for (int nWorkStep = m_nStartIndex; nWorkStep < (int)m_stVctTable.size(); nWorkStep++)
 			{
 				if (TRUE == m_bStop || CWork::GetAbort())
@@ -554,7 +563,13 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 					return FALSE;
 				}
 
-				if (FALSE == MotionCalcMoving(m_stVctTable[nWorkStep].dMotorX, m_stVctTable[nWorkStep].dMotorY))
+				vector<bool> res;
+				res.push_back(MotionCalcMoving(m_stVctTable[nWorkStep].dMotorX, m_stVctTable[nWorkStep].dMotorY));
+				
+				if (camZColumnItem)
+					res.push_back(moveZ(m_stVctTable[nWorkStep].dMotorZ));
+				
+				if (!std::all_of(res.begin(), res.end(), [](bool b) { return b; }))
 				{
 					LOG_MESG(ENG_EDIC::en_2d_cali, _T("Move Fail"));
 
@@ -567,7 +582,7 @@ BOOL CAccuracyMgr::Measurement(HWND hHwnd/* = NULL*/)
 					m_bRunnigThread = FALSE;
 					return FALSE;
 				}
-
+				
 				Wait(3000);
 
 				if (FALSE == GrabData(stGrab, FALSE, 5))
@@ -1283,7 +1298,7 @@ BOOL CAccuracyMgr::GrabData(STG_ACGR& stGrab, BOOL bRunMode, int nRetryCount)
  parm : UI 윈도우 핸들
  retn : None
 */
-VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/,bool camZMeasure)
+VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/,bool camZMeasure,bool camZColumnItem)
 {
 
 	if (m_bRunnigThread || CommonMotionStuffs::GetInstance().NowOnMoving())
@@ -1301,6 +1316,7 @@ VOID CAccuracyMgr::MeasureStart(HWND hHwnd/* = NULL*/,bool camZMeasure)
 	m_bStop = FALSE;
 	m_bRunnigThread = TRUE;
 	this->camZMeasure = camZMeasure;
+	this->camZColumnItem = camZColumnItem;
 	m_pMeasureThread = AfxBeginThread(MeasureThread, (LPVOID)hHwnd);
 }
 

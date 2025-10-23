@@ -252,8 +252,16 @@ VOID CDlgCalbAccuracyMeasure::OnResizeDlg()
 		is_busy	- [in]  TRUE: 현재 시나리오 동작 중 ..., FALSE: 현재 Idle 상태
  retn : None
 */
+bool prevSelect = false;
 VOID CDlgCalbAccuracyMeasure::UpdateControl(UINT64 tick, BOOL is_busy)
 {
+	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
+	bool useCamzMotion = pGrid->GetItemText(eOPTION_POS_CAM_Z_COLUMN, eOPTION_COL_VALUE) == "YES";
+	if (prevSelect != useCamzMotion)
+	{
+		InitGridData(TRUE);
+		prevSelect = useCamzMotion;
+	}
 }
 
 /*
@@ -384,6 +392,8 @@ VOID CDlgCalbAccuracyMeasure::InitGridOption()
 	
 	vTitle[eOPTION_EXPO_AREA_MEASURE] = { _T("Expo area measure"), _T("NO") };
 	vTitle[eOPTION_CALIB_CAM_Z_OFFSET] = { _T("CamZ offset Measure"), _T("NO") };
+	vTitle[eOPTION_POS_CAM_Z_COLUMN] = { _T("Set CamZ Position"), _T("NO") };
+	
 	
 	 //serchmode = ;
 	CAccuracyMgr::GetInstance()->SetSearchMode(CAccuracyMgr::SearchMode::single);
@@ -491,8 +501,23 @@ VOID CDlgCalbAccuracyMeasure::InitGridData(BOOL bIsReload/* = FALSE*/)
 	CResizeUI	clsResizeUI;
 	CRect		rGrid;
 	std::vector <int>			vRowSize(CAccuracyMgr::GetInstance()->GetPointCount() + 1);
-	std::vector <int>			vColSize(eRESULT_COL_MAX);
-	std::vector <std::wstring>	vTitle = { _T("INDEX"), _T("POINT X"), _T("POINT Y"), _T("X ERR"), _T("Y ERR") };
+	
+
+	
+
+	CGridCtrl* pGridOpt = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_OPTION];
+
+	bool useCamZMovePosition = pGridOpt ? pGridOpt->GetItemText(eOPTION_POS_CAM_Z_COLUMN, eOPTION_COL_VALUE) == "YES" ? true : false
+									 : false;
+
+	
+
+	std::vector <std::wstring> vTitle = useCamZMovePosition ? std::vector <std::wstring>{ _T("INDEX"), _T("POINT X"), _T("POINT Y"), _T("CAM Z"), _T("X ERR"), _T("Y ERR") } :
+															std::vector <std::wstring>{ _T("INDEX"), _T("POINT X"), _T("POINT Y"), _T("X ERR"), _T("Y ERR") };
+	
+	
+	std::vector <int>			vColSize(vTitle.size());
+
 	CGridCtrl* pGrid = &m_grd_ctl[eCALB_ACCURACY_MEASURE_GRD_DATA];
 	ST_ACCR_PARAM stParam;
 
@@ -508,7 +533,9 @@ VOID CDlgCalbAccuracyMeasure::InitGridData(BOOL bIsReload/* = FALSE*/)
 	this->ScreenToClient(rGrid);
 
 	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
+
 	int nTotalHeight = 0;
+
 	for (auto& height : vRowSize)
 	{
 		height = nHeight;
@@ -533,6 +560,7 @@ VOID CDlgCalbAccuracyMeasure::InitGridData(BOOL bIsReload/* = FALSE*/)
 	pGrid->SetFont(&g_font[eFONT_LEVEL2_BOLD]);
 	pGrid->SetRowCount((int)vRowSize.size());
 	pGrid->SetColumnCount((int)vColSize.size());
+	
 	pGrid->SetRowHeight(0, nHeight);
 	pGrid->SetFixedColumnCount(0);
 	pGrid->SetBkColor(WHITE_);
@@ -562,13 +590,18 @@ VOID CDlgCalbAccuracyMeasure::InitGridData(BOOL bIsReload/* = FALSE*/)
 
 		if (0 < nRow)
 		{
+			int idx = 0;
 			if (TRUE == CAccuracyMgr::GetInstance()->GetPointParam(nRow - 1, stParam))
 			{
-				pGrid->SetItemTextFmt(nRow, 0, _T("%d"), nRow);
-				pGrid->SetItemTextFmt(nRow, 1, _T("%.4f"), stParam.dMotorX);
-				pGrid->SetItemTextFmt(nRow, 2, _T("%.4f"), stParam.dMotorY);
-				pGrid->SetItemTextFmt(nRow, 3, _T("%.4f"), stParam.dValueX);
-				pGrid->SetItemTextFmt(nRow, 4, _T("%.4f"), stParam.dValueY);
+				pGrid->SetItemTextFmt(nRow, idx++, _T("%d"), nRow);
+				pGrid->SetItemTextFmt(nRow, idx++, _T("%.4f"), stParam.dMotorX);
+				pGrid->SetItemTextFmt(nRow, idx++, _T("%.4f"), stParam.dMotorY);
+
+				if(useCamZMovePosition)
+					pGrid->SetItemTextFmt(nRow, idx++, _T("%.4f"), stParam.dMotorZ);
+
+				pGrid->SetItemTextFmt(nRow, idx++, _T("%.4f"), stParam.dValueX);
+				pGrid->SetItemTextFmt(nRow, idx++, _T("%.4f"), stParam.dValueY);
 			}
 		}
 	}
@@ -919,6 +952,7 @@ BOOL CDlgCalbAccuracyMeasure::SaveClacFile()
 	CFileDialog fileSaveDialog(FALSE, strExt, strFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter);
 	BOOL expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
 	BOOL camzOffsetMeasure = pGrid->GetItemText(eOPTION_CALIB_CAM_Z_OFFSET, eOPTION_COL_VALUE) == "YES";
+	bool useCamZMovePosition = pGrid->GetItemText(eOPTION_POS_CAM_Z_COLUMN, eOPTION_COL_VALUE) == "YES";
 	
 
 	CAccuracyMgr::GetInstance()->SetExpoAreaMeasure(expoAreaMeasure);
@@ -1172,6 +1206,7 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 
 	bool expoAreaMeasure = pGrid->GetItemText(eOPTION_EXPO_AREA_MEASURE, eOPTION_COL_VALUE) == "YES";
 	bool camzOffsetMeasure = pGrid->GetItemText(eOPTION_CALIB_CAM_Z_OFFSET, eOPTION_COL_VALUE) == "YES";
+	bool useCamZMovePosition = pGrid->GetItemText(eOPTION_POS_CAM_Z_COLUMN, eOPTION_COL_VALUE) == "YES";
 
 	CAccuracyMgr::GetInstance()->SetExpoAreaMeasure(expoAreaMeasure);
 
@@ -1234,7 +1269,7 @@ VOID CDlgCalbAccuracyMeasure::MeasureStart()
 	
 	HoldControl(TRUE);
 
-	CAccuracyMgr::GetInstance()->MeasureStart(this->GetSafeHwnd(), camzOffsetMeasure);
+	CAccuracyMgr::GetInstance()->MeasureStart(this->GetSafeHwnd(), camzOffsetMeasure, useCamZMovePosition);
 	SetTimer(eCALB_ACCURACY_MEASURE_TIMER_WORK, 500, NULL);
 }
 
@@ -1471,11 +1506,13 @@ LRESULT CDlgCalbAccuracyMeasure::RefreshGrabView(WPARAM wParam, LPARAM lParam)
 
 	CAccuracyMgr::GetInstance()->GetPointErrValue((int)wParam, dX, dY);
 
-	pGrid->SetItemDouble((int)wParam + 1, eRESULT_COL_VALUE_X, dX, 4);
-	pGrid->SetItemDouble((int)wParam + 1, eRESULT_COL_VALUE_Y, dY, 4);
+	auto columnCnt = pGrid->GetColumnCount();
+	
+	pGrid->SetItemDouble((int)wParam + 1, columnCnt == 5 ? eRESULT_COL_VALUE_X : eRESULT_COL_VALUE_X + 1, dX, 4);
+	pGrid->SetItemDouble((int)wParam + 1, columnCnt == 5 ? eRESULT_COL_VALUE_Y : eRESULT_COL_VALUE_Y + 1, dY, 4);
 
-	pGrid->SetItemBkColour((int)wParam + 1, eRESULT_COL_VALUE_X, LIGHT_GRAY);
-	pGrid->SetItemBkColour((int)wParam + 1, eRESULT_COL_VALUE_Y, LIGHT_GRAY);
+	pGrid->SetItemBkColour((int)wParam + 1, columnCnt == 5 ? eRESULT_COL_VALUE_X : eRESULT_COL_VALUE_X + 1, LIGHT_GRAY);
+	pGrid->SetItemBkColour((int)wParam + 1, columnCnt == 5 ? eRESULT_COL_VALUE_Y : eRESULT_COL_VALUE_Y + 1, LIGHT_GRAY);
 
 	pGrid->SetCellView((int)wParam + 1, 0);
 

@@ -7,6 +7,7 @@ typedef struct stAccuracyMeasureParam
 {
 	double dMotorX;
 	double dMotorY;
+	double dMotorZ;
 	double dValueX;
 	double dValueY;
 
@@ -19,6 +20,7 @@ typedef struct stAccuracyMeasureParam
 		dGbrY = 0;
 		dMotorX = 0;
 		dMotorY = 0;
+		dMotorZ = 0;
 		dValueX = 0;
 		dValueY = 0;
 		
@@ -172,6 +174,7 @@ protected:
 	BOOL				m_bUseCalData;
 	BOOL				m_bUseCamDrv;
 	bool camZMeasure = false;
+	bool camZColumnItem = false;
 	UINT8				m_u8ACamID = 1;
 
 	int					m_nStartIndex;
@@ -242,7 +245,7 @@ public:
 
 	BOOL IsProcessWorking() { return m_bRunnigThread; }
 
-	VOID MeasureStart(HWND hHwnd = NULL, bool camZMeasure=false);
+	VOID MeasureStart(HWND hHwnd = NULL, bool camZMeasure=false, bool camZColumnItem=false);
 	VOID SetStopProcess() { m_bStop = TRUE; }
 	BOOL IsStopProcess() { return m_bStop; }
 

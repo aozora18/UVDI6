@@ -409,9 +409,6 @@ namespace PreProConsole
             string fPath = $@"{path}\rlt_settings.xml";
             var doc = XDocument.Load(fPath);
 
-            Dictionary<double, double> mx = new Dictionary<double, double>();
-            Dictionary<double, double> my = new Dictionary<double, double>();
-
             var localFids = doc.Descendants("Local")
                 .Where(e => e.Attribute("d-code")?.Value != "0")
                 .Elements("fid")
@@ -420,8 +417,6 @@ namespace PreProConsole
                     GbrX = double.Parse( fid.Element("gbr")?.Attribute("x")?.Value),
                     GbrY = double.Parse(fid.Element("gbr")?.Attribute("y")?.Value)
                 }).ToList();
-
-            
 
             var globalFids = doc.Descendants("Global")
                .Where(e => e.Attribute("d-code")?.Value != "0")
@@ -432,27 +427,61 @@ namespace PreProConsole
                    GbrY = double.Parse(fid.Element("gbr")?.Attribute("y")?.Value)
                }).ToList();
 
+            var mapping = new Dictionary<double, List<double>>();
+
             globalFids.ForEach(v =>
              {
-                 mx[Math.Floor(v.GbrX * 100.0f) / 100.0f] = v.GbrX;
-                 my[Math.Floor(v.GbrY * 100.0f) / 100.0f] = v.GbrY;
+                 
+                 double key = Math.Floor(v.GbrX * 100.0) / 100.0;
+                 double val = Math.Floor(v.GbrY * 100.0) / 100.0;
+
+                 if (!mapping.TryGetValue(key, out var list))
+                 {
+                     list = new List<double>();
+                     mapping[key] = list;
+                 }
+                 list.Add(val);
              });
 
-            if (mx.Count * my.Count != globalFids.Count)
-            {
-                MessageBox.Show(@"global fiducial validate error, check fiducial position");
+            int col = mapping.Count;
+            int row = 0;
 
+            foreach (var kv in mapping)
+            {
+                if (kv.Value.Count > row)
+                    row = kv.Value.Count;
             }
 
-            mx.Clear();my.Clear();
+            if (row * col != globalFids.Count)
+            {
+                MessageBox.Show(@"global fiducial validate error, check fiducial position");
+            }
+            mapping.Clear();
 
             localFids.ForEach(v =>
             {
-                mx[Math.Floor(v.GbrX * 100.0f) / 100.0f] = v.GbrX;
-                my[Math.Floor(v.GbrY * 100.0f) / 100.0f] = v.GbrY;
+
+                double key = Math.Floor(v.GbrX * 100.0) / 100.0;
+                double val = Math.Floor(v.GbrY * 100.0) / 100.0;
+
+                if (!mapping.TryGetValue(key, out var list))
+                {
+                    list = new List<double>();
+                    mapping[key] = list;
+                }
+                list.Add(val);
             });
 
-            if (mx.Count * my.Count != localFids.Count)
+            col = mapping.Count;
+            row = 0;
+
+            foreach (var kv in mapping)
+            {
+                if (kv.Value.Count > row)
+                    row = kv.Value.Count;
+            }
+
+            if (row * col != localFids.Count)
             {
                 MessageBox.Show(@"local fiducial validate error, check fiducial position");
             }

@@ -86,6 +86,10 @@ BOOL CMainApp::InitInstance()
 	CWinApp::InitInstance();
 	GlobalVariables::GetInstance()->Init();
 	GlobalVariables::GetInstance()->GetWebMonitor().StartWebMonitor();
+	
+#ifdef USEBT
+	GlobalVariables::GetInstance()->GetbtMonitor().Start();
+#endif
 	//GlobalVariables::GetInstance()->StartEnvironmentCheck();
 	// OLE √ ±‚»≠
 	AfxOleInit();

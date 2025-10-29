@@ -21,6 +21,7 @@
 #include <regex>
 #include "param/InterLockManager.h"
 #include "webViewinterop.h"
+#include "btControlInterop.h"
 #include <iomanip>
 #include <sstream>
 #include <cmath>
@@ -38,7 +39,7 @@
 #include "../../inc/itfc/ItfcUVDI15.h"
 #include "Ajinprotocol.h"
 #include "CommWrapper.h"
-
+#include <queue>
 
 using namespace std;
 using namespace mini;
@@ -1037,7 +1038,42 @@ class AjinMotionNetwork
 	bool StopMotor(int axis, bool all);
 };
 
+#ifdef USEBT
+class BTController
+{
+	BtSppApi btSpp;
+	thread mainThread;
+	string clientID ="";
+	bool loaded = false;
+	bool Load()
+	{
+		return btSpp.Load();
+	}
 
+	std::map<BtSppApi::MsgType, queue<vector<string>>> msgPool;
+
+	std::atomic<bool> cancelFlag = false;
+	mutex mtx;
+	bool StopFlag = false;
+	 
+
+public:
+	bool Stop();
+	bool Start();
+	void SetClientID(string id) { clientID = id; }
+	int AddOrUpdateMonitoringValue(const char* key, const char* value, const char* desc = nullptr)
+	{
+		return btSpp.AddOrUpdateMonitoringValue(key, value, desc);
+	}
+
+	int RefreshMonitoringValue()
+	{
+		return btSpp.RefreshMonitoringValue();
+	}
+
+	vector<string> GetPoolMessage(BtSppApi::MsgType msg);
+};
+#endif
 ////////////////////////////////////////////////////////////
 ///			세타테이블 컨트롤 관련
 ////////////////////////////////////////////////////////////
@@ -1183,6 +1219,9 @@ private:
 	unique_ptr<RefindMotion> refindMotion;
 	unique_ptr<TriggerManager> triggerManager;
 	unique_ptr<WebMonitor> webMonitor;
+#ifdef USEBT
+	unique_ptr<BTController> btMonitor;
+#endif
 	unique_ptr<Environmental> environmental;
 	unique_ptr<AutoFocus> autoFocus;
 	unique_ptr <AjinMotionNetwork> ajinMotion;
@@ -1197,6 +1236,8 @@ private:
 
 public:
 	void StartWebMonitor();
+	void StartBTMonitor();
+
 
 public:
 	FEMRunState femRunState;
@@ -1219,7 +1260,12 @@ public:
 	{
 		return *triggerManager;
 	}
-
+#ifdef USEBT
+	BTController& GetbtMonitor()
+	{
+		return *btMonitor;
+	}
+#endif
 	WebMonitor& GetWebMonitor()
 	{
 		return *webMonitor;
@@ -1251,8 +1297,14 @@ public:
 		refindMotion.reset();
 		triggerManager.reset();
 		autoFocus.reset();
+#ifdef USEBT
+		btMonitor->Stop();
+		btMonitor.reset();
+#endif
 		webMonitor->StopWebServer();
+		
 		webMonitor.reset();
+		
 		environmental.reset();
 		ajinMotion.reset();
 		thetaControl.reset();
@@ -1349,6 +1401,10 @@ public:
 		autoFocus = make_unique<AutoFocus>(AutoFocus(2));
 		ajinMotion = make_unique<AjinMotionNetwork>();
 		thetaControl = make_unique<ThetaControl>();
+#ifdef USEBT
+		btMonitor = make_unique<BTController>();
+#endif
+
 	}
 
 	/*GlobalVariables()

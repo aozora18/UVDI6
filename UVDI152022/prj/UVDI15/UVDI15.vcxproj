@@ -60,7 +60,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>TOUCH_KBD;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USEBT;TOUCH_KBD;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
@@ -161,6 +161,7 @@
     <ClInclude Include="..\..\inc\kybd\DlgKBDN.h" />
     <ClInclude Include="..\..\inc\kybd\DlgKBDT.h" />
     <ClInclude Include="Ajinprotocol.h" />
+    <ClInclude Include="btControlInterop.h" />
     <ClInclude Include="CommWrapper.h" />
     <ClInclude Include="db\DBData.h" />
     <ClInclude Include="db\DBDefine.h" />

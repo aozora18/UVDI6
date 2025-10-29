@@ -1174,8 +1174,221 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 		}
 	}
+#ifdef USEBT
+	vector<string> BTController::GetPoolMessage(BtSppApi::MsgType msg)
+	{
+		if (msgPool[msg].empty())
+			return vector<string>{};
+
+		lock_guard<mutex> lg(mtx);
+
+		auto& q = msgPool[msg];
+		if (q.empty()) return {};
+		auto val = q.front();
+		q.pop();
+		return val;
+	}
+
+	bool BTController::Stop()
+	{
+		cancelFlag = true;
+		Sleep(2000);
+		return true;
+	}
+
+	static std::atomic<bool> updateStopFlag = false;
+	void Connected(string clientID)
+	{
+		
+	}
+
+	bool BTController::Start()
+	{
+		if (Load() == false)
+			return false;
+
+		ThreadManager::getInstance().addThread("btmonitor", cancelFlag, [&]()
+		{
+				char key[128], msg[1024];
+
+				
+				auto& ajin = GlobalVariables::GetInstance()->GetAjinMotion();
+				auto& align = GlobalVariables::GetInstance()->GetAlignMotion();
+
+				while (cancelFlag == false)
+				{
+					if (btSpp.WaitForListen() == false)
+						continue;
+					if (btSpp.PollMessage(key, sizeof(key), msg, sizeof(msg)))
+					{
+						int cmd = BtSppApi::MsgType::END;
+						vector<string> sliced;
+						if (btSpp.ParseMessage(msg, cmd, sliced))
+						{
+							lock_guard<mutex> lg(mtx);
+							msgPool[(BtSppApi::MsgType)cmd].push(sliced);
+						}
+					}
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+					double x = align.GetAxises()["stage"]["x"].currPos;
+					double y = align.GetAxises()["stage"]["y"].currPos;
+
+					double cz1 = ajin.GetAxisInfo()[0].position;
+					double cz2 = ajin.GetAxisInfo()[1].position;
+					double cz3 = ajin.GetAxisInfo()[2].position;
+
+					btSpp.AddOrUpdateMonitoringValue("stageX", std::to_string((x * 1000) / 1000).c_str(), "stage X(mm)");
+					btSpp.AddOrUpdateMonitoringValue("stageY", std::to_string((y * 1000) / 1000).c_str(), "stage Y(mm)");
+					btSpp.AddOrUpdateMonitoringValue("cam1Z", std::to_string((cz1 * 1000) / 1000).c_str(), "cam1 Z(mm)");
+					btSpp.AddOrUpdateMonitoringValue("cam2Z", std::to_string((cz2 * 1000) / 1000).c_str(), "cam2 Z(mm)");
+					btSpp.AddOrUpdateMonitoringValue("cam3Z", std::to_string((cz3 * 1000) / 1000).c_str(), "cam3 Z(mm)");
+					btSpp.RefreshMonitoringValue();
+				}
+				btSpp.Unload();
+				btSpp.ServerStop();
+			});
+
+			ThreadManager::getInstance().addThread("btmsgPool", cancelFlag, [&]()
+			{
+					
+
+					while (cancelFlag == false)
+					{
+						lock_guard<mutex> lg(mtx);
+						if (!msgPool[BtSppApi::MsgType::CMD].empty())
+						{
+							char buffer[125] = { 0, };
+							btSpp.GetClients(buffer, 125);
+
+							vector<string> msg = msgPool[BtSppApi::MsgType::CMD].front();
+							msgPool[BtSppApi::MsgType::CMD].pop();
+							if(msg[0] == "grab")
+							{
+								int camidx = stoi(msg[1]) != 0 ? 1 :
+										     stoi(msg[2]) != 0 ? 2 :
+									         stoi(msg[3]) != 0 ? 3 : 4;
 
 
+								//////////////////////
+
+								UINT8 u8ACamID = camidx;
+								TCHAR tzVal[64] = { NULL };
+								UINT64 u64Tick = GetTickCount64();
+								LPG_ACGR pstGrab = NULL;
+
+								if (uvEng_Camera_GetCamMode() != ENG_VCCM::en_image_mode)
+								{
+									if (!uvEng_Camera_IsSetMarkModelACam(u8ACamID, 2))
+									{
+										btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, "error - set model first");
+										continue;
+									}
+									uvEng_Camera_SetCamMode(ENG_VCCM::en_cali_mode);
+
+									if (CommonMotionStuffs::GetInstance().SingleGrab(u8ACamID, true) == false)
+									{
+										btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, "error - grab failed.");
+										continue;
+									}
+								}
+
+
+								do {
+									UINT8 mode = 0xff;
+									pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, 0, 0);
+									if (pstGrab && 0x00 != pstGrab->marked)	break;
+									
+									if (u64Tick + 100 < GetTickCount64())	break;
+
+									Sleep(100);
+
+								} while (1);
+
+								
+
+								if (pstGrab && 0x00 != pstGrab->marked)
+								{
+									int debug = 0;
+									
+									char buf[128];
+									sprintf_s(buf, 128, "move_mm_x : %f, move_mm_y : %f, scale : %f , score : %f", pstGrab->move_mm_x, pstGrab->move_mm_x, pstGrab->scale_rate, pstGrab->score_rate);
+									btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, buf);
+								}
+								else
+								{
+									btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, "GRAB NG - no mark find.");
+								}
+								//////////////////////
+							}
+							else if (msg[0] == "up" || msg[0] == "down" || msg[0] == "left" || msg[0] == "right")
+							{
+								bool abs = stoi(msg[1]) != 0 ? true :
+									stoi(msg[2]) != 0 ? false : true;
+
+								double value = stod(msg[3]);
+								
+								ENG_MMDI drv = msg[0] == "up" || msg[0] == "down" ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x;
+								if (!abs && (msg[0] == "up" || msg[0] == "right"))
+									value *= -1.0f;
+
+								bool res = CommonMotionStuffs::GetInstance().MoveAxis(drv, abs, value, true);
+								btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, res ? "move done" : "move failed");
+							}
+						}
+					}
+					
+			});
+
+
+		btSpp.RegisterOnConnected([](const char* key, int len)
+			{
+				char buffer[125] = { 0, };
+				strncat_s(buffer, 125, (char*)key, len);
+				Connected(buffer);
+			});
+
+		//UI 스크립트 //
+		btSpp.AddGroupbox("group1", "스테이지", 1, 1, 330, 350);
+		btSpp.AddButton("up",   "↑", 50, 15, 30, 30);
+		btSpp.AddButton("down", "↓", 50, 80, 30, 30);
+		btSpp.AddButton("left", "←", 17, 48, 30, 30);
+		btSpp.AddButton("right", "→", 85, 48, 30, 30);
+		
+		btSpp.AddLabel("lbl", "좌표이동", 120, 5, 160, 30);
+		btSpp.AddRadioButton("AbsMoveRad", "abs.", "moveMethod", true, 120, 40);
+		btSpp.AddRadioButton("relMoveRad", "rel.", "moveMethod", false, 180, 40);
+
+		
+
+		btSpp.AddLabel("lbl", "Pos", 120, 80, 50, 35);
+		btSpp.AddInputbox("value", "0.000", 180, 80, -1, 40);
+
+
+
+		btSpp.AddMonitor(350, 0);
+
+		btSpp.AddRadioButton("cam1", "cam1", "camSel", true, 0, 120);
+		btSpp.AddRadioButton("cam2", "cam2", "camSel", false, 80, 120);
+		btSpp.AddRadioButton("cam3", "cam3", "camSel", false, 160, 120);
+		btSpp.AddButton("grab", "그랩", 80, 160, 60, 30);
+
+		btSpp.Bind("grab", vector<string>{ "cam1", "cam2","cam3" });
+		btSpp.Bind("up", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
+		btSpp.Bind("down", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
+		btSpp.Bind("left", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
+		btSpp.Bind("right", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
+
+		btSpp.AddOrUpdateMonitoringValue("stageX", "0", "stage X(mm)");
+		btSpp.AddOrUpdateMonitoringValue("stageY", "0", "stage Y(mm)");
+		btSpp.AddOrUpdateMonitoringValue("cam1Z", "0", "cam1 Z(mm)");
+		btSpp.AddOrUpdateMonitoringValue("cam2Z", "0", "cam2 Z(mm)");
+		btSpp.AddOrUpdateMonitoringValue("cam3Z", "0", "cam3 Z(mm)");
+
+		//
+		return btSpp.ServerStart() == 1;
+	}
+#endif
 	void WebMonitor::StartWebMonitor()
 	{
 		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()

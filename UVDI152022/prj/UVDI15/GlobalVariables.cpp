@@ -1210,10 +1210,14 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		ThreadManager::getInstance().addThread("btmonitor", cancelFlag, [&]()
 		{
 				char key[128], msg[1024];
-
-				
 				auto& ajin = GlobalVariables::GetInstance()->GetAjinMotion();
 				auto& align = GlobalVariables::GetInstance()->GetAlignMotion();
+				
+				auto to_str3 = [](double v) {
+					std::ostringstream oss;
+					oss << std::fixed << std::setprecision(3) << v;
+					return oss.str();
+					};
 
 				while (cancelFlag == false)
 				{
@@ -1238,11 +1242,11 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 					double cz2 = ajin.GetAxisInfo()[1].position;
 					double cz3 = ajin.GetAxisInfo()[2].position;
 
-					btSpp.AddOrUpdateMonitoringValue("stageX", std::to_string((x * 1000) / 1000).c_str(), "stage X(mm)");
-					btSpp.AddOrUpdateMonitoringValue("stageY", std::to_string((y * 1000) / 1000).c_str(), "stage Y(mm)");
-					btSpp.AddOrUpdateMonitoringValue("cam1Z", std::to_string((cz1 * 1000) / 1000).c_str(), "cam1 Z(mm)");
-					btSpp.AddOrUpdateMonitoringValue("cam2Z", std::to_string((cz2 * 1000) / 1000).c_str(), "cam2 Z(mm)");
-					btSpp.AddOrUpdateMonitoringValue("cam3Z", std::to_string((cz3 * 1000) / 1000).c_str(), "cam3 Z(mm)");
+					btSpp.AddOrUpdateMonitoringValue("stageX", to_str3(x).c_str(), "stage X(mm)");
+					btSpp.AddOrUpdateMonitoringValue("stageY", to_str3(y).c_str(), "stage Y(mm)");
+					btSpp.AddOrUpdateMonitoringValue("cam1Z", to_str3(cz1).c_str(), "cam1 Z(mm)");
+					btSpp.AddOrUpdateMonitoringValue("cam2Z", to_str3(cz2).c_str(), "cam2 Z(mm)");
+					btSpp.AddOrUpdateMonitoringValue("cam3Z", to_str3(cz3).c_str(), "cam3 Z(mm)");
 					btSpp.RefreshMonitoringValue();
 				}
 				btSpp.Unload();
@@ -1327,12 +1331,36 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 									stoi(msg[2]) != 0 ? false : true;
 
 								double value = stod(msg[3]);
-								
+
+
 								ENG_MMDI drv = msg[0] == "up" || msg[0] == "down" ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x;
 								if (!abs && (msg[0] == "up" || msg[0] == "right"))
 									value *= -1.0f;
 
 								bool res = CommonMotionStuffs::GetInstance().MoveAxis(drv, abs, value, true);
+								btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, res ? "move done" : "move failed");
+							}
+							else if (msg[0] == "upz" || msg[0] == "downz")
+							{
+								double pos = stod(msg[6]);
+								
+								bool inc = msg[0] == "upz";
+
+								int camidx = stoi(msg[1]) != 0 ? 0 :
+											 stoi(msg[2]) != 0 ? 1 :
+										     stoi(msg[3]) != 0 ? 2 : 3;
+
+								bool abs = stoi(msg[4]) != 0 ? true :
+										   stoi(msg[5]) != 0 ? false : true;
+
+								
+
+								ENG_MMDI drv = (ENG_MMDI)((int)ENG_MMDI::en_axis_acam1 + camidx);
+
+								bool res = CommonMotionStuffs::GetInstance().MoveAxis(drv, abs, 
+									abs ? pos : 
+									inc ? pos : pos * -1.0f ,true);
+
 								btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, res ? "move done" : "move failed");
 							}
 						}
@@ -1349,13 +1377,13 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			});
 
 		//UI 스크립트 //
-		btSpp.AddGroupbox("group1", "스테이지", 1, 1, 330, 350);
-		btSpp.AddButton("up",   "↑", 50, 15, 30, 30);
-		btSpp.AddButton("down", "↓", 50, 80, 30, 30);
-		btSpp.AddButton("left", "←", 17, 48, 30, 30);
-		btSpp.AddButton("right", "→", 85, 48, 30, 30);
+		btSpp.AddGroupbox("group1", "스테이지", 1, 1, 330, 250);
+		btSpp.AddButton("up",   "↑", 50-5, 15, 30, 30);
+		btSpp.AddButton("down", "↓", 50 - 5, 80, 30, 30);
+		btSpp.AddButton("left", "←", 17 - 5, 48, 30, 30);
+		btSpp.AddButton("right", "→", 85 - 5, 48, 30, 30);
 		
-		btSpp.AddLabel("lbl", "좌표이동", 120, 5, 160, 30);
+		btSpp.AddLabel("lbl", "스테이지 이동", 120, 5, 160, 30);
 		btSpp.AddRadioButton("AbsMoveRad", "abs.", "moveMethod", true, 120, 40);
 		btSpp.AddRadioButton("relMoveRad", "rel.", "moveMethod", false, 180, 40);
 
@@ -1371,13 +1399,31 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		btSpp.AddRadioButton("cam1", "cam1", "camSel", true, 0, 120);
 		btSpp.AddRadioButton("cam2", "cam2", "camSel", false, 80, 120);
 		btSpp.AddRadioButton("cam3", "cam3", "camSel", false, 160, 120);
-		btSpp.AddButton("grab", "그랩", 80, 160, 60, 30);
+		btSpp.AddButton("grab", "그랩", 240, 125, 60, 30);
+
+		btSpp.AddGroupbox("group2", "카메라z", 560, 1,330, 250);
+		btSpp.AddButton("upz", "↑", 570+5, 15, 30, 30);
+		btSpp.AddButton("downz", "↓", 570+5, 80, 30, 30);
+		btSpp.AddLabel("lbl", "카메라z축 이동", 620, 5, 140, 30);
+		btSpp.AddRadioButton("AbsMoveRadZ", "abs.", "moveMethodz", true, 620, 40);
+		btSpp.AddRadioButton("relMoveRadZ", "rel.", "moveMethodz", false, 680, 40);
+		
+		btSpp.AddRadioButton("selZ1", "cam1", "zaxis", true, 620-60, 120);
+		btSpp.AddRadioButton("selZ2", "cam2", "zaxis", false, 700 - 60, 120);
+		btSpp.AddRadioButton("selZ3", "cam3", "zaxis", false, 780 - 60, 120);
+
+		btSpp.AddLabel("lbl", "Pos", 620, 80, 50, 35);
+		btSpp.AddInputbox("valuez", "0.000", 680, 80, -1, 40);
+
 
 		btSpp.Bind("grab", vector<string>{ "cam1", "cam2","cam3" });
 		btSpp.Bind("up", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
 		btSpp.Bind("down", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
 		btSpp.Bind("left", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
 		btSpp.Bind("right", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
+
+		btSpp.Bind("upz", vector<string>{ "selZ1", "selZ2", "selZ3","AbsMoveRadZ","relMoveRadZ","valuez" });
+		btSpp.Bind("downz", vector<string>{ "selZ1", "selZ2", "selZ3", "AbsMoveRadZ", "relMoveRadZ", "valuez" });
 
 		btSpp.AddOrUpdateMonitoringValue("stageX", "0", "stage X(mm)");
 		btSpp.AddOrUpdateMonitoringValue("stageY", "0", "stage Y(mm)");
@@ -2054,23 +2100,39 @@ bool CommonMotionStuffs::GetOffsetsUseMarkPos(int centerCam , STG_XMXY mark, Cal
 
 bool CommonMotionStuffs::MoveAxis(ENG_MMDI axis, bool absolute, double pos, bool waiting, int timeout, double speed)
 {
-	double curr = uvCmn_MC2_GetDrvAbsPos(axis);
 
-	double dest = absolute ? pos : curr + pos;
+	auto& ajinMotion =  GlobalVariables::GetInstance()->GetAjinMotion();
+	BOOL res = false;
 
-	if (uvCmn_MC2_IsDriveError(axis) || uvCmn_MC2_IsMotorDriveStopAll() == false ||
-		CInterLockManager::GetInstance()->CheckMoveInterlock(axis, dest))
-		return false;
+	if (axis >= ENG_MMDI::en_axis_acam1 && axis <= ENG_MMDI::en_axis_theta)
+	{
+		int ajinAxis = (int)axis - (int)ENG_MMDI::en_axis_acam1;
+		auto* axises = ajinMotion.GetAxisInfo();
+		
+		string resStr = "";
+		res = absolute ? ajinMotion.MoveAbs(ajinAxis, pos, 10, resStr) : ajinMotion.MoveRel(ajinAxis, pos, 10, resStr);
+	}
+	else
+	{
+		double curr = uvCmn_MC2_GetDrvAbsPos(axis);
 
-	uvCmn_MC2_GetDrvDoneToggled(axis);
+		double dest = absolute ? pos : curr + pos;
 
-	BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, speed);
+		if (uvCmn_MC2_IsDriveError(axis) || uvCmn_MC2_IsMotorDriveStopAll() == false ||
+			CInterLockManager::GetInstance()->CheckMoveInterlock(axis, dest))
+			return false;
 
-	if (waiting && res)
-		res = GlobalVariables::GetInstance()->Waiter([&]()->bool
-			{
-				return uvCmn_MC2_IsDrvDoneToggled(axis);
-			}, timeout);
+		uvCmn_MC2_GetDrvDoneToggled(axis);
+
+		BOOL res = uvEng_MC2_SendDevAbsMove(axis, dest, speed);
+
+		if (waiting && res)
+			res = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					return uvCmn_MC2_IsDrvDoneToggled(axis);
+				}, timeout);
+	}
+	
 
 	return res;
 }

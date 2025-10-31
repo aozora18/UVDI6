@@ -1782,7 +1782,7 @@ BOOL CMilMain::SaveGrabbedToFile(PTCHAR file, INT32 width, INT32 height, PUINT8 
 		bSucc	= FALSE;
 	}
 	/* Save to file */
-	MbufExport(file, M_BMP, mBufID);
+	MbufExport(file, M_PNG, mBufID);
 	/* Image Buffer Release */
 	MbufFree(mBufID);
 #endif

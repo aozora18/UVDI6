@@ -1,15 +1,21 @@
 // bt_spp.h
-#pragma once
-
 #ifdef USEBT
-
+#pragma once
 #include <stdint.h>
+#include <windows.h>
 #include <filesystem>
 #include <stdio.h>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <iostream>
+
+// ===== 동적 로딩 =====
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+using namespace std;
 
 struct BtSppApi
 {
@@ -19,6 +25,7 @@ struct BtSppApi
 		LOG,
 		UI,
 		MON,
+		IMG,
 		END,
 	};
 
@@ -53,7 +60,9 @@ struct BtSppApi
 	int(__cdecl* pSpp_AddOrUpdateMonitoringValue)(char*, char*, char*);
 	int(__cdecl* pSpp_AddMonitor)(double, double);
 	int(__cdecl* pSpp_Bind)(const char* btnKey, const char* keysJoined);
-	
+
+	int(__cdecl* pSpp_AddPicturebox)(double, double);
+	int(__cdecl* pSpp_UpdatePicture)(const char* recver, const unsigned char* buf, int len);
 
 	inline std::wstring from_utf8(const char* s)
 	{
@@ -74,16 +83,19 @@ struct BtSppApi
 	// 로드/언로드
 	bool Load(const wchar_t* dllPath = L"BTspp_AOT.dll")
 	{
-		if (h) 
-			return true;
+		if (h) return true;
 
 
 		wchar_t exe[MAX_PATH];
 		GetModuleFileNameW(nullptr, exe, MAX_PATH);
 		std::filesystem::path full = std::filesystem::path(exe).parent_path() / dllPath;
 
+
+		// 안전한 검색 경로
 		HMODULE mod = LoadLibraryExW(full.c_str(), nullptr,
-			LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+			LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR |
+			LOAD_LIBRARY_SEARCH_APPLICATION_DIR |
+			LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 
 		if (!mod)
 		{
@@ -93,6 +105,7 @@ struct BtSppApi
 				nullptr, ec, 0, (LPWSTR)&msg, 0, nullptr);
 			wprintf(L"LoadLibraryEx failed: %lu (%s)\n", ec, msg ? msg : L"");
 			LocalFree(msg);
+
 			return false;
 		}
 
@@ -124,11 +137,15 @@ struct BtSppApi
 		pSpp_AddOrUpdateMonitoringValue = (decltype(pSpp_AddOrUpdateMonitoringValue))gp("Spp_AddOrUpdateMonitoringValue");
 		pSpp_AddMonitor = (decltype(pSpp_AddMonitor))gp("AddMonitor");
 
+		pSpp_AddPicturebox = (decltype(pSpp_AddPicturebox))gp("AddPicturebox");
+		pSpp_UpdatePicture = (decltype(pSpp_UpdatePicture))gp("Spp_UpdatePicture");
+
 		if (!pSpp_ServerStart || !pSpp_ServerStop || !pSpp_ServerSend ||
 			!pSpp_ClientStart || !pSpp_ClientStop || !pSpp_ClientSend ||
 			!pSpp_PollMessage || !pSpp_onConnectedCallback || !pSpp_GetClients ||
 			!pSpp_AddButton || !pSpp_AddCheckbox || !pSpp_AddRadioButton || !pSpp_AddLabel || !pSpp_AddInputbox || !pSpp_AddScrollbar || !pSpp_AddGroupbox ||
-			!pSpp_ServerSetUIScript || !pSpp_RefreshMonitoringValue || !pSpp_AddOrUpdateMonitoringValue || !pSpp_AddMonitor || !pSpp_WaitForListen || !pSpp_ParseMessage || !pSpp_Bind)
+			!pSpp_ServerSetUIScript || !pSpp_RefreshMonitoringValue || !pSpp_AddOrUpdateMonitoringValue || !pSpp_AddMonitor || !pSpp_WaitForListen || !pSpp_ParseMessage || !pSpp_Bind ||
+			!pSpp_AddPicturebox || !pSpp_UpdatePicture)
 		{
 			FreeLibrary(mod);
 			return false;
@@ -159,6 +176,8 @@ struct BtSppApi
 		pSpp_WaitForListen = nullptr;
 		pSpp_ParseMessage = nullptr;
 		pSpp_Bind = nullptr;
+		pSpp_AddPicturebox = nullptr;
+		pSpp_UpdatePicture = nullptr;
 	}
 
 	//편의래퍼 메서드
@@ -359,7 +378,7 @@ struct BtSppApi
 	}
 
 	// keys 벡터를 '\n'로 합쳐서 전달
-	inline int Bind(const std::string& btnKey, const std::vector<std::string>& keys)
+	inline bool Bind(const std::string& btnKey, const std::vector<std::string>& keys)
 	{
 		if (!pSpp_Bind) return false;
 
@@ -370,10 +389,19 @@ struct BtSppApi
 			oss << keys[i];
 		}
 		auto joined = oss.str();
-		return pSpp_Bind(btnKey.c_str(), joined.c_str());
+		return pSpp_Bind(btnKey.c_str(), joined.c_str()) != 0;
 	}
-};
 
-#else
+	inline int AddPicturebox(double x, double y)
+	{
+		return pSpp_AddPicturebox ? pSpp_AddPicturebox(x, y) : 0;
+	}
+
+	inline int UpdatePicture(const std::string& recver, const std::vector<unsigned char>& data)
+	{
+		return pSpp_UpdatePicture ? pSpp_UpdatePicture(recver.c_str(),data.data(), (int)data.size() ) : 0;
+	}
+
+};
 
 #endif

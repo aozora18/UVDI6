@@ -1202,6 +1202,70 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		
 	}
 
+#pragma pack(push, 1)
+	struct BMPFileHeader {
+		uint16_t bfType = 0x4D42; // 'BM'
+		uint32_t bfSize;
+		uint16_t bfReserved1 = 0;
+		uint16_t bfReserved2 = 0;
+		uint32_t bfOffBits;       // 헤더 + 팔레트 크기
+	};
+
+	struct BMPInfoHeader {
+		uint32_t biSize = 40;
+		int32_t  biWidth;
+		int32_t  biHeight;
+		uint16_t biPlanes = 1;
+		uint16_t biBitCount = 8;   // 8bpp
+		uint32_t biCompression = 0;
+		uint32_t biSizeImage;
+		int32_t  biXPelsPerMeter = 0;
+		int32_t  biYPelsPerMeter = 0;
+		uint32_t biClrUsed = 256;
+		uint32_t biClrImportant = 256;
+	};
+#pragma pack(pop)
+
+	std::vector<unsigned char> MakeBmpFromRaw8bpp(const unsigned char* raw, int width, int height)
+	{
+		int rowSize = ((width + 3) / 4) * 4; // 4바이트 패딩
+		int dataSize = rowSize * height;
+
+		BMPFileHeader fh;
+		BMPInfoHeader ih;
+		ih.biWidth = width;
+		ih.biHeight = -height; // top-down (뒤집힘 방지)
+		ih.biSizeImage = dataSize;
+
+		// 팔레트: 256 엔트리 (BGRA)
+		std::vector<unsigned char> palette(256 * 4);
+		for (int i = 0; i < 256; i++) {
+			palette[i * 4 + 0] = (unsigned char)i; // B
+			palette[i * 4 + 1] = (unsigned char)i; // G
+			palette[i * 4 + 2] = (unsigned char)i; // R
+			palette[i * 4 + 3] = 0;                // Reserved
+		}
+
+		fh.bfOffBits = sizeof(fh) + sizeof(ih) + (uint32_t)palette.size();
+		fh.bfSize = fh.bfOffBits + dataSize;
+
+		std::vector<unsigned char> out;
+		out.resize(fh.bfSize);
+
+		unsigned char* ptr = out.data();
+		memcpy(ptr, &fh, sizeof(fh)); ptr += sizeof(fh);
+		memcpy(ptr, &ih, sizeof(ih)); ptr += sizeof(ih);
+		memcpy(ptr, palette.data(), palette.size()); ptr += palette.size();
+
+		// 픽셀 붙이기 (row padding 필요)
+		for (int y = 0; y < height; y++) {
+			memcpy(ptr, raw + y * width, width);
+			ptr += rowSize;
+		}
+
+		return out;
+	}
+
 	bool BTController::Start()
 	{
 		if (Load() == false)
@@ -1241,7 +1305,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 					double cz1 = ajin.GetAxisInfo()[0].position;
 					double cz2 = ajin.GetAxisInfo()[1].position;
 					double cz3 = ajin.GetAxisInfo()[2].position;
-
+					
 					btSpp.AddOrUpdateMonitoringValue("stageX", to_str3(x).c_str(), "stage X(mm)");
 					btSpp.AddOrUpdateMonitoringValue("stageY", to_str3(y).c_str(), "stage Y(mm)");
 					btSpp.AddOrUpdateMonitoringValue("cam1Z", to_str3(cz1).c_str(), "cam1 Z(mm)");
@@ -1303,6 +1367,10 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 									pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, 0, 0);
 									if (pstGrab && 0x00 != pstGrab->marked)	break;
 									
+									
+									
+									
+
 									if (u64Tick + 100 < GetTickCount64())	break;
 
 									Sleep(100);
@@ -1313,8 +1381,6 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 								if (pstGrab && 0x00 != pstGrab->marked)
 								{
-									int debug = 0;
-									
 									char buf[128];
 									sprintf_s(buf, 128, "move_mm_x : %f, move_mm_y : %f, scale : %f , score : %f", pstGrab->move_mm_x, pstGrab->move_mm_x, pstGrab->scale_rate, pstGrab->score_rate);
 									btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, buf);
@@ -1322,6 +1388,11 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 								else
 								{
 									btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, "GRAB NG - no mark find.");
+								}
+								if (pstGrab)
+								{
+									auto bmpBytes = MakeBmpFromRaw8bpp(pstGrab->grab_data, pstGrab->grab_width, pstGrab->grab_height);
+									btSpp.UpdatePicture(buffer,bmpBytes );
 								}
 								//////////////////////
 							}
@@ -1383,6 +1454,8 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		btSpp.AddButton("left", "←", 17 - 5, 48, 30, 30);
 		btSpp.AddButton("right", "→", 85 - 5, 48, 30, 30);
 		
+		btSpp.AddPicturebox(0,340);
+
 		btSpp.AddLabel("lbl", "스테이지 이동", 120, 5, 160, 30);
 		btSpp.AddRadioButton("AbsMoveRad", "abs.", "moveMethod", true, 120, 40);
 		btSpp.AddRadioButton("relMoveRad", "rel.", "moveMethod", false, 180, 40);

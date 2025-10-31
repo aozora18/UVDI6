@@ -546,6 +546,9 @@
     <ClInclude Include="MiniTcpProto.h">
       <Filter>02.메인 파일\AjinNetwork</Filter>
     </ClInclude>
+    <ClInclude Include="btControlInterop.h">
+      <Filter>02.메인 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

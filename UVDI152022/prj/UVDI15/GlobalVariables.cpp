@@ -1448,48 +1448,44 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			});
 
 		//UI 스크립트 //
-		btSpp.AddGroupbox("group1", "스테이지", 1, 1, 330, 250);
+		btSpp.AddGroupbox("group1", "스테이지", 1, 1, 300, 400);
 		btSpp.AddButton("up",   "↑", 50-5, 15, 30, 30);
 		btSpp.AddButton("down", "↓", 50 - 5, 80, 30, 30);
 		btSpp.AddButton("left", "←", 17 - 5, 48, 30, 30);
 		btSpp.AddButton("right", "→", 85 - 5, 48, 30, 30);
+		btSpp.AddMonitor(30, 150);
+
 		
-		btSpp.AddPicturebox(0,340);
 
 		btSpp.AddLabel("lbl", "스테이지 이동", 120, 5, 160, 30);
 		btSpp.AddRadioButton("AbsMoveRad", "abs.", "moveMethod", true, 120, 40);
 		btSpp.AddRadioButton("relMoveRad", "rel.", "moveMethod", false, 180, 40);
 
-		
-
 		btSpp.AddLabel("lbl", "Pos", 120, 80, 50, 35);
 		btSpp.AddInputbox("value", "0.000", 180, 80, -1, 40);
 
-
-
-		btSpp.AddMonitor(350, 0);
-
-		btSpp.AddRadioButton("cam1", "cam1", "camSel", true, 0, 120);
-		btSpp.AddRadioButton("cam2", "cam2", "camSel", false, 80, 120);
-		btSpp.AddRadioButton("cam3", "cam3", "camSel", false, 160, 120);
-		btSpp.AddButton("grab", "그랩", 240, 125, 60, 30);
-
-		btSpp.AddGroupbox("group2", "카메라z", 560, 1,330, 250);
-		btSpp.AddButton("upz", "↑", 570+5, 15, 30, 30);
-		btSpp.AddButton("downz", "↓", 570+5, 80, 30, 30);
-		btSpp.AddLabel("lbl", "카메라z축 이동", 620, 5, 140, 30);
-		btSpp.AddRadioButton("AbsMoveRadZ", "abs.", "moveMethodz", true, 620, 40);
-		btSpp.AddRadioButton("relMoveRadZ", "rel.", "moveMethodz", false, 680, 40);
 		
-		btSpp.AddRadioButton("selZ1", "cam1", "zaxis", true, 620-60, 120);
-		btSpp.AddRadioButton("selZ2", "cam2", "zaxis", false, 700 - 60, 120);
-		btSpp.AddRadioButton("selZ3", "cam3", "zaxis", false, 780 - 60, 120);
 
-		btSpp.AddLabel("lbl", "Pos", 620, 80, 50, 35);
-		btSpp.AddInputbox("valuez", "0.000", 680, 80, -1, 40);
+		int camzGroupShiftx = -250;
+		
+		btSpp.AddGroupbox("group2", "카메라z", 560+ camzGroupShiftx, 1,580, 280);
+		btSpp.AddButton("upz", "↑", 570+5 + camzGroupShiftx, 15, 30, 30);
+		btSpp.AddButton("downz", "↓", 570+5 + camzGroupShiftx, 80, 30, 30);
+		
+		btSpp.AddLabel("lbl", "카메라z축 이동", 620 + camzGroupShiftx, 5, 140, 30);
+		btSpp.AddRadioButton("AbsMoveRadZ", "abs.", "moveMethodz", true, 620 + camzGroupShiftx, 40);
+		btSpp.AddRadioButton("relMoveRadZ", "rel.", "moveMethodz", false, 680 + camzGroupShiftx, 40);
+		
+		btSpp.AddRadioButton("selZ1", "cam1", "zaxis", true, 620-60 + camzGroupShiftx, 120);
+		btSpp.AddRadioButton("selZ2", "cam2", "zaxis", false, 700 - 60 + camzGroupShiftx, 120);
+		btSpp.AddRadioButton("selZ3", "cam3", "zaxis", false, 780 - 60 + camzGroupShiftx, 120);
+		btSpp.AddButton("grab", "그랩", 650 + camzGroupShiftx, 155, 60, 30);
 
+		btSpp.AddLabel("lbl", "Pos", 620 + camzGroupShiftx, 80, 50, 35);
+		btSpp.AddInputbox("valuez", "0.000", 675 + camzGroupShiftx, 80, -1, 40);
+		btSpp.AddPicturebox(550, 10);
 
-		btSpp.Bind("grab", vector<string>{ "cam1", "cam2","cam3" });
+		btSpp.Bind("grab", vector<string>{ "selZ1", "selZ2","selZ3" });
 		btSpp.Bind("up", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
 		btSpp.Bind("down", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });
 		btSpp.Bind("left", vector<string>{ "AbsMoveRad", "relMoveRad", "value" });

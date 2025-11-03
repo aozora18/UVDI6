@@ -1326,10 +1326,10 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 			/* 현재 파일 생성 시간 설정 */
 			GetLocalTime(&stTm);
 			/* 임시 저장 후, 문제있는 마크 파일은 별도로 파일 명이 변경 됨 */
-			swprintf_s(tzGrabFile, L"%s\\save_img\\edge\\edge_%04d%02d%02d_%02d%02d%02d.bmp",
+			swprintf_s(tzGrabFile, L"%s\\save_img\\edge\\edge_%04d%02d%02d_%02d%02d%02d.png",
 				g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay,
 				stTm.wHour, stTm.wMinute, stTm.wSecond);
-			MbufExport(tzGrabFile, M_BMP, m_mlEdgeID);
+			MbufExport(tzGrabFile, M_PNG, m_mlEdgeID);
 		}
 	}
 	/* Grabbed Image에 출력된 결과 데이터 이미지를 공유 메모리 영역에 임시 저장 */
@@ -1531,7 +1531,7 @@ BOOL CMilModel::RunMarkerStrip(MIL_ID graph_id, MIL_ID grab_id, LPG_MSMP param, 
 	/* Get the current system time */
 	GetLocalTime(&stTm);
 	/* Set the file name */
-	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\save_img\\hole\\%04d%02d%02d_%02d%02d%02d.bmp",
+	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\save_img\\hole\\%04d%02d%02d_%02d%02d%02d.png",
 		g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay, stTm.wHour, stTm.wMinute, stTm.wSecond);
 	/* 기존 Marker Strip 이미지의 임시 버퍼 메모리 해제 */
 	if (m_mlStripID)	MbufFree(m_mlStripID);
@@ -1613,7 +1613,7 @@ BOOL CMilModel::RunMarkerStrip(MIL_ID graph_id, MIL_ID grab_id, LPG_MSMP param, 
 		// 		MmeasDraw(M_DEFAULT, mlMarkerID, m_mlStripID, M_DRAW_EDGES, M_DEFAULT, M_RESULT);
 #endif
 		/* Draw the contour of the measurement region. */
-		MbufExport(tzFile, M_BMP, m_mlStripID);
+		MbufExport(tzFile, M_PNG, m_mlStripID);
 	}
 	/* Release memory if any existing created objects created object exist */
 	if (mlMarkerID)		MmeasFree(mlMarkerID);
@@ -1931,14 +1931,14 @@ BOOL CMilModel::GetMeasLineResult(MIL_ID mark_id, MIL_ID grab_id, INT32 cent_x, 
 	/* 성공이던 실패던, 해당 검출작업 수행한 이미지 저장 */
 	GetLocalTime(&stTime);
 #ifdef _DEBUG
-	swprintf_s(tzFile, MAX_PATH_LEN, L"g:\\download\\qcells\\export_line.bmp");
+	swprintf_s(tzFile, MAX_PATH_LEN, L"g:\\download\\qcells\\export_line.png");
 #else
 	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\line\\%04d%02d%02d_%02d%02d%02d.bmp",
 		g_tzWorkDir,
 		stTime.wYear, stTime.wMonth, stTime.wDay,
 		stTime.wHour, stTime.wMinute, stTime.wSecond);
 #endif
-	MbufExport(tzFile, M_BMP, grab_id);
+	MbufExport(tzFile, M_PNG, grab_id);
 
 	return (lFindCount > 0);
 }

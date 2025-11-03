@@ -1253,7 +1253,7 @@ BOOL CMilMain::SaveGrabbedMarkToFile(UINT8 cam_id, LPRECT area, UINT8 type, TCHA
 		bSucc	= FALSE;
 	}
 	/* Save to file */
-	MbufExport(file, M_BMP, mBufID);
+	MbufExport(file, M_PNG, mBufID);
 	/* Image Buffer Release */
 	MbufFree(mBufID);
 

@@ -458,20 +458,20 @@ VOID CMilGrab::SaveGrabbedMarkToFile(UINT8 img_id, LPG_GMFR r_data)
 	/* 무조건 저장 */
 	if (r_data)
 	{
-		swprintf_s(tzResult, 32, L"(%6.3f_%6.3f_%u).bmp",
+		swprintf_s(tzResult, 32, L"(%6.3f_%6.3f_%u)",
 					r_data->score_rate, r_data->scale_rate, r_data->scale_size);
 	}
 	else
 	{
-		swprintf_s(tzResult, 32, L"(00.000_00.000_0).bmp");
+		swprintf_s(tzResult, 32, L"(00.000_00.000_0)");
 	}
 	/* Set the full file name */
-	swprintf_s(tzSrc, MAX_PATH_LEN, L"%s\\save_img\\mark\\%s_%d_%02d(%s)_%s.bmp",
+	swprintf_s(tzSrc, MAX_PATH_LEN, L"%s\\save_img\\mark\\%s_%d_%02d(%s)_%s.png",
 			   g_tzWorkDir, tzTime, m_u8ACamID, img_id, tzResult, tzTime);
 
 #ifndef _NOT_USE_MIL_
 	/* Grabbed Image 저장 */
-	MbufExport(tzSrc, M_BMP, m_mlBufID);
+	MbufExport(tzSrc, M_PNG, m_mlBufID);
 #endif
 }
 

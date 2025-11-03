@@ -529,7 +529,7 @@ VOID CCamMain::OnImageGrabbed(CInstantCamera& camera, const CGrabResultPtr& grab
 #endif
 				UINT8 u8Ch	= m_u8CamID == 1 ? 0 : 2;
 				/* Grab 파일 저장 */
-				swprintf_s(tzFile, L"%s\\save_img\\grab\\cam(%u)_img(%u)_t(%u)_s(%u)_d(%u)_%04d%02d%02d_%02d%02d%02d.bmp",
+				swprintf_s(tzFile, L"%s\\save_img\\grab\\cam(%u)_img(%u)_t(%u)_s(%u)_d(%u)_%04d%02d%02d_%02d%02d%02d.png",
 						   g_tzWorkDir, m_u8CamID, m_u8GrabIndex,
 						   m_pstConfig->trig_grab.trig_on_time[u8Ch],
 						   g_pstConfig->trig_grab.strob_on_time[u8Ch],

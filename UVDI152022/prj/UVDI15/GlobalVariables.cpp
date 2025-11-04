@@ -1382,7 +1382,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 								if (pstGrab && 0x00 != pstGrab->marked)
 								{
 									char buf[128];
-									sprintf_s(buf, 128, "move_mm_x : %f, move_mm_y : %f, scale : %f , score : %f", pstGrab->move_mm_x, pstGrab->move_mm_x, pstGrab->scale_rate, pstGrab->score_rate);
+									sprintf_s(buf, 128, "move_mm_x : %f, move_mm_y : %f, scale : %f , score : %f", pstGrab->move_mm_x, pstGrab->move_mm_y, pstGrab->scale_rate, pstGrab->score_rate);
 									btSpp.ServerSend(buffer, (int)BtSppApi::MsgType::CMD, buf);
 								}
 								else

@@ -715,7 +715,7 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 #if (USE_MIXED_MARK_CALC_AVERAGE == 0)	/* 검색된 값 중에서 최소 or 최대 값을 추출하기 위함 */
 			if (m_stModResult.scale_rate < m_pstModResult[i].scale_rate)
 				m_stModResult.scale_rate = m_pstModResult[i].scale_rate;
-			if (fabs(m_stModResult.score_rate) < fabs(m_pstModResult[i].score_rate))
+			if (fabs(m_stModResult.score_rate) < fabs(m_pstModResult[i].score_rate) && m_pstModResult[i].score_rate <= 100.0f) //최대스코어 적용해야함
 				m_stModResult.score_rate = m_pstModResult[i].score_rate;
 			if (fabs(m_stModResult.r_angle) > fabs(m_pstModResult[i].r_angle))
 				m_stModResult.r_angle = m_pstModResult[i].r_angle;

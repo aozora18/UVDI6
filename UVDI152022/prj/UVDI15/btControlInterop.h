@@ -1,5 +1,7 @@
 // bt_spp.h
 #ifdef USEBT
+// bt_spp.h
+
 #pragma once
 #include <stdint.h>
 #include <windows.h>
@@ -89,6 +91,7 @@ struct BtSppApi
 		wchar_t exe[MAX_PATH];
 		GetModuleFileNameW(nullptr, exe, MAX_PATH);
 		std::filesystem::path full = std::filesystem::path(exe).parent_path() / dllPath;
+
 
 
 		// 안전한 검색 경로
@@ -347,7 +350,7 @@ struct BtSppApi
 		auto k8 = to_utf8(key);
 		auto v8 = to_utf8(value);
 		auto d8 = to_utf8(desc);
-		return pSpp_AddOrUpdateMonitoringValue(k8.data(), d8.data(), v8.data());
+		return pSpp_AddOrUpdateMonitoringValue(k8.data(), v8.data(), d8.data());
 	}
 
 	inline int RefreshMonitoringValueW() { return RefreshMonitoringValue(); }
@@ -399,9 +402,10 @@ struct BtSppApi
 
 	inline int UpdatePicture(const std::string& recver, const std::vector<unsigned char>& data)
 	{
-		return pSpp_UpdatePicture ? pSpp_UpdatePicture(recver.c_str(),data.data(), (int)data.size() ) : 0;
+		return pSpp_UpdatePicture ? pSpp_UpdatePicture(recver.c_str(), data.data(), (int)data.size()) : 0;
 	}
 
 };
+
 
 #endif

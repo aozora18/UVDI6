@@ -364,12 +364,12 @@ VOID CMilGrab::SetGrabbedMark(int img_id,
 				m_pstGrabResult->move_mm_y -= dbCaliY;
 
 				
-				for (i=0; i<o_count && o_data; i++)
+				for (i=0; i<o_count && o_data; i++) //개별결과물에 옵셋적용금지
 				{
-					m_pstResultAll[i].cent_x += (dbVertX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
+				/*	m_pstResultAll[i].cent_x += (dbVertX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 					m_pstResultAll[i].cent_x -= (dbCaliX / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
 					
-					m_pstResultAll[i].cent_y += (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));
+					m_pstResultAll[i].cent_y += (dbCaliY / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID-1));*/
 				}
 			}
 #endif

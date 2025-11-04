@@ -1530,7 +1530,36 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 					/* 총 검색된 Mark에 대한 정보 표현 (출력) */
 					u8Find = theApp.clMilMain.GetGrabbedMarkCount(cam_id, img_id);
 					pstFind= theApp.clMilMain.GetGrabbedMarkAll(cam_id, img_id);
-					for (i=0x00; i<u8Find; i++)
+
+					LPG_ACGR pstResult = theApp.clMilMain.GetGrabbedMark(cam_id, img_id);
+
+					if (u8Find > 1)//멀티마크시 최종중점.
+					{
+						dbRotateCentX = pstResult->mark_cent_px_x;
+						dbRotateCentY = pstResult->mark_cent_px_y;
+
+
+						POINT half;
+						half.x = szSrc.cx / 2.0f;
+						half.y = szSrc.cy / 2.0f;
+						auto withGab = half.x - dbRotateCentX;
+						dbRotateCentX += dbRotateCentX < half.x ? abs(withGab) * 2 : abs(withGab) * -2;
+						
+						/* 출력되는 윈도 영역에 따라, Grabbed Image의 축소 or 확대에 따른 찾은 Mark 도형 크기 축소 or 확대 */
+						stInSize.cx = pstResult->mark_width_px;
+						stInSize.cy = pstResult->mark_height_px;
+						stInCent.x = dbRotateCentX/*pstFind[i].cent_x*/;
+						stInCent.y = dbRotateCentY/*pstFind[i].cent_y*/;
+						/* Get the center of mark in the grabbed images */
+						GetDrawMarkArea(&stInSize, &stInCent, dbRate, ptCent, ptLine);
+
+						::MoveToEx(hDC, ptCent.x - 20, ptCent.y, NULL);
+						::LineTo(hDC, ptCent.x + 20, ptCent.y);
+						::MoveToEx(hDC, ptCent.x, ptCent.y - 20, NULL);
+						::LineTo(hDC, ptCent.x, ptCent.y + 20);
+					}
+
+					for (i=0x00; i<u8Find; i++) //개별마크처리
 					{
 						dbRotateCentX	= pstFind[i].cent_x;
 						dbRotateCentY	= pstFind[i].cent_y;
@@ -1558,17 +1587,15 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 						GetDrawMarkArea(&stInSize, &stInCent, dbRate, ptCent, ptLine);
 
 
-
-
-
-						// lk91!!! Mark 격자 그리는 부분
-						/* Mark Lines (Rectangle) 출력 */
-						::MoveToEx(hDC, ptLine[0].x, ptLine[0].y, NULL);
-						::LineTo(hDC, ptLine[1].x, ptLine[1].y);
-						::LineTo(hDC, ptLine[2].x, ptLine[2].y);
-						::LineTo(hDC, ptLine[3].x, ptLine[3].y);
-						::LineTo(hDC, ptLine[0].x, ptLine[0].y);
-
+						if (u8Find == 1 && i == 0) //단일객체일때만 테두리 
+						{
+							::MoveToEx(hDC, ptLine[0].x, ptLine[0].y, NULL);
+							::LineTo(hDC, ptLine[1].x, ptLine[1].y);
+							::LineTo(hDC, ptLine[2].x, ptLine[2].y);
+							::LineTo(hDC, ptLine[3].x, ptLine[3].y);
+							::LineTo(hDC, ptLine[0].x, ptLine[0].y);
+						}
+						
 						//int div = 10;
 						//int divWidth = abs(ptLine[0].x - ptLine[2].x);
 						//int divHeight = abs(ptLine[0].y - ptLine[2].y);
@@ -1591,14 +1618,14 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 // 							::LineTo(hDC, ptLine[2].x, ptLine[0].y + div * (i + 1));
 // 						}
 // 
- 						::SelectObject(hDC, hOldPen);
+ 						/*::SelectObject(hDC, hOldPen);
  						::DeleteObject(hPen);
 
-						hPen = ::CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
-						hOldPen = (HPEN)::SelectObject(hDC, hPen);
+						hPen = ::CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+						hOldPen = (HPEN)::SelectObject(hDC, hPen);*/
 
 
-						/* Grabbed Image에서 Mark의 중심 위치에 기호 ('+') 출력 */
+						//센터라인은 공용
 						::MoveToEx(hDC, ptCent.x - 20, ptCent.y, NULL);
 						::LineTo(hDC, ptCent.x + 20, ptCent.y);
 						::MoveToEx(hDC, ptCent.x, ptCent.y - 20, NULL);
@@ -1615,51 +1642,57 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 						//::LineTo(hDC,	ptLine[3].x+ptMove.x,	ptLine[3].y+ptMove.y);
 						//::LineTo(hDC,	ptLine[0].x+ptMove.x,	ptLine[0].y+ptMove.y);
 					}
-					if (u8Find > 4)
-					{
-						LPG_ACGR pstResult = theApp.clMilMain.GetGrabbedMark(cam_id, img_id);
-						if (pstResult)
-						{
-							dbRotateCentX	= pstResult->mark_cent_px_x;
-							dbRotateCentY	= pstResult->mark_cent_px_y;
-							if (dbAngle != 0.0f && pstResult->manual_set == 0x00)
-							{
-								/* Returns the center coordinate value of the current mark, */
-								/* if rotated relative to the center of the Grabbed Image */
-								uvCmn_RotateCoord(DOUBLE(szSrc.cx/2.0f), DOUBLE(szSrc.cy/2.0f),
-												  pstResult->mark_cent_px_x, pstResult->mark_cent_px_y,
-												  DOUBLE(-dbAngle/*g_pstConfig->set_cams.acam_inst_angle*/),	/* 항상 회전 각도의 - (음수) 값을 붙여줘야 됨 (왜냐하면, Grabbed Image 즉, MIL의 ImgRotate 함수 회전이 시계 반대 방향으로 하기 때문임 */
-												  dbRotateCentX, dbRotateCentY);
-							}
-							/* 출력되는 윈도 영역에 따라, Grabbed Image의 축소 or 확대에 따른 찾은 Mark 도형 크기 축소 or 확대 */
-							stInSize.cx	= pstResult->mark_width_px;
-							stInSize.cy	= pstResult->mark_height_px;
-							stInCent.x	= dbRotateCentX/*pstFind[i].cent_x*/;
-							stInCent.y	= dbRotateCentY/*pstFind[i].cent_y*/;
-							/* Get the center of mark in the grabbed images */
-							GetDrawMarkArea(&stInSize, &stInCent, dbRate, ptCent, ptLine);
-							/* Grabbed Image에서 Mark의 중심 위치에 기호 ('+') 출력 */
-							::MoveToEx(hDC,	ptCent.x-5+ptMove.x,	ptCent.y+ptMove.y, NULL);
-							::LineTo(hDC,	ptCent.x+5+ptMove.x,	ptCent.y+ptMove.y);
-							::MoveToEx(hDC,	ptCent.x+ptMove.x,		ptCent.y-5+ptMove.y, NULL);
-							::LineTo(hDC,	ptCent.x+ptMove.x,		ptCent.y+5+ptMove.y);
-							/* Mark Lines (Rectangle) 출력 */
-							::MoveToEx(hDC,	ptLine[0].x+ptMove.x,	ptLine[0].y+ptMove.y, NULL);
-							::LineTo(hDC,	ptLine[1].x+ptMove.x,	ptLine[1].y+ptMove.y);
-							::LineTo(hDC,	ptLine[2].x+ptMove.x,	ptLine[2].y+ptMove.y);
-							::LineTo(hDC,	ptLine[3].x+ptMove.x,	ptLine[3].y+ptMove.y);
-							::LineTo(hDC,	ptLine[0].x+ptMove.x,	ptLine[0].y+ptMove.y);
+					//if (u8Find > 1)
+					//{
+					//	LPG_ACGR pstResult = theApp.clMilMain.GetGrabbedMark(cam_id, img_id);
+					//	if (pstResult)
+					//	{
+					//		dbRotateCentX	= pstResult->mark_cent_px_x;
+					//		dbRotateCentY	= pstResult->mark_cent_px_y;
 
-							
+					//		::MoveToEx(hDC, ptCent.x - 20, ptCent.y, NULL);
+					//		::LineTo(hDC, ptCent.x + 20, ptCent.y);
+					//		::MoveToEx(hDC, ptCent.x, ptCent.y - 20, NULL);
+					//		::LineTo(hDC, ptCent.x, ptCent.y + 20);
 
-						}
-					}
+					//		if (dbAngle != 0.0f && pstResult->manual_set == 0x00)
+					//		{
+					//			/* Returns the center coordinate value of the current mark, */
+					//			/* if rotated relative to the center of the Grabbed Image */
+					//			uvCmn_RotateCoord(DOUBLE(szSrc.cx/2.0f), DOUBLE(szSrc.cy/2.0f),
+					//							  pstResult->mark_cent_px_x, pstResult->mark_cent_px_y,
+					//							  DOUBLE(-dbAngle/*g_pstConfig->set_cams.acam_inst_angle*/),	/* 항상 회전 각도의 - (음수) 값을 붙여줘야 됨 (왜냐하면, Grabbed Image 즉, MIL의 ImgRotate 함수 회전이 시계 반대 방향으로 하기 때문임 */
+					//							  dbRotateCentX, dbRotateCentY);
+					//		}
+					//		/* 출력되는 윈도 영역에 따라, Grabbed Image의 축소 or 확대에 따른 찾은 Mark 도형 크기 축소 or 확대 */
+					//		stInSize.cx	= pstResult->mark_width_px;
+					//		stInSize.cy	= pstResult->mark_height_px;
+					//		stInCent.x	= dbRotateCentX/*pstFind[i].cent_x*/;
+					//		stInCent.y	= dbRotateCentY/*pstFind[i].cent_y*/;
+					//		/* Get the center of mark in the grabbed images */
+					//		GetDrawMarkArea(&stInSize, &stInCent, dbRate, ptCent, ptLine);
+					//		/* Grabbed Image에서 Mark의 중심 위치에 기호 ('+') 출력 */
+					//		::MoveToEx(hDC,	ptCent.x-5+ptMove.x,	ptCent.y+ptMove.y, NULL);
+					//		::LineTo(hDC,	ptCent.x+5+ptMove.x,	ptCent.y+ptMove.y);
+					//		::MoveToEx(hDC,	ptCent.x+ptMove.x,		ptCent.y-5+ptMove.y, NULL);
+					//		::LineTo(hDC,	ptCent.x+ptMove.x,		ptCent.y+5+ptMove.y);
+					//		/* Mark Lines (Rectangle) 출력 */
+					//		::MoveToEx(hDC,	ptLine[0].x+ptMove.x,	ptLine[0].y+ptMove.y, NULL);
+					//		::LineTo(hDC,	ptLine[1].x+ptMove.x,	ptLine[1].y+ptMove.y);
+					//		::LineTo(hDC,	ptLine[2].x+ptMove.x,	ptLine[2].y+ptMove.y);
+					//		::LineTo(hDC,	ptLine[3].x+ptMove.x,	ptLine[3].y+ptMove.y);
+					//		::LineTo(hDC,	ptLine[0].x+ptMove.x,	ptLine[0].y+ptMove.y);
 
-					::SelectObject(hDC, hOldPen);
-					::DeleteObject(hPen);
+					//		
+
+					//	}
+					//}
+
+					
 
 				}
-				
+				::SelectObject(hDC, hOldPen);
+				::DeleteObject(hPen);
 			}
 #endif
 			/* Release the DC */

@@ -749,24 +749,30 @@ VOID CDlgMark::OnBtnClick(UINT32 id)
 	case IDC_MARK_BTN_EDGE_FIND		:	SetEdgeDetect();							break;
 	case IDC_MARK_BTN_CONTROL_PANEL	:	ShowCtrlPanel();							break;
 	case IDC_MARK_BTN_GAIN_SET		:
-		
+	{
+		bool res = true;
 		//설정을 config베이스로
 		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
 		{
-			uvEng_GetConfig()->set_basler.cam_gain_level[i] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL1+i].GetTextToNum();
-			uvEng_Camera_SetGainLevel(i+1, uvEng_GetConfig()->set_basler.cam_gain_level[i]);
+			uvEng_GetConfig()->set_basler.cam_gain_level[i] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL1 + i].GetTextToNum();
+
+			if (!uvEng_Camera_SetGainLevel(i + 1, uvEng_GetConfig()->set_basler.cam_gain_level[i]))
+				res = false;
 		}
-		
+		MessageBoxEx(nullptr, res ? _T("write succeed.\t") : _T("write failed.\t") , _T("result"), MB_OK, LANG_ENGLISH);
+
+
 		/*uvEng_GetConfig()->set_basler.cam_gain_level[0] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL1].GetTextToNum();
 		uvEng_GetConfig()->set_basler.cam_gain_level[1] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL2].GetTextToNum();
 		uvEng_GetConfig()->set_basler.cam_gain_level[2] = (UINT8)m_edt_out[eMARK_EDT_GAIN_LEVEL3].GetTextToNum();
-		
+
 
 		uvEng_Camera_SetGainLevel(0x01, uvEng_GetConfig()->set_basler.cam_gain_level[0]);
 		uvEng_Camera_SetGainLevel(0x02, uvEng_GetConfig()->set_basler.cam_gain_level[1]);
 		uvEng_Camera_SetGainLevel(0x03, uvEng_GetConfig()->set_basler.cam_gain_level[2]);*/
-		
+
 		uvEng_SaveConfig();
+	}
 		break;
 	case IDC_MARK_BTN_MARK_MODE		:	SetMarkFindMode(true);	break;
 	case IDC_MARK_BTN_MARK_MERGE: MarkMerge(); 

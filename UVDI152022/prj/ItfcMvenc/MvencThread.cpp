@@ -1547,10 +1547,10 @@ BOOL CMvencThread::SetPositionTrigMode(ENG_TEED enable)
 
 			}
 			
-			MvsEncSetTriggerDelay(m_handle, 0, m_pstConfTrig->trig_delay_time[0]);
-			MvsEncSetTriggerDelay(m_handle, 1, m_pstConfTrig->trig_delay_time[1]);
-			MvsEncSetTriggerDelay(m_handle, 2, m_pstConfTrig->trig_delay_time[2]);
-			MvsEncSetTriggerDelay(m_handle, 3, m_pstConfTrig->trig_delay_time[3]);
+			MvsEncSetTriggerDelay(m_handle, i, m_pstConfTrig->trig_delay_time[i]);
+			//MvsEncSetTriggerDelay(m_handle, 1, m_pstConfTrig->trig_delay_time[1]);
+			//MvsEncSetTriggerDelay(m_handle, 2, m_pstConfTrig->trig_delay_time[2]);
+			//MvsEncSetTriggerDelay(m_handle, 3, m_pstConfTrig->trig_delay_time[3]);
 
 			MvsEncSetTriggerPulseWidth(m_handle, i, 200);
 

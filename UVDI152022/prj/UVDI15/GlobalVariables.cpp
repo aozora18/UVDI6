@@ -981,7 +981,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 			[&]()->double {return (double)uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_align_cam2); },
 			[&]()->BOOL {return uvCmn_MC2_IsDriveError(ENG_MMDI::en_align_cam2); });;
 
-		
+		ThreadManager::getInstance().removeThread("update");
 		ThreadManager::getInstance().addThread("update", cancelFlag,[&]() {Update(); });
 
 	}
@@ -1270,7 +1270,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 	{
 		if (Load() == false)
 			return false;
-
+		ThreadManager::getInstance().removeThread("btmonitor");
 		ThreadManager::getInstance().addThread("btmonitor", cancelFlag, [&]()
 		{
 				char key[128], msg[1024];
@@ -1317,6 +1317,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 				btSpp.ServerStop();
 			});
 
+		ThreadManager::getInstance().removeThread("btmsgPool");
 			ThreadManager::getInstance().addThread("btmsgPool", cancelFlag, [&]()
 			{
 					
@@ -1506,6 +1507,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 #endif
 	void WebMonitor::StartWebMonitor()
 	{
+		ThreadManager::getInstance().removeThread("webmonitor");
 		ThreadManager::getInstance().addThread("webmonitor", cancelFlag,[&]()
 			{
 				

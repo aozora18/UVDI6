@@ -33,6 +33,13 @@ typedef struct ST_IO
 		bOn		= FALSE;
 	}
 
+	ST_IO(int idx,BOOL set)
+	{
+		nIndex = idx;
+		bOn = set;
+	}
+
+
 	int			nIndex;
 	BOOL		bOn;
 

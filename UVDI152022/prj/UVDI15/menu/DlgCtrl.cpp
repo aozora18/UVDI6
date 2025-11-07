@@ -463,11 +463,11 @@ VOID CDlgCtrl::InitMotionIndex()
 	for (int i = 0; i < m_u8StageCount; i++)
 	{
 		stTemp.strMotorName.Format(_T("STAGE%d X"), i + 1);
-		stTemp.DeviceNum = ENG_MMDI(i * 2);
+		stTemp.DeviceNum = ENG_MMDI::en_stage_x;
 		m_vMotor.push_back(stTemp);
 
 		stTemp.strMotorName.Format(_T("STAGE%d Y"), i + 1);
-		stTemp.DeviceNum = ENG_MMDI((i * 2) + 1);
+		stTemp.DeviceNum = ENG_MMDI::en_stage_y;// ENG_MMDI((i * 2) + 1);
 		m_vMotor.push_back(stTemp);
 	}
 
@@ -1047,6 +1047,7 @@ VOID CDlgCtrl::InitValue()
  parm : id	- [in]  일반 버튼 ID
  retn : None
 */
+std::atomic<bool> cancelFlag = false;
 VOID CDlgCtrl::OnBtnClick(UINT32 id)
 {
 	CString strMsg;
@@ -1084,13 +1085,38 @@ VOID CDlgCtrl::OnBtnClick(UINT32 id)
 		}
 		break;
 	case EN_CTRL_BTN::HEAD_HWINIT:
-		strMsg.Format(_T("Do you want to Head HW Init?"));
-		if (IDYES == AfxMessageBox(strMsg, MB_YESNO))
+	{
+		strMsg.Format(_T("Do you want to Head HW Init? (soft reset = yes, hard reset = no)"));
+
+		auto res = AfxMessageBox(strMsg, MB_YESNOCANCEL);
+
+		if (IDYES == res)
 		{
-			//uvEng_Luria_ReqSetHWInit();
 			SetHeadHWInit();
 		}
-		break;
+		else if (IDNO == res)
+		{
+			ThreadManager::getInstance().removeThread("headpower");
+			ThreadManager::getInstance().addThread("headpower", cancelFlag, [&]()
+			{
+				int ioStIdx = 5; int headCnt = 2;
+				for (int i = ioStIdx; i < ioStIdx + headCnt; i++)
+					CIOManager::GetInstance()->SetIO(EN_IO_TYPE::eIO_OUTPUT, ST_IO(i,true));
+				
+				Sleep(15000);
+				
+				for (int i = ioStIdx; i < ioStIdx + headCnt; i++)
+					CIOManager::GetInstance()->SetIO(EN_IO_TYPE::eIO_OUTPUT, ST_IO(i, false));
+				
+				Sleep(20000);
+				uvEng_Luria_ReqSetHWInit();
+				Sleep(5000);
+				AfxMessageBox(_T("PH hard reset complete"), MB_OK);
+			});
+		}
+	}
+	
+
 	case EN_CTRL_BTN::STROBE_LAMP:
 		StrobeLampSampleFunction();
 		break;

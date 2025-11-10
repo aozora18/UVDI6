@@ -1425,6 +1425,8 @@ API_EXPORT VOID uvMIL_DrawMarkMBufID(HWND hwnd, RECT draw, UINT8 cam_id, UINT8 h
 	STG_DBWH stInSize	= {NULL};
 	CSize szSrc, szTgt, szRot;
 
+	if (&theApp.clMilMain == nullptr)
+		return;
 	// if (!g_pMilMain)	return;
 	/* Get the buffer id of the recognized mark */
 	mlBufID	= theApp.clMilMain.GetMarkBufID(cam_id, img_id);

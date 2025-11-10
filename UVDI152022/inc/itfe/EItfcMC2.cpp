@@ -13,6 +13,7 @@ static CHAR THIS_FILE[] = __FILE__;
 #endif
 
 
+
 /* --------------------------------------------------------------------------------------------- */
 /*                                           내부 함수                                           */
 /* --------------------------------------------------------------------------------------------- */
@@ -284,6 +285,11 @@ API_EXPORT BOOL uvEng_MC2_SendDevHomingAllEx()
 	if (GetConfig()->IsRunDemo())	return TRUE;
 
 	return uvMC2_SendDevHomingAll();
+}
+
+API_EXPORT VOID uvEng_MC2_SetInterlockState(bool isInterlocked)
+{
+	uvMC2_SetInterlockState(isInterlocked);
 }
 
 /*

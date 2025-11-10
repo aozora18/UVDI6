@@ -66,7 +66,7 @@ BOOL CWorkRecipeLoad::InitWork()
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 	m_u8StepTotal = 0x27;
 #elif(DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
-	m_u8StepTotal = 0x25;
+	m_u8StepTotal = 0x27;
 	//m_u8StepTotal = 0x27;
 #endif
 	//m_u8StepTotal = 37;
@@ -633,18 +633,28 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 	//LPG_RAAF pstAlignRecipe = uvEng_Mark_GetSelectAlignRecipe();
 	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
 
-	/*Camra Lamp Type Amber*/
-	m_u16LampValue[0] = pstAlignRecipe->lamp_type == 0 ? (UINT16)pstAlignRecipe->lamp_value[0] : 0;
-	m_u16LampValue[1] = pstAlignRecipe->lamp_type == 0 ? (UINT16)pstAlignRecipe->lamp_value[1] : 0;
+	///*Camra Lamp Type Amber*/
+	//m_u16LampValue[0] = pstAlignRecipe->lamp_type == 0 ? (UINT16)pstAlignRecipe->lamp_value[0] : 0;
+	//m_u16LampValue[1] = pstAlignRecipe->lamp_type == 0 ? (UINT16)pstAlignRecipe->lamp_value[1] : 0;
+	///*Camra Lamp Type IR*/
+	//
+	//m_u16LampValue[2] = pstAlignRecipe->lamp_type == 1 ? (UINT16)pstAlignRecipe->lamp_value[2] : 0;
+	//m_u16LampValue[3] = pstAlignRecipe->lamp_type == 1 ? (UINT16)pstAlignRecipe->lamp_value[3] : 0;
+	//
+	///*Camra Lamp Type Coaxial*/
+	//m_u16LampValue[4] = pstAlignRecipe->lamp_type == 2 ? (UINT16)pstAlignRecipe->lamp_value[4] : 0;
+	//m_u16LampValue[5] = pstAlignRecipe->lamp_type == 2 ? (UINT16)pstAlignRecipe->lamp_value[5] : 0;
+
+		/*Camra Lamp Type Amber*/
+	m_u16LampValue[0] = (UINT16)pstAlignRecipe->lamp_value[0];
+	m_u16LampValue[1] = (UINT16)pstAlignRecipe->lamp_value[1];
 	/*Camra Lamp Type IR*/
-	
-	m_u16LampValue[2] = pstAlignRecipe->lamp_type == 1 ? (UINT16)pstAlignRecipe->lamp_value[2] : 0;
-	m_u16LampValue[3] = pstAlignRecipe->lamp_type == 1 ? (UINT16)pstAlignRecipe->lamp_value[3] : 0;
-	
+	m_u16LampValue[2] = (UINT16)pstAlignRecipe->lamp_value[2];
+	m_u16LampValue[3] = (UINT16)pstAlignRecipe->lamp_value[3];
 	/*Camra Lamp Type Coaxial*/
-	m_u16LampValue[4] = pstAlignRecipe->lamp_type == 2 ? (UINT16)pstAlignRecipe->lamp_value[4] : 0;
-	m_u16LampValue[5] = pstAlignRecipe->lamp_type == 2 ? (UINT16)pstAlignRecipe->lamp_value[5] : 0;
-	
+	m_u16LampValue[4] = (UINT16)pstAlignRecipe->lamp_value[4];
+	m_u16LampValue[5] = (UINT16)pstAlignRecipe->lamp_value[5];
+
 	ENG_JWNS res = ENG_JWNS::en_error;
 
 	auto setter = [&]() -> bool

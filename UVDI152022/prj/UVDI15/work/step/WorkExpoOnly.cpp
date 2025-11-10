@@ -80,52 +80,48 @@ BOOL CWorkExpoOnly::InitWork()
 VOID CWorkExpoOnly::DoWork()
 {
 	/* 작업 단계 별로 동작 처리 */
-	auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
-	int phCnt = uvEng_GetConfig()->luria_svc.ph_count;
-
 	switch (m_u8StepIt)
 	{
-	case 0x01 : 
+	case 0x01:
 	{
-		m_enWorkState = SetExposeReady(FALSE, FALSE, FALSE, m_stExpoLog.expo_count);
-		
-		if (m_enWorkState == ENG_JWNS::en_error)
-			break;
-		
-		auto afInst = GlobalVariables::GetInstance()->GetAutofocus();
-		m_enWorkState = afInst.ClearAFActivate() ? m_enWorkState : ENG_JWNS::en_error;
-		
+		DOUBLE* pStartXY = uvEng_GetConfig()->luria_svc.table_expo_start_xy[0];
+
+		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, pStartXY[0]) ||
+			CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, pStartXY[1]))
+		{
+			m_enWorkState = ENG_JWNS::en_error;
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position");
+		}
+		else
+			m_enWorkState = SetExposeReady(FALSE, FALSE, FALSE, m_stExpoLog.expo_count);
 	}
 	break;
 
-	case 0x02 : m_enWorkState = SetPrePrinting();												break;
-	case 0x03 : m_enWorkState = IsPrePrinted();													break;
+	case 0x02: m_enWorkState = SetPrePrinting();												break;
+	case 0x03: m_enWorkState = IsPrePrinted();													break;
 
-	case 0x04 : 
+	case 0x04: m_enWorkState = SetPrinting();													break;
+	case 0x05: m_enWorkState = IsPrinted();													break;
+
+	case 0x06: m_enWorkState = IsMotorDriveStopAll();											break;
+
+	case 0x07: m_enWorkState = SetWorkWaitTime(1000);											break;
+	case 0x08: m_enWorkState = IsWorkWaitTime();												break;
+	case 0x09:
 	{
-		
-		m_enWorkState = afInst.SetAFActivate(useAFtemp) ? m_enWorkState : ENG_JWNS::en_error;
-		
-		if(m_enWorkState != ENG_JWNS::en_error)
-			m_enWorkState = SetPrinting();
-		
+		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, uvEng_GetConfig()->set_align.table_unloader_xy[0][0]) ||
+			CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, uvEng_GetConfig()->set_align.table_unloader_xy[0][1]))
+		{
+			m_enWorkState = ENG_JWNS::en_error;
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position");
+		}
+		else
+
+			m_enWorkState = SetMovingUnloader();
+
 	}
 	break;
-
-	case 0x05 : m_enWorkState = IsPrinted();													break;
-
-	case 0x06 : m_enWorkState = IsMotorDriveStopAll();											break;
-
-	case 0x07 : 
-	{
-		m_enWorkState = SetWorkWaitTime(1000);
-		m_enWorkState =   afInst.ClearAFActivate() ? m_enWorkState : ENG_JWNS::en_error;
-	}
-	break;
-
-	case 0x08 : m_enWorkState = IsWorkWaitTime();												break;
-	case 0x09 : m_enWorkState = SetMovingUnloader();											break;
-	case 0x0a : m_enWorkState = IsMovedUnloader();												break;
+	case 0x0a: m_enWorkState = IsMovedUnloader();												break;
 	}
 
 	/* 최소한 2 회 이상 반복 노광할 때, 동작하도록 함 */

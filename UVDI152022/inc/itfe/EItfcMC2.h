@@ -110,6 +110,7 @@ API_IMPORT BOOL uvEng_MC2_SendDevHomingAll();
  note : EN_STOP 모드가 적용된 곳에 사용
 */
 API_IMPORT BOOL uvEng_MC2_SendDevHomingAllEx();
+API_IMPORT VOID uvEng_MC2_SetInterlockState(bool isInterlocked);
 /*
  desc : All Device Fault Reset (Error Init) - Only drives in which errors occur sequentially are reset.
  parm : None

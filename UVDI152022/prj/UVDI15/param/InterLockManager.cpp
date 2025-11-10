@@ -45,59 +45,6 @@ BOOL CInterLockManager::LoadInterlcok()
 {
 	InitMotionIndex();
 
-	// 한셋트 시작 (IO 인터락 예제)
-// 	stTargetInterlock.nCommandIndex = 0;
-// 	stTargetInterlock.nInterlockType = 1;
-// 	stTargetInterlock.strTargetName =_T("CENTERING 1 PULL SENSOR/INPUT");
-// 	stTargetInterlock.dTargetValue = FALSE
-// 	stTargetInterlock.strTargetSign = _T("=");
-//  m_vnterlockList.push_back(stTargetInterlock);
-	// 한세트 끝
-	// 한셋트 시작 (모터 위치 인터락 예제)
-// 	stTargetInterlock.nCommandIndex = 0;
-// 	stTargetInterlock.nInterlockType = 0;
-// 	stTargetInterlock.strTargetName = _T("STAGE1_Y");
-// 	stTargetInterlock.dTargetValue = _T("1");
-// 	stTargetInterlock.strTargetSign = _T("<");
-//	m_vnterlockList.push_back(stTargetInterlock);
-	// 한세트 끝
-
-
-// 	stInterlock.nCommandIndex = (int)ENG_MMDI::en_stage_y;
-// 	stInterlock.nInterlockType = eINTERLOCK_TYPE_INPUT;
-// 	stInterlock.strTargetName = _T("CLAMP X1 DOWN POSITION SENSOR");
-// 	stInterlock.dTargetValue = FALSE;
-// 	stInterlock.strTargetSign = _T("=");
-// 	m_vnterlockList.push_back(stInterlock);
-// 
-// 	stInterlock.nCommandIndex = (int)ENG_MMDI::en_stage_y;
-// 	stInterlock.nInterlockType = eINTERLOCK_TYPE_INPUT;
-// 	stInterlock.strTargetName = _T("CLAMP X2 DOWN POSITION SENSOR");
-// 	stInterlock.dTargetValue = FALSE;
-// 	stInterlock.strTargetSign = _T("=");
-// 	m_vnterlockList.push_back(stInterlock);
-// 
-// 	stInterlock.nCommandIndex = (int)ENG_MMDI::en_stage_y;
-// 	stInterlock.nInterlockType = eINTERLOCK_TYPE_INPUT;
-// 	stInterlock.strTargetName = _T("CLAMP Y1 DOWN POSITION SENSOR");
-// 	stInterlock.dTargetValue = FALSE;
-// 	stInterlock.strTargetSign = _T("=");
-// 	m_vnterlockList.push_back(stInterlock);
-// 
-// 	stInterlock.nCommandIndex = (int)ENG_MMDI::en_stage_y;
-// 	stInterlock.nInterlockType = eINTERLOCK_TYPE_INPUT;
-// 	stInterlock.strTargetName = _T("CLAMP Y2 DOWN POSITION SENSOR");
-// 	stInterlock.dTargetValue = FALSE;
-// 	stInterlock.strTargetSign = _T("=");
-// 	m_vnterlockList.push_back(stInterlock);
-// 
-// 	stInterlock.nCommandIndex = (int)ENG_MMDI::en_stage_y;
-// 	stInterlock.nInterlockType = eINTERLOCK_TYPE_INPUT;
-// 	stInterlock.strTargetName = _T("LIFT PIN X AXIS DOWN POSITION");
-// 	stInterlock.dTargetValue = FALSE;
-// 	stInterlock.strTargetSign = _T("=");
-// 	m_vnterlockList.push_back(stInterlock);
-
 	//////////////////////////////////////////////////////////////////////////
 	// STAGE Y 이동 시 INTERLOCK
 	if (StartMotorInterlock(ENG_MMDI::en_stage_y, _T("STAGE Y 모터 이동 시 CLAMP X1 DOWN POSITION이 아니면 이동할 수 없습니다.")))
@@ -186,10 +133,17 @@ BOOL CInterLockManager::AddCondition(EN_INTERLOCK_TYPE eType, int nTargetIndex, 
 	return TRUE;
 }
 
-
+int failedCnt = 0;
 BOOL CInterLockManager::CheckMoveInterlock(ENG_MMDI enMotorindex, double dPos)
 {
-	CIOManager::GetInstance()->UpdateIO();
+	const int failJudgeCnt = 3;
+	failedCnt = CIOManager::GetInstance()->UpdateIO() ? 0 : failedCnt + 1;
+
+	if (!uvEng_Philhmi_IsConnected() || failedCnt >= failJudgeCnt)
+	{
+		m_strLastError = _T("IO 업데이트 실패");
+		return TRUE;
+	}
 
 	for (auto& list : m_vInterlockList)
 	{

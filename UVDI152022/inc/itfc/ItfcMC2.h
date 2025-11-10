@@ -173,6 +173,7 @@ API_IMPORT BOOL uvMC2_SendDevHoming(ENG_MMDI drv_id);
  retn : TRUE or FALSE
 */
 API_IMPORT BOOL uvMC2_SendDevHomingAll();
+API_IMPORT VOID	 uvMC2_SetInterlockState(bool isInterlocked);
 /*
  desc : Luria가 현재 노광 (Printing) 중인지 여부에 따라,
 		MC2에게 주기적으로 통신 데이터 요청 여부 설정

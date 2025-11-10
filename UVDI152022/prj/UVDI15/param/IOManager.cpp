@@ -752,7 +752,10 @@ BOOL CIOManager::UpdateIO()
 	stStatus.Reset();
 	stStatusAck.Reset();
 	int	nIOIndex = 0;
-	if (uvEng_Philhmi_Send_P2C_IO_STATUS(stStatus, stStatusAck))
+
+	BOOL res = uvEng_Philhmi_Send_P2C_IO_STATUS(stStatus, stStatusAck);
+
+	if(res)
 	{
 		nIOIndex = 0;
 		for (int nInputGroup = 0; nInputGroup < stStatusAck.byInputCount; nInputGroup++)
@@ -805,7 +808,7 @@ BOOL CIOManager::UpdateIO()
 		}
 	}
 
-	return TRUE;
+	return res;
 }
 
 void CIOManager::UpdateQUICKIO()

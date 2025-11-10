@@ -28,6 +28,7 @@ LPG_MDSM					g_pstShMemMC2		= NULL;
 /* Socket Objects */
 CMC2CThread					*g_pMC2CThread		= NULL;
 
+bool interlocked = true;
 
 LPG_MDSM					g_pstShMemMC2b = NULL;
 CMC2CThread					*g_pMC2bCThread = NULL;
@@ -336,6 +337,13 @@ API_EXPORT UINT32 uvMC2_GetSockLastError()
 API_EXPORT BOOL uvMC2_SendDevGoVelo(ENG_MMDI drv_id, UINT32 velo)
 {
 	if (velo < 1)	return FALSE;
+	
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevGoVelo() false , interlocked!");
+		return FALSE;
+	}
+
 #if (MC2_DRIVE_2SET == 0)
 	return !IsSendData() ? FALSE : g_pMC2CThread->WriteDevGoVelo(drv_id, velo);
 
@@ -366,6 +374,12 @@ API_EXPORT BOOL uvMC2_SendDevGoVelo(ENG_MMDI drv_id, UINT32 velo)
 API_EXPORT BOOL uvMC2_SendDevBaseVeloAcce(ENG_MMDI drv_id, UINT32 velo, UINT32 acce)
 {
 	if (velo < 1 || acce < 1)	return FALSE;
+
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevBaseVeloAcce() false , interlocked!");
+		return FALSE;
+	}
 
 #if (MC2_DRIVE_2SET == 0)
 	return !IsSendData() ? FALSE : g_pMC2CThread->WriteDevBaseVeloAcce(drv_id, velo, acce);
@@ -448,6 +462,12 @@ API_EXPORT BOOL uvMC2_SendDevRefMove(ENG_MMMM method, ENG_MMDI drv_id,
 	INT32 i32DrvPos	= 0;
 	INT32 i32MaxDist= (INT32)ROUNDED(g_pstConfig->mc2_svc.max_dist[UINT8(drv_id)] * 10000.0f, 0);
 	
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevRefMove() false , interlocked!");
+		return FALSE;
+	}
+
 	/* 현재 장비가 멈춘 상태인지 확인 */
 	if (!g_pstShMemMC2->act_data[UINT8(drv_id)].IsStopped())
 	{
@@ -535,6 +555,12 @@ API_EXPORT BOOL uvMC2_SendDevAbsMove(ENG_MMDI drv_id, INT32 move, UINT32 velo)
 	INT32 i32MinDist, i32MaxDist;
 	UINT8 u8drv_id;
 
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevAbsMove() false , interlocked!");
+		return FALSE;
+	}
+
 	if (drv_id < (ENG_MMDI)DRIVEDIVIDE)
 	{
 		i32MinDist = (INT32)ROUNDED(g_pstConfig->mc2_svc.min_dist[UINT8(drv_id)] * 10000.0f, 0);
@@ -598,6 +624,12 @@ API_EXPORT BOOL uvMC2_SendDevMovingHome(ENG_MMDI drv_id, INT32 velo)
 {
 	if (velo < 1)	return FALSE;
 
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevMovingHome() false, interlocked!");
+		return FALSE;
+	}
+
 #if (MC2_DRIVE_2SET == 0)
 	/* 현재 해당 드라이브가 완전히 멈추었는지 여부 */
 	if (!g_pstShMemMC2->act_data[UINT8(drv_id)].IsStopped())	return FALSE;
@@ -641,6 +673,12 @@ API_EXPORT BOOL uvMC2_SendDevMoveVectorXY(ENG_MMDI drv_x, ENG_MMDI drv_y,
 	INT32 i32MaxDistX	= (INT32)ROUNDED(g_pstConfig->mc2_svc.max_dist[UINT8(drv_x)] * 10000.0f, 0);
 	INT32 i32MaxDistY	= (INT32)ROUNDED(g_pstConfig->mc2_svc.max_dist[UINT8(drv_y)] * 10000.0f, 0);
 	ENG_MMDI enDrvM, enDrvS;	/* Master & Slave Driver */
+
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevMoveVectorXY() false , interlocked!");
+		return FALSE;
+	}
 
 	if (velo < 1)	return FALSE;
 	/* 현재 해당 드라이브가 완전히 멈추었는지 여부 */
@@ -814,6 +852,12 @@ API_EXPORT BOOL uvMC2_SendDevHoming(ENG_MMDI drv_id)
 #elif(MC2_DRIVE_2SET == 1)
 	UINT8 u8drv_id;
 
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevHoming() false , interlocked!");
+		return FALSE;
+	}
+
 	if (drv_id < (ENG_MMDI)DRIVEDIVIDE)
 	{
 		return g_pMC2CThread->WriteDevCtrl(drv_id, ENG_MCCN::en_do_homing);
@@ -825,6 +869,10 @@ API_EXPORT BOOL uvMC2_SendDevHoming(ENG_MMDI drv_id)
 	}
 #endif
 
+}
+API_EXPORT VOID	 uvMC2_SetInterlockState(bool isInterlocked)
+{
+	interlocked = isInterlocked;
 }
 
 /*
@@ -840,6 +888,13 @@ API_EXPORT BOOL uvMC2_SendDevHomingAll()
 	LPG_RVCD pstData= g_pstShMemMC2->ref_data;
 
 	if (!IsSendData())	return FALSE;
+
+	if (interlocked)
+	{
+		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevHomingAll() false , interlocked!");
+		return FALSE;
+	}
+		
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_GEN2I)
 	/* 기존 값 가져오기 */

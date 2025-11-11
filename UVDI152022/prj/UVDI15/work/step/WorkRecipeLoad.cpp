@@ -722,6 +722,7 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 
 		/*Camra Lamp Type Amber*/
 	m_u16LampValue[0] = (UINT16)pstAlignRecipe->lamp_value[0];
+	
 	m_u16LampValue[1] = (UINT16)pstAlignRecipe->lamp_value[1];
 	/*Camra Lamp Type IR*/
 	m_u16LampValue[2] = (UINT16)pstAlignRecipe->lamp_value[2];
@@ -729,6 +730,23 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 	/*Camra Lamp Type Coaxial*/
 	m_u16LampValue[4] = (UINT16)pstAlignRecipe->lamp_value[4];
 	m_u16LampValue[5] = (UINT16)pstAlignRecipe->lamp_value[5];
+
+	const int retry = 3;
+	for (int i = 0; i < retry; i++)
+	{
+		if (uvEng_Camera_SetGainLevel(0x01, pstAlignRecipe->gain_level[0]) == TRUE &&
+			uvEng_Camera_SetGainLevel(0x02, pstAlignRecipe->gain_level[1]) == TRUE)
+		{
+			break;
+		}
+		Sleep(200);
+	}
+
+	uvEng_GetConfig()->set_basler.cam_gain_level[0] = pstAlignRecipe->gain_level[0];
+	uvEng_GetConfig()->set_basler.cam_gain_level[1] = pstAlignRecipe->gain_level[1];
+	for (int i = 0; i < 6; i++)
+		uvEng_GetConfig()->set_strobe_lamp.u16StrobeValue[i] = m_u16LampValue[i];
+	uvEng_SaveConfig();
 
 	ENG_JWNS res = ENG_JWNS::en_error;
 
@@ -740,10 +758,14 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 			m_u16LampValue[0],m_u16LampValue[2],m_u16LampValue[4],0,m_u16LampValue[1],m_u16LampValue[3],m_u16LampValue[5],0
 		};
 
+		
+
 		std::for_each(values.begin(), values.end(), [&](const UINT16& v)
 			{
 				volatile int cnt = GlobalVariables::GetInstance()->GetCount("strobeRecved");
+				
 				uvEng_StrobeLamp_Send_ChannelStrobeControl(0, cnt, v);
+
 				bool changed = GlobalVariables::GetInstance()->Waiter([&]()->bool
 				{
 					return cnt != GlobalVariables::GetInstance()->GetCount("strobeRecved");

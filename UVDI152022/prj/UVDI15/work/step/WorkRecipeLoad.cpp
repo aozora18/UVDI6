@@ -229,7 +229,11 @@ VOID CWorkRecipeLoad::DoWork()
 	case 0x25 : m_enWorkState = IsGerberJobLoaded();			break;
 #endif
 	case 0x26: m_enWorkState = SetLampJobParam();			break;
-	case 0x27: m_enWorkState = ENG_JWNS::en_next;			break;
+	case 0x27: 
+	{
+		m_enWorkState = SetMarkRecipe();
+	}
+	break;
 	}
 
 	/* 다음 작업 진행 여부 판단 */
@@ -355,6 +359,77 @@ ENG_JWNS CWorkRecipeLoad::IsRecvJobLists()
 		m_u8StepIt	= 0x0b;
 	}
 
+	return ENG_JWNS::en_next;
+}
+
+ENG_JWNS CWorkRecipeLoad::SetMarkRecipe()
+{
+	CUniToChar	csCnv;
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	LPG_RAAF pstAlignRecipe = uvEng_Mark_GetAlignRecipeName(csCnv.Ansi2Uni(pstRecipe->align_recipe));
+	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
+	
+	uvEng_Camera_SetRecipeMarkRate(pstExpoRecipe->mark_score_accept, pstExpoRecipe->mark_scale_range);
+
+	// <- 여기서부터
+	if (pstAlignRecipe->search_count == 1)
+		uvEng_Camera_SetMultiMarkArea();
+	else
+		uvEng_Camera_SetMultiMarkArea(pstAlignRecipe->mark_area[0], pstAlignRecipe->mark_area[1]);
+
+	const int GLOBAL_MARK_NAME_INDEX = 0;
+	for (int index = 0; index < 2; index++)
+	{
+		UINT8 u8Speed = (UINT8)uvEng_GetConfig()->mark_find.model_speed;
+		UINT8 u8Level = (UINT8)uvEng_GetConfig()->mark_find.detail_level;
+		DOUBLE dbSmooth = (DOUBLE)uvEng_GetConfig()->mark_find.model_smooth;
+		DOUBLE dbScaleMin = 0.0, dbScaleMax = 0.0, dbScoreRate = pstExpoRecipe->mark_score_accept;
+		CUniToChar csCnv1, csCnv2, csCnv3, csCnv4, csCnv5;
+
+		BOOL IsFind = FALSE;
+		bool bpatFile = false, bmmfFile = false;
+		CFileFind finder;
+		LPG_CMPV pstMark = uvEng_Mark_GetModelName(csCnv.Ansi2Uni(pstAlignRecipe->m_name[GLOBAL_MARK_NAME_INDEX]));
+
+		if (pstMark)
+		{
+			if (ENG_MMDT(pstMark->type) != ENG_MMDT::en_image)
+			{
+				bmmfFile = true;
+				for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
+					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, pstMark->findCount, dbSmooth,
+						pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(pstMark->file),
+						dbScaleMin, dbScaleMax, dbScoreRate);
+			}
+			else
+			{
+				CHAR tmpfile[MARK_MODEL_NAME_LENGTH];
+				sprintf_s(tmpfile, MARK_MODEL_NAME_LENGTH, "%s\\%s\\mmf\\%s.mmf",
+					csCnv1.Uni2Ansi(g_tzWorkDir), CUSTOM_DATA_CONFIG2, pstMark->file);
+				IsFind = finder.FindFile(csCnv3.Ansi2Uni(tmpfile));
+				bmmfFile = IsFind;
+				if (bmmfFile)
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
+						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
+							pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(tmpfile),
+							dbScaleMin, dbScaleMax, dbScoreRate);
+
+				sprintf_s(tmpfile, MARK_MODEL_NAME_LENGTH, "%s\\%s\\pat\\%s.pat",
+					csCnv1.Uni2Ansi(g_tzWorkDir), CUSTOM_DATA_CONFIG2, pstMark->file);
+				IsFind = finder.FindFile(csCnv5.Ansi2Uni(tmpfile));
+				bpatFile = IsFind;
+				if (bpatFile)
+					for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
+						uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, uvEng_GetConfig()->mark_find.max_mark_find, dbSmooth,
+							pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(tmpfile),
+							dbScaleMin, dbScaleMax, dbScoreRate);
+
+				if (!bpatFile && !bmmfFile)
+					return ENG_JWNS::en_error;
+			}
+		}
+	}
 	return ENG_JWNS::en_next;
 }
 

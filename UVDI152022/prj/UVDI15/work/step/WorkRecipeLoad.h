@@ -38,7 +38,7 @@ protected:
 
 	ENG_JWNS			SetRectangleLock();
 	ENG_JWNS			IsRectangleLock();
-
+	ENG_JWNS SetMarkRecipe();
 	ENG_JWNS			SetPhOffset();
 	ENG_JWNS			IsPhOffset();
 

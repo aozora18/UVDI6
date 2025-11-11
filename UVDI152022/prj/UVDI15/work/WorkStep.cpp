@@ -3625,7 +3625,13 @@ ENG_JWNS CWorkStep::DoDriveHomingAll()
 		return en_bwos_error;
 	}
 #endif
-	if (!uvEng_MC2_SendDevHomingAll())
+
+	bool interlocked = CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, 0) ||
+					   CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, 0);
+
+	
+
+	if (interlocked == true || !uvEng_MC2_SendDevHomingAll() )
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHomingAll)");
 		return ENG_JWNS::en_error;

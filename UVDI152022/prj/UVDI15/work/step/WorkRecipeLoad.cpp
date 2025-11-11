@@ -398,7 +398,7 @@ ENG_JWNS CWorkRecipeLoad::SetMarkRecipe()
 			{
 				bmmfFile = true;
 				for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
-					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, pstMark->findCount, dbSmooth,
+					uvEng_Camera_SetModelDefine_tot(i + 1, u8Speed, u8Level, pstAlignRecipe->search_count, dbSmooth,
 						pstMark, GLOBAL_MARK + index, csCnv2.Ansi2Uni(pstMark->file),
 						dbScaleMin, dbScaleMax, dbScoreRate);
 			}
@@ -776,7 +776,7 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 			});
 		return true;
 	};
-	const int retry = 3;
+	
 	for (int i = 0; i < retry; i++)
 	{
 		if (setter() == true)

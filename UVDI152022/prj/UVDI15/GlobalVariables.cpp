@@ -464,10 +464,10 @@ void AlignMotion::Update()
 	{
 		Refresh();
 		
-		bool interlocked = CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, axises["stage"]["x"].currPos) || 
-						   CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, axises["stage"]["y"].currPos);
+		/*bool interlocked = CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, axises["stage"]["x"].currPos) || 
+						   CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, axises["stage"]["y"].currPos);*/
 
-		uvEng_MC2_SetInterlockState(interlocked);
+		uvEng_MC2_SetInterlockState(false);
 
 		this_thread::sleep_for(chrono::milliseconds(updateDelay));
 	}

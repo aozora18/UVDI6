@@ -1018,6 +1018,7 @@ void CDlgJob::UpdateGridParam(int nRecipeTab)
 				}
 				else if (stParam.strName == _T("LAMP_TYPE"))
 				{
+					
 					pGrid->SetCellType(nRow, eJOB_GRD_COL_PARAMETER_VALUE, RUNTIME_CLASS(CGridCellCombo));
 
 					CStringArray options;
@@ -1486,10 +1487,11 @@ void CDlgJob::OnClickGridJobParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 
 
 
-	SetEditing(TRUE);
+	
 	CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->SetParam(EN_RECIPE_TAB::JOB, stParam);
 	if (TRUE == CheckModifyedParam(stParam, strValueOld))
 	{
+		SetEditing(TRUE);
 		BOOL bequalParam = FALSE;
 		for (int i=0; i<m_vChangeList[EN_RECIPE_TAB::JOB].size(); i++)
 		{
@@ -1749,10 +1751,11 @@ void CDlgJob::OnClickGridExposeParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 		}
 	}
 
-	SetEditing(TRUE);
+	
 	CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->SetParam(EN_RECIPE_TAB::EXPOSE, stParam);
 	if (TRUE == CheckModifyedParam(stParam, strValueOld))
 	{
+		SetEditing(TRUE);
 		BOOL bequalParam = FALSE;
 		for (int i = 0; i < m_vChangeList[EN_RECIPE_TAB::EXPOSE].size(); i++)
 		{
@@ -1994,10 +1997,11 @@ void CDlgJob::OnClickGridAlignParameter(NMHDR* pNotifyStruct, LRESULT* pResult)
 		}
 	}
 
-	SetEditing(TRUE);
+	
 	CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->SetParam(EN_RECIPE_TAB::ALIGN, stParam);
 	if (TRUE == CheckModifyedParam(stParam, strValueOld))
 	{
+		SetEditing(TRUE);
 		BOOL bequalParam = FALSE;
 		for (int i = 0; i < m_vChangeList[EN_RECIPE_TAB::ALIGN].size(); i++)
 		{
@@ -2078,12 +2082,13 @@ void CDlgJob::OnClickGridJobParameterChanged(NMHDR* pNotifyStruct, LRESULT* pRes
 		return;
 	}
 	
-	SetEditing(TRUE);
+	
 
 	CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->SetParam(EN_RECIPE_TAB::JOB, stParam);
 
 	if (TRUE == CheckModifyedParam(stParam, strValueOld))
 	{
+		SetEditing(TRUE);
 		BOOL bequalParam = FALSE;
 		for (int i = 0; i < m_vChangeList[EN_RECIPE_TAB::JOB].size(); i++)
 		{
@@ -2181,11 +2186,12 @@ void CDlgJob::OnClickGridExposeParameterChanged(NMHDR* pNotifyStruct, LRESULT* p
 		return;
 	}
 
-	SetEditing(TRUE);
+	
 	CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->SetParam(EN_RECIPE_TAB::EXPOSE, stParam);
 
 	if (TRUE == CheckModifyedParam(stParam, strValueOld))
 	{
+		SetEditing(TRUE);
 		BOOL bequalParam = FALSE;
 		for (int i = 0; i < m_vChangeList[EN_RECIPE_TAB::EXPOSE].size(); i++)
 		{
@@ -2310,6 +2316,7 @@ void CDlgJob::OnClickGridAlignParameterChanged(NMHDR* pNotifyStruct, LRESULT* pR
 
 		else if (stParam.strName == _T("LAMP_TYPE"))
 		{
+		
 			options = 0;
 			if (_T("Amber") == strValue)			options = 0x00;
 			else if (_T("IR") == strValue)			options = 0x01;
@@ -2329,11 +2336,12 @@ void CDlgJob::OnClickGridAlignParameterChanged(NMHDR* pNotifyStruct, LRESULT* pR
 		return;
 	}
 
-	SetEditing(TRUE);
+	
 	CRecipeManager::GetInstance()->GetRecipe(eRECIPE_MODE_VIEW)->SetParam(EN_RECIPE_TAB::ALIGN, stParam);
 
 	if (TRUE == CheckModifyedParam(stParam, strValueOld))
 	{
+		SetEditing(TRUE);
 		BOOL bequalParam = FALSE;
 		for (int i = 0; i < m_vChangeList[EN_RECIPE_TAB::ALIGN].size(); i++)
 		{
@@ -2836,6 +2844,11 @@ BOOL CDlgJob::SelectLocalRecipe()
 
 void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode) 
 {
+
+	for (int i = 0; i <= EN_RECIPE_TAB::ALIGN; i++)
+	{
+		m_vChangeList[i].clear();
+	}
 
 	m_nSelectRecipeOld[eRecipeMode] = m_nSelectRecipe[eRecipeMode];
 	m_nSelectRecipe[eRecipeMode] = nSelect;

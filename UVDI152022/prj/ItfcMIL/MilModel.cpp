@@ -1,5 +1,5 @@
-/*
- desc : MIL Pattern Image (Buffer) °ü¸® ¹× Ã³¸® (Source Image : µî·ÏµÈ Pattern Image)
+ï»¿/*
+ desc : MIL Pattern Image (Buffer) ê´€ë¦¬ ë° ì²˜ë¦¬ (Source Image : ë“±ë¡ëœ Pattern Image)
 */
 
 #include "pch.h"
@@ -22,11 +22,11 @@
 static CHAR THIS_FILE[] = __FILE__;
 #endif
 
-#define USE_MIXED_MARK_CALC_AVERAGE	0	/* ¿©·¯ °³ÀÇ °Ë»öµÈ ¸¶Å©µéÀÇ Æò±Õ °ª ±¸ÇÒÁö ¿©ºÎ */
+#define USE_MIXED_MARK_CALC_AVERAGE	0	/* ì—¬ëŸ¬ ê°œì˜ ê²€ìƒ‰ëœ ë§ˆí¬ë“¤ì˜ í‰ê·  ê°’ êµ¬í• ì§€ ì—¬ë¶€ */
 #define	MAX_EDGE_LINE_FIND_COUNT	25
 std::pair<double, double> EstimateCircleCenterRobust(int n, const double* xs, const double* ys);
 /*
- desc : »ı¼ºÀÚ
+ desc : ìƒì„±ì
  parm : config		- [in]  Config Info.
 		shmem		- [in]  Shared Memory
 		cam_id		- [in]  Align Camera Index. (0x01 ~ MAX_INSTALL_CAMERA_COUNT)
@@ -47,7 +47,7 @@ CMilModel::CMilModel(LPG_CIEA config, LPG_VDSM shmem,
 {
 #ifndef _NOT_USE_MIL_
 	m_mlEdgeID = M_NULL;
-	m_mlLineID = M_NULL;	/* Line Detection ID (ÀÓ½Ã) */
+	m_mlLineID = M_NULL;	/* Line Detection ID (ì„ì‹œ) */
 	m_mlStripID = M_NULL;
 	//m_mIMergeMark = M_NULL;
 	for (int i = 0; i < 3; i++) {
@@ -62,50 +62,50 @@ CMilModel::CMilModel(LPG_CIEA config, LPG_VDSM shmem,
 	m_enMarkMethod = ENG_MMSM::en_single;
 	m_u8MarkFindSet = 0x01;
 	m_u8MarkFindGet = 0x00;
-	m_i32EdgeFindGet = 0;	/* Edge Detection °Ë»ö ÈÄ ÀúÀåµÉ °á°ú */
+	m_i32EdgeFindGet = 0;	/* Edge Detection ê²€ìƒ‰ í›„ ì €ì¥ë  ê²°ê³¼ */
 	m_camid = cam_id;
 	
 	m_pstModelSize = nullptr;
 	m_pstModResult = nullptr;
 	m_pstMarkModel  = nullptr;
 
-	/* °è»ê °á°ú ÀÓ½Ã·Î ÀúÀåÇÏ±â À§ÇÑ ¹öÆÛ */
+	/* ê³„ì‚° ê²°ê³¼ ì„ì‹œë¡œ ì €ì¥í•˜ê¸° ìœ„í•œ ë²„í¼ */
 	CreateMarkResult();
 }
 
 /*
- desc : ÆÄ±«ÀÚ
+ desc : íŒŒê´´ì
  parm : None
  retn : None
 */
 CMilModel::~CMilModel()
 {
 #ifndef _NOT_USE_MIL_
-	/* ±âÁ¸ ÇÒ´çµÈ ¸Ş¸ğ¸®°¡ ÀÖÀ¸¸é ÇØÁ¦ */
+	/* ê¸°ì¡´ í• ë‹¹ëœ ë©”ëª¨ë¦¬ê°€ ìˆìœ¼ë©´ í•´ì œ */
 	if (m_mlEdgeID)		MbufFree(m_mlEdgeID);
 	m_mlEdgeID = M_NULL;
-	/* Line Detection MIL ID ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* Line Detection MIL ID ë©”ëª¨ë¦¬ í•´ì œ */
 	if (m_mlLineID)		MbufFree(m_mlLineID);
 	m_mlLineID = NULL;
-	/* Marker Strip MIL ID ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* Marker Strip MIL ID ë©”ëª¨ë¦¬ í•´ì œ */
 	if (m_mlStripID)	MbufFree(m_mlStripID);
 	m_mlStripID = NULL;
 
 	if (theApp.clMilMain.MilEdgeContext)	MedgeFree(theApp.clMilMain.MilEdgeContext);
 	theApp.clMilMain.MilEdgeContext = M_NULL;
 #endif
-	for (int i = 2; i >= 0; i--) { // Global, Local, TMP_MARK 3°³
-		/* ÇöÀç ¼³Á¤µÈ ¸ğµ¨ ÃÊ±âÈ­ */
-		for (int j = 0; j < 2; j++) { // PAT, MOD 2°³
+	for (int i = 2; i >= 0; i--) { // Global, Local, TMP_MARK 3ê°œ
+		/* í˜„ì¬ ì„¤ì •ëœ ëª¨ë¸ ì´ˆê¸°í™” */
+		for (int j = 0; j < 2; j++) { // PAT, MOD 2ê°œ
 			ReleaseMarkModel(i, j);
 		}
 	}
-	/*  °Ë»ö ¹× °á°ú ¸Ş¸ğ¸® ÇØÁ¦ */
+	/*  ê²€ìƒ‰ ë° ê²°ê³¼ ë©”ëª¨ë¦¬ í•´ì œ */
 	ReleaseMarkResult();
 }
 
 /*
- desc : ÇöÀç ¼³Á¤µÈ ¸ğµ¨ ÃÊ±âÈ­
+ desc : í˜„ì¬ ì„¤ì •ëœ ëª¨ë¸ ì´ˆê¸°í™”
  parm : None
  retn : None
 */
@@ -134,13 +134,13 @@ VOID CMilModel::ReleaseMarkModel(UINT8 i, UINT8 findMode)
 }
 
 /*
- desc : ¸¶Å© ¸ğµ¨ »õ·Î µî·ÏÇÒ ¶§¸¶´Ù, ¸ğµ¨ °Ë»ö °á°ú¸¦ Á¤º¸¸¦ ÀúÀåÇÒ °´Ã¼ »ı¼º
+ desc : ë§ˆí¬ ëª¨ë¸ ìƒˆë¡œ ë“±ë¡í•  ë•Œë§ˆë‹¤, ëª¨ë¸ ê²€ìƒ‰ ê²°ê³¼ë¥¼ ì •ë³´ë¥¼ ì €ì¥í•  ê°ì²´ ìƒì„±
  parm : None
  retn : None
 */
 VOID CMilModel::CreateMarkResult()
 {
-	// by sys&j : MIL_INT¿Í INT64 °°Àº »çÀÌÁî·Î »ç·áµÊ. µû¶ó¼­ MIL ¹Ì»ç¿ë È£È¯¼º¿¡ µû¶ó INT64·Î º¯È¯
+	// by sys&j : MIL_INTì™€ INT64 ê°™ì€ ì‚¬ì´ì¦ˆë¡œ ì‚¬ë£Œë¨. ë”°ë¼ì„œ MIL ë¯¸ì‚¬ìš© í˜¸í™˜ì„±ì— ë”°ë¼ INT64ë¡œ ë³€í™˜
 	//m_pMilIndex = (PINT64)::Alloc(sizeof(MIL_INT) * m_pstConfig->mark_find.max_mark_find);
 	m_pMilIndex = new INT64[m_pstConfig->mark_find.max_mark_find]; //  (PINT64)::Alloc(sizeof(INT64) * m_pstConfig->mark_find.max_mark_find);
 	m_pFindPosX = new DOUBLE[m_pstConfig->mark_find.max_mark_find];  // (DOUBLE*)::Alloc(sizeof(DOUBLE) * m_pstConfig->mark_find.max_mark_find);
@@ -164,7 +164,7 @@ VOID CMilModel::CreateMarkResult()
 }
 
 /*
- desc : ¸¶Å© ¸ğµ¨ °Ë»ö °á°ú ¸Ş¸ğ¸® ÇØÁ¦
+ desc : ë§ˆí¬ ëª¨ë¸ ê²€ìƒ‰ ê²°ê³¼ ë©”ëª¨ë¦¬ í•´ì œ
  parm : None
  retn : None
 */
@@ -194,13 +194,13 @@ VOID CMilModel::ReleaseMarkResult()
 }
 
 /*
- desc : °á°ú µ¥ÀÌÅÍ ÃÊ±âÈ­
+ desc : ê²°ê³¼ ë°ì´í„° ì´ˆê¸°í™”
  parm : None
  retn : None
 */
 VOID CMilModel::ResetMarkResult()
 {
-#if 0	/* ¾Æ·¡ 2°³ º¯¼ö´Â ÃÊ±âÈ­ ÇÏ¸é ¾ÈµÊ (Shared Memory¿¡¼­ ³»ºÎÀûÀ¸·Î Ã³¸® ÇÔ) */
+#if 0	/* ì•„ë˜ 2ê°œ ë³€ìˆ˜ëŠ” ì´ˆê¸°í™” í•˜ë©´ ì•ˆë¨ (Shared Memoryì—ì„œ ë‚´ë¶€ì ìœ¼ë¡œ ì²˜ë¦¬ í•¨) */
 	memset(m_pstMarkModel, 0x00, sizeof(STG_CMPV) * m_pstConfig->mark_find.max_mark_regist);
 	memset(m_pstModelSize, 0x00, sizeof(STG_DBXY) * m_pstConfig->mark_find.max_mark_regist);
 #endif
@@ -219,9 +219,9 @@ VOID CMilModel::ResetMarkResult()
 }
 
 /*
- desc : ÇöÀç µî·ÏµÈ Mark Model Á¤º¸ ¹İÈ¯
- parm : index	- [in]  µî·ÏµÈ ¸¶Å© ¸ğµ¨ÀÇ ¹è¿­ ÀÎµ¦½º (Zero-based. ÃÖ´ë m_pstConfig->mark_find.max_mark_regist-1)
- retn : Mark Model °ª (¾ø´Ù¸é 0 °ª ¹İÈ¯)
+ desc : í˜„ì¬ ë“±ë¡ëœ Mark Model ì •ë³´ ë°˜í™˜
+ parm : index	- [in]  ë“±ë¡ëœ ë§ˆí¬ ëª¨ë¸ì˜ ë°°ì—´ ì¸ë±ìŠ¤ (Zero-based. ìµœëŒ€ m_pstConfig->mark_find.max_mark_regist-1)
+ retn : Mark Model ê°’ (ì—†ë‹¤ë©´ 0 ê°’ ë°˜í™˜)
 */
 UINT32 CMilModel::GetMarkModelType(UINT8 index/* =0 */)
 {
@@ -235,21 +235,21 @@ UINT32 CMilModel::GetMarkModelType(UINT8 index/* =0 */)
 }
 
 /*
- desc : Mark Á¤º¸ ¼³Á¤
+ desc : Mark ì •ë³´ ì„¤ì •
  parm : speed		- [in]  0 - Low, 1 - Medium, 2 - High, 3 - Very High
-		level		- [in]  µî·ÏµÈ ¸ğµ¨ ÀÌ¹ÌÁö¿Í Grabbed ImageÀÌ¹ÌÁöÀÇ Edge ¿µ¿ª¿¡ ´ëÇÑ ºñ±³ Á¤µµ °ª
-							°ªÀÌ Å¬¼ö·Ï »ó¼¼È÷ ºñ±³ÇÏÁö¸¸, ¼Óµµ´Â ¸¹ÀÌ ´À·ÁÁöÁü
-							LOWº¸´Ù HIGH·Î °¥¼ö·Ï ´õ ¸¹Àº Edge¸¦ °¡Áö°í ºñ±³ÇÏ°Ô µÊ
+		level		- [in]  ë“±ë¡ëœ ëª¨ë¸ ì´ë¯¸ì§€ì™€ Grabbed Imageì´ë¯¸ì§€ì˜ Edge ì˜ì—­ì— ëŒ€í•œ ë¹„êµ ì •ë„ ê°’
+							ê°’ì´ í´ìˆ˜ë¡ ìƒì„¸íˆ ë¹„êµí•˜ì§€ë§Œ, ì†ë„ëŠ” ë§ì´ ëŠë ¤ì§€ì§
+							LOWë³´ë‹¤ HIGHë¡œ ê°ˆìˆ˜ë¡ ë” ë§ì€ Edgeë¥¼ ê°€ì§€ê³  ë¹„êµí•˜ê²Œ ë¨
 							0 (M_MEDIUM), 1 (M_HIGH), 2 (M_VERY_HIGH)
-		smooth		- [in]  0.0f - ±âº» °ª, 1.0f ~ 100.0f
-							±âº» °ªÀº 50ÀÌÁö¸¸, 100À¸·Î °¥¼ö·Ï ¿§ÁöÀÇ °­µµ°¡ ¼¾°Í¸¸ ³ªÅ¸³³´Ï´Ù.
-		scale_min	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ¼ÒÇÑ ÀÌ °ª ºñÀ²º¸´Ù Ä¿¾ß µÊ. ¹üÀ§: 0.5 ~ 1.0)
-		scale_max	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ´ëÇÑ ÀÌ °ª ºñÀ²º¸´Ù ÀÛ¾Æ¾ß µÊ. ¹üÀ§: 1.0 ~ 1.0)
-		score_min	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0))
-		score_tgt	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0))
+		smooth		- [in]  0.0f - ê¸°ë³¸ ê°’, 1.0f ~ 100.0f
+							ê¸°ë³¸ ê°’ì€ 50ì´ì§€ë§Œ, 100ìœ¼ë¡œ ê°ˆìˆ˜ë¡ ì—£ì§€ì˜ ê°•ë„ê°€ ì„¼ê²ƒë§Œ ë‚˜íƒ€ë‚©ë‹ˆë‹¤.
+		scale_min	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœì†Œí•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì»¤ì•¼ ë¨. ë²”ìœ„: 0.5 ~ 1.0)
+		scale_max	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœëŒ€í•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì‘ì•„ì•¼ ë¨. ë²”ìœ„: 1.0 ~ 1.0)
+		score_min	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0))
+		score_tgt	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0))
  retn : TRUE or FALSE
 */
-BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markIdx, DOUBLE smooth, // lk91 SetModelDefine_tot·Î º¯°æ
+BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markIdx, DOUBLE smooth, // lk91 SetModelDefine_totë¡œ ë³€ê²½
 	DOUBLE scale_min, DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt)	 
 {
 	UINT32 i = 0, j = 0;
@@ -257,10 +257,10 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 	LONG lLevel[3] = { M_MEDIUM, M_HIGH, M_VERY_HIGH };
 	LONG lFilter[3] = { M_DEFAULT , M_KERNEL , M_RECURSIVE };	/* Filter Mode */
 	DOUBLE dbPixel[4] = { NULL };	/* um --> size */
-	DOUBLE dbDivSize = 1.0f;	/* Ring°ú CircleÀÇ °æ¿ì, ¸ğµ¨ Å©±â µî·ÏÇÒ ¶§, ¹İÁö¸§À¸·Î ÇØ¾ßÇÏ±â ¶§¹®¿¡ */
+	DOUBLE dbDivSize = 1.0f;	/* Ringê³¼ Circleì˜ ê²½ìš°, ëª¨ë¸ í¬ê¸° ë“±ë¡í•  ë•Œ, ë°˜ì§€ë¦„ìœ¼ë¡œ í•´ì•¼í•˜ê¸° ë•Œë¬¸ì— */
 	DOUBLE dbPixelToMM = m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 	DOUBLE dbCertainty = 0.0f;
-	/* °¡Àå ÃÖ±Ù¿¡ µî·ÏµÈ Mark Model ÀúÀå */
+	/* ê°€ì¥ ìµœê·¼ì— ë“±ë¡ëœ Mark Model ì €ì¥ */
 	MmodAlloc(m_mlSysID, M_GEOMETRIC, M_DEFAULT, &m_mlModelID[markIdx]);
 	if (!m_mlModelID[markIdx] || MappGetError(M_CURRENT, M_NULL))
 	{
@@ -268,16 +268,16 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 		return FALSE;
 	}
 	/* Model Type : Get the size of image (buffer) */
-	for (i = 0; i < m_u8ModelRegist; i++) // lk91 i 2, °Ë»ö ´ë»óÀÎ ¸ğµ¨ µî·Ï °³¼ö
+	for (i = 0; i < m_u8ModelRegist; i++) // lk91 i 2, ê²€ìƒ‰ ëŒ€ìƒì¸ ëª¨ë¸ ë“±ë¡ ê°œìˆ˜
 	{
-		/* Pixel Size ±¸ÇÏ±â */
+		/* Pixel Size êµ¬í•˜ê¸° */
 		for (j = 0; j < 4; j++)
 		{
 			dbPixel[j] = m_pstMarkModel[markIdx +i].param[j + 1] / (dbPixelToMM * 1000.0f);
 		}
 		switch (m_pstMarkModel[markIdx + i].type)
 		{
-			/* ¾Æ·¡ 2°³ÀÇ TypeÀº °Ë»ö µî·Ï ÇÒ ¶§, Áö¸§ (±æÀÌ)ÀÌ ¾Æ´Ñ ¹İÁö¸§ */
+			/* ì•„ë˜ 2ê°œì˜ Typeì€ ê²€ìƒ‰ ë“±ë¡ í•  ë•Œ, ì§€ë¦„ (ê¸¸ì´)ì´ ì•„ë‹Œ ë°˜ì§€ë¦„ */
 		case ENG_MMDT::en_ring:
 		case ENG_MMDT::en_circle:	dbDivSize = 2.0f;
 			m_pstModelSize[i].x = dbPixel[0] / 2.0f;
@@ -294,7 +294,7 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 		}
 		/* Define the model */
 		if (m_pstMarkModel[markIdx + i].param[0] == 1) {
-			MmodDefine(m_mlModelID[markIdx], m_pstMarkModel[markIdx + i].type, M_FOREGROUND_BLACK,	// lk91 black & white ¼³Á¤°ª ¼¼ÆÃÇÏ´Â ºÎºĞ, M_ANY Ãß°¡ÇØµµ ±¦ÂúÀ» µí, M_FOREGROUND_BLACK 0x100L 256, M_FOREGROUND_WHITE 0x80L 128 M_ANY 0x11000000L  ??
+			MmodDefine(m_mlModelID[markIdx], m_pstMarkModel[markIdx + i].type, M_FOREGROUND_BLACK,	// lk91 black & white ì„¤ì •ê°’ ì„¸íŒ…í•˜ëŠ” ë¶€ë¶„, M_ANY ì¶”ê°€í•´ë„ ê´œì°®ì„ ë“¯, M_FOREGROUND_BLACK 0x100L 256, M_FOREGROUND_WHITE 0x80L 128 M_ANY 0x11000000L  ??
 				dbPixel[0] / dbDivSize, dbPixel[1] / dbDivSize,
 				dbPixel[2] / dbDivSize, dbPixel[3] / dbDivSize);
 		}
@@ -313,9 +313,9 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 		}
 	}
 
-	/* ÀÌ¹ÌÁö ³ëÀÌÁî °¨¼Ò °ª ¼³Á¤ */
+	/* ì´ë¯¸ì§€ ë…¸ì´ì¦ˆ ê°ì†Œ ê°’ ì„¤ì • */
 	if (smooth < 0.0f || smooth > 100.0f)	smooth = 50.0f;
-	/* ¸ğµ¨ÀÇ °Ë»ö ¼Óµµ ÁöÁ¤ (¸ğµ¨ Å©±â°¡ ÀÛ°Å³ª ¸ÅÄª·ü¿¡¼­ ³ôÀº Á¤È®¼ºÀ» ÇÊ¿ä·Î ÇÏ°Å³ª, ¸ğµ¨ÀÇ ¿¡Áö°¡ ±âÇÏÇĞÀûÀ¸·Î º¹ÀâÇÑ °æ¿ì¿¡´Â µğÆúÆ® ¼³Á¤ (M_MEDIUM) »ç¿ë) */
+	/* ëª¨ë¸ì˜ ê²€ìƒ‰ ì†ë„ ì§€ì • (ëª¨ë¸ í¬ê¸°ê°€ ì‘ê±°ë‚˜ ë§¤ì¹­ë¥ ì—ì„œ ë†’ì€ ì •í™•ì„±ì„ í•„ìš”ë¡œ í•˜ê±°ë‚˜, ëª¨ë¸ì˜ ì—ì§€ê°€ ê¸°í•˜í•™ì ìœ¼ë¡œ ë³µì¡í•œ ê²½ìš°ì—ëŠ” ë””í´íŠ¸ ì„¤ì • (M_MEDIUM) ì‚¬ìš©) */
 	//smooth = 70;
 	//level = 1;
 	//speed = 0;
@@ -325,14 +325,14 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SMOOTHNESS, smooth);
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_DETAIL_LEVEL, lLevel[level]);
 	//MmodControl(m_mlModelID, M_CONTEXT, M_DETAIL_LEVEL, M_MEDIUM);
-	/* ¸ğµ¨ÀÇ Á¤È®¼ºÀ» ¿ä±¸ÇÒ ¶§ (Accuracy°¡ ³ôÀ»¼ö·Ï Ã³¸® ¼Óµµ´Â ¶³¾îÁö°Ô µÊ) */
+	/* ëª¨ë¸ì˜ ì •í™•ì„±ì„ ìš”êµ¬í•  ë•Œ (Accuracyê°€ ë†’ì„ìˆ˜ë¡ ì²˜ë¦¬ ì†ë„ëŠ” ë–¨ì–´ì§€ê²Œ ë¨) */
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_ACCURACY, M_MEDIUM);
 	//MmodControl(m_mlModelID, M_CONTEXT, M_FILTER_MODE, M_DEFAULT);
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SEARCH_POSITION_RANGE, M_ENABLE);
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SEARCH_ANGLE_RANGE, M_ENABLE);
 	//MmodControl(m_mlModelID, M_CONTEXT, M_SAVE_TARGET_EDGES, M_ENABLE);
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SAVE_TARGET_EDGES, M_DISABLE);
-	// lk91 Ãß°¡
+	// lk91 ì¶”ê°€
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_SEARCH_SCALE_RANGE, M_DISABLE);
 	MmodControl(m_mlModelID[markIdx], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
 	//MmodControl(m_mlModelID, M_CONTEXT, M_CERTAINTY, 60.0); //error
@@ -341,52 +341,52 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 
 
 #if 0
-	/* Detail Level : ¿ÀºêÁ§Æ® Á¶¸í¿¡ µû¶ó ¿Ã¹Ù¸¥ ¿§Áö¸¦ ÃßÃâÇÒ ´ë »ç¿ë */
+	/* Detail Level : ì˜¤ë¸Œì íŠ¸ ì¡°ëª…ì— ë”°ë¼ ì˜¬ë°”ë¥¸ ì—£ì§€ë¥¼ ì¶”ì¶œí•  ëŒ€ ì‚¬ìš© */
 	MmodControl(m_mlModelID, M_CONTEXT, M_DETAIL_LEVEL, M_MEDIUM);/* M_MEDIUM, M_HIGH, M_VERY_HIGH */
 #endif
-	/* µî·ÏµÈ ¸¶Å© ±âÁØÀ¸·Î, Scale ÃÖ¼Ò / ÃÖ´ë °ª ¼³Á¤ */
+	/* ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ìœ¼ë¡œ, Scale ìµœì†Œ / ìµœëŒ€ ê°’ ì„¤ì • */
 	if (scale_min > 0.0f && scale_max > 0.0f)
 	{
-		/* scale_min°ú scale_max °ª À¯È¿¼º È®ÀÎ ÈÄ Àß¸øµÈ °ª Á¶Á¤ */
+		/* scale_minê³¼ scale_max ê°’ ìœ íš¨ì„± í™•ì¸ í›„ ì˜ëª»ëœ ê°’ ì¡°ì • */
 		if (scale_min < 0.5)	scale_min = 0.5f;
 		if (scale_min > 1.0)	scale_min = 1.0f;
 		if (scale_max < 1.0)	scale_min = 1.0f;
 		if (scale_max > 2.0)	scale_min = 2.0f;
 
-		/* ¸ğµ¨ Å©±â ºñÀ² ÁöÁ¤ */
+		/* ëª¨ë¸ í¬ê¸° ë¹„ìœ¨ ì§€ì • */
 		MmodControl(m_mlModelID[2], M_CONTEXT, M_SEARCH_SCALE_RANGE, M_ENABLE);
 		MmodControl(m_mlModelID[2], M_DEFAULT, M_SCALE, 1.0f);
-		/* ÀÌ ÁÖ¾îÁø ¹üÀ§ ³»¿¡¼­¸¸, µî·ÏµÈ ¸¶Å©¿Í À¯»ç¼ºÀÌ °¡Àå ³ôÀº °ÍÀ» ÃßÃâÇØ ³¿ Áï, Score °ªÀÌ °¡Àå ³ôÀº °ÍÀ» ÃßÃâÇØ ³¿ */
-		/* scale_min : 0.5 ~ 1.0, scale_max : 1.0 ~ 2.0 »çÀÌÀÇ ¹üÀ§ °ªÀ» °¡Á®¾ß¸¸ µÊ */
+		/* ì´ ì£¼ì–´ì§„ ë²”ìœ„ ë‚´ì—ì„œë§Œ, ë“±ë¡ëœ ë§ˆí¬ì™€ ìœ ì‚¬ì„±ì´ ê°€ì¥ ë†’ì€ ê²ƒì„ ì¶”ì¶œí•´ ëƒ„ ì¦‰, Score ê°’ì´ ê°€ì¥ ë†’ì€ ê²ƒì„ ì¶”ì¶œí•´ ëƒ„ */
+		/* scale_min : 0.5 ~ 1.0, scale_max : 1.0 ~ 2.0 ì‚¬ì´ì˜ ë²”ìœ„ ê°’ì„ ê°€ì ¸ì•¼ë§Œ ë¨ */
 		if (0.0f != scale_min)	MmodControl(m_mlModelID[2], M_DEFAULT, M_SCALE_MIN_FACTOR, scale_min);
 		if (0.0f != scale_max)	MmodControl(m_mlModelID[2], M_DEFAULT, M_SCALE_MAX_FACTOR, scale_max);
 	}
-	/* Score ÃÖ¼Ò °Ë»ö °ª ¼³Á¤ */
+	/* Score ìµœì†Œ ê²€ìƒ‰ ê°’ ì„¤ì • */
 	if (score_min > 0.0f)
 	{
-		/* Target Image¿¡¼­ Model °Ë»ö ¼³Á¤¿¡ ±âÁØÀÌµÇ´Â ¸ÅÄª Á¡¼ö¸¦ °áÁ¤ */
-		/* ¸¸¾à ÀÌ °ªÀ» 100 À¸·Î ¼³Á¤ÇÏ¸é, ¸ğµ¨ ³»ÀÇ Active Edge°¡ TargetÀÇ °Ë»öµÈ Object¿Í ¿ÏÀüÈ÷ ¸ÅÄªÇØ¾ß ÇÔ */
+		/* Target Imageì—ì„œ Model ê²€ìƒ‰ ì„¤ì •ì— ê¸°ì¤€ì´ë˜ëŠ” ë§¤ì¹­ ì ìˆ˜ë¥¼ ê²°ì • */
+		/* ë§Œì•½ ì´ ê°’ì„ 100 ìœ¼ë¡œ ì„¤ì •í•˜ë©´, ëª¨ë¸ ë‚´ì˜ Active Edgeê°€ Targetì˜ ê²€ìƒ‰ëœ Objectì™€ ì™„ì „íˆ ë§¤ì¹­í•´ì•¼ í•¨ */
 		MmodControl(m_mlModelID[2], M_DEFAULT, M_ACCEPTANCE, score_min);
 #if 0
-		/* ¸Å¿ì Á¤È®ÇÑ ¸ÅÄªÀÌ ¿¹»óµÇ´Â °æ¿ì¿¡, °Ë»öÀ» °í¼ÓÀ¸·Î ÇÏ±â À§ÇØ »ç¿ë */
-		/* µû¶ó¼­ Acceptance º¸´Ù Ç×»ó ³ô°Ô ¼³Á¤ ÇØ¾ß ÇÔ (±âº» °ªÀº 0) */
-		/* Acceptance¸¦ ¸¸Á·ÇÏ°í certainty¸¦ ¸¸Á·ÇÏ¸é ¹Ù·Î ¸®ÅÏ. ´õ ³ôÀº Á¡¼ö¸¦ °®´Â ÈÄº¸¿¡ ´ëÇØ Æ÷°ıÀûÀÎ Á¶»çÇÏÁö ¾ÊÀ½ */
-		/* Áï, Acceptance¸¦ 80 ¼³Á¤ÇÏ°í, Certanity¸¦ 85¸¦ ¼³Á¤ÇÏ¸é, */
-		/* 80 ÀÌ»ó ¸ÅÄªµÈ ¿ÀºêÁ§Æ®µé Áß Certainty °ªÀÌ 85ÀÎ °ÍÀÌ ÀÖÀ¸¸é, ¹İÈ¯ÇÏ°í, ¾øÀ¸¸é °Ë»ö ½ÇÆĞÀÓ */
-		/* Æ¯º°ÇÑ °æ¿ì¸¦ Á¦¿ÜÇÏ°í´Â ÀÌ ±â´ÉÀ» »ç¿ëÇØ¼­´Â ¾ÈµÈ´Ù. Á¤¸» Á¤È®ÇÑ ¸ÅÄª °ªÀ» Ã£±â¸¦ ¿øÇÒ ¶§¸¸ »ç¿ëÇÔ */
-		if (score_min > dbCertainty)	dbCertainty = score_min + score_min / 10;	/* Ç×»ó 10% ³ô°Ô ¼³Á¤ */
+		/* ë§¤ìš° ì •í™•í•œ ë§¤ì¹­ì´ ì˜ˆìƒë˜ëŠ” ê²½ìš°ì—, ê²€ìƒ‰ì„ ê³ ì†ìœ¼ë¡œ í•˜ê¸° ìœ„í•´ ì‚¬ìš© */
+		/* ë”°ë¼ì„œ Acceptance ë³´ë‹¤ í•­ìƒ ë†’ê²Œ ì„¤ì • í•´ì•¼ í•¨ (ê¸°ë³¸ ê°’ì€ 0) */
+		/* Acceptanceë¥¼ ë§Œì¡±í•˜ê³  certaintyë¥¼ ë§Œì¡±í•˜ë©´ ë°”ë¡œ ë¦¬í„´. ë” ë†’ì€ ì ìˆ˜ë¥¼ ê°–ëŠ” í›„ë³´ì— ëŒ€í•´ í¬ê´„ì ì¸ ì¡°ì‚¬í•˜ì§€ ì•ŠìŒ */
+		/* ì¦‰, Acceptanceë¥¼ 80 ì„¤ì •í•˜ê³ , Certanityë¥¼ 85ë¥¼ ì„¤ì •í•˜ë©´, */
+		/* 80 ì´ìƒ ë§¤ì¹­ëœ ì˜¤ë¸Œì íŠ¸ë“¤ ì¤‘ Certainty ê°’ì´ 85ì¸ ê²ƒì´ ìˆìœ¼ë©´, ë°˜í™˜í•˜ê³ , ì—†ìœ¼ë©´ ê²€ìƒ‰ ì‹¤íŒ¨ì„ */
+		/* íŠ¹ë³„í•œ ê²½ìš°ë¥¼ ì œì™¸í•˜ê³ ëŠ” ì´ ê¸°ëŠ¥ì„ ì‚¬ìš©í•´ì„œëŠ” ì•ˆëœë‹¤. ì •ë§ ì •í™•í•œ ë§¤ì¹­ ê°’ì„ ì°¾ê¸°ë¥¼ ì›í•  ë•Œë§Œ ì‚¬ìš©í•¨ */
+		if (score_min > dbCertainty)	dbCertainty = score_min + score_min / 10;	/* í•­ìƒ 10% ë†’ê²Œ ì„¤ì • */
 		MmodControl(m_mlModelID, M_DEFAULT, M_CERTAINTY, dbCertainty);
 #endif
 	}
-	/* Score (for target) ÃÖ¼Ò °Ë»ö °ª ¼³Á¤ */
+	/* Score (for target) ìµœì†Œ ê²€ìƒ‰ ê°’ ì„¤ì • */
 	if (score_tgt > 0.0f)
 	{
-		/* score acceptacne °ªÀ¸·Î °Ë»öµÈ ¸ğµ¨ Áß target score °ªÀÌ ÀÌ °ª ÀÌÇÏÀÎ °æ¿ì, °Ë»ö ´ë»ó¿¡¼­ Á¦¿Ü */
-		/* ÇöÀç grabbed image µé Áß¿¡¼­ mark model°ú À¯»çÇÑ ÀÌ¹ÌÁöÀÇ ºĞÆ÷ Á¤µµ °ª ¼³Á¤ ÈÄ °Ë»öÇÏ´Â ¹æ¹ıÀÓ */
+		/* score acceptacne ê°’ìœ¼ë¡œ ê²€ìƒ‰ëœ ëª¨ë¸ ì¤‘ target score ê°’ì´ ì´ ê°’ ì´í•˜ì¸ ê²½ìš°, ê²€ìƒ‰ ëŒ€ìƒì—ì„œ ì œì™¸ */
+		/* í˜„ì¬ grabbed image ë“¤ ì¤‘ì—ì„œ mark modelê³¼ ìœ ì‚¬í•œ ì´ë¯¸ì§€ì˜ ë¶„í¬ ì •ë„ ê°’ ì„¤ì • í›„ ê²€ìƒ‰í•˜ëŠ” ë°©ë²•ì„ */
 		MmodControl(m_mlModelID[2], M_DEFAULT, M_ACCEPTANCE_TARGET, score_tgt);
 	}
 #if 0
-	/* µî·ÏµÈ ¸ğµ¨ÀÇ ÁÖ¾îÁø °¢µµ ±âÁØÀ¸·Î ¼³Á¤µÈ °¢µµ¸¸Å­ È¸ÀüÇÏ¿© ¸ÅÄª (±âº» °ª 0.0) */
+	/* ë“±ë¡ëœ ëª¨ë¸ì˜ ì£¼ì–´ì§„ ê°ë„ ê¸°ì¤€ìœ¼ë¡œ ì„¤ì •ëœ ê°ë„ë§Œí¼ íšŒì „í•˜ì—¬ ë§¤ì¹­ (ê¸°ë³¸ ê°’ 0.0) */
 	MmodControl(m_mlModelID, M_DEFAULT, M_ANGLE, 0.0 /* 0.0 ~ 360.0*/);
 	MmodControl(m_mlModelID, M_DEFAULT, M_ANGLE_DELTA_NEG, 0.0 /* 0.0 ~ 360.0*/);
 	MmodControl(m_mlModelID, M_DEFAULT, M_ANGLE_DELTA_POS, 0.0 /* 0.0 ~ 360.0*/);
@@ -398,10 +398,10 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 	if (pstMarkFind->use_sharing_edge)	MmodControl(m_mlModelID, M_CONTEXT, M_SHARED_EDGES, M_ENABLE);
 #endif
 #if 0
-	/* ÃÖÁ¾ °Ë»öµÉ ¸ğµ¨ ´ë»óÀÇ °³¼ö ¼³Á¤ (°Ë»ö ´ë»ó ¸ğµ¨ °³¼öº¸´Ù 2¹è ±îÁö °Ë»öÇÏµµ·Ï ¼³Á¤) */
+	/* ìµœì¢… ê²€ìƒ‰ë  ëª¨ë¸ ëŒ€ìƒì˜ ê°œìˆ˜ ì„¤ì • (ê²€ìƒ‰ ëŒ€ìƒ ëª¨ë¸ ê°œìˆ˜ë³´ë‹¤ 2ë°° ê¹Œì§€ ê²€ìƒ‰í•˜ë„ë¡ ì„¤ì •) */
 	MmodControl(m_mlModelID, M_DEFAULT, M_NUMBER, MIL_INT(m_u8MarkFindSet));
 #else
-	/* Target Image¿¡¼­ °Ë»öÇÏ°íÀÚ ÇÏ´Â ÃÖ´ë °³¼ö ÁöÁ¤ */
+	/* Target Imageì—ì„œ ê²€ìƒ‰í•˜ê³ ì í•˜ëŠ” ìµœëŒ€ ê°œìˆ˜ ì§€ì • */
 	MmodControl(m_mlModelID[2], M_DEFAULT, M_NUMBER, MIL_INT(m_pstConfig->mark_find.max_mark_find));
 #endif
 	/* Preprocess the search context */
@@ -411,42 +411,42 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, int markId
 }
 
 /*
- desc : Mark Á¤º¸ ¼³Á¤
+ desc : Mark ì •ë³´ ì„¤ì •
  parm : speed		- [in]  0 - Very Low, 1 - Low, 2 - Medium, 3 - High, 4 - Very High
-		detail_level- [in]  µî·ÏµÈ ¸ğµ¨ ÀÌ¹ÌÁö¿Í Grabbed ImageÀÌ¹ÌÁöÀÇ Edge ¿µ¿ª¿¡ ´ëÇÑ ºñ±³ Á¤µµ °ª
-							°ªÀÌ Å¬¼ö·Ï »ó¼¼È÷ ºñ±³ÇÏÁö¸¸, ¼Óµµ´Â ¸¹ÀÌ ´À·ÁÁöÁü
-							LOWº¸´Ù HIGH·Î °¥¼ö·Ï ´õ ¸¹Àº Edge¸¦ °¡Áö°í ºñ±³ÇÏ°Ô µÊ
+		detail_level- [in]  ë“±ë¡ëœ ëª¨ë¸ ì´ë¯¸ì§€ì™€ Grabbed Imageì´ë¯¸ì§€ì˜ Edge ì˜ì—­ì— ëŒ€í•œ ë¹„êµ ì •ë„ ê°’
+							ê°’ì´ í´ìˆ˜ë¡ ìƒì„¸íˆ ë¹„êµí•˜ì§€ë§Œ, ì†ë„ëŠ” ë§ì´ ëŠë ¤ì§€ì§
+							LOWë³´ë‹¤ HIGHë¡œ ê°ˆìˆ˜ë¡ ë” ë§ì€ Edgeë¥¼ ê°€ì§€ê³  ë¹„êµí•˜ê²Œ ë¨
 							0 (M_MEDIUM), 1 (M_HIGH), 2 (M_VERY_HIGH)
-		smooth		- [in]  0.0f - ±âº» °ª, 1.0f ~ 100.0f
-							±âº» °ªÀº 50ÀÌÁö¸¸, 100À¸·Î °¥¼ö·Ï ¿§ÁöÀÇ °­µµ°¡ ¼¾°Í¸¸ ³ªÅ¸³³´Ï´Ù.
-		value		- [in]  Model Type, Param 1 ~ 5°³ Á¤º¸±îÁö ¸ğµÎ Æ÷ÇÔµÈ ±¸Á¶Ã¼ Æ÷ÀÎÅÍ
-		count		- [in]  µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ÀÇ °³¼ö
-		scale_min	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ¼ÒÇÑ ÀÌ °ª ºñÀ²º¸´Ù Ä¿¾ß µÊ. ¹üÀ§: 0.5 ~ 1.0)
-		scale_max	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ´ëÇÑ ÀÌ °ª ºñÀ²º¸´Ù ÀÛ¾Æ¾ß µÊ. ¹üÀ§: 1.0 ~ 1.0)
-		score_min	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0)
-		score_tgt	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0))
+		smooth		- [in]  0.0f - ê¸°ë³¸ ê°’, 1.0f ~ 100.0f
+							ê¸°ë³¸ ê°’ì€ 50ì´ì§€ë§Œ, 100ìœ¼ë¡œ ê°ˆìˆ˜ë¡ ì—£ì§€ì˜ ê°•ë„ê°€ ì„¼ê²ƒë§Œ ë‚˜íƒ€ë‚©ë‹ˆë‹¤.
+		value		- [in]  Model Type, Param 1 ~ 5ê°œ ì •ë³´ê¹Œì§€ ëª¨ë‘ í¬í•¨ëœ êµ¬ì¡°ì²´ í¬ì¸í„°
+		count		- [in]  ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ì˜ ê°œìˆ˜
+		scale_min	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœì†Œí•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì»¤ì•¼ ë¨. ë²”ìœ„: 0.5 ~ 1.0)
+		scale_max	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœëŒ€í•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì‘ì•„ì•¼ ë¨. ë²”ìœ„: 1.0 ~ 1.0)
+		score_min	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0)
+		score_tgt	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0))
  retn : TRUE or FALSE
 */
-BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, LPG_CMPV value,		// lk91 SetModelDefine_tot·Î º¯°æ
+BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, LPG_CMPV value,		// lk91 SetModelDefine_totë¡œ ë³€ê²½
 	UINT8 mark_no, DOUBLE scale_min, DOUBLE scale_max,
 	DOUBLE score_min, DOUBLE score_tgt)
 {
 //	UINT8 i = 0;
 //
-//	/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+//	/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 //	ReleaseMarkModel();
-//	/* ±âÁ¸ °á°ú Á¤º¸ ÃÊ±âÈ­ */
+//	/* ê¸°ì¡´ ê²°ê³¼ ì •ë³´ ì´ˆê¸°í™” */
 //	ResetMarkResult();
 //#if 0
-//	/* µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ÀÇ °³¼ö ÆÄ¾Ç (ÃÖ´ë µî·Ï °³¼ö¸¦ ³ÑÁö ¸øÇÏµµ·Ï ÇÏ±â À§ÇÔ) */
+//	/* ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ì˜ ê°œìˆ˜ íŒŒì•… (ìµœëŒ€ ë“±ë¡ ê°œìˆ˜ë¥¼ ë„˜ì§€ ëª»í•˜ë„ë¡ í•˜ê¸° ìœ„í•¨) */
 //	for (i = 0; value[i].IsValid() && i < m_pstConfig->mark_find.max_mark_regist; i++)
 //	{
 //		m_u8ModelRegist++;
 //	}
 //#else
-//	/* µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ °³¼ö ¼³Á¤ */
+//	/* ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ ê°œìˆ˜ ì„¤ì • */
 //	m_u8ModelRegist = count;
-//	/* µî·Ï ´ë»ó ¸ğµ¨ÀÇ °³¼ö°¡ ÃÊ°úÇÏ¸é, ÃÖ´ë °ªÀ¸·Î ¼³Á¤ */
+//	/* ë“±ë¡ ëŒ€ìƒ ëª¨ë¸ì˜ ê°œìˆ˜ê°€ ì´ˆê³¼í•˜ë©´, ìµœëŒ€ ê°’ìœ¼ë¡œ ì„¤ì • */
 //	if (m_pstConfig->mark_find.max_mark_regist < count)
 //	{
 //		m_u8ModelRegist = m_pstConfig->mark_find.max_mark_regist;
@@ -455,7 +455,7 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 //			MB_ICONINFORMATION);
 //	}
 //#endif
-//	/* À¯È¿ÇÑ °Ë»ö ´ë»óÀÇ ¸ğµ¨ °ª ÀúÀå */
+//	/* ìœ íš¨í•œ ê²€ìƒ‰ ëŒ€ìƒì˜ ëª¨ë¸ ê°’ ì €ì¥ */
 //	for (i = 0; i < m_u8ModelRegist && value[i].IsValid(); i++)
 //	{
 //		memcpy(&m_pstMarkModel[i], &value[i], sizeof(STG_CMPV));
@@ -465,37 +465,37 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 }
 
 /*
- desc : Mark Á¤º¸ ¼³Á¤
+ desc : Mark ì •ë³´ ì„¤ì •
  parm : speed		- [in]  0 - Very Low, 1 - Low, 2 - Medium, 3 - High, 4 - Very High
-		detail_level- [in]  µî·ÏµÈ ¸ğµ¨ ÀÌ¹ÌÁö¿Í Grabbed ImageÀÌ¹ÌÁöÀÇ Edge ¿µ¿ª¿¡ ´ëÇÑ ºñ±³ Á¤µµ °ª
-							°ªÀÌ Å¬¼ö·Ï »ó¼¼È÷ ºñ±³ÇÏÁö¸¸, ¼Óµµ´Â ¸¹ÀÌ ´À·ÁÁöÁü
-							LOWº¸´Ù HIGH·Î °¥¼ö·Ï ´õ ¸¹Àº Edge¸¦ °¡Áö°í ºñ±³ÇÏ°Ô µÊ
+		detail_level- [in]  ë“±ë¡ëœ ëª¨ë¸ ì´ë¯¸ì§€ì™€ Grabbed Imageì´ë¯¸ì§€ì˜ Edge ì˜ì—­ì— ëŒ€í•œ ë¹„êµ ì •ë„ ê°’
+							ê°’ì´ í´ìˆ˜ë¡ ìƒì„¸íˆ ë¹„êµí•˜ì§€ë§Œ, ì†ë„ëŠ” ë§ì´ ëŠë ¤ì§€ì§
+							LOWë³´ë‹¤ HIGHë¡œ ê°ˆìˆ˜ë¡ ë” ë§ì€ Edgeë¥¼ ê°€ì§€ê³  ë¹„êµí•˜ê²Œ ë¨
 							0 (M_MEDIUM), 1 (M_HIGH), 2 (M_VERY_HIGH)
-		smooth		- [in]  0.0f - ±âº» °ª, 1.0f ~ 100.0f
-							±âº» °ªÀº 50ÀÌÁö¸¸, 100À¸·Î °¥¼ö·Ï ¿§ÁöÀÇ °­µµ°¡ ¼¾°Í¸¸ ³ªÅ¸³³´Ï´Ù.
-		model		- [in]  Model Type Áï, circle, square, rectangle, cross, diamond, triangle
-		param		- [in]  ÃÑ 5°³ÀÇ Parameter Values (unit : um)
-		count		- [in]  µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ÀÇ °³¼ö
-		scale_min	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ¼ÒÇÑ ÀÌ °ª ºñÀ²º¸´Ù Ä¿¾ß µÊ. ¹üÀ§: 0.5 ~ 1.0)
-		scale_max	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ´ëÇÑ ÀÌ °ª ºñÀ²º¸´Ù ÀÛ¾Æ¾ß µÊ. ¹üÀ§: 1.0 ~ 1.0)
-		score_min	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0)
-		score_tgt	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0))
+		smooth		- [in]  0.0f - ê¸°ë³¸ ê°’, 1.0f ~ 100.0f
+							ê¸°ë³¸ ê°’ì€ 50ì´ì§€ë§Œ, 100ìœ¼ë¡œ ê°ˆìˆ˜ë¡ ì—£ì§€ì˜ ê°•ë„ê°€ ì„¼ê²ƒë§Œ ë‚˜íƒ€ë‚©ë‹ˆë‹¤.
+		model		- [in]  Model Type ì¦‰, circle, square, rectangle, cross, diamond, triangle
+		param		- [in]  ì´ 5ê°œì˜ Parameter Values (unit : um)
+		count		- [in]  ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ì˜ ê°œìˆ˜
+		scale_min	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœì†Œí•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì»¤ì•¼ ë¨. ë²”ìœ„: 0.5 ~ 1.0)
+		scale_max	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœëŒ€í•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì‘ì•„ì•¼ ë¨. ë²”ìœ„: 1.0 ~ 1.0)
+		score_min	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0)
+		score_tgt	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0))
  retn : TRUE or FALSE
 */
 BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, PUINT32 model,
-	DOUBLE* param1, DOUBLE* param2, DOUBLE* param3,	// lk91 param ¹è¿­ ³Ñ°ÜÁÖ´Â ºÎºĞ Ã¼Å©
+	DOUBLE* param1, DOUBLE* param2, DOUBLE* param3,	// lk91 param ë°°ì—´ ë„˜ê²¨ì£¼ëŠ” ë¶€ë¶„ ì²´í¬
 	DOUBLE* param4, DOUBLE* param5, UINT8 mark_no,
 	DOUBLE scale_min, DOUBLE scale_max,
 	DOUBLE score_min, DOUBLE score_tgt, bool sameMark)
 {
 
-	/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+	/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 	ReleaseMarkModel(mark_no, 0);
-	/* ±âÁ¸ °á°ú Á¤º¸ ÃÊ±âÈ­ */
+	/* ê¸°ì¡´ ê²°ê³¼ ì •ë³´ ì´ˆê¸°í™” */
 	ResetMarkResult();
-	///* µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ °³¼ö ¼³Á¤ */
+	///* ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ ê°œìˆ˜ ì„¤ì • */
 	m_u8ModelRegist = count;
-	/* µî·Ï ´ë»ó ¸ğµ¨ÀÇ °³¼ö°¡ ÃÊ°úÇÏ¸é, ÃÖ´ë °ªÀ¸·Î ¼³Á¤ */
+	/* ë“±ë¡ ëŒ€ìƒ ëª¨ë¸ì˜ ê°œìˆ˜ê°€ ì´ˆê³¼í•˜ë©´, ìµœëŒ€ ê°’ìœ¼ë¡œ ì„¤ì • */
 	//if (m_pstConfig->mark_find.max_mark_regist < count)
 	//{
 	//	m_u8ModelRegist = m_pstConfig->mark_find.max_mark_regist;
@@ -504,7 +504,7 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 	//		MB_ICONINFORMATION);
 	//}
 
-	/* À¯È¿ÇÑ °Ë»ö ´ë»óÀÇ ¸ğµ¨ °ª ÀúÀå */
+	/* ìœ íš¨í•œ ê²€ìƒ‰ ëŒ€ìƒì˜ ëª¨ë¸ ê°’ ì €ì¥ */
 	//for (i = 0; i < m_u8ModelRegist/*m_pstConfig->mark_find.max_mark_regist*/; i++)
 	//{
 	//	m_pstMarkModel[i].type = model[i];
@@ -534,21 +534,21 @@ BOOL CMilModel::SetModelDefine(UINT8 speed, UINT8 level, UINT8 count, DOUBLE smo
 }
 
 /*
- desc : Mark Á¤º¸ ¼³Á¤ - ÀÌ¹ÌÁö µ¥ÀÌÅÍ
+ desc : Mark ì •ë³´ ì„¤ì • - ì´ë¯¸ì§€ ë°ì´í„°
  parm : speed		- [in]  0 - Very Low, 1 - Low, 2 - Medium, 3 - High, 4 - Very High
-		level		- [in]  µî·ÏµÈ ¸ğµ¨ ÀÌ¹ÌÁö¿Í Grabbed ImageÀÌ¹ÌÁöÀÇ Edge ¿µ¿ª¿¡ ´ëÇÑ ºñ±³ Á¤µµ °ª
-							°ªÀÌ Å¬¼ö·Ï »ó¼¼È÷ ºñ±³ÇÏÁö¸¸, ¼Óµµ´Â ¸¹ÀÌ ´À·ÁÁöÁü
-							LOWº¸´Ù HIGH·Î °¥¼ö·Ï ´õ ¸¹Àº Edge¸¦ °¡Áö°í ºñ±³ÇÏ°Ô µÊ
+		level		- [in]  ë“±ë¡ëœ ëª¨ë¸ ì´ë¯¸ì§€ì™€ Grabbed Imageì´ë¯¸ì§€ì˜ Edge ì˜ì—­ì— ëŒ€í•œ ë¹„êµ ì •ë„ ê°’
+							ê°’ì´ í´ìˆ˜ë¡ ìƒì„¸íˆ ë¹„êµí•˜ì§€ë§Œ, ì†ë„ëŠ” ë§ì´ ëŠë ¤ì§€ì§
+							LOWë³´ë‹¤ HIGHë¡œ ê°ˆìˆ˜ë¡ ë” ë§ì€ Edgeë¥¼ ê°€ì§€ê³  ë¹„êµí•˜ê²Œ ë¨
 							0 (M_MEDIUM), 1 (M_HIGH), 2 (M_VERY_HIGH)
-		smooth		- [in]  0.0f - ±âº» °ª, 1.0f ~ 100.0f
-		scale_min	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ¼ÒÇÑ ÀÌ °ª ºñÀ²º¸´Ù Ä¿¾ß µÊ. ¹üÀ§: 0.5 ~ 1.0)
-		scale_max	- [in]  °Ë»ö ´ë»óÀÇ Å©±â ¹üÀ§ °ª ¼³Á¤ (ÃÖ´ëÇÑ ÀÌ °ª ºñÀ²º¸´Ù ÀÛ¾Æ¾ß µÊ. ¹üÀ§: 1.0 ~ 1.0)
-		score_min	- [in]  ÀÌ °ª ÀÌÇÏ·Î´Â °Ë»öÇÒ ¼ö ¾ø´Ù (ÀÔ·ÂµÇ´Â °ªÀº percentage (0.0 ~ 100.0)
+		smooth		- [in]  0.0f - ê¸°ë³¸ ê°’, 1.0f ~ 100.0f
+		scale_min	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœì†Œí•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì»¤ì•¼ ë¨. ë²”ìœ„: 0.5 ~ 1.0)
+		scale_max	- [in]  ê²€ìƒ‰ ëŒ€ìƒì˜ í¬ê¸° ë²”ìœ„ ê°’ ì„¤ì • (ìµœëŒ€í•œ ì´ ê°’ ë¹„ìœ¨ë³´ë‹¤ ì‘ì•„ì•¼ ë¨. ë²”ìœ„: 1.0 ~ 1.0)
+		score_min	- [in]  ì´ ê°’ ì´í•˜ë¡œëŠ” ê²€ìƒ‰í•  ìˆ˜ ì—†ë‹¤ (ì…ë ¥ë˜ëŠ” ê°’ì€ percentage (0.0 ~ 100.0)
 		name		- [in]  Model Name
-		file		- [in]  ¸ğµ¨ ÀÌ¹ÌÁö°¡ ÀúÀåµÈ ÆÄÀÏ ÀÌ¸§ (ÀüÃ¼ °æ·Î Æ÷ÇÔ. Image File)
+		file		- [in]  ëª¨ë¸ ì´ë¯¸ì§€ê°€ ì €ì¥ëœ íŒŒì¼ ì´ë¦„ (ì „ì²´ ê²½ë¡œ í¬í•¨. Image File)
  retn : TRUE or FALSE
 */
-BOOL CMilModel::SetModelDefineLoad(UINT8 speed, UINT8 level, DOUBLE smooth,	// lk91 ¹Ì»ç¿ë
+BOOL CMilModel::SetModelDefineLoad(UINT8 speed, UINT8 level, DOUBLE smooth,	// lk91 ë¯¸ì‚¬ìš©
 	DOUBLE scale_min, DOUBLE scale_max,
 	DOUBLE score_min, DOUBLE score_tgt,
 	PTCHAR name, CStringArray& file)
@@ -558,11 +558,11 @@ BOOL CMilModel::SetModelDefineLoad(UINT8 speed, UINT8 level, DOUBLE smooth,	// l
 
 
 /*
- desc : ÇØ´ç °Ë»ö Á¶°Ç¿¡ ºÎÇÕµÇ´Â °³¼ö°¡ ÀÖ´ÂÁö È®ÀÎ
- parm : find	- [in]  Ã£°íÀÚ ÇÏ´Â °³¼ö
-		score	- [in]  ¸ÅÄª ºñÀ² °ª
-		scale	- [in]  Å©±â ºñÀ² °ª
- retn : TRUE (find °³¼ö°¡ Á¸ÀçÇÑ´Ù) or FALSE (find °³¼öº¸´Ù ¸¹°Å³ª ÀûÀº °æ¿ì)
+ desc : í•´ë‹¹ ê²€ìƒ‰ ì¡°ê±´ì— ë¶€í•©ë˜ëŠ” ê°œìˆ˜ê°€ ìˆëŠ”ì§€ í™•ì¸
+ parm : find	- [in]  ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜
+		score	- [in]  ë§¤ì¹­ ë¹„ìœ¨ ê°’
+		scale	- [in]  í¬ê¸° ë¹„ìœ¨ ê°’
+ retn : TRUE (find ê°œìˆ˜ê°€ ì¡´ì¬í•œë‹¤) or FALSE (find ê°œìˆ˜ë³´ë‹¤ ë§ê±°ë‚˜ ì ì€ ê²½ìš°)
 */
 BOOL CMilModel::IsFindModCount(UINT8 find, DOUBLE score, DOUBLE scale)
 {
@@ -584,23 +584,23 @@ BOOL CMilModel::IsFindModCount(UINT8 find, DOUBLE score, DOUBLE scale)
 }
 
 /*
- desc : °Ë»öµÈ °á°ú Áß Scale °ªÀÌ 1.0¿¡ °¡Àå °¡±î¿î °Í¸¸ ¹İÈ¯
+ desc : ê²€ìƒ‰ëœ ê²°ê³¼ ì¤‘ Scale ê°’ì´ 1.0ì— ê°€ì¥ ê°€ê¹Œìš´ ê²ƒë§Œ ë°˜í™˜
  parm : None
- retn : °Ë»öµÈ °á°ú°¡ ÀúÀåµÈ Æ÷ÀÎÅÍ ¹İÈ¯
+ retn : ê²€ìƒ‰ëœ ê²°ê³¼ê°€ ì €ì¥ëœ í¬ì¸í„° ë°˜í™˜
 */
 LPG_GMFR CMilModel::GetFindMarkBestScale()
 {
 	UINT8 i;
 	LPG_GMFR pstResult = NULL;
 
-	/* °Ë»öµÈ °æ¿ì°¡ ¾ø´ÂÁö ¿©ºÎ */
+	/* ê²€ìƒ‰ëœ ê²½ìš°ê°€ ì—†ëŠ”ì§€ ì—¬ë¶€ */
 	if (m_u8MarkFindGet < 1)	return NULL;
-	/* ¸Ç Ã³À½ À§Ä¡ °ª ¹«Á¶°Ç ÀúÀå */
+	/* ë§¨ ì²˜ìŒ ìœ„ì¹˜ ê°’ ë¬´ì¡°ê±´ ì €ì¥ */
 	pstResult = &m_pstModResult[0];
-	/* ¸¸¾à °Ë»öµÈ °á°ú°¡ 1°³ÀÎ °æ¿ì´Â ¹Ù·Î ¸®ÅÏ */
+	/* ë§Œì•½ ê²€ìƒ‰ëœ ê²°ê³¼ê°€ 1ê°œì¸ ê²½ìš°ëŠ” ë°”ë¡œ ë¦¬í„´ */
 	if (1 == m_u8MarkFindGet)
 	{
-		/* °Ë»ö ´ë»óÀÇ ¸ğµ¨ ÀÎµ¦½º ±âÁØÀ¸·Î ¸ğµ¨ Å©±â ¼³Á¤ */
+		/* ê²€ìƒ‰ ëŒ€ìƒì˜ ëª¨ë¸ ì¸ë±ìŠ¤ ê¸°ì¤€ìœ¼ë¡œ ëª¨ë¸ í¬ê¸° ì„¤ì • */
 		//m_pstModResult[0].mark_width = (UINT32)ROUNDED(m_pstModelSize[m_pstModResult[0].model_index].x, 0);
 		//m_pstModResult[0].mark_height = (UINT32)ROUNDED(m_pstModelSize[m_pstModResult[0].model_index].y, 0);
 		m_pstModResult[0].mark_width = (UINT32)ROUNDED(m_pstMarkModel[0].iSizeP.x, 0);
@@ -608,15 +608,15 @@ LPG_GMFR CMilModel::GetFindMarkBestScale()
 	}
 	else
 	{
-		/* °Ë»öµÈ °á°ú°¡ 2°³ ÀÌ»óÀÎ °æ¿ì, Scale °ªÀÌ 1.0¿¡ °¡Àå °¡±î¿î °ªÀ» ¹İÈ¯ */
+		/* ê²€ìƒ‰ëœ ê²°ê³¼ê°€ 2ê°œ ì´ìƒì¸ ê²½ìš°, Scale ê°’ì´ 1.0ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì„ ë°˜í™˜ */
 		for (i = 0x00; i < m_u8MarkFindGet; i++)  
 		{
-			/* °Ë»ö ´ë»óÀÇ ¸ğµ¨ ÀÎµ¦½º ±âÁØÀ¸·Î ¸ğµ¨ Å©±â ¼³Á¤ */
+			/* ê²€ìƒ‰ ëŒ€ìƒì˜ ëª¨ë¸ ì¸ë±ìŠ¤ ê¸°ì¤€ìœ¼ë¡œ ëª¨ë¸ í¬ê¸° ì„¤ì • */
 			//m_pstModResult[i].mark_width = (UINT32)ROUNDED(m_pstModelSize[m_pstModResult[i].model_index].x, 0);
 			//m_pstModResult[i].mark_height = (UINT32)ROUNDED(m_pstModelSize[m_pstModResult[i].model_index].y, 0);
 			m_pstModResult[i].mark_width = (UINT32)ROUNDED(m_pstMarkModel[0].iSizeP.x, 0);
 			m_pstModResult[i].mark_height = (UINT32)ROUNDED(m_pstMarkModel[0].iSizeP.y, 0);
-			/* ÇöÀç °ªº¸´Ù ´ÙÀ½ °Ë»öµÈ °ªÀÇ ScaleÀÌ ´õ µî·ÏµÈ ¸¶Å© Å©±â¿¡ °¡±î¿îÁö ºñ±³ */
+			/* í˜„ì¬ ê°’ë³´ë‹¤ ë‹¤ìŒ ê²€ìƒ‰ëœ ê°’ì˜ Scaleì´ ë” ë“±ë¡ëœ ë§ˆí¬ í¬ê¸°ì— ê°€ê¹Œìš´ì§€ ë¹„êµ */
 			if (pstResult->scale_rate < m_pstModResult[i].scale_rate)
 			{
 				pstResult = &m_pstModResult[i];
@@ -624,11 +624,11 @@ LPG_GMFR CMilModel::GetFindMarkBestScale()
 		}
 	}
 
-	/* ÃÖÁ¾ ¸¹ÀÌ Ã£¾ÒÁö¸¸, °á±¹ 1°³¸¸ Ã£¾Ò´Ù°í °­Á¦·Î ¼³Á¤ */
+	/* ìµœì¢… ë§ì´ ì°¾ì•˜ì§€ë§Œ, ê²°êµ­ 1ê°œë§Œ ì°¾ì•˜ë‹¤ê³  ê°•ì œë¡œ ì„¤ì • */
 	if (pstResult != &m_pstModResult[0])	memcpy(&m_pstModResult[0], pstResult, sizeof(STG_GMFR));
 	m_u8MarkFindGet = 0x01;
 
-	/* ÃÖÁ¾ °Ë»öµÈ °á°ú°¡ ÀúÀåµÈ Æ÷ÀÎÅÍ ¹İÈ¯ */
+	/* ìµœì¢… ê²€ìƒ‰ëœ ê²°ê³¼ê°€ ì €ì¥ëœ í¬ì¸í„° ë°˜í™˜ */
 	pstResult->valid_multi = 0x01;	/* Fixed */
 	pstResult->mark_method = UINT8(m_enMarkMethod);
 
@@ -636,40 +636,40 @@ LPG_GMFR CMilModel::GetFindMarkBestScale()
 }
 
 /*
- desc : °Ë»öµÈ °á°úµé Áß¿¡¼­ Áß¾Ó 1¹ø ¸¶Å© ±×¸®°í ÁÖº¯ ¸¶Å© ±âÁØÀ¸·Î Áß½É °ªÀÌ °è»êµÈ °á°ú ¹İÈ¯
+ desc : ê²€ìƒ‰ëœ ê²°ê³¼ë“¤ ì¤‘ì—ì„œ ì¤‘ì•™ 1ë²ˆ ë§ˆí¬ ê·¸ë¦¬ê³  ì£¼ë³€ ë§ˆí¬ ê¸°ì¤€ìœ¼ë¡œ ì¤‘ì‹¬ ê°’ì´ ê³„ì‚°ëœ ê²°ê³¼ ë°˜í™˜
  parm : None
- retn : °Ë»öµÈ °á°ú°¡ ÀúÀåµÈ Æ÷ÀÎÅÍ ¹İÈ¯
+ retn : ê²€ìƒ‰ëœ ê²°ê³¼ê°€ ì €ì¥ëœ í¬ì¸í„° ë°˜í™˜
 */
 LPG_GMFR CMilModel::GetFindMarkCentSide()
 {
 	TCHAR tzMesg[LOG_MESG_SIZE] = { NULL };
 	UINT8 i/*, j, k*/;
 	BOOL bSucc = FALSE;
-	DOUBLE dbDistCent = 0.0f;		/* ¹«°Ô Áß½É°ú Á÷»ç°¢ÇüÀÇ Áß½É °£ÀÇ °Å¸® (´ÜÀ§: pixel) */
+	DOUBLE dbDistCent = 0.0f;		/* ë¬´ê²Œ ì¤‘ì‹¬ê³¼ ì§ì‚¬ê°í˜•ì˜ ì¤‘ì‹¬ ê°„ì˜ ê±°ë¦¬ (ë‹¨ìœ„: pixel) */
 	DOUBLE dbMarkSize = 0.0f, dbSquareRate = 0.0f;
 	STG_DBXY stCent = { NULL }, stDist = { NULL };
 	LPG_GMFR pstMain = { NULL };
 	PUINT8 pValid = NULL;
 	LPG_CVMF pstMarkFind = &m_pstConfig->mark_find;
 
-	/* °á°ú °ª ÃÊ±âÈ­ */
+	/* ê²°ê³¼ ê°’ ì´ˆê¸°í™” */
 	memset(&m_stModResult, 0x00, sizeof(STG_GMFR));
-	/* °Ë»ö ¸ğµå °ª ¼³Á¤ */
+	/* ê²€ìƒ‰ ëª¨ë“œ ê°’ ì„¤ì • */
 	m_stModResult.mark_method = (UINT8)m_enMarkMethod;
 
-	/* °Ë»öµÈ ¸ğµç Mark °ª¿¡ ´ëÇÑ À¯È¿ ¿©ºÎ ¼³Á¤ */
+	/* ê²€ìƒ‰ëœ ëª¨ë“  Mark ê°’ì— ëŒ€í•œ ìœ íš¨ ì—¬ë¶€ ì„¤ì • */
 	for (i = 0x00; i < m_u8MarkFindGet; i++)
 	{
 		if (m_pstModResult[i].model_index != 0) continue;;
-		/* ±âº» °ª ¼³Á¤ */
+		/* ê¸°ë³¸ ê°’ ì„¤ì • */
 		m_pstModResult[i].mark_width = UINT32(ROUNDED(m_pstModelSize[m_pstModResult[i].model_index].x, 0));
 		m_pstModResult[i].mark_height = UINT32(ROUNDED(m_pstModelSize[m_pstModResult[i].model_index].y, 0));
 		m_pstModResult[i].mark_method = (UINT8)m_enMarkMethod;
-		/* ÀÌ¹Ì ModDefine ÇÔ¼ö¿¡¼­ Scale Rate Min ~ Max °ª°ú Acceptance (Score) Rate ÀÌ»ó °ª¸¸ °Ë»ö */
-		/* ÇÏ±â À§ÇÑ °Ë»ö Á¶°ÇÀ» ¼³Á¤ Çß±â ¶§¹®¿¡ ¾Æ·¡, ÇÊÅÍ (Interlock) Á¶°ÇÀº ÇÊ¿ä ¾øÀ½. ÁÖ¼®Ã³¸® */
+		/* ì´ë¯¸ ModDefine í•¨ìˆ˜ì—ì„œ Scale Rate Min ~ Max ê°’ê³¼ Acceptance (Score) Rate ì´ìƒ ê°’ë§Œ ê²€ìƒ‰ */
+		/* í•˜ê¸° ìœ„í•œ ê²€ìƒ‰ ì¡°ê±´ì„ ì„¤ì • í–ˆê¸° ë•Œë¬¸ì— ì•„ë˜, í•„í„° (Interlock) ì¡°ê±´ì€ í•„ìš” ì—†ìŒ. ì£¼ì„ì²˜ë¦¬ */
 		{
 			m_pstModResult[i].valid_multi = 0x01;
-//		/* Ã£°íÀÚ ÇÏ´Â ¸ğµ¨ (Mark)ÀÇ Å©±â°¡ ´ëºÎºĞ ÀÛ±â ¶§¹®¿¡, scaleº¸´Ù score¿¡ ºñÁßÀ» µÒ */
+//		/* ì°¾ê³ ì í•˜ëŠ” ëª¨ë¸ (Mark)ì˜ í¬ê¸°ê°€ ëŒ€ë¶€ë¶„ ì‘ê¸° ë•Œë¬¸ì—, scaleë³´ë‹¤ scoreì— ë¹„ì¤‘ì„ ë‘  */
 			if (ENG_MMSM::en_cent_side == m_enMarkMethod &&
 				m_pstModResult[i].model_index == 0x00)
 			{
@@ -679,8 +679,8 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 
 					if (pstMain->scale_rate < m_pstModResult[i].scale_rate)
 					{
-						pstMain->valid_multi = 0x00;		/* ±âÁ¸ °ªÀº À¯È¿ÇÏÁö ¾Ê´Ù°í ÇÃ·¡±× ¼³Á¤ */
-						pstMain = &m_pstModResult[i];	/* »õ·Î¿î Mark Á¤º¸·Î ¿¬°á */
+						pstMain->valid_multi = 0x00;		/* ê¸°ì¡´ ê°’ì€ ìœ íš¨í•˜ì§€ ì•Šë‹¤ê³  í”Œë˜ê·¸ ì„¤ì • */
+						pstMain = &m_pstModResult[i];	/* ìƒˆë¡œìš´ Mark ì •ë³´ë¡œ ì—°ê²° */
 					}
 				}
 			}
@@ -688,40 +688,40 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 	}
 
 
-	/* °¢ ¸¶Å© °Ë»ö Á¶°Ç¿¡ µû¶ó, °Ë»öµÈ ¸¶Å©°¡ À¯È¿ÇÑÁö ´Ù½Ã ÇÑ¹ø °Ë»ç ÁøÇà */
+	/* ê° ë§ˆí¬ ê²€ìƒ‰ ì¡°ê±´ì— ë”°ë¼, ê²€ìƒ‰ëœ ë§ˆí¬ê°€ ìœ íš¨í•œì§€ ë‹¤ì‹œ í•œë²ˆ ê²€ì‚¬ ì§„í–‰ */
 	switch (m_enMarkMethod) 
 	{
-	case ENG_MMSM::en_cent_side:	bSucc = CalcMarkCentSide(stCent, dbSquareRate, stDist);	break;	/* °¡ÁßÄ¡¸¦ °í·ÁÇÑ Áß½É °ª ¹İÈ¯ */
+	case ENG_MMSM::en_cent_side:	bSucc = CalcMarkCentSide(stCent, dbSquareRate, stDist);	break;	/* ê°€ì¤‘ì¹˜ë¥¼ ê³ ë ¤í•œ ì¤‘ì‹¬ ê°’ ë°˜í™˜ */
 	case ENG_MMSM::en_multi_only:	bSucc = CalcMarkMultiOnly(stCent, dbSquareRate);		break;
 	case ENG_MMSM::en_ring_circle:	bSucc = CalcMarkRingCircle(stCent, stDist);				break;
 	}
 
-	/* »ç°¢Çü ºñÀ² °ª ÀúÀå */
+	/* ì‚¬ê°í˜• ë¹„ìœ¨ ê°’ ì €ì¥ */
 	m_stModResult.square_rate = dbSquareRate;
 
 	if (bSucc)
 	{
-		/* °Ë»öµÈ ¸¶Å© Áß À¯È¿ÇÑ °ª ±âÁØÀ¸·Î Æò±Õ °Ë»ö·ü ±¸ÇÏ±â À§ÇÔ */
+		/* ê²€ìƒ‰ëœ ë§ˆí¬ ì¤‘ ìœ íš¨í•œ ê°’ ê¸°ì¤€ìœ¼ë¡œ í‰ê·  ê²€ìƒ‰ë¥  êµ¬í•˜ê¸° ìœ„í•¨ */
 		m_stModResult.scale_rate = DBL_MIN;
 		m_stModResult.score_rate = DBL_MIN;
 		m_stModResult.r_angle = DBL_MAX;
 		m_stModResult.diameter = DBL_MAX;
-		/* Æò±Õ È¤Àº ÃÖ¼Ò °ª ±¸ÇÏ±â À§ÇÔ */
+		/* í‰ê·  í˜¹ì€ ìµœì†Œ ê°’ êµ¬í•˜ê¸° ìœ„í•¨ */
 		for (i = 0x00/*,j=0x00*/; i < m_u8MarkFindGet; i++)
 		{
-#if 0	/* ModDefine ¿¡¼­ ÀÌ¹Ì °Ë»ç ÇßÀ¸¹Ç·Î, ¿©±â¼­ ÇÒ ÇÊ¿ä ¾øÀ½ */
+#if 0	/* ModDefine ì—ì„œ ì´ë¯¸ ê²€ì‚¬ í–ˆìœ¼ë¯€ë¡œ, ì—¬ê¸°ì„œ í•  í•„ìš” ì—†ìŒ */
 			if (!m_pstModResult[i].IsValid())	continue;
 #endif
-#if (USE_MIXED_MARK_CALC_AVERAGE == 0)	/* °Ë»öµÈ °ª Áß¿¡¼­ ÃÖ¼Ò or ÃÖ´ë °ªÀ» ÃßÃâÇÏ±â À§ÇÔ */
+#if (USE_MIXED_MARK_CALC_AVERAGE == 0)	/* ê²€ìƒ‰ëœ ê°’ ì¤‘ì—ì„œ ìµœì†Œ or ìµœëŒ€ ê°’ì„ ì¶”ì¶œí•˜ê¸° ìœ„í•¨ */
 			if (m_stModResult.scale_rate < m_pstModResult[i].scale_rate)
 				m_stModResult.scale_rate = m_pstModResult[i].scale_rate;
-			if (fabs(m_stModResult.score_rate) < fabs(m_pstModResult[i].score_rate) && m_pstModResult[i].score_rate <= 100.0f) //ÃÖ´ë½ºÄÚ¾î Àû¿ëÇØ¾ßÇÔ
+			if (fabs(m_stModResult.score_rate) < fabs(m_pstModResult[i].score_rate) && m_pstModResult[i].score_rate <= 100.0f) //ìµœëŒ€ìŠ¤ì½”ì–´ ì ìš©í•´ì•¼í•¨
 				m_stModResult.score_rate = m_pstModResult[i].score_rate;
 			if (fabs(m_stModResult.r_angle) > fabs(m_pstModResult[i].r_angle))
 				m_stModResult.r_angle = m_pstModResult[i].r_angle;
 			if (fabs(m_stModResult.diameter) > fabs(m_pstModResult[i].diameter))
 				m_stModResult.diameter = m_pstModResult[i].diameter;
-#else	/* Æò±Õ °ªÀ» ±¸ÇÏ±â À§ÇÔ */
+#else	/* í‰ê·  ê°’ì„ êµ¬í•˜ê¸° ìœ„í•¨ */
 			m_stModResult.scale_range += m_pstModResult[i].scale_range;
 			m_stModResult.score_rate += m_pstModResult[i].score_rate;
 			m_stModResult.r_angle += m_pstModResult[i].r_angle;
@@ -731,31 +731,31 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 		}
 		if (m_u8MarkFindGet/*j*/)
 		{
-#if (USE_MIXED_MARK_CALC_AVERAGE == 1)	/* Æò±Õ °ªÀ» ±¸ÇÏ±â À§ÇÔ */
+#if (USE_MIXED_MARK_CALC_AVERAGE == 1)	/* í‰ê·  ê°’ì„ êµ¬í•˜ê¸° ìœ„í•¨ */
 			m_stModResult.radius /= DOUBLE(j);
 			m_stModResult.scale_range /= DOUBLE(j);
 			m_stModResult.score_rate /= DOUBLE(j);
 			m_stModResult.r_angle /= DOUBLE(j);
 #endif
-			/* Mark Size (°Ë»öµÈ Áß¾ÓÀÇ Mark) */
+			/* Mark Size (ê²€ìƒ‰ëœ ì¤‘ì•™ì˜ Mark) */
 			m_stModResult.mark_width = (UINT32)ROUNDED(m_pstModelSize[0].x, 0);
 			m_stModResult.mark_height = (UINT32)ROUNDED(m_pstModelSize[0].y, 0);
-			/* Áß½É À§Ä¡ °ª ÀúÀå  */
+			/* ì¤‘ì‹¬ ìœ„ì¹˜ ê°’ ì €ì¥  */
 			m_stModResult.cent_x = stCent.x;
 			m_stModResult.cent_y = stCent.y;
 		}
-#if 0	/* RunFindModel ¿¡¼­ ÀÌ¹Ì °Ë»ö ÈÄ °Ë»öµÈ °³¼ö¸¦ ÀúÀå ÇßÀ¸¹Ç·Î, ¿©±â¼­ ÇÒ ÇÊ¿ä ¾øÀ½ */
-		/* ÃÖÁ¾ Á¤»óÀûÀ¸·Î °Ë»öµÈ °³¼ö °ª ¼³Á¤ */
+#if 0	/* RunFindModel ì—ì„œ ì´ë¯¸ ê²€ìƒ‰ í›„ ê²€ìƒ‰ëœ ê°œìˆ˜ë¥¼ ì €ì¥ í–ˆìœ¼ë¯€ë¡œ, ì—¬ê¸°ì„œ í•  í•„ìš” ì—†ìŒ */
+		/* ìµœì¢… ì •ìƒì ìœ¼ë¡œ ê²€ìƒ‰ëœ ê°œìˆ˜ ê°’ ì„¤ì • */
 		m_u8MarkFindGet = j;
 #endif
-		/* ¿ÜºÎ ¸¶Å©¿Í ³»ºÎ Áß½É ¸¶Å© °£ÀÇ °¢°¢ Áß½É °£ÀÇ °Å¸® ¿ÀÂ÷ °ª ±¸ÇÏ±â */
+		/* ì™¸ë¶€ ë§ˆí¬ì™€ ë‚´ë¶€ ì¤‘ì‹¬ ë§ˆí¬ ê°„ì˜ ê°ê° ì¤‘ì‹¬ ê°„ì˜ ê±°ë¦¬ ì˜¤ì°¨ ê°’ êµ¬í•˜ê¸° */
 		if (m_enMarkMethod != ENG_MMSM::en_multi_only)
 		{
-			/* Áß½É ¸¶Å© °£ÀÇ °Å¸® °ª ÀúÀå */
+			/* ì¤‘ì‹¬ ë§ˆí¬ ê°„ì˜ ê±°ë¦¬ ê°’ ì €ì¥ */
 			m_stModResult.cent_dist_x = (UINT32)ROUNDED((stDist.x * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1)) * 1000.0f, 0);
 			m_stModResult.cent_dist_y = (UINT32)ROUNDED((stDist.y * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1)) * 1000.0f, 0);
-			/* È¯°æ ÆÄÀÏ¿¡ ¼³Á¤µÈ ÃÖ¼Ò À¯È¿ Áß½É °£ ¿ÀÂ÷ °Å¸® °ªº¸´Ù ÃøÁ¤µÈ Áß½É °£ ¿ÀÂ÷ °ªÀÌ Å©¸é ¿¡·¯ Ã³¸® */
-			/* Áß½É °£ÀÇ °¡·Î (X) ³»Áö ¼¼·Î (Y)ÀÇ ±æÀÌ°¡ ÁÖ¾îÁø À¯È¿ Áß½É °£ÀÇ °Å¸® °ª º¸´Ù Å©¸é ¿¡·¯ Ã³¸® */
+			/* í™˜ê²½ íŒŒì¼ì— ì„¤ì •ëœ ìµœì†Œ ìœ íš¨ ì¤‘ì‹¬ ê°„ ì˜¤ì°¨ ê±°ë¦¬ ê°’ë³´ë‹¤ ì¸¡ì •ëœ ì¤‘ì‹¬ ê°„ ì˜¤ì°¨ ê°’ì´ í¬ë©´ ì—ëŸ¬ ì²˜ë¦¬ */
+			/* ì¤‘ì‹¬ ê°„ì˜ ê°€ë¡œ (X) ë‚´ì§€ ì„¸ë¡œ (Y)ì˜ ê¸¸ì´ê°€ ì£¼ì–´ì§„ ìœ íš¨ ì¤‘ì‹¬ ê°„ì˜ ê±°ë¦¬ ê°’ ë³´ë‹¤ í¬ë©´ ì—ëŸ¬ ì²˜ë¦¬ */
 			if (m_stModResult.GetCentDistLen() / 1000.0f > pstMarkFind->mixed_dist_limit)
 			{
 				swprintf_s(tzMesg, LOG_MESG_SIZE,
@@ -768,10 +768,10 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 				bSucc = FALSE;
 			}
 		}
-#if 0	/* ÀÌ¹Ì RunModelFind ÇÔ¼ö¿¡ °Ë»ç ÇßÀ¸¹Ç·Î, ¿©±â¼­ ÇÒ ÇÊ¿ä ¾øÀ½ */
+#if 0	/* ì´ë¯¸ RunModelFind í•¨ìˆ˜ì— ê²€ì‚¬ í–ˆìœ¼ë¯€ë¡œ, ì—¬ê¸°ì„œ í•  í•„ìš” ì—†ìŒ */
 		/* --------------------------------------------------- */
-		/* Ã£°íÀÚ ÇÏ´Â °³¼öº¸´Ù ÀÓÀÇ °³¼ö¸¸Å­ ÀûÀ¸¸é ¿¡·¯ Ãâ·Â */
-		/* ÃÖ¼ÒÇÑ 2 °³ ±îÁö ¾ø¾îµµ µÇÁö¸¸, ±× ÀÌ»ó ¾øÀ¸¸é ¿¡·¯ */
+		/* ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë³´ë‹¤ ì„ì˜ ê°œìˆ˜ë§Œí¼ ì ìœ¼ë©´ ì—ëŸ¬ ì¶œë ¥ */
+		/* ìµœì†Œí•œ 2 ê°œ ê¹Œì§€ ì—†ì–´ë„ ë˜ì§€ë§Œ, ê·¸ ì´ìƒ ì—†ìœ¼ë©´ ì—ëŸ¬ */
 		/* --------------------------------------------------- */
 		if (bSucc && (m_u8MarkFindGet != m_u8MarkFindSet))
 		{
@@ -785,11 +785,11 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 	}
 
 	/* ----------------------------------------------------------------------------------------- */
-	/*                        Grabbed ImageÀÇ °á°ú°¡ À¯È¿ÇÑÁö ÇÃ·¡±× ¼³Á¤                        */
+	/*                        Grabbed Imageì˜ ê²°ê³¼ê°€ ìœ íš¨í•œì§€ í”Œë˜ê·¸ ì„¤ì •                        */
 	/* ----------------------------------------------------------------------------------------- */
 	if (bSucc && (ENG_MMSM::en_ring_circle != m_enMarkMethod))
 	{
-		/* ±âº» ¸¶Å©¿Í ÁÖº¯ ¸¶Å©µéÀÇ ±¸¼ºµÈ °Ë»ö ¸ğµåÀÎ °æ¿ì¸¸ ÇØ´çµÊ */
+		/* ê¸°ë³¸ ë§ˆí¬ì™€ ì£¼ë³€ ë§ˆí¬ë“¤ì˜ êµ¬ì„±ëœ ê²€ìƒ‰ ëª¨ë“œì¸ ê²½ìš°ë§Œ í•´ë‹¹ë¨ */
 		m_stModResult.valid_multi = UINT32(pstMarkFind->mixed_squre_rate * 100.0f) <
 			UINT32(ROUNDED(dbSquareRate * 100.0f, 0));
 		if (!m_stModResult.valid_multi)
@@ -802,15 +802,15 @@ LPG_GMFR CMilModel::GetFindMarkCentSide()
 		}
 	}
 
-	/* ÃÖÁ¾ °Ë»öµÈ °á°ú°¡ ÀúÀåµÈ Æ÷ÀÎÅÍ ¹İÈ¯ */
+	/* ìµœì¢… ê²€ìƒ‰ëœ ê²°ê³¼ê°€ ì €ì¥ëœ í¬ì¸í„° ë°˜í™˜ */
 	return bSucc ? &m_stModResult : NULL;
 }
 
 /*
- desc : °¡ÁßÄ¡ °è»ê ¾Ë°í¸®Áò
- parm : hole	- [in]  ±âÁØ (HOLE) Áß½É ÁÂÇ¥ (X or Y)
-		laser	- [in]  ÁÖº¯ (Laser) Áß½É ÁÂÇ¥ (X or Y)
- retn : ÃÖÁ¾ °¡ÁßÄ¡°¡ ºÎ¿©µÈ °ª (ÁÂÇ¥: x or y) ¹İÈ¯
+ desc : ê°€ì¤‘ì¹˜ ê³„ì‚° ì•Œê³ ë¦¬ì¦˜
+ parm : hole	- [in]  ê¸°ì¤€ (HOLE) ì¤‘ì‹¬ ì¢Œí‘œ (X or Y)
+		laser	- [in]  ì£¼ë³€ (Laser) ì¤‘ì‹¬ ì¢Œí‘œ (X or Y)
+ retn : ìµœì¢… ê°€ì¤‘ì¹˜ê°€ ë¶€ì—¬ëœ ê°’ (ì¢Œí‘œ: x or y) ë°˜í™˜
 */
 DOUBLE CMilModel::GetWeightRateToErrLen(DOUBLE hole, DOUBLE laser)
 {
@@ -818,12 +818,12 @@ DOUBLE CMilModel::GetWeightRateToErrLen(DOUBLE hole, DOUBLE laser)
 }
 
 /*
- desc : °Ë»öµÈ º¹ÇÕ(´ÙÁ¡) ¾ó¶óÀÎ ¸¶Å©µé °£ÀÇ Áß½É ÁÂÇ¥ ±¸ÇÏ±â (Áï, »ç°¢Çü ¿µ¿ªÀÇ Áß½É)
- parm : cent	- [out] Áß½É ÁÂÇ¥°¡ ÀúÀåµÊ (°¢ X/Y ÃÖ¼Ò, ÃÖ´ë ÁÂÇ¥ ±¸ÇÏ°í, ±× Áß½ÉÁ¡ ¹İÈ¯)
-		rate	- [out] ÁÖº¯ ÁÂÇ¥µé Áß Min / Max·Î »ç°¢ÇüÀ» ±¸¼º ÇßÀ» ¶§, °¡·Î/¼¼·Î ºñÀ² °ª
-		dist	- [out] Áß½É ¸¶Å©¿Í ÁÖº¯ (Side) ¸¶Å©µéÀÇ Áß½É °£ÀÇ ¶³¾îÁø °Å¸® ¹İÈ¯
+ desc : ê²€ìƒ‰ëœ ë³µí•©(ë‹¤ì ) ì–¼ë¼ì¸ ë§ˆí¬ë“¤ ê°„ì˜ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° (ì¦‰, ì‚¬ê°í˜• ì˜ì—­ì˜ ì¤‘ì‹¬)
+ parm : cent	- [out] ì¤‘ì‹¬ ì¢Œí‘œê°€ ì €ì¥ë¨ (ê° X/Y ìµœì†Œ, ìµœëŒ€ ì¢Œí‘œ êµ¬í•˜ê³ , ê·¸ ì¤‘ì‹¬ì  ë°˜í™˜)
+		rate	- [out] ì£¼ë³€ ì¢Œí‘œë“¤ ì¤‘ Min / Maxë¡œ ì‚¬ê°í˜•ì„ êµ¬ì„± í–ˆì„ ë•Œ, ê°€ë¡œ/ì„¸ë¡œ ë¹„ìœ¨ ê°’
+		dist	- [out] ì¤‘ì‹¬ ë§ˆí¬ì™€ ì£¼ë³€ (Side) ë§ˆí¬ë“¤ì˜ ì¤‘ì‹¬ ê°„ì˜ ë–¨ì–´ì§„ ê±°ë¦¬ ë°˜í™˜
  retn : TRUE or FALSE
- note : ±¸ÇØÁø »ç°¢ÇüÀÇ °¡·Î/¼¼·Î ºñÀ²ÀÌ È¯°æ ¼³Á¤¿¡ ÁÖ¾îÁø °ª ´ëºñ À¯È¿ÇÑÁö ¿©ºÎµµ ÆÇ´Ü
+ note : êµ¬í•´ì§„ ì‚¬ê°í˜•ì˜ ê°€ë¡œ/ì„¸ë¡œ ë¹„ìœ¨ì´ í™˜ê²½ ì„¤ì •ì— ì£¼ì–´ì§„ ê°’ ëŒ€ë¹„ ìœ íš¨í•œì§€ ì—¬ë¶€ë„ íŒë‹¨
 */
 BOOL CMilModel::CalcMarkCentSide(STG_DBXY& cent, DOUBLE& rate, STG_DBXY& dist)
 {
@@ -832,18 +832,18 @@ BOOL CMilModel::CalcMarkCentSide(STG_DBXY& cent, DOUBLE& rate, STG_DBXY& dist)
 	STG_DBXY stCircle = { NULL }, stRect = { NULL }, stCent = { NULL };
 	STG_DBXY stMin = { DBL_MAX, DBL_MAX }, stMax = { DBL_MIN, DBL_MIN };
 
-	/* ¹İÈ¯ °ª ÃÊ±âÈ­ */
+	/* ë°˜í™˜ ê°’ ì´ˆê¸°í™” */
 	cent.x = cent.y = 0.0f;
 	rate = 0.0f;
 
 	for (; i < m_u8MarkFindGet; i++)
 	{
-		/* °ªÀÌ À¯È¿ÇÑ °ÍºÎÅÍ ÇÊÅÍ¸µÇÏ°í, ModelÀÌ Ã¹¹øÂ°´Â Á¦¿Ü */
+		/* ê°’ì´ ìœ íš¨í•œ ê²ƒë¶€í„° í•„í„°ë§í•˜ê³ , Modelì´ ì²«ë²ˆì§¸ëŠ” ì œì™¸ */
 		if (m_pstModResult[i].IsValid())
 		{
 			if (0 != m_pstModResult[i].model_index)
 			{
-				/* °Ë»öµÈ Mark °³¼ö Áß ÁÂÇ¥°¡ °¡Àå Å« °ª°ú ÀÛÀº °ª ÀúÀå */
+				/* ê²€ìƒ‰ëœ Mark ê°œìˆ˜ ì¤‘ ì¢Œí‘œê°€ ê°€ì¥ í° ê°’ê³¼ ì‘ì€ ê°’ ì €ì¥ */
 				if (stMin.x > m_pstModResult[i].cent_x)	stMin.x = m_pstModResult[i].cent_x;
 				if (stMin.y > m_pstModResult[i].cent_y)	stMin.y = m_pstModResult[i].cent_y;
 				if (stMax.x < m_pstModResult[i].cent_x)	stMax.x = m_pstModResult[i].cent_x;
@@ -858,48 +858,48 @@ BOOL CMilModel::CalcMarkCentSide(STG_DBXY& cent, DOUBLE& rate, STG_DBXY& dist)
 			}
 		}
 	}
-	/* °Ë»öµÈ °á°ú °³¼ö°¡ 4°³ ÀÌÇÏÀÌ°Å³ª, Áß½É Mark°¡ À¯È¿ÇÏÁö ¾ÊÀ¸¸é ¿¡·¯ Ã³¸® */
+	/* ê²€ìƒ‰ëœ ê²°ê³¼ ê°œìˆ˜ê°€ 4ê°œ ì´í•˜ì´ê±°ë‚˜, ì¤‘ì‹¬ Markê°€ ìœ íš¨í•˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ ì²˜ë¦¬ */
 	if (k < 4 || 0xff == j /* Failed to search */)	return FALSE;
-	/* »ç°¢ÇüÀÇ °¡·Î / ¼¼·Î ºñÀ² °ªÀÌ È¯°æ ÆÄÀÏ¿¡ ¼³Á¤µÈ °ª¿¡ À¯È¿ÇÑÁö ¿©ºÎ */
-	/* »ç°¢ÇüÀÌ ¾ó¸¶³ª Á¤»ç°¢ÇüÀÎÁö °¡·Î¿Í ¼¼·ÎÀÇ Å©±â ºñÀ² °ª °è»ê ÈÄ ¹İÈ¯ */
+	/* ì‚¬ê°í˜•ì˜ ê°€ë¡œ / ì„¸ë¡œ ë¹„ìœ¨ ê°’ì´ í™˜ê²½ íŒŒì¼ì— ì„¤ì •ëœ ê°’ì— ìœ íš¨í•œì§€ ì—¬ë¶€ */
+	/* ì‚¬ê°í˜•ì´ ì–¼ë§ˆë‚˜ ì •ì‚¬ê°í˜•ì¸ì§€ ê°€ë¡œì™€ ì„¸ë¡œì˜ í¬ê¸° ë¹„ìœ¨ ê°’ ê³„ì‚° í›„ ë°˜í™˜ */
 	if ((stMax.x - stMin.x) > (stMax.y - stMin.y))	rate = (stMax.y - stMin.y) / (stMax.x - stMin.x);
 	else											rate = (stMax.x - stMin.x) / (stMax.y - stMin.y);
 	rate *= 100.0f;
 
-	/* Á÷»ç°¢ÇüÀÇ Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* ì§ì‚¬ê°í˜•ì˜ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	if (0x00 == m_pstConfig->mark_find.mixed_cent_type)
 	{
-		/* Á÷»ç°¢ÇüÀÇ Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+		/* ì§ì‚¬ê°í˜•ì˜ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 		stRect.x = stMin.x + (stMax.x - stMin.x) / 2.0f;
 		stRect.y = stMin.y + (stMax.y - stMin.y) / 2.0f;
-		/* ÁÖ¾îÁø °¡ÁßÄ¡ (ºñÀ²)¸¦ ÀÌ¿ëÇÏ¿© Hole °ú Laser°¡ ¾ó¸¶³ª ¶³¾î Á³´ÂÁö È®ÀÎ */
-		dist.x = GetWeightRateToErrLen(stCircle.x, stRect.x);	/* (Hole.x - Laser.x) * weight_rate = Hole¿¡¼­ LaserÂÊÀ¸·Î ÀÌµ¿ÇÑ °ª */
-		dist.y = GetWeightRateToErrLen(stCircle.y, stRect.y);	/* (Hole.y - Laser.y) * weight_rate = Hole¿¡¼­ LaserÂÊÀ¸·Î ÀÌµ¿ÇÑ °ª */
+		/* ì£¼ì–´ì§„ ê°€ì¤‘ì¹˜ (ë¹„ìœ¨)ë¥¼ ì´ìš©í•˜ì—¬ Hole ê³¼ Laserê°€ ì–¼ë§ˆë‚˜ ë–¨ì–´ ì¡ŒëŠ”ì§€ í™•ì¸ */
+		dist.x = GetWeightRateToErrLen(stCircle.x, stRect.x);	/* (Hole.x - Laser.x) * weight_rate = Holeì—ì„œ Laserìª½ìœ¼ë¡œ ì´ë™í•œ ê°’ */
+		dist.y = GetWeightRateToErrLen(stCircle.y, stRect.y);	/* (Hole.y - Laser.y) * weight_rate = Holeì—ì„œ Laserìª½ìœ¼ë¡œ ì´ë™í•œ ê°’ */
 	}
-	/* ´Ù°¢ÇüÀÇ ¹«Á¦ Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* ë‹¤ê°í˜•ì˜ ë¬´ì œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	else
 	{
 		CalcPolyWeightCent(stCent.x, stCent.y, dbArea);
-		/* ÁÖ¾îÁø °¡ÁßÄ¡ (ºñÀ²)¸¦ ÀÌ¿ëÇÏ¿© Hole °ú Laser°¡ ¾ó¸¶³ª ¶³¾î Á³´ÂÁö È®ÀÎ */
-		dist.x = GetWeightRateToErrLen(stCircle.x, stCent.x);	/* (Hole.x - Laser.x) * weight_rate = Hole¿¡¼­ LaserÂÊÀ¸·Î ÀÌµ¿ÇÑ °ª */
-		dist.y = GetWeightRateToErrLen(stCircle.y, stCent.y);	/* (Hole.y - Laser.y) * weight_rate = Hole¿¡¼­ LaserÂÊÀ¸·Î ÀÌµ¿ÇÑ °ª */
+		/* ì£¼ì–´ì§„ ê°€ì¤‘ì¹˜ (ë¹„ìœ¨)ë¥¼ ì´ìš©í•˜ì—¬ Hole ê³¼ Laserê°€ ì–¼ë§ˆë‚˜ ë–¨ì–´ ì¡ŒëŠ”ì§€ í™•ì¸ */
+		dist.x = GetWeightRateToErrLen(stCircle.x, stCent.x);	/* (Hole.x - Laser.x) * weight_rate = Holeì—ì„œ Laserìª½ìœ¼ë¡œ ì´ë™í•œ ê°’ */
+		dist.y = GetWeightRateToErrLen(stCircle.y, stCent.y);	/* (Hole.y - Laser.y) * weight_rate = Holeì—ì„œ Laserìª½ìœ¼ë¡œ ì´ë™í•œ ê°’ */
 	}
 
 	/* ------------------------------------------------------- */
-	/* ¿Ü°û Mark¿Í ³»ºÎ Mark °£ÀÇ Áß½É ¿ÀÂ÷ °è»ê (°¡ÁßÄ¡ ºÎ¿©) */
-	/* Hole À§Ä¡¿¡ (Hole - Laser) * Weight_Rate = °ª ¸¸Å­ Àû¿ë */
+	/* ì™¸ê³½ Markì™€ ë‚´ë¶€ Mark ê°„ì˜ ì¤‘ì‹¬ ì˜¤ì°¨ ê³„ì‚° (ê°€ì¤‘ì¹˜ ë¶€ì—¬) */
+	/* Hole ìœ„ì¹˜ì— (Hole - Laser) * Weight_Rate = ê°’ ë§Œí¼ ì ìš© */
 	/* ------------------------------------------------------- */
 	cent.x = stCircle.x - dist.x;
 	cent.y = stCircle.y - dist.y;
 
-	/* ÁÖº¯ (Side) ¸¶Å©µéÀÇ Áß½É°ú Áß½É ¸¶Å©ÀÇ Áß½É °£ÀÇ °Å¸® ±¸ÇÏ±â */
-	/* Á÷»ç°¢ÇüÀÇ Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* ì£¼ë³€ (Side) ë§ˆí¬ë“¤ì˜ ì¤‘ì‹¬ê³¼ ì¤‘ì‹¬ ë§ˆí¬ì˜ ì¤‘ì‹¬ ê°„ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
+	/* ì§ì‚¬ê°í˜•ì˜ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	if (0x00 == m_pstConfig->mark_find.mixed_cent_type)
 	{
 		dist.x = (stCircle.x - stRect.x) - dist.x;
 		dist.y = (stCircle.y - stRect.y) - dist.y;
 	}
-	/* ´Ù°¢ÇüÀÇ ¹«°Ô Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* ë‹¤ê°í˜•ì˜ ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	else
 	{
 		dist.x = (stCircle.x - stCent.x) - dist.x;
@@ -909,10 +909,10 @@ BOOL CMilModel::CalcMarkCentSide(STG_DBXY& cent, DOUBLE& rate, STG_DBXY& dist)
 }
 
 /*
- desc : °Ë»öµÈ º¹ÇÕ(´ÙÁ¡) ¾ó¶óÀÎ ¸¶Å©µé °£ÀÇ ¹«°Ô Áß½É ÁÂÇ¥ ±¸ÇÏ±â
-		¿Ü°û¿¡ ¸µ(µµ³Ó) ¸¶Å©¿Í ³»ºÎ¿¡ ¿ø (Circle)·Î ±¸¼ºµÈ ¸¶Å© °Ë»ö
- parm : cent	- [out] Áß½É ÁÂÇ¥°¡ ÀúÀåµÊ
-		dist	- [out] Áß½É ¸¶Å©¿Í ÁÖº¯ (Side) ¸¶Å©µéÀÇ Áß½É °£ÀÇ ¶³¾îÁø °Å¸® ¹İÈ¯
+ desc : ê²€ìƒ‰ëœ ë³µí•©(ë‹¤ì ) ì–¼ë¼ì¸ ë§ˆí¬ë“¤ ê°„ì˜ ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸°
+		ì™¸ê³½ì— ë§(ë„ë„›) ë§ˆí¬ì™€ ë‚´ë¶€ì— ì› (Circle)ë¡œ êµ¬ì„±ëœ ë§ˆí¬ ê²€ìƒ‰
+ parm : cent	- [out] ì¤‘ì‹¬ ì¢Œí‘œê°€ ì €ì¥ë¨
+		dist	- [out] ì¤‘ì‹¬ ë§ˆí¬ì™€ ì£¼ë³€ (Side) ë§ˆí¬ë“¤ì˜ ì¤‘ì‹¬ ê°„ì˜ ë–¨ì–´ì§„ ê±°ë¦¬ ë°˜í™˜
  retn : TRUE or FALSE
 */
 BOOL CMilModel::CalcMarkRingCircle(STG_DBXY& cent, STG_DBXY& dist)
@@ -920,24 +920,24 @@ BOOL CMilModel::CalcMarkRingCircle(STG_DBXY& cent, STG_DBXY& dist)
 	UINT8 i = 0x00;
 	STG_DBXY stIn, stOut;
 
-	/* ¹İÈ¯ °ª ÃÊ±âÈ­ */
+	/* ë°˜í™˜ ê°’ ì´ˆê¸°í™” */
 	cent.x = cent.y = 0.0f;
 
-	/* °Ë»öµÈ Mark°¡ 2°³ ÀÎÁö, 2°³ÀÇ ¸ğµ¨ ÀÎµ¦½º °ªÀÌ °°¾Æµµ ¾ÈµÇ°í, °ªÀÌ ¸ğµÎ À¯È¿ÇØ¾ß ÇÔ */
+	/* ê²€ìƒ‰ëœ Markê°€ 2ê°œ ì¸ì§€, 2ê°œì˜ ëª¨ë¸ ì¸ë±ìŠ¤ ê°’ì´ ê°™ì•„ë„ ì•ˆë˜ê³ , ê°’ì´ ëª¨ë‘ ìœ íš¨í•´ì•¼ í•¨ */
 	if (m_u8MarkFindGet != 2 ||
 		m_pstModResult[0].model_index == m_pstModResult[1].model_index ||
 		!m_pstModResult[0].IsValid() || !m_pstModResult[1].IsValid())	return FALSE;
 
-	/* ³»ºÎ ¿ø°ú ¿ÜºÎ ¸µÀÇ Áß½É ÁÂÇ¥ */
+	/* ë‚´ë¶€ ì›ê³¼ ì™¸ë¶€ ë§ì˜ ì¤‘ì‹¬ ì¢Œí‘œ */
 	for (; i < 2; i++)
 	{
-		/* ³»ºÎ ¿ø Á¤º¸ ¼³Á¤  */
+		/* ë‚´ë¶€ ì› ì •ë³´ ì„¤ì •  */
 		if (0 == m_pstModResult[i].model_index)
 		{
 			stIn.x = m_pstModResult[i].cent_x;
 			stIn.y = m_pstModResult[i].cent_y;
 		}
-		/* ¿ÜºÎ ¿ø Á¤º¸ ¼³Á¤ */
+		/* ì™¸ë¶€ ì› ì •ë³´ ì„¤ì • */
 		else
 		{
 			stOut.x = m_pstModResult[i].cent_x;
@@ -945,18 +945,18 @@ BOOL CMilModel::CalcMarkRingCircle(STG_DBXY& cent, STG_DBXY& dist)
 		}
 	}
 
-	/* CircleÀÇ Áß½É°ú Ring ¸¶Å©ÀÇ Áß½É °£ÀÇ °Å¸® ±¸ÇÏ±â */
-	/* ÁÖ¾îÁø °¡ÁßÄ¡ (ºñÀ²)¸¦ ÀÌ¿ëÇÏ¿© Hole °ú Laser°¡ ¾ó¸¶³ª ¶³¾î Á³´ÂÁö È®ÀÎ */
-	dist.x = GetWeightRateToErrLen(stIn.x, stOut.x);	/* (Hole.x - Laser.x) * weight_rate = Hole¿¡¼­ LaserÂÊÀ¸·Î ÀÌµ¿ÇÑ °ª */
-	dist.y = GetWeightRateToErrLen(stIn.y, stOut.y);	/* (Hole.y - Laser.y) * weight_rate = Hole¿¡¼­ LaserÂÊÀ¸·Î ÀÌµ¿ÇÑ °ª */
+	/* Circleì˜ ì¤‘ì‹¬ê³¼ Ring ë§ˆí¬ì˜ ì¤‘ì‹¬ ê°„ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
+	/* ì£¼ì–´ì§„ ê°€ì¤‘ì¹˜ (ë¹„ìœ¨)ë¥¼ ì´ìš©í•˜ì—¬ Hole ê³¼ Laserê°€ ì–¼ë§ˆë‚˜ ë–¨ì–´ ì¡ŒëŠ”ì§€ í™•ì¸ */
+	dist.x = GetWeightRateToErrLen(stIn.x, stOut.x);	/* (Hole.x - Laser.x) * weight_rate = Holeì—ì„œ Laserìª½ìœ¼ë¡œ ì´ë™í•œ ê°’ */
+	dist.y = GetWeightRateToErrLen(stIn.y, stOut.y);	/* (Hole.y - Laser.y) * weight_rate = Holeì—ì„œ Laserìª½ìœ¼ë¡œ ì´ë™í•œ ê°’ */
 	/* ------------------------------------------------------- */
-	/* ¿Ü°û Mark¿Í ³»ºÎ Mark °£ÀÇ Áß½É ¿ÀÂ÷ °è»ê (°¡ÁßÄ¡ ºÎ¿©) */
+	/* ì™¸ê³½ Markì™€ ë‚´ë¶€ Mark ê°„ì˜ ì¤‘ì‹¬ ì˜¤ì°¨ ê³„ì‚° (ê°€ì¤‘ì¹˜ ë¶€ì—¬) */
 	/* ------------------------------------------------------- */
-	/* ¿Ü°û Mark ±âÁØÀ¸·Î °¡ÁßÄ¡¸¦ ºÎ¿©ÇÏ±â ¶§¹®¿¡ */
+	/* ì™¸ê³½ Mark ê¸°ì¤€ìœ¼ë¡œ ê°€ì¤‘ì¹˜ë¥¼ ë¶€ì—¬í•˜ê¸° ë•Œë¬¸ì— */
 	cent.x = stIn.x - dist.x;
 	cent.y = stIn.y - dist.y;
 
-	/* ÁÖº¯ (Side) ¸¶Å©µéÀÇ Áß½É°ú Áß½É ¸¶Å©ÀÇ Áß½É °£ÀÇ °Å¸® ±¸ÇÏ±â */
+	/* ì£¼ë³€ (Side) ë§ˆí¬ë“¤ì˜ ì¤‘ì‹¬ê³¼ ì¤‘ì‹¬ ë§ˆí¬ì˜ ì¤‘ì‹¬ ê°„ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 	dist.x = (stIn.x - stOut.x) - dist.x;
 	dist.y = (stIn.y - stOut.y) - dist.y;
 
@@ -964,12 +964,12 @@ BOOL CMilModel::CalcMarkRingCircle(STG_DBXY& cent, STG_DBXY& dist)
 }
 
 /*
- desc : °Ë»öµÈ º¹ÇÕ(´ÙÁ¡) ¾ó¶óÀÎ ¸¶Å©µé °£ÀÇ ¹«°Ô Áß½É ÁÂÇ¥ ±¸ÇÏ±â
-		ÁÖº¯ (2x2 or 3x3 or 4x4)¿¡ µ¿ÀÏÇÑ ¸ğ¾ç (Shape)À¸·Î ±¸¼ºµÈ ´ÙÁ¡ (º¹ÇÕ ¾Æ´Ô) ¾ó¶óÀÎ ¸¶Å© °Ë»ö
- parm : cent	- [out] Áß½É ÁÂÇ¥°¡ ÀúÀåµÊ
-		rate	- [out] ÁÖº¯ ÁÂÇ¥µé Áß Min / Max·Î »ç°¢ÇüÀ» ±¸¼º ÇßÀ» ¶§, °¡·Î/¼¼·Î ºñÀ² °ª
+ desc : ê²€ìƒ‰ëœ ë³µí•©(ë‹¤ì ) ì–¼ë¼ì¸ ë§ˆí¬ë“¤ ê°„ì˜ ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸°
+		ì£¼ë³€ (2x2 or 3x3 or 4x4)ì— ë™ì¼í•œ ëª¨ì–‘ (Shape)ìœ¼ë¡œ êµ¬ì„±ëœ ë‹¤ì  (ë³µí•© ì•„ë‹˜) ì–¼ë¼ì¸ ë§ˆí¬ ê²€ìƒ‰
+ parm : cent	- [out] ì¤‘ì‹¬ ì¢Œí‘œê°€ ì €ì¥ë¨
+		rate	- [out] ì£¼ë³€ ì¢Œí‘œë“¤ ì¤‘ Min / Maxë¡œ ì‚¬ê°í˜•ì„ êµ¬ì„± í–ˆì„ ë•Œ, ê°€ë¡œ/ì„¸ë¡œ ë¹„ìœ¨ ê°’
  retn : TRUE or FALSE
- note : ±¸ÇØÁø »ç°¢ÇüÀÇ °¡·Î/¼¼·Î ºñÀ²ÀÌ È¯°æ ¼³Á¤¿¡ ÁÖ¾îÁø °ª ´ëºñ À¯È¿ÇÑÁö ¿©ºÎµµ ÆÇ´Ü
+ note : êµ¬í•´ì§„ ì‚¬ê°í˜•ì˜ ê°€ë¡œ/ì„¸ë¡œ ë¹„ìœ¨ì´ í™˜ê²½ ì„¤ì •ì— ì£¼ì–´ì§„ ê°’ ëŒ€ë¹„ ìœ íš¨í•œì§€ ì—¬ë¶€ë„ íŒë‹¨
 */
 BOOL CMilModel::CalcMarkMultiOnly(STG_DBXY& cent, DOUBLE& rate)
 {
@@ -977,7 +977,7 @@ BOOL CMilModel::CalcMarkMultiOnly(STG_DBXY& cent, DOUBLE& rate)
 	DOUBLE dbArea = 0.0f;
 	STG_DBXY stMin = { DBL_MAX, DBL_MAX }, stMax = { DBL_MIN, DBL_MIN };
 
-	/* ¹İÈ¯ °ª ÃÊ±âÈ­ */
+	/* ë°˜í™˜ ê°’ ì´ˆê¸°í™” */
 	cent.x = cent.y = 0.0f;
 	rate = 0.0f;
 
@@ -1002,17 +1002,17 @@ BOOL CMilModel::CalcMarkMultiOnly(STG_DBXY& cent, DOUBLE& rate)
 		rate = 100.0f;
 		return true; 
 	}
-	return false; //¾Æ·¡¾È¾¸ ¾¾¹ú.
+	return false; //ì•„ë˜ì•ˆì”€ ì”¨ë²Œ.
 	
 
 
-	/* »ç°¢Çü ¿µ¿ªÀÇ Boundary °ª ±¸ÇÏ±â */
+	/* ì‚¬ê°í˜• ì˜ì—­ì˜ Boundary ê°’ êµ¬í•˜ê¸° */
 	for (; i < m_u8MarkFindGet; i++)
 	{
-		/* ÇöÀç °ªÀÌ À¯È¿ÇÑÁö ¿©ºÎ */
+		/* í˜„ì¬ ê°’ì´ ìœ íš¨í•œì§€ ì—¬ë¶€ */
 		if (m_pstModResult[i].IsValid())
 		{
-			/* °Ë»öµÈ Mark °³¼ö Áß ÁÂÇ¥°¡ °¡Àå Å« °ª°ú ÀÛÀº °ª ÀúÀå */
+			/* ê²€ìƒ‰ëœ Mark ê°œìˆ˜ ì¤‘ ì¢Œí‘œê°€ ê°€ì¥ í° ê°’ê³¼ ì‘ì€ ê°’ ì €ì¥ */
 			if (stMin.x > m_pstModResult[i].cent_x)	stMin.x = m_pstModResult[i].cent_x;
 			if (stMin.y > m_pstModResult[i].cent_y)	stMin.y = m_pstModResult[i].cent_y;
 			if (stMax.x < m_pstModResult[i].cent_x)	stMax.x = m_pstModResult[i].cent_x;
@@ -1021,31 +1021,31 @@ BOOL CMilModel::CalcMarkMultiOnly(STG_DBXY& cent, DOUBLE& rate)
 		}
 	}
 
-	/* °Ë»öµÈ °á°ú °³¼ö°¡ 4°³ ÀÌÇÏÀÌ°Å³ª, Áß½É Mark°¡ À¯È¿ÇÏÁö ¾ÊÀ¸¸é ¿¡·¯ Ã³¸® */
+	/* ê²€ìƒ‰ëœ ê²°ê³¼ ê°œìˆ˜ê°€ 4ê°œ ì´í•˜ì´ê±°ë‚˜, ì¤‘ì‹¬ Markê°€ ìœ íš¨í•˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ ì²˜ë¦¬ */
 	if (j < 4 || 0xff == j /* Failed to search */)
 	{
 		LOG_ERROR(ENG_EDIC::en_mil,
 			L"The number of coordinates required for multi-mark configuration is too small");
 		return FALSE;
 	}
-	/* »ç°¢ÇüÀÇ °¡·Î / ¼¼·Î ºñÀ² °ªÀÌ È¯°æ ÆÄÀÏ¿¡ ¼³Á¤µÈ °ª¿¡ À¯È¿ÇÑÁö ¿©ºÎ */
-	/* »ç°¢ÇüÀÌ ¾ó¸¶³ª Á¤»ç°¢ÇüÀÎÁö °¡·Î¿Í ¼¼·ÎÀÇ Å©±â ºñÀ² °ª °è»ê ÈÄ ¹İÈ¯ */
+	/* ì‚¬ê°í˜•ì˜ ê°€ë¡œ / ì„¸ë¡œ ë¹„ìœ¨ ê°’ì´ í™˜ê²½ íŒŒì¼ì— ì„¤ì •ëœ ê°’ì— ìœ íš¨í•œì§€ ì—¬ë¶€ */
+	/* ì‚¬ê°í˜•ì´ ì–¼ë§ˆë‚˜ ì •ì‚¬ê°í˜•ì¸ì§€ ê°€ë¡œì™€ ì„¸ë¡œì˜ í¬ê¸° ë¹„ìœ¨ ê°’ ê³„ì‚° í›„ ë°˜í™˜ */
 	if ((stMax.x - stMin.x) > (stMax.y - stMin.y))	rate = (stMax.y - stMin.y) / (stMax.x - stMin.x);
 	else											rate = (stMax.x - stMin.x) / (stMax.y - stMin.y);
 	rate *= 100.0f;
 
-	/* Á÷»ç°¢ÇüÀÇ Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* ì§ì‚¬ê°í˜•ì˜ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	if (0x00 == m_pstConfig->mark_find.mixed_cent_type)
 	{
 		cent.x = stMin.x + (stMax.x - stMin.x) / 2.0f;
 		cent.y = stMin.y + (stMax.y - stMin.y) / 2.0f;
 	}
-	/* ´Ù°¢ÇüÀÇ ¹«°Ô Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* ë‹¤ê°í˜•ì˜ ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	else if (0x01 == m_pstConfig->mark_find.mixed_cent_type)
 	{
 		CalcPolyWeightCent(cent.x, cent.y, dbArea);
 	}
-	/* ÇãÇÁ¸¸ º¯È¯ (´ë°¢¼± ±³Â÷Á¡?)À» ÅëÇÑ Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
+	/* í—ˆí”„ë§Œ ë³€í™˜ (ëŒ€ê°ì„  êµì°¨ì ?)ì„ í†µí•œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
 	else
 	{
 		DOUBLE* dbX, * dbY;
@@ -1067,10 +1067,10 @@ BOOL CMilModel::CalcMarkMultiOnly(STG_DBXY& cent, DOUBLE& rate)
 }
 
 /*
- desc : °Ë»öµÈ ¸¶Å© ±âÁØÀ¸·Î ´Ù°¢Çü (¼±)À¸·Î ±¸¼ºµÈ ÁÂÇ¥µé¿¡ ´ëÇÑ ¹«°Ô Áß½É ÁÂÇ¥ ±¸ÇÏ±â
- parm : cent_x	- [out] ¹«°Ô Áß½É ÁÂÇ¥ °ª ¹İÈ¯
-		cent_y	- [out] ¹«°Ô Áß½É ÁÂÇ¥ °ª ¹İÈ¯
-		area	- [out] ´Ù°¢ÇüÀÇ ¸éÀû °ª ¹İÈ¯
+ desc : ê²€ìƒ‰ëœ ë§ˆí¬ ê¸°ì¤€ìœ¼ë¡œ ë‹¤ê°í˜• (ì„ )ìœ¼ë¡œ êµ¬ì„±ëœ ì¢Œí‘œë“¤ì— ëŒ€í•œ ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸°
+ parm : cent_x	- [out] ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ ê°’ ë°˜í™˜
+		cent_y	- [out] ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ ê°’ ë°˜í™˜
+		area	- [out] ë‹¤ê°í˜•ì˜ ë©´ì  ê°’ ë°˜í™˜
  retn : None
 */
 VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
@@ -1078,7 +1078,7 @@ VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
 	UINT8 i, j;
 	DOUBLE /*dbX1, dbY1, dbX2, dbY2,*/* dbArrX, * dbArrY;
 
-	/* ÀÓ½Ã ¹öÆÛ ÇÒ´ç */
+	/* ì„ì‹œ ë²„í¼ í• ë‹¹ */
 	dbArrX = new DOUBLE[m_u8MarkFindGet];
 	dbArrY = new DOUBLE[m_u8MarkFindGet];
 	ASSERT(dbArrX && dbArrY);
@@ -1087,10 +1087,10 @@ VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
 		dbArrX[i] = m_pstModResult[i].cent_x;
 		dbArrY[i] = m_pstModResult[i].cent_y;
 	}
-	/* Á¤·Ä ÀÛ¾÷ ¼öÇà */
+	/* ì •ë ¬ ì‘ì—… ìˆ˜í–‰ */
 	uvCalc_GetSortCoordPoints(dbArrX, dbArrY, UINT32(m_u8MarkFindGet));
 
-	/* ¹İÈ¯ °ª ¹İµå½Ã ÃÊ±âÈ­ */
+	/* ë°˜í™˜ ê°’ ë°˜ë“œì‹œ ì´ˆê¸°í™” */
 	cent_x = cent_y = area = 0.0f;
 
 	for (i = 0; i < m_u8MarkFindGet; i++)
@@ -1103,7 +1103,7 @@ VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
 		dbY2 = dbArrY[j];
 #endif
 #if 0
-		/* ÇöÀç °ªÀÌ À¯È¿ÇÑÁö ¿©ºÎ */
+		/* í˜„ì¬ ê°’ì´ ìœ íš¨í•œì§€ ì—¬ë¶€ */
 		if (m_pstModResult[i].IsValid())
 #endif
 		{
@@ -1115,33 +1115,33 @@ VOID CMilModel::CalcPolyWeightCent(DOUBLE& cent_x, DOUBLE& cent_y, DOUBLE& area)
 		}
 	}
 
-	/* ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ë©”ëª¨ë¦¬ í•´ì œ */
 	delete dbArrX;
 	delete dbArrY;
 
-	/* ¸éÀû ±¸ÇÏ±â */
+	/* ë©´ì  êµ¬í•˜ê¸° */
 	area /= 2.0f;
-	/* ¹«°Ô Áß½É ÁÂÇ¥ ±¸ÇÏ±â */
-	cent_x = cent_x / (6.0f * area);	/* ¿Ö 6.0À» °öÇÏ´ÂÁö ?*/
-	cent_y = cent_y / (6.0f * area);	/* ¿Ö 6.0À» °öÇÏ´ÂÁö ?*/
-	/* ¸éÀûÀº ¹«Á¶°Ç ¾ç¼ö °ªÀÌ¹Ç·Î ... */
+	/* ë¬´ê²Œ ì¤‘ì‹¬ ì¢Œí‘œ êµ¬í•˜ê¸° */
+	cent_x = cent_x / (6.0f * area);	/* ì™œ 6.0ì„ ê³±í•˜ëŠ”ì§€ ?*/
+	cent_y = cent_y / (6.0f * area);	/* ì™œ 6.0ì„ ê³±í•˜ëŠ”ì§€ ?*/
+	/* ë©´ì ì€ ë¬´ì¡°ê±´ ì–‘ìˆ˜ ê°’ì´ë¯€ë¡œ ... */
 	area = fabs(area);
 }
 
 /*
- desc : °Ë»öµÈ °á°ú ¹İÈ¯
+ desc : ê²€ìƒ‰ëœ ê²°ê³¼ ë°˜í™˜
  parm : None
- retn : °Ë»öµÈ °á°ú°¡ ÀúÀåµÈ Æ÷ÀÎÅÍ ¹İÈ¯
+ retn : ê²€ìƒ‰ëœ ê²°ê³¼ê°€ ì €ì¥ëœ í¬ì¸í„° ë°˜í™˜
 */
 LPG_GMFR CMilModel::GetFindMark()
 {
 	switch (m_enMarkMethod)
 	{
-	case ENG_MMSM::en_single:	/* °Ë»öµÈ ¸¶Å© Áß °¡Àå °á°ú°¡ ÁÁÀº MarkÀ» °Ë»öÇÏ¿© °á°ú ¹İÈ¯ */
+	case ENG_MMSM::en_single:	/* ê²€ìƒ‰ëœ ë§ˆí¬ ì¤‘ ê°€ì¥ ê²°ê³¼ê°€ ì¢‹ì€ Markì„ ê²€ìƒ‰í•˜ì—¬ ê²°ê³¼ ë°˜í™˜ */
 		return GetFindMarkBestScale();
-	case ENG_MMSM::en_cent_side:	/* Áß½ÉÀÇ Mark 1°³¿Í ÁÖº¯ÀÇ ¸¶Å© ¿©·¯ °³ °£ÀÇ °¡ÁßÄ¡¸¦ ºÎ¿©ÇÏ¿© °è»êµÈ °á°ú¸¦ ¹İÈ¯ */
-	case ENG_MMSM::en_ring_circle:	/* ¿Ü°û¿¡ ¸µ(µµ³Ó) ¸¶Å©¿Í ³»ºÎ¿¡ ¿ø (Circle)·Î ±¸¼ºµÈ ¸¶Å© °Ë»öÇÏ´Â ¹æ¹ı */
-	case ENG_MMSM::en_multi_only:	/* Áß½É¿¡´Â Mark°¡ ¾ø°í ÁÖº¯ÀÇ ¸¶Å© ¿©·¯ °³ °£ÀÇ ¹«°Ô Áß½ÉÀÌ °è»êµÈ °á°ú¸¦ ¹İÈ¯ */
+	case ENG_MMSM::en_cent_side:	/* ì¤‘ì‹¬ì˜ Mark 1ê°œì™€ ì£¼ë³€ì˜ ë§ˆí¬ ì—¬ëŸ¬ ê°œ ê°„ì˜ ê°€ì¤‘ì¹˜ë¥¼ ë¶€ì—¬í•˜ì—¬ ê³„ì‚°ëœ ê²°ê³¼ë¥¼ ë°˜í™˜ */
+	case ENG_MMSM::en_ring_circle:	/* ì™¸ê³½ì— ë§(ë„ë„›) ë§ˆí¬ì™€ ë‚´ë¶€ì— ì› (Circle)ë¡œ êµ¬ì„±ëœ ë§ˆí¬ ê²€ìƒ‰í•˜ëŠ” ë°©ë²• */
+	case ENG_MMSM::en_multi_only:	/* ì¤‘ì‹¬ì—ëŠ” Markê°€ ì—†ê³  ì£¼ë³€ì˜ ë§ˆí¬ ì—¬ëŸ¬ ê°œ ê°„ì˜ ë¬´ê²Œ ì¤‘ì‹¬ì´ ê³„ì‚°ëœ ê²°ê³¼ë¥¼ ë°˜í™˜ */
 		return GetFindMarkCentSide();
 	}
 
@@ -1149,10 +1149,10 @@ LPG_GMFR CMilModel::GetFindMark()
 }
 
 /*
- desc : °Ë»öÇÏ±â À§ÇØ ÀÔ·ÂµÈ °¢µµ¿Í ½ÇÁ¦ °Ë»öµÈ °¢µµÀÇ Àı´ë ¿ÀÂ÷ °ª °è»ê
- parm : find	- [in]  °Ë»öµÈ °¢µµ °ª
-		input	- [in]  °Ë»öÇÏ±â À§ÇØ ÀÔ·ÂµÈ °¢µµ °ª
- retn : ¿ÀÂ÷ °ª
+ desc : ê²€ìƒ‰í•˜ê¸° ìœ„í•´ ì…ë ¥ëœ ê°ë„ì™€ ì‹¤ì œ ê²€ìƒ‰ëœ ê°ë„ì˜ ì ˆëŒ€ ì˜¤ì°¨ ê°’ ê³„ì‚°
+ parm : find	- [in]  ê²€ìƒ‰ëœ ê°ë„ ê°’
+		input	- [in]  ê²€ìƒ‰í•˜ê¸° ìœ„í•´ ì…ë ¥ëœ ê°ë„ ê°’
+ retn : ì˜¤ì°¨ ê°’
 */
 DOUBLE CMilModel::CalcAngleDist(DOUBLE find, DOUBLE input)
 {
@@ -1165,10 +1165,10 @@ DOUBLE CMilModel::CalcAngleDist(DOUBLE find, DOUBLE input)
 }
 
 /*
- desc : µÎ °³ÀÇ ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â
- parm : x1,y1	- [in]  Ã¹ ¹øÂ° Á¡ÀÇ ÁÂÇ¥ À§Ä¡
-		x2,y2	- [in]  µÎ ¹øÂ° Á¡ÀÇ ÁÂÇ¥ À§Ä¡
- retn : Á÷¼±ÀÇ °Å¸® ¹İÈ¯
+ desc : ë‘ ê°œì˜ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸°
+ parm : x1,y1	- [in]  ì²« ë²ˆì§¸ ì ì˜ ì¢Œí‘œ ìœ„ì¹˜
+		x2,y2	- [in]  ë‘ ë²ˆì§¸ ì ì˜ ì¢Œí‘œ ìœ„ì¹˜
+ retn : ì§ì„ ì˜ ê±°ë¦¬ ë°˜í™˜
 */
 DOUBLE CMilModel::CalcLineDist(DOUBLE x1, DOUBLE y1, DOUBLE x2, DOUBLE y2)
 {
@@ -1177,17 +1177,17 @@ DOUBLE CMilModel::CalcLineDist(DOUBLE x1, DOUBLE y1, DOUBLE x2, DOUBLE y2)
 
 #ifndef _NOT_USE_MIL_
 /*
- desc : Edge Detection ¼öÇà
- parm : grab_id	- [in]  Grabbed Image Á¤º¸°¡ ÀúÀåµÈ ID (Target Image (Buffer))
+ desc : Edge Detection ìˆ˜í–‰
+ parm : grab_id	- [in]  Grabbed Image ì •ë³´ê°€ ì €ì¥ëœ ID (Target Image (Buffer))
 		width	- [in]  Grabbed Image - Width (Pixel)
 		height	- [in]  Grabbed Image - Width (Pixel)
-		saved	- [in]  ºĞ¼®µÈ edge image ÀúÀå ¿©ºÎ
+		saved	- [in]  ë¶„ì„ëœ edge image ì €ì¥ ì—¬ë¶€
  retn : TRUE or FALSE
 */
 BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8 saved)
 {
 	BOOL bFinded = FALSE;
-	INT32 i, u32Find = 0;	/* Á¤»óÀûÀ¸·Î Ã£Àº °³¼ö */
+	INT32 i, u32Find = 0;	/* ì •ìƒì ìœ¼ë¡œ ì°¾ì€ ê°œìˆ˜ */
 	DOUBLE dbMmToPixel = 0.0f;
 	MIL_ID mlEdgeContext = M_NULL;
 	MIL_ID mlEdgeResult = M_NULL;
@@ -1205,10 +1205,10 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 	MIL_DOUBLE* mdEdgeBoxMaxY = NULL;
 	MIL_DOUBLE* mdEdgeStrength = NULL;
 	MIL_DOUBLE* mdEdgeLength = NULL;
-	/* °Ë»ö Á¶°Ç Á¤º¸ ¾ò±â */
+	/* ê²€ìƒ‰ ì¡°ê±´ ì •ë³´ ì–»ê¸° */
 	LPG_CMED pstEdge = &m_pstConfig->edge_find;
 
-	/* ±âÁ¸ °á°ú °ª ÃÊ±âÈ­ */
+	/* ê¸°ì¡´ ê²°ê³¼ ê°’ ì´ˆê¸°í™” */
 	m_i32EdgeFindGet = 0x00;
 	/* Allocate a Edge Finder context. */
 	mlEdgeContext = MedgeAlloc(theApp.clMilMain.m_mSysID, M_CONTOUR, M_DEFAULT, NULL);
@@ -1218,36 +1218,36 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 	/*                                       Set Flag                                            */
 	/* ----------------------------------------------------------------------------------------- */
 	MedgeControl(mlEdgeContext, M_ACCURACY, pstEdge->m_accuracy);	/*3 (Default:High), 4 (Very High)*/
-//	MedgeControl(mlEdgeContext,	M_CHAIN_ALL_NEIGHBORS,				M_ENABLE);				/* ¸ğµç ÀÌ¿ô Pointµé ¿¬°áÇÏ¿© Edge ±¸¼º */
+//	MedgeControl(mlEdgeContext,	M_CHAIN_ALL_NEIGHBORS,				M_ENABLE);				/* ëª¨ë“  ì´ì›ƒ Pointë“¤ ì—°ê²°í•˜ì—¬ Edge êµ¬ì„± */
 	MedgeControl(mlEdgeContext, M_MOMENT_ELONGATION, M_ENABLE);
 	MedgeControl(mlEdgeContext, M_FERET_MEAN_DIAMETER + M_SORT1_UP, M_ENABLE);
-	MedgeControl(mlEdgeContext, M_BOX_X_MAX, M_ENABLE);	/* ³»¸² Â÷¼ø Á¤·Ä */
-	MedgeControl(mlEdgeContext, M_BOX_X_MIN, M_ENABLE);	/* ³»¸² Â÷¼ø Á¤·Ä */
-	MedgeControl(mlEdgeContext, M_BOX_Y_MAX, M_ENABLE);	/* ³»¸² Â÷¼ø Á¤·Ä */
-	MedgeControl(mlEdgeContext, M_BOX_Y_MIN, M_ENABLE);	/* ³»¸² Â÷¼ø Á¤·Ä */
-	MedgeControl(mlEdgeContext, M_CIRCLE_FIT_CENTER_X, M_ENABLE);	/* Àß ÀâÈù ¿øÀÇ Áß½É Á¡ */
-	MedgeControl(mlEdgeContext, M_CIRCLE_FIT_CENTER_Y, M_ENABLE);	/* Àß ÀâÈù ¿øÀÇ Áß½É Á¡ */
+	MedgeControl(mlEdgeContext, M_BOX_X_MAX, M_ENABLE);	/* ë‚´ë¦¼ ì°¨ìˆœ ì •ë ¬ */
+	MedgeControl(mlEdgeContext, M_BOX_X_MIN, M_ENABLE);	/* ë‚´ë¦¼ ì°¨ìˆœ ì •ë ¬ */
+	MedgeControl(mlEdgeContext, M_BOX_Y_MAX, M_ENABLE);	/* ë‚´ë¦¼ ì°¨ìˆœ ì •ë ¬ */
+	MedgeControl(mlEdgeContext, M_BOX_Y_MIN, M_ENABLE);	/* ë‚´ë¦¼ ì°¨ìˆœ ì •ë ¬ */
+	MedgeControl(mlEdgeContext, M_CIRCLE_FIT_CENTER_X, M_ENABLE);	/* ì˜ ì¡íŒ ì›ì˜ ì¤‘ì‹¬ ì  */
+	MedgeControl(mlEdgeContext, M_CIRCLE_FIT_CENTER_Y, M_ENABLE);	/* ì˜ ì¡íŒ ì›ì˜ ì¤‘ì‹¬ ì  */
 	MedgeControl(mlEdgeContext, M_CIRCLE_FIT_RADIUS, M_ENABLE);
 	MedgeControl(mlEdgeContext, M_AVERAGE_STRENGTH, M_ENABLE);
-	MedgeControl(mlEdgeContext, M_LENGTH, M_ENABLE);	/* ¿§Áö ÃøÁ¤µÈ ¼±ºĞÀÇ ÃÑ ±æÀÌ */
-	MedgeControl(mlEdgeContext, M_FILTER_SMOOTHNESS, DOUBLE(pstEdge->filter_smoothness));	/* 0 ~ 100À¸·Î ÁöÁ¤ÇÏ¸ç, 100¿¡ °¡±î¿ï ¼ö·Ï ¿§Áö °­µµ°¡ ¼¾ °Í¸¸ ÃßÃâÇÒ ¼ö ÀÖÀ½ */
+	MedgeControl(mlEdgeContext, M_LENGTH, M_ENABLE);	/* ì—£ì§€ ì¸¡ì •ëœ ì„ ë¶„ì˜ ì´ ê¸¸ì´ */
+	MedgeControl(mlEdgeContext, M_FILTER_SMOOTHNESS, DOUBLE(pstEdge->filter_smoothness));	/* 0 ~ 100ìœ¼ë¡œ ì§€ì •í•˜ë©°, 100ì— ê°€ê¹Œìš¸ ìˆ˜ë¡ ì—£ì§€ ê°•ë„ê°€ ì„¼ ê²ƒë§Œ ì¶”ì¶œí•  ìˆ˜ ìˆìŒ */
 	/* ----------------------------------------------------------------------------------------- */
 	/*                                       Set Value                                           */
 	/* ----------------------------------------------------------------------------------------- */
 	MedgeControl(mlEdgeContext, M_THRESHOLD_MODE, miThreshold[pstEdge->threshold - 1]);
-	/* SHEN		: ±âº» ÇÊÅÍ·Î¼­, Àü¹İÀûÀ¸·Î ÀÌ»óÀûÀÌ¸ç, ¸Å¿ì ÁÁÀº À§Ä¡ÀÇ Edge¸¦ ÃßÃâÇÏ´Âµ¥ È¿°úÀûÀÌÁö¸¸, */
-	/*			  ¶§¶§·Î ³ëÀÌÁî¿¡ ´ëÇØ ¿¹±âÄ¡ ¾Ê°Ô ¹Î°¨ÇÏ°Å³ª ºñÁ¤»óÀûÀ¸·Î µÎ²¨¿î Crest¸¦ ÃßÃâÇÏ´Âµ¥ ºÎÀû*/
-	/*			  ÀıÇÑ °á°ú¸¦ ¾òÀ» ¼ö ÀÖ´Ù.                                                              */
-	/* DERICHE	: Shenº¸´Ù EdgeÀÇ ÀÌ¿ô¿¡ ´õ ÁßÁ¡À» µÎ°í ÀÖ±â ¶§¹®¿¡, ÀÌ·± ¹®Á¦¿¡ ´ëÇØ Deriche¸¦ »ç¿ëÇØ¾ß */
+	/* SHEN		: ê¸°ë³¸ í•„í„°ë¡œì„œ, ì „ë°˜ì ìœ¼ë¡œ ì´ìƒì ì´ë©°, ë§¤ìš° ì¢‹ì€ ìœ„ì¹˜ì˜ Edgeë¥¼ ì¶”ì¶œí•˜ëŠ”ë° íš¨ê³¼ì ì´ì§€ë§Œ, */
+	/*			  ë•Œë•Œë¡œ ë…¸ì´ì¦ˆì— ëŒ€í•´ ì˜ˆê¸°ì¹˜ ì•Šê²Œ ë¯¼ê°í•˜ê±°ë‚˜ ë¹„ì •ìƒì ìœ¼ë¡œ ë‘êº¼ìš´ Crestë¥¼ ì¶”ì¶œí•˜ëŠ”ë° ë¶€ì */
+	/*			  ì ˆí•œ ê²°ê³¼ë¥¼ ì–»ì„ ìˆ˜ ìˆë‹¤.                                                              */
+	/* DERICHE	: Shenë³´ë‹¤ Edgeì˜ ì´ì›ƒì— ë” ì¤‘ì ì„ ë‘ê³  ìˆê¸° ë•Œë¬¸ì—, ì´ëŸ° ë¬¸ì œì— ëŒ€í•´ Dericheë¥¼ ì‚¬ìš©í•´ì•¼ */
 	MedgeControl(mlEdgeContext, M_FILTER_TYPE, miFilterType[pstEdge->filter_type - 1]);
 	/* Sets whether to force all the processing of edge extraction operations to be perfrometd using floating-point calculations */
 	MedgeControl(mlEdgeContext, M_FLOAT_MODE, miEnable[pstEdge->use_float_mode]);
-	/* ¿§Áö °ËÃâ ÈÄ ²÷¾îÁø µÎ Á¡ °£ÀÇ °¡Àå ÀÎÁ¢ÇÑ °ª(0¿¡ °¡±î¿ï ¼ö·Ï) À¸·Î ¿¬°á¼±À» ±¸¼º */
-	/* °¡Àå °î¼±¿¡ ±ÙÁ¢ÇÑ ¿§Áö (100¿¡ °¡±î¿ï ¼ö·Ï) °£¿¡ ¿¬°á¼±À» ±¸¼ºÇÒÁö ¼³Á¤ °ªÀ» ±¸¼º */
+	/* ì—£ì§€ ê²€ì¶œ í›„ ëŠì–´ì§„ ë‘ ì  ê°„ì˜ ê°€ì¥ ì¸ì ‘í•œ ê°’(0ì— ê°€ê¹Œìš¸ ìˆ˜ë¡) ìœ¼ë¡œ ì—°ê²°ì„ ì„ êµ¬ì„± */
+	/* ê°€ì¥ ê³¡ì„ ì— ê·¼ì ‘í•œ ì—£ì§€ (100ì— ê°€ê¹Œìš¸ ìˆ˜ë¡) ê°„ì— ì—°ê²°ì„ ì„ êµ¬ì„±í• ì§€ ì„¤ì • ê°’ì„ êµ¬ì„± */
 	if (pstEdge->fill_gap_continuity > 0.0f)	MedgeControl(mlEdgeContext, M_FILL_GAP_CONTINUITY, pstEdge->fill_gap_continuity);
 	/* The default value is 1.0f */
 	if (pstEdge->extraction_scale > 0.0f)		MedgeControl(mlEdgeContext, M_EXTRACTION_SCALE, pstEdge->extraction_scale);
-	/* È¯°æ ¼³Á¤ÀÇ ¿É¼Ç °ª¿¡ µû¶ó Àû¿ë ¿©ºÎ °áÁ¤ */
+	/* í™˜ê²½ ì„¤ì •ì˜ ì˜µì…˜ ê°’ì— ë”°ë¼ ì ìš© ì—¬ë¶€ ê²°ì • */
 	if (pstEdge->use_float_mode)				MedgeControl(mlEdgeContext, M_FLOAT_MODE, M_ENABLE);
 	if (pstEdge->use_closed_line)				MedgeControl(mlEdgeContext, M_CLOSURE, M_ENABLE);
 
@@ -1255,7 +1255,7 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 	MedgeCalculate(mlEdgeContext, grab_id, M_NULL, M_NULL, M_NULL, mlEdgeResult, M_DEFAULT);
 	/* Get the number of edges found. */
 	MedgeGetResult(mlEdgeResult, M_DEFAULT, M_NUMBER_OF_CHAINS + M_TYPE_MIL_INT, &miEdgeResults, M_NULL);
-	/* °Ë»öµÈ Ç×¸ñÀÌ ¾øÀ¸¸é ¿¡·¯ ¸®ÅÏ */
+	/* ê²€ìƒ‰ëœ í•­ëª©ì´ ì—†ìœ¼ë©´ ì—ëŸ¬ ë¦¬í„´ */
 	if (miEdgeResults < 1)
 	{
 		/* Free MIL objects. */
@@ -1263,31 +1263,31 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 		MedgeFree(mlEdgeContext);
 		return FALSE;
 	}
-	/* Exclude elongated edges. moment_elongation °ª º¸´Ù ÀÛÀº Edgeµé °É·¯³»±â Áï, */
-	/* ½ÃÀÛ Á¡°ú ³¡ Á¡ÀÌ ¼­·Î ¿¬°áµÇ´Â °­µµ°¡ ÁÖ¾îÁø °ª (Max 1.0)º¸´Ù ÀÛÀ¸¸é ¹èÁ¦. */
+	/* Exclude elongated edges. moment_elongation ê°’ ë³´ë‹¤ ì‘ì€ Edgeë“¤ ê±¸ëŸ¬ë‚´ê¸° ì¦‰, */
+	/* ì‹œì‘ ì ê³¼ ë ì ì´ ì„œë¡œ ì—°ê²°ë˜ëŠ” ê°•ë„ê°€ ì£¼ì–´ì§„ ê°’ (Max 1.0)ë³´ë‹¤ ì‘ìœ¼ë©´ ë°°ì œ. */
 	if (pstEdge->moment_elongation > 0.0f)	MedgeSelect(mlEdgeResult, M_DELETE, M_MOMENT_ELONGATION, M_LESS, pstEdge->moment_elongation, M_NULL);
-	/* LineÀÌ ²÷ÀÌÁö ¾Ê´Â °Í¸¸ ÃßÃâ */
+	/* Lineì´ ëŠì´ì§€ ì•ŠëŠ” ê²ƒë§Œ ì¶”ì¶œ */
 	if (pstEdge->use_closed_line)			MedgeSelect(mlEdgeResult, M_EXCLUDE, M_CLOSURE, M_NOT_EQUAL, M_TRUE, M_NULL);
 #if 0
-	/* ¿øÀÇ µÑ·¹ = ¹İÁö¸§ * 2.0 * 3.14 */
-	/* °Ë»öµÈ °´Ã¼ Áß Áö¸§ÀÇ Å©±â°¡ "pstEdge->min_dia_size (mm)" ÀÌÇÏÀÎ °ÍÀ» ¸ğµÎ ¹ö¸² */
+	/* ì›ì˜ ë‘˜ë ˆ = ë°˜ì§€ë¦„ * 2.0 * 3.14 */
+	/* ê²€ìƒ‰ëœ ê°ì²´ ì¤‘ ì§€ë¦„ì˜ í¬ê¸°ê°€ "pstEdge->min_dia_size (mm)" ì´í•˜ì¸ ê²ƒì„ ëª¨ë‘ ë²„ë¦¼ */
 	if (pstEdge->min_dia_size > 0)
 	{
 		dbMmToPixel = (pstEdge->min_dia_size / 2.0f) / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 		MedgeSelect(mlEdgeResult, M_EXCLUDE, M_CIRCLE_FIT_RADIUS, M_LESS, dbMmToPixel, M_NULL);
 	}
-	/* °Ë»öµÈ °´Ã¼ Áß Áö¸§ÀÇ Å©±â°¡ "pstEdge->max_dia_size (mm)" ÀÌ»óÀÎ °ÍÀ» ¸ğµÎ ¹ö¸² */
+	/* ê²€ìƒ‰ëœ ê°ì²´ ì¤‘ ì§€ë¦„ì˜ í¬ê¸°ê°€ "pstEdge->max_dia_size (mm)" ì´ìƒì¸ ê²ƒì„ ëª¨ë‘ ë²„ë¦¼ */
 	if (pstEdge->max_dia_size > 0)
 	{
 		dbMmToPixel = (pstEdge->max_dia_size / 2.0f) / m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 		MedgeSelect(mlEdgeResult, M_EXCLUDE, M_CIRCLE_FIT_RADIUS, M_GREATER, dbMmToPixel, M_NULL);
 	}
 #endif
-	/* Exclude inner chains. (Æ÷ÇÔµÈ ¿§Áöµé Áß ³»ºÎ ¹Ú½º¿¡ ÀÖ´Â ¿§ÁöµéÀ» Á¦°Å */
+	/* Exclude inner chains. (í¬í•¨ëœ ì—£ì§€ë“¤ ì¤‘ ë‚´ë¶€ ë°•ìŠ¤ì— ìˆëŠ” ì—£ì§€ë“¤ì„ ì œê±° */
 	if (!pstEdge->inc_internal_edge)		MedgeSelect(mlEdgeResult, M_EXCLUDE, M_INCLUDED_EDGES, M_INSIDE_BOX, M_NULL, M_NULL);
 	/* Get the number of edges found. */
 	MedgeGetResult(mlEdgeResult, M_DEFAULT, M_NUMBER_OF_CHAINS + M_TYPE_MIL_INT, &miEdgeResults, M_NULL);
-	/* °Ë»öµÈ Ç×¸ñÀÌ ¾øÀ¸¸é ¿¡·¯ ¸®ÅÏ */
+	/* ê²€ìƒ‰ëœ í•­ëª©ì´ ì—†ìœ¼ë©´ ì—ëŸ¬ ë¦¬í„´ */
 	if (miEdgeResults < 1)
 	{
 		/* Free MIL objects. */
@@ -1295,16 +1295,16 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 		MedgeFree(mlEdgeContext);
 		return FALSE;
 	}
-	/* °Ë»öµÈ °á°ú°¡ 255°³ ÃÊ°úÀÎ °æ¿ì, 255°³¸¸ Ã³¸®ÇÏµµ·Ï ¼³Á¤ */
+	/* ê²€ìƒ‰ëœ ê²°ê³¼ê°€ 255ê°œ ì´ˆê³¼ì¸ ê²½ìš°, 255ê°œë§Œ ì²˜ë¦¬í•˜ë„ë¡ ì„¤ì • */
 	if (miEdgeResults > UINT16_MAX)	miEdgeResults = UINT16_MAX;
-	/* ±âÁ¸ ÇÒ´çµÈ °Å Á¦°Å */
+	/* ê¸°ì¡´ í• ë‹¹ëœ ê±° ì œê±° */
 	ResetEdgeObject();
 	/* Edge Drawing */
 	m_mlEdgeID = MbufAlloc2d(theApp.clMilMain.m_mSysID, width, height, 8 + M_UNSIGNED, M_IMAGE + M_PROC, M_NULL);
-	/* ¹İµå½Ã ÃÊ±âÈ­ ÇØÁà¾ß µÊ (±× ÀÌÀü¿¡ theApp.clMilMain.m_mSysID¿¡¼­ ¼Ó¼º Á¤º¸°¡ ÀúÀåµÈ »óÅÂÀÌ¹Ç·Î)  */
-	/* ÃÊ±âÈ­ ÇØÁÖÁö ¾ÊÀ¸¸é, Edge Detection ÀÌ¹ÌÁö°¡ ÀÌÀü ÀÌ¹ÌÁö¿Í ÁßÃ¸µÇ¾î ³ªÅ¸³ª°Ô µÊ) */
+	/* ë°˜ë“œì‹œ ì´ˆê¸°í™” í•´ì¤˜ì•¼ ë¨ (ê·¸ ì´ì „ì— theApp.clMilMain.m_mSysIDì—ì„œ ì†ì„± ì •ë³´ê°€ ì €ì¥ëœ ìƒíƒœì´ë¯€ë¡œ)  */
+	/* ì´ˆê¸°í™” í•´ì£¼ì§€ ì•Šìœ¼ë©´, Edge Detection ì´ë¯¸ì§€ê°€ ì´ì „ ì´ë¯¸ì§€ì™€ ì¤‘ì²©ë˜ì–´ ë‚˜íƒ€ë‚˜ê²Œ ë¨) */
 	MbufClear(m_mlEdgeID, M_COLOR_BLACK);
-	/* ¿øº» ÀÌ¹ÌÁö º¹»ç */
+	/* ì›ë³¸ ì´ë¯¸ì§€ ë³µì‚¬ */
 	MbufCopy(grab_id, m_mlEdgeID);
 
 	if (!m_mlEdgeID || MappGetError(M_GLOBAL, M_NULL))
@@ -1321,21 +1321,21 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 		if (saved)
 		{
 			SYSTEMTIME stTm = { NULL };
-			/* Grabbed Image ÀÌ¹ÌÁö ÀúÀå ¼öÇà*/
+			/* Grabbed Image ì´ë¯¸ì§€ ì €ì¥ ìˆ˜í–‰*/
 			TCHAR tzGrabFile[MAX_PATH_LEN] = { NULL };
-			/* ÇöÀç ÆÄÀÏ »ı¼º ½Ã°£ ¼³Á¤ */
+			/* í˜„ì¬ íŒŒì¼ ìƒì„± ì‹œê°„ ì„¤ì • */
 			GetLocalTime(&stTm);
-			/* ÀÓ½Ã ÀúÀå ÈÄ, ¹®Á¦ÀÖ´Â ¸¶Å© ÆÄÀÏÀº º°µµ·Î ÆÄÀÏ ¸íÀÌ º¯°æ µÊ */
+			/* ì„ì‹œ ì €ì¥ í›„, ë¬¸ì œìˆëŠ” ë§ˆí¬ íŒŒì¼ì€ ë³„ë„ë¡œ íŒŒì¼ ëª…ì´ ë³€ê²½ ë¨ */
 			swprintf_s(tzGrabFile, L"%s\\save_img\\edge\\edge_%04d%02d%02d_%02d%02d%02d.png",
 				g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay,
 				stTm.wHour, stTm.wMinute, stTm.wSecond);
 			MbufExport(tzGrabFile, M_PNG, m_mlEdgeID);
 		}
 	}
-	/* Grabbed Image¿¡ Ãâ·ÂµÈ °á°ú µ¥ÀÌÅÍ ÀÌ¹ÌÁö¸¦ °øÀ¯ ¸Ş¸ğ¸® ¿µ¿ª¿¡ ÀÓ½Ã ÀúÀå */
+	/* Grabbed Imageì— ì¶œë ¥ëœ ê²°ê³¼ ë°ì´í„° ì´ë¯¸ì§€ë¥¼ ê³µìœ  ë©”ëª¨ë¦¬ ì˜ì—­ì— ì„ì‹œ ì €ì¥ */
 	MbufGet2d(m_mlEdgeID, 0, 0, width, height, m_pGrabEdgeImage);
 
-	/* °Ë»öµÈ °á°ú °ªÀ» ÀúÀåÇÒ ¹öÆÛ ÇÒ´ç */
+	/* ê²€ìƒ‰ëœ ê²°ê³¼ ê°’ì„ ì €ì¥í•  ë²„í¼ í• ë‹¹ */
 	mdEdgeDiameter = new MIL_DOUBLE[miEdgeResults];// (MIL_DOUBLE*)Alloc(sizeof(MIL_DOUBLE) * miEdgeResults);
 	mdEdgeRadius =   new MIL_DOUBLE[miEdgeResults];
 	mdEdgeCircleX =  new MIL_DOUBLE[miEdgeResults];
@@ -1362,53 +1362,53 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 	/* If the right number of edges were found. */
 	for (i = 0x00; i < INT32(miEdgeResults); i++)
 	{
-		/* À½¼ö °ªÀÌ¸é, Â©¸° ºÎºĞÀÓ */
+		/* ìŒìˆ˜ ê°’ì´ë©´, ì§¤ë¦° ë¶€ë¶„ì„ */
 		if (mdEdgeCircleX[i] - mdEdgeRadius[i] >= 0 && mdEdgeCircleY[i] - mdEdgeRadius[i] >= 0)
 		{
 #if 0
-			/* ¼³Á¤µÈ ÃÖ´ë Å©±âº¸´Ù Å« °æ¿ìÀÎÁö */
+			/* ì„¤ì •ëœ ìµœëŒ€ í¬ê¸°ë³´ë‹¤ í° ê²½ìš°ì¸ì§€ */
 			if (pstEdge->arc_max_size > 0.0f &&
 				mdEdgeDiameter[i] * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1) * 1000.0f > pstEdge->arc_max_size)	continue;
-			/* ¼³Á¤µÈ ÃÖ¼Ò Å©±âº¸´Ù ÀÛÀº °æ¿ìÀÎÁö */
+			/* ì„¤ì •ëœ ìµœì†Œ í¬ê¸°ë³´ë‹¤ ì‘ì€ ê²½ìš°ì¸ì§€ */
 			if (pstEdge->arc_min_size > 0.0f &&
 				mdEdgeDiameter[i] * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1) * 1000.0f < pstEdge->arc_min_size)	continue;
 #endif
 			/* ---------------------------------------------------------------------------------- */
-			/* Edge ¿µ¿ª ÃÖ´ë / ÃÖ¼Ò °ª ¼³Á¤ */
+			/* Edge ì˜ì—­ ìµœëŒ€ / ìµœì†Œ ê°’ ì„¤ì • */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].circle_area.left = (INT32)ROUNDUP(mdEdgeCircleX[i] - mdEdgeRadius[i], 0);// - pstEdgeDetect->area_spare_left;	/* spare pixel */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].circle_area.top = (INT32)ROUNDUP(mdEdgeCircleY[i] - mdEdgeRadius[i], 0);// - pstEdgeDetect->area_spare_top;		/* spare pixel */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].circle_area.right = (INT32)ROUNDUP(mdEdgeCircleX[i] + mdEdgeRadius[i], 0);// + pstEdgeDetect->area_spare_right;	/* spare pixel */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].circle_area.bottom = (INT32)ROUNDUP(mdEdgeCircleY[i] + mdEdgeRadius[i], 0);// + pstEdgeDetect->area_spare_bottom;	/* spare pixel */
-			/* Box ¿µ¿ª ÃÖ´ë / ÃÖ¼Ò °ª ¼³Á¤ */
+			/* Box ì˜ì—­ ìµœëŒ€ / ìµœì†Œ ê°’ ì„¤ì • */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].box_area.left = (INT32)ROUNDUP(mdEdgeBoxMinX[i], 0);
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].box_area.right = (INT32)ROUNDUP(mdEdgeBoxMaxX[i], 0);
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].box_area.top = (INT32)ROUNDUP(mdEdgeBoxMinY[i], 0);
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].box_area.bottom = (INT32)ROUNDUP(mdEdgeBoxMaxY[i], 0);
 			/* ---------------------------------------------------------------------------------- */
-			/* ¿§ÁöµéÀÇ °­µµ (¹Ğµµ?) Æò±Õ °ª */
+			/* ì—£ì§€ë“¤ì˜ ê°•ë„ (ë°€ë„?) í‰ê·  ê°’ */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].strength = mdEdgeStrength[i];
-			/* ¿§ÁöµéÀÌ ¿¬°áµÈ ¼±ºĞµéÀÇ ÃÑ ±æÀÌ */
+			/* ì—£ì§€ë“¤ì´ ì—°ê²°ëœ ì„ ë¶„ë“¤ì˜ ì´ ê¸¸ì´ */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].length = mdEdgeLength[i];
-			/* Á÷°æ È¤Àº ¿µ¿ªÀÇ ³ĞÀÌ/³ôÀÌ Å©±â ±¸ÇÏ±â (´ÜÀ§: um) */
+			/* ì§ê²½ í˜¹ì€ ì˜ì—­ì˜ ë„“ì´/ë†’ì´ í¬ê¸° êµ¬í•˜ê¸° (ë‹¨ìœ„: um) */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].dia_meter_px = mdEdgeDiameter[i];
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].dia_meter_um = mdEdgeDiameter[i] * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1) * 1000.0f;
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].width_um = m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].GetBoxWidth() * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1) * 1000.0f;
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].height_um = m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].GetBoxHeight() * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1) * 1000.0f;
-			/* Detecting Á¤º¸°¡ Á¸ÀçÇÑ´Ù°í ÇÃ·¡±× ¼³Á¤ */
+			/* Detecting ì •ë³´ê°€ ì¡´ì¬í•œë‹¤ê³  í”Œë˜ê·¸ ì„¤ì • */
 			m_pstShMemVisi->edge_result[m_u8ACamID - 1][i].set_data = 0x01;
 #if 0
-			/* Ã£À¸·Á´Â °³¼ö°¡ ÃÊ°úµÇ´Â °æ¿ì, ´õ ÀÌ»ó Ã£Áö ¾Ê°í ºüÁ® ³ª°¨ */
+			/* ì°¾ìœ¼ë ¤ëŠ” ê°œìˆ˜ê°€ ì´ˆê³¼ë˜ëŠ” ê²½ìš°, ë” ì´ìƒ ì°¾ì§€ ì•Šê³  ë¹ ì ¸ ë‚˜ê° */
 			if (++u32Find >= pstEdge->max_mark_find)	break;
 #endif
 		}
 	}
 
-	/* °Ë»ö Á¶°Ç¿¡ ¸Â°Ô Ã£Àº °³¼ö ÀúÀå */
+	/* ê²€ìƒ‰ ì¡°ê±´ì— ë§ê²Œ ì°¾ì€ ê°œìˆ˜ ì €ì¥ */
 	m_i32EdgeFindGet = INT32(miEdgeResults);
-	/* ÀÏÁ¤ °³¼ö ÀÌ»ó Ã£À¸¸é ÇÃ·¡±× ¼º°øÀ¸·Î ¼³Á¤ */
+	/* ì¼ì • ê°œìˆ˜ ì´ìƒ ì°¾ìœ¼ë©´ í”Œë˜ê·¸ ì„±ê³µìœ¼ë¡œ ì„¤ì • */
 	if (m_i32EdgeFindGet > 0)	bFinded = TRUE;
 
-	/* °á°ú °ª ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ê²°ê³¼ ê°’ ë©”ëª¨ë¦¬ í•´ì œ */
 	delete mdEdgeDiameter;
 	delete mdEdgeRadius;
 	delete mdEdgeCircleX;
@@ -1428,9 +1428,9 @@ BOOL CMilModel::RunEdgeDetect(MIL_ID grab_id, UINT32 width, UINT32 height, UINT8
 
 
 /*
- desc : ÀÌ¹ÌÁöÀÇ °¡·Î È¤Àº ¼¼·ÎÀÇ °æ°è¼± Áß½É À§Ä¡ ¾ò±â
- parm : grab_id		- [in]  Grabbed Image Á¤º¸°¡ ÀúÀåµÈ ID (Target Image (Buffer))
-		mil_result	- [in]  MIL ³»ºÎ °Ë»ö °á°ú ´ëÈ­ »óÀÚ Ãâ·Â ¿©ºÎ
+ desc : ì´ë¯¸ì§€ì˜ ê°€ë¡œ í˜¹ì€ ì„¸ë¡œì˜ ê²½ê³„ì„  ì¤‘ì‹¬ ìœ„ì¹˜ ì–»ê¸°
+ parm : grab_id		- [in]  Grabbed Image ì •ë³´ê°€ ì €ì¥ëœ ID (Target Image (Buffer))
+		mil_result	- [in]  MIL ë‚´ë¶€ ê²€ìƒ‰ ê²°ê³¼ ëŒ€í™” ìƒì ì¶œë ¥ ì—¬ë¶€
  retn : TRUE or FALSE
 */
 BOOL CMilModel::RunLineCentXY(MIL_ID grab_id, BOOL mil_result)
@@ -1442,18 +1442,18 @@ BOOL CMilModel::RunLineCentXY(MIL_ID grab_id, BOOL mil_result)
 	MIL_ID mlContextID, mlMarkerId, mlColorID;
 	LPG_CLED pstLine = &m_pstConfig->line_find;
 
-	/* ±âÁ¸ Line Edge Detection ÀÌ¹ÌÁöÀÇ ÀÓ½Ã ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ê¸°ì¡´ Line Edge Detection ì´ë¯¸ì§€ì˜ ì„ì‹œ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 	if (m_mlLineID)
 	{
 		MbufFree(m_mlLineID);
 		m_mlLineID = M_NULL;
 	}
 
-	/* ÇöÀç Grabbed ImageÀÇ Á¤º¸ ¾ò±â */
+	/* í˜„ì¬ Grabbed Imageì˜ ì •ë³´ ì–»ê¸° */
 	mlSizeX = (INT32)MbufInquire(grab_id, M_SIZE_X, M_NULL);
 	mlSizeY = (INT32)MbufInquire(grab_id, M_SIZE_Y, M_NULL);
 
-	/* ÀÌ¹ÌÁö °Ë»ç ¿µ¿ª Á¤º¸ */
+	/* ì´ë¯¸ì§€ ê²€ì‚¬ ì˜ì—­ ì •ë³´ */
 	i32ScanWidth = (INT32)ROUNDED(mlSizeX * DOUBLE(pstLine->box_size_width / 100.0f), 0);
 	i32ScanHeight = (INT32)ROUNDED(mlSizeY * DOUBLE(pstLine->box_size_height / 100.0f), 0);
 	i32CentX = (INT32)ROUNDED(mlSizeX / 2.0f, 0);
@@ -1476,24 +1476,24 @@ BOOL CMilModel::RunLineCentXY(MIL_ID grab_id, BOOL mil_result)
 		return FALSE;
 	}
 
-	/* Edge Line Detection °Ë»ö Á¶°Ç (ÆÄ¶ó¹ÌÅÍ) °ª ¼³Á¤ */
+	/* Edge Line Detection ê²€ìƒ‰ ì¡°ê±´ (íŒŒë¼ë¯¸í„°) ê°’ ì„¤ì • */
 	SetLineMarkerSetup(mlMarkerId, grab_id, i32ScanWidth, i32ScanHeight, i32CentX, i32CentY);
 	/* !!! Find the marker and compute all applicable measurements !!! */
 	MmeasFindMarker(mlContextID, grab_id, mlMarkerId, M_DEFAULT);
 
-	/* ÀÓ½Ã RGB ¹öÆÛ ÇÒ´ç */
+	/* ì„ì‹œ RGB ë²„í¼ í• ë‹¹ */
 	mlColorID = MbufAllocColor(theApp.clMilMain.m_mSysID, 3,	/* 1: Monochrome, 3: RGB */
 		mlSizeX, mlSizeY, 8 + M_UNSIGNED, M_IMAGE + M_PROC, M_NULL);
 	if (mlColorID)
 	{
 		MbufCopy(grab_id, mlColorID);
-		/* °Ë»ö °á°ú Á¤º¸ ÀÌ¹ÌÁö ¿µ¿ª¿¡ Ãâ·Â (Linex) */
+		/* ê²€ìƒ‰ ê²°ê³¼ ì •ë³´ ì´ë¯¸ì§€ ì˜ì—­ì— ì¶œë ¥ (Linex) */
 		DrawLineMarkerResult(mlMarkerId, mlColorID);
-		/* °á°ú Á¤º¸ ¹İÈ¯  */
+		/* ê²°ê³¼ ì •ë³´ ë°˜í™˜  */
 		bFinded = GetMeasLineResult(mlMarkerId, mlColorID, i32CentX, i32CentY);
-		/* MIL ³»ºÎ ÃøÁ¤ °á°ú Ãâ·Â ¿©ºÎ */
+		/* MIL ë‚´ë¶€ ì¸¡ì • ê²°ê³¼ ì¶œë ¥ ì—¬ë¶€ */
 		if (bFinded && mil_result)	MmeasGetResult(mlMarkerId, M_INTERACTIVE, NULL, NULL);
-		/* Á¤»óÀûÀ¸·Î °Ë»öµÈ ¿µ¿ª¸¸ ÀÌ¹ÌÁö ¹öÆÛ¿¡ ÀúÀå */
+		/* ì •ìƒì ìœ¼ë¡œ ê²€ìƒ‰ëœ ì˜ì—­ë§Œ ì´ë¯¸ì§€ ë²„í¼ì— ì €ì¥ */
 		m_mlLineID = MbufAllocColor(theApp.clMilMain.m_mSysID, 3,	/* 1: Monochrome, 3: RGB */
 			i32ScanWidth, i32ScanHeight,
 			8 + M_UNSIGNED, M_IMAGE + M_PROC, M_NULL);
@@ -1533,15 +1533,15 @@ BOOL CMilModel::RunMarkerStrip(MIL_ID graph_id, MIL_ID grab_id, LPG_MSMP param, 
 	/* Set the file name */
 	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\save_img\\hole\\%04d%02d%02d_%02d%02d%02d.png",
 		g_tzWorkDir, stTm.wYear, stTm.wMonth, stTm.wDay, stTm.wHour, stTm.wMinute, stTm.wSecond);
-	/* ±âÁ¸ Marker Strip ÀÌ¹ÌÁöÀÇ ÀÓ½Ã ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ê¸°ì¡´ Marker Strip ì´ë¯¸ì§€ì˜ ì„ì‹œ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 	if (m_mlStripID)	MbufFree(m_mlStripID);
 
 	/* Get the size of grabbed image */
 	mlSizeX = (INT32)MbufInquire(grab_id, M_SIZE_X, M_NULL);
 	mlSizeY = (INT32)MbufInquire(grab_id, M_SIZE_Y, M_NULL);
 
-	/* Allocate a measurement marker (Marker¿¡ ´ëÇÑ ÇÒ´çÀ» ÇÕ´Ï´Ù. µÎ ¹øÂ° ÀÎÀÚ°¡ M_STRIPE ·Î µÇ¾î ÀÖ´Ù´Â°Å È®ÀÎÇÏ¼¼¿ä)
-	/* stripe ¿Ü¿¡µµ edge, point µîÀ¸·Î ¼³Á¤ °¡´ÉÇÕ´Ï´Ù */
+	/* Allocate a measurement marker (Markerì— ëŒ€í•œ í• ë‹¹ì„ í•©ë‹ˆë‹¤. ë‘ ë²ˆì§¸ ì¸ìê°€ M_STRIPE ë¡œ ë˜ì–´ ìˆë‹¤ëŠ”ê±° í™•ì¸í•˜ì„¸ìš”)
+	/* stripe ì™¸ì—ë„ edge, point ë“±ìœ¼ë¡œ ì„¤ì • ê°€ëŠ¥í•©ë‹ˆë‹¤ */
 	mlMarkerID = MmeasAllocMarker(theApp.clMilMain.m_mSysID, M_STRIPE, M_DEFAULT, M_NULL);
 	if (!mlMarkerID || MappGetError(M_CURRENT, M_NULL))
 	{
@@ -1624,33 +1624,33 @@ BOOL CMilModel::RunMarkerStrip(MIL_ID graph_id, MIL_ID grab_id, LPG_MSMP param, 
 #endif
 
 /*
- desc : Align Camera¿¡ ÀÇÇØ °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡¸¦ ´Ù½Ã Ä«¸Ş¶óÀÇ È¸Àü ±âÁØ °ªÀ» Àû¿ëÇØ¼­
-		ÃÖÁ¾ °Ë»öµÈ ¸¶Å©ÀÇ X, Y Áß½É °ª ¹İÈ¯
- parm : cent_x	- [in]  Grabbed ImageÀÇ Áß½É À§Ä¡
-		cent_y	- [in]  Grabbed ImageÀÇ Áß½É À§Ä¡
-		find_x	- [out] È¸Àü ÀÌÀü¿¡ °Ë»öµÈ Áß½É À§Ä¡¸¦ ÀÔ·Â ¹Ş¾Æ È¸Àü ÀÌÈÄ Áß½É À§Ä¡ °ª ¹İÈ¯
-		find_y	- [out] È¸Àü ÀÌÀü¿¡ °Ë»öµÈ Áß½É À§Ä¡¸¦ ÀÔ·Â ¹Ş¾Æ È¸Àü ÀÌÈÄ Áß½É À§Ä¡ °ª ¹İÈ¯
+ desc : Align Cameraì— ì˜í•´ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ë¥¼ ë‹¤ì‹œ ì¹´ë©”ë¼ì˜ íšŒì „ ê¸°ì¤€ ê°’ì„ ì ìš©í•´ì„œ
+		ìµœì¢… ê²€ìƒ‰ëœ ë§ˆí¬ì˜ X, Y ì¤‘ì‹¬ ê°’ ë°˜í™˜
+ parm : cent_x	- [in]  Grabbed Imageì˜ ì¤‘ì‹¬ ìœ„ì¹˜
+		cent_y	- [in]  Grabbed Imageì˜ ì¤‘ì‹¬ ìœ„ì¹˜
+		find_x	- [out] íšŒì „ ì´ì „ì— ê²€ìƒ‰ëœ ì¤‘ì‹¬ ìœ„ì¹˜ë¥¼ ì…ë ¥ ë°›ì•„ íšŒì „ ì´í›„ ì¤‘ì‹¬ ìœ„ì¹˜ ê°’ ë°˜í™˜
+		find_y	- [out] íšŒì „ ì´ì „ì— ê²€ìƒ‰ëœ ì¤‘ì‹¬ ìœ„ì¹˜ë¥¼ ì…ë ¥ ë°›ì•„ íšŒì „ ì´í›„ ì¤‘ì‹¬ ìœ„ì¹˜ ê°’ ë°˜í™˜
  retn : None
 */
 VOID CMilModel::GetFindRotatePosXY(DOUBLE cent_x, DOUBLE cent_y, DOUBLE& find_x, DOUBLE& find_y)
 {
 	DOUBLE dbRadian = 0.0f, dbFindX = find_x, dbFindY = find_y;
 	DOUBLE dbAngle = m_pstConfig->acam_spec.spec_angle[m_u8ACamID - 1];	/* Degree */
-	/* È¸Àü °ª (Degree)ÀÌ ÀÖ´Â °æ¿ìÀÎÁö¸¸ Ã³¸® */
+	/* íšŒì „ ê°’ (Degree)ì´ ìˆëŠ” ê²½ìš°ì¸ì§€ë§Œ ì²˜ë¦¬ */
 	if (dbAngle != 0.0f)
 	{
-		dbRadian = -uvCmn_GetDeg2Rad(dbAngle);	/* ¾ÕÀÇ ¸¶ÀÌ³Ê½º´Â ¹İ´ë·Î È¸ÀüµÈ °ªÀ» ±¸ÇÏ±â À§ÇÔ */
-		/* Áß½É À§Ä¡ ±âÁØÀ¸·Î °¢µµ¸¸Å­ È¸Àü ÇßÀ» °æ¿ì, °¢ X, Y ÁÂÇ¥ °ª °è»ê */
+		dbRadian = -uvCmn_GetDeg2Rad(dbAngle);	/* ì•ì˜ ë§ˆì´ë„ˆìŠ¤ëŠ” ë°˜ëŒ€ë¡œ íšŒì „ëœ ê°’ì„ êµ¬í•˜ê¸° ìœ„í•¨ */
+		/* ì¤‘ì‹¬ ìœ„ì¹˜ ê¸°ì¤€ìœ¼ë¡œ ê°ë„ë§Œí¼ íšŒì „ í–ˆì„ ê²½ìš°, ê° X, Y ì¢Œí‘œ ê°’ ê³„ì‚° */
 		dbFindX = (find_x - cent_x) * cos(dbRadian) - (find_y - cent_y) * sin(dbRadian) + cent_x;
 		dbFindY = (find_x - cent_x) * sin(dbRadian) + (find_y - cent_y) * cos(dbRadian) + cent_y;
 	}
-	/* È¸Àü È¤Àº È¸Àü ¾øÀÌ °ª °»½Å */
+	/* íšŒì „ í˜¹ì€ íšŒì „ ì—†ì´ ê°’ ê°±ì‹  */
 	find_x = dbFindX;
 	find_y = dbFindY;
 }
 
 /*
- desc : ±âÁ¸ °Ë»öµÈ Edge Object ¸®¼Â
+ desc : ê¸°ì¡´ ê²€ìƒ‰ëœ Edge Object ë¦¬ì…‹
  parm : None
  retn : None
 */
@@ -1673,12 +1673,12 @@ VOID CMilModel::ResetEdgeObject()
 }
 
 /*
- desc : ÇöÀç µî·ÏµÈ Mark Model Å©±â ¹İÈ¯
- parm : index	- [in]  ¿äÃ»ÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ÀÇ À§Ä¡ (Zero-based)
-		flag	- [in]  0x00 : °¡·Î  Å©±â, 0x01 : ¼¼·Î Å©±â
+ desc : í˜„ì¬ ë“±ë¡ëœ Mark Model í¬ê¸° ë°˜í™˜
+ parm : index	- [in]  ìš”ì²­í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ì˜ ìœ„ì¹˜ (Zero-based)
+		flag	- [in]  0x00 : ê°€ë¡œ  í¬ê¸°, 0x01 : ì„¸ë¡œ í¬ê¸°
 		unit	- [in]  0x00 : um, 0x01 : pixel
-		size	- [in]  0x00 : radius (¹İÁö¸§), 0x01 : diameter (Áö¸§)
- retn : Å©±â ¹İÈ¯ (´ÜÀ§: um or pixel)
+		size	- [in]  0x00 : radius (ë°˜ì§€ë¦„), 0x01 : diameter (ì§€ë¦„)
+ retn : í¬ê¸° ë°˜í™˜ (ë‹¨ìœ„: um or pixel)
 */
 DOUBLE CMilModel::GetMarkModelSize(UINT8 index, UINT8 flag, UINT8 unit)
 {
@@ -1695,11 +1695,11 @@ DOUBLE CMilModel::GetMarkModelSize(UINT8 index, UINT8 flag, UINT8 unit)
 		case ENG_MMDT::en_ring:
 			if (!unit)	dbSize = m_pstMarkModel[index].param[1];
 			else		dbSize = m_pstMarkModel[index].param[1] / (m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1) * 1000.0f);
-#if 0	/* ¹«Á¶°Ç ¸ğµ¨ Å©±â´Â Áö¸§À¸·Î °è»êÇÏ¹Ç·Î */
+#if 0	/* ë¬´ì¡°ê±´ ëª¨ë¸ í¬ê¸°ëŠ” ì§€ë¦„ìœ¼ë¡œ ê³„ì‚°í•˜ë¯€ë¡œ */
 			switch (m_pstMarkModel[index].type)
 			{
 			case ENG_MMDT::en_circle:
-			case ENG_MMDT::en_square:	dbSize *= 2.0f;	break; /* ±æÀÌ´Â 2¹è·Î ¼³Á¤ÇØ Áà¾ß µÊ */
+			case ENG_MMDT::en_square:	dbSize *= 2.0f;	break; /* ê¸¸ì´ëŠ” 2ë°°ë¡œ ì„¤ì •í•´ ì¤˜ì•¼ ë¨ */
 			}
 #endif
 			break;
@@ -1739,9 +1739,9 @@ DOUBLE CMilModel::GetMarkModelSize(UINT8 index, UINT8 flag, UINT8 unit)
 }
 
 /*
- desc : Align Mark °Ë»ö ¹æ½Ä ¼³Á¤
- parm : method		- [in]  0x00 : ÃÖÀûÀÇ 1°³ ¹İÈ¯, 0x01 : ´ÙÁ¡ ¸¶Å© ±âÁØÀ¸·Î °¡ÁßÄ¡¸¦ ºÎ¿©ÇÏ¿© °á°ú ¹İÈ¯
-		count		- [in]  'method' °ªÀÌ 2 or 3ÀÎ °æ¿ì, ÃÖÁ¾ °Ë»öµÉ Mark °³¼ö °ª 2 ÀÌ»ó °ªÀÌ¾î¾ß µÊ
+ desc : Align Mark ê²€ìƒ‰ ë°©ì‹ ì„¤ì •
+ parm : method		- [in]  0x00 : ìµœì ì˜ 1ê°œ ë°˜í™˜, 0x01 : ë‹¤ì  ë§ˆí¬ ê¸°ì¤€ìœ¼ë¡œ ê°€ì¤‘ì¹˜ë¥¼ ë¶€ì—¬í•˜ì—¬ ê²°ê³¼ ë°˜í™˜
+		count		- [in]  'method' ê°’ì´ 2 or 3ì¸ ê²½ìš°, ìµœì¢… ê²€ìƒ‰ë  Mark ê°œìˆ˜ ê°’ 2 ì´ìƒ ê°’ì´ì–´ì•¼ ë¨
  retn : None
 */
 VOID CMilModel::SetMarkMethod(ENG_MMSM method, UINT8 count)
@@ -1763,12 +1763,12 @@ VOID CMilModel::SetMarkMethod(ENG_MMSM method, UINT8 count)
 
 #ifndef _NOT_USE_MIL_
 /*
- desc : Edge Line Detection °Ë»ö Á¶°Ç (ÆÄ¶ó¹ÌÅÍ) °ª ¼³Á¤
+ desc : Edge Line Detection ê²€ìƒ‰ ì¡°ê±´ (íŒŒë¼ë¯¸í„°) ê°’ ì„¤ì •
  parm : mark_id		- [in]  Marker ID
-		grab_id		- [in]  ÀÌ¹ÌÁö ÀúÀå ¹öÆÛ ID (Drawing Object ID)
-		scan_width	- [in]  ÀÌ¹ÌÁö °Ë»ö ¿µ¿ª Å©±â (´ÜÀ§: pixel) (ÀÌ¹ÌÁö Å©±â ¾Æ´Ô)
-		scan_height	- [in]  ÀÌ¹ÌÁö °Ë»ö ¿µ¿ª Å©±â (´ÜÀ§: pixel) (ÀÌ¹ÌÁö Å©±â ¾Æ´Ô)
-		cent_x/y	- [in]  ÀÌ¹ÌÁö °Ë»ö ¿µ¿ª Áß½É ÁÂÇ¥ (´ÜÀ§: pixel)
+		grab_id		- [in]  ì´ë¯¸ì§€ ì €ì¥ ë²„í¼ ID (Drawing Object ID)
+		scan_width	- [in]  ì´ë¯¸ì§€ ê²€ìƒ‰ ì˜ì—­ í¬ê¸° (ë‹¨ìœ„: pixel) (ì´ë¯¸ì§€ í¬ê¸° ì•„ë‹˜)
+		scan_height	- [in]  ì´ë¯¸ì§€ ê²€ìƒ‰ ì˜ì—­ í¬ê¸° (ë‹¨ìœ„: pixel) (ì´ë¯¸ì§€ í¬ê¸° ì•„ë‹˜)
+		cent_x/y	- [in]  ì´ë¯¸ì§€ ê²€ìƒ‰ ì˜ì—­ ì¤‘ì‹¬ ì¢Œí‘œ (ë‹¨ìœ„: pixel)
  retn : None
 */
 VOID CMilModel::SetLineMarkerSetup(MIL_ID mark_id, MIL_ID grab_id,
@@ -1781,11 +1781,11 @@ VOID CMilModel::SetLineMarkerSetup(MIL_ID mark_id, MIL_ID grab_id,
 	DOUBLE dbEnable[2] = { M_DISABLE, M_ENABLE };
 	LPG_CLED pstLine = &m_pstConfig->line_find;
 
-	/* ¹Ú½º ¿µ¿ªÀÇ Å©±â Áï, ÀÌ¹ÌÁö °Ë»è ¿µ¿ªÀÇ Å©±â */
+	/* ë°•ìŠ¤ ì˜ì—­ì˜ í¬ê¸° ì¦‰, ì´ë¯¸ì§€ ê²€ì‚­ ì˜ì—­ì˜ í¬ê¸° */
 	MmeasSetMarker(mark_id, M_BOX_SIZE, scan_width, scan_height);
-	/* ¹Ú½º ¿µ¿ªÀÇ Áß½É Áï, Ä«¸Ş¶ó Grabbed AreaÀÇ Áß½É ÁÂÇ¥ (unit: Pixel) */
+	/* ë°•ìŠ¤ ì˜ì—­ì˜ ì¤‘ì‹¬ ì¦‰, ì¹´ë©”ë¼ Grabbed Areaì˜ ì¤‘ì‹¬ ì¢Œí‘œ (unit: Pixel) */
 	MmeasSetMarker(mark_id, M_BOX_CENTER, cent_x, cent_y);
-	/* °Ë»ç ¿µ¿ª (BOX_SIZE) ³»¿¡ Á¶°Ç¿¡ ¸Â´Â ¸ğµç Edge Line Detection */
+	/* ê²€ì‚¬ ì˜ì—­ (BOX_SIZE) ë‚´ì— ì¡°ê±´ì— ë§ëŠ” ëª¨ë“  Edge Line Detection */
 	MmeasSetMarker(mark_id, M_NUMBER, M_ALL, M_NULL);
 	MmeasSetMarker(mark_id, M_NUMBER_MIN, M_DEFAULT, M_NULL);
 	/* Filter Type : EULER (0) / PREWITT (1) / SHEN (2) */
@@ -1794,43 +1794,43 @@ VOID CMilModel::SetLineMarkerSetup(MIL_ID mark_id, MIL_ID grab_id,
 	{
 		MmeasSetMarker(mark_id, M_FILTER_SMOOTHNESS, DOUBLE(pstLine->filter_smoothness), M_NULL);
 	}
-	/* °ªÀÌ ÀÛ¾ÆÁú ¼ö·Ï ¿§Áö °³¼ö°¡ Áõ°¡ÇÏ¿©, Ã³¸® ¼Óµµ´Â ´À·ÁÁöÁö¸¸, °á°ú (Ç°Áú)Àº ÁÁ¾ÆÁü */
+	/* ê°’ì´ ì‘ì•„ì§ˆ ìˆ˜ë¡ ì—£ì§€ ê°œìˆ˜ê°€ ì¦ê°€í•˜ì—¬, ì²˜ë¦¬ ì†ë„ëŠ” ëŠë ¤ì§€ì§€ë§Œ, ê²°ê³¼ (í’ˆì§ˆ)ì€ ì¢‹ì•„ì§ */
 	if (pstLine->edge_threshold)
 	{
 		//MmeasSetMarker(mark_id, M_EDGE_THRESHOLD, DOUBLE(pstLine->edge_threshold), M_NULL);
 		MmeasSetMarker(mark_id, M_EDGEVALUE_VAR_MIN, DOUBLE(pstLine->edge_threshold), M_NULL); 
 	}
-	/* 2¹øÂ°´Â stripe markers¸¦ À§ÇÔ. ¹«Á¶°Ç M_NULL */
+	/* 2ë²ˆì§¸ëŠ” stripe markersë¥¼ ìœ„í•¨. ë¬´ì¡°ê±´ M_NULL */
 	MmeasSetMarker(mark_id, M_POLARITY, dbPolarity[pstLine->polarity], M_OPPOSITE);
-	/* ¾Æ·¡ 2°³´Â ÀÌ¹ÌÁöÀÇ ¼º°İ¿¡ µû¶ó °ªÀ» ´Ù¸£°Ô Áà¾ß µÊ */
-	MmeasSetMarker(mark_id, M_SUB_REGIONS_OFFSET, DOUBLE(pstLine->sub_regions_offset), M_NULL);			/* Sub Region Offset °ª (-100 % ~ +100 %) */
-	MmeasSetMarker(mark_id, M_SUB_REGIONS_SIZE, DOUBLE(pstLine->sub_regions_size), M_NULL);				/* Sub Region Å©±â (0 ~ 100 %) */
-	MmeasSetMarker(mark_id, M_SUB_REGIONS_NUMBER, DOUBLE(pstLine->sub_regions_number), M_NULL);			/* °Ë»ö ¿µ¿ªÀ» ³ª´­ ¼½¼Ç ¼ö (1 or Later) */
-	/* °Ë»çÇÒ ¸¶Ä¿ÀÇ ¹æÇâÀÌ ¼öÆòÀÎÁö ¼öÁ÷ÀÎÁö ¼³Á¤ */
+	/* ì•„ë˜ 2ê°œëŠ” ì´ë¯¸ì§€ì˜ ì„±ê²©ì— ë”°ë¼ ê°’ì„ ë‹¤ë¥´ê²Œ ì¤˜ì•¼ ë¨ */
+	MmeasSetMarker(mark_id, M_SUB_REGIONS_OFFSET, DOUBLE(pstLine->sub_regions_offset), M_NULL);			/* Sub Region Offset ê°’ (-100 % ~ +100 %) */
+	MmeasSetMarker(mark_id, M_SUB_REGIONS_SIZE, DOUBLE(pstLine->sub_regions_size), M_NULL);				/* Sub Region í¬ê¸° (0 ~ 100 %) */
+	MmeasSetMarker(mark_id, M_SUB_REGIONS_NUMBER, DOUBLE(pstLine->sub_regions_number), M_NULL);			/* ê²€ìƒ‰ ì˜ì—­ì„ ë‚˜ëˆŒ ì„¹ì…˜ ìˆ˜ (1 or Later) */
+	/* ê²€ì‚¬í•  ë§ˆì»¤ì˜ ë°©í–¥ì´ ìˆ˜í‰ì¸ì§€ ìˆ˜ì§ì¸ì§€ ì„¤ì • */
 	MmeasSetMarker(mark_id, M_ORIENTATION, dbOrientation[pstLine->orientation], M_NULL);
-	/* ¸¶Ä¿ÀÇ À§Ä¡¸¦ Ã£À» ¶§, ´Ü°èº°·Î È¸ÀüÇÏ´Â °¢µµÀÇ °ª (0.1 ~ 180.0) */
+	/* ë§ˆì»¤ì˜ ìœ„ì¹˜ë¥¼ ì°¾ì„ ë•Œ, ë‹¨ê³„ë³„ë¡œ íšŒì „í•˜ëŠ” ê°ë„ì˜ ê°’ (0.1 ~ 180.0) */
 	MmeasSetMarker(mark_id, M_BOX_ANGLE_MODE, dbEnable[pstLine->box_angle_mode], M_NULL);
-	/* °¢µµ È°¼ºÈ² ¿©ºÎ¿¡ µû¶ó */
+	/* ê°ë„ í™œì„±í™© ì—¬ë¶€ì— ë”°ë¼ */
 	if (pstLine->box_angle_mode)
 	{
-		MmeasSetMarker(mark_id, M_BOX_ANGLE, DOUBLE(pstLine->box_angle), M_NULL);						/* 0 °ªÀÏ ¶§ */
-		/* È¸Àü °¢µµÀÇ °Ë»ç ÀÌµ¿ °£°İ Å©±â °ª */
+		MmeasSetMarker(mark_id, M_BOX_ANGLE, DOUBLE(pstLine->box_angle), M_NULL);						/* 0 ê°’ì¼ ë•Œ */
+		/* íšŒì „ ê°ë„ì˜ ê²€ì‚¬ ì´ë™ ê°„ê²© í¬ê¸° ê°’ */
 		if (pstLine->box_angle_accuracy == 0.0f)
 			MmeasSetMarker(mark_id, M_BOX_ANGLE_ACCURACY, M_DISABLE, M_NULL);
 		else
-			MmeasSetMarker(mark_id, M_BOX_ANGLE_ACCURACY, pstLine->box_angle_accuracy, M_NULL);			/* °øÂ÷ ³»¿¡¼­ ¼¼ºÎÀûÀ¸·Î °Ë»öÇÒ °¢µµ¸¦ ¸îÀ¸·Î ÇÒ °ÍÀÎÁö */
-		/* ¾Æ·¡ 2°³ÀÇ º¯¼ö¸¦ ÀÌ¿ëÇÏ¿© °á±¹ (BOX_ANGLE - BOX_ANGLE_DELTA_NEG) ~ (BOX_ANGLE + BOX_ANGLE_DELTA_POS) ±îÁö °Ë»ö ¼öÇà	*/
-		MmeasSetMarker(mark_id, M_BOX_ANGLE_DELTA_POS, DOUBLE(pstLine->box_angle_delta_neg), M_NULL);	/* °Ë»ö °¢µµÀÇ ¹üÀ§´Â ¸î À¸·Î ÇÒ °ÍÀÎÁö */
-		MmeasSetMarker(mark_id, M_BOX_ANGLE_DELTA_NEG, DOUBLE(pstLine->box_angle_delta_pos), M_NULL);	/* °Ë»ö °¢µµÀÇ ¹üÀ§´Â ¸î À¸·Î ÇÒ °ÍÀÎÁö */
+			MmeasSetMarker(mark_id, M_BOX_ANGLE_ACCURACY, pstLine->box_angle_accuracy, M_NULL);			/* ê³µì°¨ ë‚´ì—ì„œ ì„¸ë¶€ì ìœ¼ë¡œ ê²€ìƒ‰í•  ê°ë„ë¥¼ ëª‡ìœ¼ë¡œ í•  ê²ƒì¸ì§€ */
+		/* ì•„ë˜ 2ê°œì˜ ë³€ìˆ˜ë¥¼ ì´ìš©í•˜ì—¬ ê²°êµ­ (BOX_ANGLE - BOX_ANGLE_DELTA_NEG) ~ (BOX_ANGLE + BOX_ANGLE_DELTA_POS) ê¹Œì§€ ê²€ìƒ‰ ìˆ˜í–‰	*/
+		MmeasSetMarker(mark_id, M_BOX_ANGLE_DELTA_POS, DOUBLE(pstLine->box_angle_delta_neg), M_NULL);	/* ê²€ìƒ‰ ê°ë„ì˜ ë²”ìœ„ëŠ” ëª‡ ìœ¼ë¡œ í•  ê²ƒì¸ì§€ */
+		MmeasSetMarker(mark_id, M_BOX_ANGLE_DELTA_NEG, DOUBLE(pstLine->box_angle_delta_pos), M_NULL);	/* ê²€ìƒ‰ ê°ë„ì˜ ë²”ìœ„ëŠ” ëª‡ ìœ¼ë¡œ í•  ê²ƒì¸ì§€ */
 	}
-	/* Enable search region clipping : ÀÚµ¿À¸·Î ¿µ¿ªÀ» Clipping */
+	/* Enable search region clipping : ìë™ìœ¼ë¡œ ì˜ì—­ì„ Clipping */
 	MmeasSetMarker(mark_id, M_SEARCH_REGION_CLIPPING, dbEnable[pstLine->search_region_clip], M_NULL);
 }
 
 /*
- desc : Marker °Ë»ö °á°ú Á¤º¸¸¦ ÀÌ¹ÌÁö ¿µ¿ª¿¡ Ãâ·ÂÇÏ±â
+ desc : Marker ê²€ìƒ‰ ê²°ê³¼ ì •ë³´ë¥¼ ì´ë¯¸ì§€ ì˜ì—­ì— ì¶œë ¥í•˜ê¸°
  parm : mark_id	- [in]  Marker ID
-		grab_id	- [in]  ÀÌ¹ÌÁö ÀúÀå ¹öÆÛ ID (Drawing Object ID)
+		grab_id	- [in]  ì´ë¯¸ì§€ ì €ì¥ ë²„í¼ ID (Drawing Object ID)
  retn : None
 */
 VOID CMilModel::DrawLineMarkerResult(MIL_ID mark_id, MIL_ID grab_id)
@@ -1865,10 +1865,10 @@ VOID CMilModel::DrawLineMarkerResult(MIL_ID mark_id, MIL_ID grab_id)
 }
 
 /*
- desc : ÀÌ¹ÌÁöÀÇ °æ°è¼± Áß½É À§Ä¡ ¾ò±â
+ desc : ì´ë¯¸ì§€ì˜ ê²½ê³„ì„  ì¤‘ì‹¬ ìœ„ì¹˜ ì–»ê¸°
  parm : mark_id		- [in]  Marker ID
-		grab_id		- [in]  ÀÌ¹ÌÁö ÀúÀå ¹öÆÛ ID (Drawing Object ID)
-		cent_x/y	- [in]  ÀÌ¹ÌÁöÀÇ Áß½É À§Ä¡ (´ÜÀ§: pixel)
+		grab_id		- [in]  ì´ë¯¸ì§€ ì €ì¥ ë²„í¼ ID (Drawing Object ID)
+		cent_x/y	- [in]  ì´ë¯¸ì§€ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ (ë‹¨ìœ„: pixel)
  retn : TRUE or FALSE
 */
 BOOL CMilModel::GetMeasLineResult(MIL_ID mark_id, MIL_ID grab_id, INT32 cent_x, INT32 cent_y)
@@ -1880,16 +1880,16 @@ BOOL CMilModel::GetMeasLineResult(MIL_ID mark_id, MIL_ID grab_id, INT32 cent_x, 
 	LPG_ELFR pstValue = m_pstShMemVisi->line_result[m_u8ACamID - 1];
 	SYSTEMTIME stTime = { NULL };
 
-	/* ÅØ½ºÆ® »ö»ó ¼³Á¤  */
+	/* í…ìŠ¤íŠ¸ ìƒ‰ìƒ ì„¤ì •  */
 	MgraColor(M_DEFAULT, M_COLOR_RED);
 	/* Get the specified type of result(s) for all points, edges, stripes, or circles */
 	/* from a measurement marker or result buffer */
-	MmeasGetResult(mark_id, M_NUMBER + M_TYPE_LONG, &lFindCount, NULL);		/* °Ë»öµÈ Marker Counts */
+	MmeasGetResult(mark_id, M_NUMBER + M_TYPE_LONG, &lFindCount, NULL);		/* ê²€ìƒ‰ëœ Marker Counts */
 	for (l = 0; l < lFindCount; l++)
 	{
 		memset(pstValue, 0x00, sizeof(STG_ELFR));
 
-		/* °Ë»öµÈ ¿§Áö ¶óÀÎÀÇ °¢ ÆÄ¶ó¹ÌÅÍ¿¡ ´ëÇÑ °á°ú °ª ¾ò±â */
+		/* ê²€ìƒ‰ëœ ì—£ì§€ ë¼ì¸ì˜ ê° íŒŒë¼ë¯¸í„°ì— ëŒ€í•œ ê²°ê³¼ ê°’ ì–»ê¸° */
 		MmeasGetResultSingle(mark_id, M_ANGLE, &dbValue[0], M_NULL, l);
 		pstValue->angle = (INT16)ROUNDED((dbValue[0] - dbGrabEdgeAngle) * 100.0f, 0);
 		MmeasGetResultSingle(mark_id, M_EDGE_STRENGTH, &dbValue[0], M_NULL, l);
@@ -1907,28 +1907,28 @@ BOOL CMilModel::GetMeasLineResult(MIL_ID mark_id, MIL_ID grab_id, INT32 cent_x, 
 		pstValue->percent_score = (UINT32)ROUNDED(dbValue[0] * 1000.0f, 0);
 		MmeasGetResultSingle(mark_id, M_WIDTH, &dbValue[0], M_NULL, l);
 		pstValue->line_width = dbValue[0];
-		/* ¸Ç ¸¶Áö¸· °ËÃâµÈ Ç×¸ñ¿¡´Â SPACING °ª ±¸ÇÒ¼ö ¾øÀ½ (¿¡·¯ ¹ß»ı) */
+		/* ë§¨ ë§ˆì§€ë§‰ ê²€ì¶œëœ í•­ëª©ì—ëŠ” SPACING ê°’ êµ¬í• ìˆ˜ ì—†ìŒ (ì—ëŸ¬ ë°œìƒ) */
 		if (!(l + 1 == lFindCount))
 		{
 			MmeasGetResultSingle(mark_id, M_SPACING, &dbValue[0], M_NULL, l);
 			pstValue->spacing_um = dbValue[0] * dbPixelToUm;
 		}
 		/* ------------------------------------------------------------------- */
-		/* ÀÌ¹ÌÁöÀÇ Áß½É (Position X)¿¡¼­ ºÎÅÍ ÀÎ½ÄµÈ Edge±îÁö °Å¸® (´ÜÀ§: um) */
+		/* ì´ë¯¸ì§€ì˜ ì¤‘ì‹¬ (Position X)ì—ì„œ ë¶€í„° ì¸ì‹ëœ Edgeê¹Œì§€ ê±°ë¦¬ (ë‹¨ìœ„: um) */
 		/* ------------------------------------------------------------------- */
 		pstValue->cent_diff_um = (pstValue->position[0] / 1000.0f - cent_x) * dbPixelToUm;
 
-		/* °á°ú µ¥ÀÌÅÍ Ãâ·Â À§Ä¡ °è»ê */
+		/* ê²°ê³¼ ë°ì´í„° ì¶œë ¥ ìœ„ì¹˜ ê³„ì‚° */
 		lPos1 = ((l / 2) * 50) * ((l % 2 == 0) ? 1 : -1);
 		lPos2 = ((l % 2 == 0) ? 20 : -20);
-		/* °Ë»ö °á°ú ¹İÈ¯ */
+		/* ê²€ìƒ‰ ê²°ê³¼ ë°˜í™˜ */
 		swprintf_s(tzPosXY, 128, L"C:%.1f | A:%+.2f | S:%.2f",
 			pstValue->contrast / 10.0f, pstValue->angle / 100.0f, pstValue->strength / 100.0f);
 		MgraText(M_DEFAULT, grab_id,
 			(pstValue->position[0] / 1000.0f) + 5, pstValue->position[1] / 1000.0f + lPos1 + lPos2, tzPosXY);
 	}
 
-	/* ¼º°øÀÌ´ø ½ÇÆĞ´ø, ÇØ´ç °ËÃâÀÛ¾÷ ¼öÇàÇÑ ÀÌ¹ÌÁö ÀúÀå */
+	/* ì„±ê³µì´ë˜ ì‹¤íŒ¨ë˜, í•´ë‹¹ ê²€ì¶œì‘ì—… ìˆ˜í–‰í•œ ì´ë¯¸ì§€ ì €ì¥ */
 	GetLocalTime(&stTime);
 #ifdef _DEBUG
 	swprintf_s(tzFile, MAX_PATH_LEN, L"g:\\download\\qcells\\export_line.png");
@@ -1966,9 +1966,9 @@ BOOL CMilModel::SetStripMakerSetup(MIL_ID strip_id, LPG_MSMP param)
 	default:	mlAngleMethod = M_BICUBIC;			break;
 	}
 
-	/* ¸¶Ä¿ÀÇ ÃøÁ¤ ¹æÇâÀ» ¼³Á¤ ÇÕ´Ï´Ù */
+	/* ë§ˆì»¤ì˜ ì¸¡ì • ë°©í–¥ì„ ì„¤ì • í•©ë‹ˆë‹¤ */
 	MmeasSetMarker(strip_id, M_ORIENTATION, mlOrientation, M_NULL);
-	/* ¸¶Ä¿ÀÇ ±Ø¼ºÀ» ÁöÁ¤ (ÁÂÃøÀº positive, ¿ìÃøÀº negativeÀÏ °æ¿ì, ³»ºÎ ¾ÈÂÊÀÇ ³Êºñ ÃøÁ¤) */
+	/* ë§ˆì»¤ì˜ ê·¹ì„±ì„ ì§€ì • (ì¢Œì¸¡ì€ positive, ìš°ì¸¡ì€ negativeì¼ ê²½ìš°, ë‚´ë¶€ ì•ˆìª½ì˜ ë„ˆë¹„ ì¸¡ì •) */
 	MmeasSetMarker(strip_id, M_POLARITY, mlPolLeft, mlPolRight);
 	/* Set the start location of inspection area */
 	MmeasSetMarker(strip_id, M_BOX_ORIGIN, param->box_origin.x, param->box_origin.y);
@@ -1978,17 +1978,17 @@ BOOL CMilModel::SetStripMakerSetup(MIL_ID strip_id, LPG_MSMP param)
 	MmeasSetMarker(strip_id, M_BOX_ANGLE_MODE, mlAngleEnable, M_NULL);
 	if (param->enable_angle)
 	{
-		/* 90µµÀÎ °æ¿ì, AngleÀÇ ¹üÀ§¸¦ ¾çÀÇ ¹æÇâÀ¸·Î 90µµ±îÁö ÁöÁ¤ */
+		/* 90ë„ì¸ ê²½ìš°, Angleì˜ ë²”ìœ„ë¥¼ ì–‘ì˜ ë°©í–¥ìœ¼ë¡œ 90ë„ê¹Œì§€ ì§€ì • */
 		MmeasSetMarker(strip_id, M_BOX_ANGLE_DELTA_POS, param->angle_delta, M_NULL);
-		/* º¸°£¹ı ¾Ë°í¸®Áò ¼³Á¤ */
+		/* ë³´ê°„ë²• ì•Œê³ ë¦¬ì¦˜ ì„¤ì • */
 		//MmeasSetMarker(strip_id, M_BOX_ANGLE_INTERPOLATION_MODE, mlAngleMethod, M_NULL);
 		MmeasSetMarker(strip_id, M_SEARCH_REGION_ANGLE_INTERPOLATION_MODE, mlAngleMethod, M_NULL); 
 	}
 	//if (param->edge_width > 0.0f)
 	//{
-	//	/* »ç¿ëÀÚ°¡ widthÀÇ ¿¹»ó °ªÀ» ÁöÁ¤. ¾Ë°í¸®ÁòÀÌ °Ë»öÀ» ´õ ¿ëÀÌÇÏ°Ô µµ¿Í ÁÜ? ÆøÀ» ¿¹»óÇÏ´Â pxiel Å©±â °ª ÁöÁ¤ */
+	//	/* ì‚¬ìš©ìê°€ widthì˜ ì˜ˆìƒ ê°’ì„ ì§€ì •. ì•Œê³ ë¦¬ì¦˜ì´ ê²€ìƒ‰ì„ ë” ìš©ì´í•˜ê²Œ ë„ì™€ ì¤Œ? í­ì„ ì˜ˆìƒí•˜ëŠ” pxiel í¬ê¸° ê°’ ì§€ì • */
 	//	MmeasSetMarker(strip_id, M_WIDTH , param->edge_width, M_NULL);
-	//	/* ÆøÀÇ Çã¿ë ¿ÀÂ÷ pixel °ªÀ» ÁöÁ¤ */
+	//	/* í­ì˜ í—ˆìš© ì˜¤ì°¨ pixel ê°’ì„ ì§€ì • */
 	//	//MmeasSetMarker(strip_id, M_WIDTH_VARIATION, param->edge_offset, M_NULL);
 	//	MmeasSetMarker(strip_id, M_WIDTH_VARIATION, param->edge_offset, M_NULL);
 	//}
@@ -1999,7 +1999,7 @@ BOOL CMilModel::SetStripMakerSetup(MIL_ID strip_id, LPG_MSMP param)
 }
 #endif
 /*
- desc : ÇöÀç ÀûÀçµÈ ·¹½ÃÇÇÀÇ ¸¶Å© °Ë»ö Á¶°Ç °ª ¼³Á¤
+ desc : í˜„ì¬ ì ì¬ëœ ë ˆì‹œí”¼ì˜ ë§ˆí¬ ê²€ìƒ‰ ì¡°ê±´ ê°’ ì„¤ì •
  parm : score	- [in]  Score Rate
 		scale	- [in]  Scale Rate
  retn : None
@@ -2011,9 +2011,9 @@ VOID CMilModel::SetRecipeMarkRate(DOUBLE score, DOUBLE scale)
 }
 
 /*
- desc : ÇöÀç ÀûÀçµÈ ¸ğµ¨ÀÇ Å©±â ¹İÈ¯
- parm : index	- [in]  µî·ÏµÈ ¸ğµ¨ÀÇ ÀÎµ¦½º °ª (zero-based)
- retn : ¸ğµ¨ÀÇ Å©±â °ª (´ÜÀ§: pixel)
+ desc : í˜„ì¬ ì ì¬ëœ ëª¨ë¸ì˜ í¬ê¸° ë°˜í™˜
+ parm : index	- [in]  ë“±ë¡ëœ ëª¨ë¸ì˜ ì¸ë±ìŠ¤ ê°’ (zero-based)
+ retn : ëª¨ë¸ì˜ í¬ê¸° ê°’ (ë‹¨ìœ„: pixel)
 */
 UINT32 CMilModel::GetModelWidth(UINT8 index)
 {
@@ -2021,7 +2021,7 @@ UINT32 CMilModel::GetModelWidth(UINT8 index)
 
 	switch (m_pstMarkModel[index].type)
 	{
-		/* ¾Æ·¡ 2°³ÀÇ TypeÀº °Ë»ö µî·Ï ÇÒ ¶§, Áö¸§ (±æÀÌ)ÀÌ ¾Æ´Ñ ¹İÁö¸§ */
+		/* ì•„ë˜ 2ê°œì˜ Typeì€ ê²€ìƒ‰ ë“±ë¡ í•  ë•Œ, ì§€ë¦„ (ê¸¸ì´)ì´ ì•„ë‹Œ ë°˜ì§€ë¦„ */
 	case ENG_MMDT::en_ring:
 	case ENG_MMDT::en_circle:	dbDia = 2.0f;
 	}
@@ -2031,9 +2031,9 @@ UINT32 CMilModel::GetModelWidth(UINT8 index)
 }
 
 /*
- desc : ÇöÀç ÀûÀçµÈ ¸ğµ¨ÀÇ Å©±â ¹İÈ¯
- parm : index	- [in]  µî·ÏµÈ ¸ğµ¨ÀÇ ÀÎµ¦½º °ª (zero-based)
- retn : ¸ğµ¨ÀÇ Å©±â °ª (´ÜÀ§: pixel)
+ desc : í˜„ì¬ ì ì¬ëœ ëª¨ë¸ì˜ í¬ê¸° ë°˜í™˜
+ parm : index	- [in]  ë“±ë¡ëœ ëª¨ë¸ì˜ ì¸ë±ìŠ¤ ê°’ (zero-based)
+ retn : ëª¨ë¸ì˜ í¬ê¸° ê°’ (ë‹¨ìœ„: pixel)
 */
 UINT32 CMilModel::GetModelHeight(UINT8 index)
 {
@@ -2041,7 +2041,7 @@ UINT32 CMilModel::GetModelHeight(UINT8 index)
 
 	switch (m_pstMarkModel[index].type)
 	{
-		/* ¾Æ·¡ 2°³ÀÇ TypeÀº °Ë»ö µî·Ï ÇÒ ¶§, Áö¸§ (±æÀÌ)ÀÌ ¾Æ´Ñ ¹İÁö¸§ */
+		/* ì•„ë˜ 2ê°œì˜ Typeì€ ê²€ìƒ‰ ë“±ë¡ í•  ë•Œ, ì§€ë¦„ (ê¸¸ì´)ì´ ì•„ë‹Œ ë°˜ì§€ë¦„ */
 	case ENG_MMDT::en_ring:
 	case ENG_MMDT::en_circle:	dbDia = 2.0f;
 	}
@@ -2050,10 +2050,10 @@ UINT32 CMilModel::GetModelHeight(UINT8 index)
 }
 
 /*
- desc : Mulit Mark °Ë»ö ¹æ½ÄÀÏ °æ¿ì, Áï, MMF ¸¶Å© °Ë»ö ¹æ½ÄÀÏ °æ¿ì, °Ë»öµÈ ¸¶Å© ¿µ¿ªÀÇ ÁÖº¯À» ±×¸®±â À§ÇÑ ¿ëµµ
-		Mark °¡ MMF ÆÄÀÏÀÎ °æ¿ì, ¸¶Å© Å©±â °ª
- parm : width	- [in]  »ç°¢Çü ¿µ¿ªÀÇ ³ĞÀÌ °ª (´ÜÀ§: um)
-		height	- [in]  »ç°¢Çü ¿µ¿ªÀÇ ³ôÀÌ °ª (´ÜÀ§: um)
+ desc : Mulit Mark ê²€ìƒ‰ ë°©ì‹ì¼ ê²½ìš°, ì¦‰, MMF ë§ˆí¬ ê²€ìƒ‰ ë°©ì‹ì¼ ê²½ìš°, ê²€ìƒ‰ëœ ë§ˆí¬ ì˜ì—­ì˜ ì£¼ë³€ì„ ê·¸ë¦¬ê¸° ìœ„í•œ ìš©ë„
+		Mark ê°€ MMF íŒŒì¼ì¸ ê²½ìš°, ë§ˆí¬ í¬ê¸° ê°’
+ parm : width	- [in]  ì‚¬ê°í˜• ì˜ì—­ì˜ ë„“ì´ ê°’ (ë‹¨ìœ„: um)
+		height	- [in]  ì‚¬ê°í˜• ì˜ì—­ì˜ ë†’ì´ ê°’ (ë‹¨ìœ„: um)
  retn : None
 */
 VOID CMilModel::SetMultiMarkArea(UINT32 width, UINT32 height)
@@ -2063,7 +2063,7 @@ VOID CMilModel::SetMultiMarkArea(UINT32 width, UINT32 height)
 }
 
 /* ----------------------------------------------------------------------------------------- */
-/*                                 lk91 VISION Ãß°¡ ÇÔ¼ö                                     */
+/*                                 lk91 VISION ì¶”ê°€ í•¨ìˆ˜                                     */
 /* ----------------------------------------------------------------------------------------- */
 
 /* desc : Regist Pattern Matching Mark (pat) */
@@ -2073,7 +2073,7 @@ BOOL CMilModel::RegistPat(PUINT8 img_src, CRect fi_rectArea, CString fi_filename
 	int height = fi_rectArea.bottom - fi_rectArea.top;
 
 #ifndef _NOT_USE_MIL_
-	theApp.clMilMain.m_MarkSize.x = width;	// lk91 ¾îµğ¿¡ ¾²ÀÌ´ÂÁö m_pstMarkModel[mark_no].iSizeP ·Î ´ëÃ¼ÇÒ ¼ö ÀÖ´ÂÁö
+	theApp.clMilMain.m_MarkSize.x = width;	// lk91 ì–´ë””ì— ì“°ì´ëŠ”ì§€ m_pstMarkModel[mark_no].iSizeP ë¡œ ëŒ€ì²´í•  ìˆ˜ ìˆëŠ”ì§€
 	theApp.clMilMain.m_MarkSize.y = height;
 #endif
 	m_pstMarkModel[mark_no].iSizeP.x = width;
@@ -2108,7 +2108,7 @@ BOOL CMilModel::RegistMod(PUINT8 img_src, CRect fi_rectArea, CString fi_filename
 	int height = fi_rectArea.bottom - fi_rectArea.top;
 
 #ifndef _NOT_USE_MIL_
-	theApp.clMilMain.m_MarkSize.x = width;// lk91 ¾îµğ¿¡ ¾²ÀÌ´ÂÁö m_pstMarkModel[mark_no].iSizeP ·Î ´ëÃ¼ÇÒ ¼ö ÀÖ´ÂÁö
+	theApp.clMilMain.m_MarkSize.x = width;// lk91 ì–´ë””ì— ì“°ì´ëŠ”ì§€ m_pstMarkModel[mark_no].iSizeP ë¡œ ëŒ€ì²´í•  ìˆ˜ ìˆëŠ”ì§€
 	theApp.clMilMain.m_MarkSize.y = height;
 #endif
 
@@ -2185,7 +2185,7 @@ VOID CMilModel::SetMarkSize(CPoint fi_MarkSize, int setMode, int mark_no)
 }
 
 /* desc : Set Mark Offset */
-VOID CMilModel::SetMarkOffset(CPoint fi_MarkCenter, int setOffsetMode, int mark_no) // 0(default) : ÀÏ¹İ offset, 1 : NewOffset, 2: (MarkSet)NewOffset -> Offset º¯È¯, 3: Draw ¿¡ »ç¿ëÇÏ´Â ÀÓ½Ã Offset
+VOID CMilModel::SetMarkOffset(CPoint fi_MarkCenter, int setOffsetMode, int mark_no) // 0(default) : ì¼ë°˜ offset, 1 : NewOffset, 2: (MarkSet)NewOffset -> Offset ë³€í™˜, 3: Draw ì— ì‚¬ìš©í•˜ëŠ” ì„ì‹œ Offset
 {
 	switch (setOffsetMode)
 	{
@@ -2209,7 +2209,7 @@ VOID CMilModel::SetMarkOffset(CPoint fi_MarkCenter, int setOffsetMode, int mark_
 	}
 }
 
-/* desc : Mark Size, Offset ÃÊ±âÈ­ */
+/* desc : Mark Size, Offset ì´ˆê¸°í™” */
 VOID CMilModel::InitSetMarkSizeOffset(UINT8 cam_id, TCHAR* file, UINT8 fi_findType, UINT8 mark_no)
 {
 	DOUBLE tSize_x = 0, tSize_y = 0;
@@ -2271,7 +2271,7 @@ VOID CMilModel::PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHA
 		AfxMessageBox(_T("m_mImg_Mark Buffer Create Fail"));
 		return;
 	}
-	//--- SetMarkDisp ¹öÆÛ»ı¼º
+	//--- SetMarkDisp ë²„í¼ìƒì„±
 	if (theApp.clMilMain.m_mImgDisp_Mark[fi_iNo])	MbufClear(theApp.clMilMain.m_mImgDisp_Mark[fi_iNo], 192L);
 	else
 	{
@@ -2316,7 +2316,7 @@ VOID CMilModel::PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHA
 
 			MmodInquire(m_mlModelID_D, M_DEFAULT, M_ALLOC_SIZE_X, &tSize_x);
 			MmodInquire(m_mlModelID_D, M_DEFAULT, M_ALLOC_SIZE_Y, &tSize_y);
-			//MmodInquire(m_mlModelID_D, M_DEFAULT, M_ORIGINAL_X, &tOffset_x); // lk91 M_REFERENCE_´Â ¾ÈµÈ´Ù.. CDPoint °ª ¾ÈµÅ
+			//MmodInquire(m_mlModelID_D, M_DEFAULT, M_ORIGINAL_X, &tOffset_x); // lk91 M_REFERENCE_ëŠ” ì•ˆëœë‹¤.. CDPoint ê°’ ì•ˆë¼
 			//MmodInquire(m_mlModelID_D, M_DEFAULT, M_ORIGINAL_Y, &tOffset_y);
 			tOffset_x = m_pstMarkModel[fi_iNo].iOffsetP.x;
 			tOffset_y = m_pstMarkModel[fi_iNo].iOffsetP.y;
@@ -2360,7 +2360,7 @@ VOID CMilModel::PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHA
 	um_iTmpOffP[2].y = (LONG)tOffset_y;
 
 	//iSizeP = m_pstMarkModel->iSizeP;
-	//iSizeP = um_iTmpSizeP; // lk91 sizeP´Â ´Ù »èÁ¦ÇÏ°í Á÷Á¢ ºÒ·¯¿À´Â ¹æ½Ä »ç¿ëÇÏ±â...
+	//iSizeP = um_iTmpSizeP; // lk91 sizePëŠ” ë‹¤ ì‚­ì œí•˜ê³  ì§ì ‘ ë¶ˆëŸ¬ì˜¤ëŠ” ë°©ì‹ ì‚¬ìš©í•˜ê¸°...
 
 	double dRate, dRate1, dRate2 = 1.0;
 
@@ -2378,8 +2378,8 @@ VOID CMilModel::PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHA
 
 #ifndef _NOT_USE_MIL_
 		MbufClear(theApp.clMilMain.m_mImgDisp_Mark[fi_iNo], 192);
-		//¸¶Å©¶ç¿ì´Â°÷
-		// lk91 ÀÌ»óÇÏ°Ô dRate°¡ µ¿ÀÏÇÑµ¥µµ ÀÌ¹ÌÁö »çÀÌÁî°¡ Ã³À½°ú ±× ÀÌÈÄ·Î ¾÷µ¥ÀÌÆ® µÉ¶§ ´Ù¸£°Ô Ãâ·Â
+		//ë§ˆí¬ë„ìš°ëŠ”ê³³
+		// lk91 ì´ìƒí•˜ê²Œ dRateê°€ ë™ì¼í•œë°ë„ ì´ë¯¸ì§€ ì‚¬ì´ì¦ˆê°€ ì²˜ìŒê³¼ ê·¸ ì´í›„ë¡œ ì—…ë°ì´íŠ¸ ë ë•Œ ë‹¤ë¥´ê²Œ ì¶œë ¥
 		//MimResize(theApp.clMilMain.m_mImg_Mark[fi_iNo], theApp.clMilMain.m_mImgDisp_Mark[fi_iNo], dRate, dRate, M_DEFAULT);
 		theApp.clMilMain.MARK_DISP_RATE = dRate;
 #endif
@@ -2391,7 +2391,7 @@ VOID CMilModel::PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHA
 	//um_iNewSizeP.x = (int)(m_pstMarkModel->iSizeP.x);
 	//um_iNewSizeP.y = (int)(m_pstMarkModel->iSizeP.y);
 
-	// Overlay ±×¸®±â, fi_iDispType : 1
+	// Overlay ê·¸ë¦¬ê¸°, fi_iDispType : 1
 	theApp.clMilDisp.DrawOverlayDC(false, DISP_TYPE_MARK, fi_iNo);
 	theApp.clMilDisp.AddLineList(DISP_TYPE_MARK, fi_iNo, um_iTmpOffP[2].x, 0, um_iTmpOffP[2].x, um_iTmpSizeP[2].y, PS_DOT, COLOR_GREEN);
 	theApp.clMilDisp.AddLineList(DISP_TYPE_MARK, fi_iNo, 0, um_iTmpOffP[2].y, um_iTmpSizeP[2].x, um_iTmpOffP[2].y, PS_DOT, COLOR_GREEN);
@@ -2430,7 +2430,7 @@ VOID CMilModel::PutMarkDisp(HWND hwnd, int fi_iNo, RECT draw, UINT8 cam_id, TCHA
 }
 
 /* desc : Draw Set Mark Display */
-BOOL CMilModel::PutSetMarkDisp(HWND hwnd, RECT draw, UINT8 cam_id, TCHAR* file, int fi_findType, DOUBLE fi_dRate) // Mark Disp¿¡ »Ñ¸®±â
+BOOL CMilModel::PutSetMarkDisp(HWND hwnd, RECT draw, UINT8 cam_id, TCHAR* file, int fi_findType, DOUBLE fi_dRate) // Mark Dispì— ë¿Œë¦¬ê¸°
 {
 	theApp.clMilMain.MARKSET_DISP_RATE = fi_dRate;
 
@@ -2450,7 +2450,7 @@ BOOL CMilModel::PutSetMarkDisp(HWND hwnd, RECT draw, UINT8 cam_id, TCHAR* file, 
 		MbufClear(theApp.clMilMain.m_mImg_MarkSet, 192L);
 	}
 
-	//--- SetMarkDisp ¹öÆÛ»ı¼º
+	//--- SetMarkDisp ë²„í¼ìƒì„±
 	if (!theApp.clMilMain.m_mImgDisp_MarkSet)
 	{
 		MbufAlloc2d(theApp.clMilMain.m_mSysID, draw.right - draw.left, draw.bottom - draw.top, 8L + M_UNSIGNED, BufferAttributes, &theApp.clMilMain.m_mImgDisp_MarkSet);
@@ -2514,15 +2514,15 @@ BOOL CMilModel::PutSetMarkDisp(HWND hwnd, RECT draw, UINT8 cam_id, TCHAR* file, 
 	}
 
 	BOOL bRtnVal = FALSE;
-	// ÃÖ´ë Max-SizeÈ®ÀÎ
+	// ìµœëŒ€ Max-Sizeí™•ì¸
 	CPoint	iMaxSizeP;
 	iMaxSizeP.x = draw.right - draw.left;
 	iMaxSizeP.y = draw.bottom - draw.top;
-	// ¸¶Å©»çÀÌÁî¸¦ ÇØ´ç ºñÀ²¿¡ ¸Â°Ô È¯»ê...
+	// ë§ˆí¬ì‚¬ì´ì¦ˆë¥¼ í•´ë‹¹ ë¹„ìœ¨ì— ë§ê²Œ í™˜ì‚°...
 	CPoint	iTmpSizeP;
 	iTmpSizeP.x = (int)(m_pstMarkModel[2].iSizeP.x * fi_dRate + 0.5); 
 	iTmpSizeP.y = (int)(m_pstMarkModel[2].iSizeP.y * fi_dRate + 0.5);
-	// µğ½ºÇÃ·¹ÀÌ¹öÆÛ º¸´Ù »çÀÌÁî°¡ Å©¸é ´õ ¾ÈÄ¿Áö°Ô ÇÊÅÍ¸µ...
+	// ë””ìŠ¤í”Œë ˆì´ë²„í¼ ë³´ë‹¤ ì‚¬ì´ì¦ˆê°€ í¬ë©´ ë” ì•ˆì»¤ì§€ê²Œ í•„í„°ë§...
 	if (iTmpSizeP.x > iTmpSizeP.y)
 	{
 		if (iTmpSizeP.x > iMaxSizeP.x)
@@ -2548,7 +2548,7 @@ BOOL CMilModel::PutSetMarkDisp(HWND hwnd, RECT draw, UINT8 cam_id, TCHAR* file, 
 	return TRUE;
 }
 
-/* desc : PAT ÆÄÀÏ¿¡ MASK Á¤º¸ ÀúÀå, Mark Set¿¡¼­¸¸ »ç¿ë */
+/* desc : PAT íŒŒì¼ì— MASK ì •ë³´ ì €ì¥, Mark Setì—ì„œë§Œ ì‚¬ìš© */
 VOID CMilModel::SaveMask_PAT(UINT8 mark_no)
 {
 #ifndef _NOT_USE_MIL_
@@ -2566,7 +2566,7 @@ VOID CMilModel::SaveMask_PAT(UINT8 mark_no)
 #endif
 }
 
-/* desc : MMF ÆÄÀÏ¿¡ MASK Á¤º¸ ÀúÀå, Mark Set¿¡¼­¸¸ »ç¿ë */
+/* desc : MMF íŒŒì¼ì— MASK ì •ë³´ ì €ì¥, Mark Setì—ì„œë§Œ ì‚¬ìš© */
 VOID CMilModel::SaveMask_MOD(UINT8 mark_no)
 {
 #ifndef _NOT_USE_MIL_
@@ -2584,7 +2584,7 @@ VOID CMilModel::SaveMask_MOD(UINT8 mark_no)
 #endif
 }
 
-/* desc : PAT MARK ÀúÀå */
+/* desc : PAT MARK ì €ì¥ */
 VOID CMilModel::PatMarkSave(CString fi_strFileName, UINT8 mark_no)
 {
 	wchar_t* wchar_str;
@@ -2598,7 +2598,7 @@ VOID CMilModel::PatMarkSave(CString fi_strFileName, UINT8 mark_no)
 #endif
 }
 
-/* desc : MMF MARK ÀúÀå */
+/* desc : MMF MARK ì €ì¥ */
 VOID CMilModel::ModMarkSave(CString fi_strFileName, UINT8 mark_no)
 {
 	wchar_t* wchar_str;
@@ -2642,7 +2642,7 @@ VOID CMilModel::MaskClear_PAT(CPoint fi_iSizeP, UINT8 mark_no)
 #endif
 }
 
-/* desc : Find Center (Mark Set¿¡¼­¸¸ »ç¿ë) */
+/* desc : Find Center (Mark Setì—ì„œë§Œ ì‚¬ìš©) */
 VOID CMilModel::CenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEdgeMIN_X, double* fi_NumEdgeMAX_X, double* fi_NumEdgeMIN_Y, double* fi_NumEdgeMAX_Y, int* fi_NumEdgeFound, int fi_Mode)
 {
 	MIL_ID MilTmpResult = M_NULL;
@@ -2682,7 +2682,7 @@ VOID CMilModel::CenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEd
 
 	MedgeGetResult(MilTmpResult, M_DEFAULT, M_NUMBER_OF_CHAINS + M_TYPE_MIL_INT, &NumEdgeFound, M_NULL);
 
-	// edge°¡ 1.0 ¹Ì¸¸Àº ¸ğµÎ 1.0À¸·Î edge°¡ ±×·ÁÁø´Ù... mgracontrolÀÌ ¾È¸ÔÇô.. ÀÏ´ÜÀº 1.0 À¸·Î Á¦ÇÑ 
+	// edgeê°€ 1.0 ë¯¸ë§Œì€ ëª¨ë‘ 1.0ìœ¼ë¡œ edgeê°€ ê·¸ë ¤ì§„ë‹¤... mgracontrolì´ ì•ˆë¨¹í˜€.. ì¼ë‹¨ì€ 1.0 ìœ¼ë¡œ ì œí•œ 
 	if (theApp.clMilMain.MARKSET_DISP_RATE >= 1.0)
 	{
 		MgraControl(M_DEFAULT, M_DRAW_ZOOM_X, theApp.clMilMain.MARKSET_DISP_RATE);
@@ -2713,7 +2713,7 @@ VOID CMilModel::CenterFind(int fi_length, int fi_curSmoothness, double* fi_NumEd
 #endif
 }
 
-/* desc : Mark Á¤º¸ ±×¸± ¶§ »ç¿ëÇÏ´Â MIL ÇÔ¼ö */
+/* desc : Mark ì •ë³´ ê·¸ë¦´ ë•Œ ì‚¬ìš©í•˜ëŠ” MIL í•¨ìˆ˜ */
 VOID CMilModel::DrawMarkInfo_UseMIL(UINT8 fi_smooth, UINT8 mark_no)
 {
 #ifndef _NOT_USE_MIL_
@@ -2725,7 +2725,7 @@ VOID CMilModel::DrawMarkInfo_UseMIL(UINT8 fi_smooth, UINT8 mark_no)
 	MmodDraw(M_DEFAULT, m_mlModelID[mark_no], theApp.clMilMain.m_mOverlay_MarkSet, M_DRAW_EDGES, M_DEFAULT, M_DEFAULT);
 	if (theApp.clMilMain.MilMask) {
 		MpatDraw(M_DEFAULT, m_mlPATID[mark_no], theApp.clMilMain.MilMask, M_DRAW_DONT_CARE, M_DEFAULT, M_DEFAULT);
-		//MbufGet(theApp.clMilMain.MilMask, theApp.clMilMain.pucMaskBuf); // lk91 ¾ğÁ¦ µé¾î¿À´ÂÁö Ã¼Å©...Ã³À½¿¡¸¸ µé¾î¿À´ÂÁö..
+		//MbufGet(theApp.clMilMain.MilMask, theApp.clMilMain.pucMaskBuf); // lk91 ì–¸ì œ ë“¤ì–´ì˜¤ëŠ”ì§€ ì²´í¬...ì²˜ìŒì—ë§Œ ë“¤ì–´ì˜¤ëŠ”ì§€..
 	}
 #endif
 }
@@ -2750,7 +2750,7 @@ VOID CMilModel::Mask_MarkSet(CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, in
 		{
 			for (y = rectTmp.top; y < rectTmp.bottom; y++)
 			{
-				theApp.clMilMain.pucMaskBuf[y * ibufSize + x] = 0xff;	// pModel ¿¡ Ãß°¡
+				theApp.clMilMain.pucMaskBuf[y * ibufSize + x] = 0xff;	// pModel ì— ì¶”ê°€
 			}
 		}
 	}
@@ -2765,9 +2765,9 @@ VOID CMilModel::Mask_MarkSet(CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, in
 
 /*
  desc : Geometric Model Find
- parm : grab_id	- [in]  Grabbed Image Á¤º¸°¡ ÀúÀåµÈ ID (Target Image (Buffer))
-		angle	- [in]  °¢µµ Àû¿ë ¿©ºÎ (TRUE : °¢µµ ÃøÁ¤ÇÔ, FALSE : °¢µµ ÃøÁ¤ÇÏÁö ¾ÊÀ½)
-						TRUE : ÇöÀç Ä«¸Ş¶óÀÇ È¸ÀüµÈ °¢µµ ±¸ÇÏ±â À§ÇÔ, FALSE : ±âÁ¸ °¢µµ Àû¿ëÇÏ¿© È¸ÀüµÈ °¢µµ ±¸ÇÔ
+ parm : grab_id	- [in]  Grabbed Image ì •ë³´ê°€ ì €ì¥ëœ ID (Target Image (Buffer))
+		angle	- [in]  ê°ë„ ì ìš© ì—¬ë¶€ (TRUE : ê°ë„ ì¸¡ì •í•¨, FALSE : ê°ë„ ì¸¡ì •í•˜ì§€ ì•ŠìŒ)
+						TRUE : í˜„ì¬ ì¹´ë©”ë¼ì˜ íšŒì „ëœ ê°ë„ êµ¬í•˜ê¸° ìœ„í•¨, FALSE : ê¸°ì¡´ ê°ë„ ì ìš©í•˜ì—¬ íšŒì „ëœ ê°ë„ êµ¬í•¨
  retn : TRUE or FALSE
 */
 BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
@@ -2781,17 +2781,17 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 	DOUBLE dbPosX, dbPosY, dbScore, dbScale, dbAngle, dbCovg, dbFitErr;
 	MIL_ID mlResult = M_NULL, miModResults = 0, miOperation;
 
-	/* ±¸Á¶Ã¼ °ª ÃÊ±âÈ­ (!!! ¹İµå½Ã ÃÊ±âÈ­ !!!) */
+	/* êµ¬ì¡°ì²´ ê°’ ì´ˆê¸°í™” (!!! ë°˜ë“œì‹œ ì´ˆê¸°í™” !!!) */
 	m_u8MarkFindGet = 0x00;
 	ResetMarkResult();
 
 	/* Get the size of grabbed image (buffer) */
 	u32GrabWidth = (UINT32)MbufInquire(grab_id, M_SIZE_X, NULL);
 	u32GrabHeight = (UINT32)MbufInquire(grab_id, M_SIZE_Y, NULL);
-	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ÁÂÇ¥ °ªÀº Zero-based ÀÌ¹Ç·Î */
+	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ì¢Œí‘œ ê°’ì€ Zero-based ì´ë¯€ë¡œ */
 	dbGrabCentY = (DOUBLE)u32GrabHeight / 2.0f;
 
-	//MbufSave(_T("C:\\DI_TEST\\RESULT4.bmp"), grab_id); // lk91 TEST ¿ë
+	//MbufSave(_T("C:\\DI_TEST\\RESULT4.bmp"), grab_id); // lk91 TEST ìš©
 
 	/* Allocate a result buffer. */
 	MmodAllocResult(m_mlSysID, M_DEFAULT, &mlResult);
@@ -2804,7 +2804,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 		swprintf_s(tzData, 128, L"Not all mark were found : search (%u) / found (%u)",
 			u32MaxCount, UINT8(miModResults));
 		LOG_WARN(ENG_EDIC::en_mil, tzData);
-		/* °á°ú ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+		/* ê²°ê³¼ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 		MmodFree(mlResult);
 		return FALSE;
 	}
@@ -2814,7 +2814,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 	/* If a model was found above the acceptance threshold */
 	if (miModResults > u32MaxCount)	miModResults = u32MaxCount;
 	/* Read results */
-	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* ¸ğµ¨ ¿©·¯°³ µî·ÏÇßÀ» ¶§, °Ë»öµÈ ¸ğµ¨ÀÇ ¹øÈ£ */
+	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* ëª¨ë¸ ì—¬ëŸ¬ê°œ ë“±ë¡í–ˆì„ ë•Œ, ê²€ìƒ‰ëœ ëª¨ë¸ì˜ ë²ˆí˜¸ */
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_X, m_pFindPosX);
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_Y, m_pFindPosY);
 	MmodGetResult(mlResult, M_DEFAULT, M_SCORE, m_pFindScore);
@@ -2825,7 +2825,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 	//MmodGetResult(mlResult, M_DEFAULT, M_RADIUS, m_pFindCircleRadius);
 
 
-	/* º¹ÇÕ ¸¶Å© °Ë»ö ¹æ½ÄÀÏ °æ¿ì, °Ë»ö ´ë»ó °³¼ö¸¸Å­ Ã£Áö ¸øÇß´ÂÁö ¿©ºÎ È®ÀÎ */
+	/* ë³µí•© ë§ˆí¬ ê²€ìƒ‰ ë°©ì‹ì¼ ê²½ìš°, ê²€ìƒ‰ ëŒ€ìƒ ê°œìˆ˜ë§Œí¼ ì°¾ì§€ ëª»í–ˆëŠ”ì§€ ì—¬ë¶€ í™•ì¸ */
 	if (true)
 	{
 		if (miModResults == 0)
@@ -2833,7 +2833,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miModResults));
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
-			bSucc = FALSE;	/* ÀÛ¾÷ ½ÇÆĞ */
+			bSucc = FALSE;	/* ì‘ì—… ì‹¤íŒ¨ */
 		}
 		
 	}
@@ -2847,27 +2847,27 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 			//			miOperation	= M_TARGET+M_DRAW_BOX+M_DRAW_EDGES+M_DRAW_POSITION;
 			//			miOperation	= M_DRAW_EDGES+M_DRAW_BOX+M_DRAW_POSITION/*+M_DRAW_WEIGHT_REGIONS*/;
 
-						/* °Ë»öµÈ ¸ğµ¨ÀÇ Target (Matching ¸ğµ¨ÀÌ ¾Æ´Ï¶ó)¿¡ ´ëÇØ ±×¸² ±×·Á ÁÖ±â */
+						/* ê²€ìƒ‰ëœ ëª¨ë¸ì˜ Target (Matching ëª¨ë¸ì´ ì•„ë‹ˆë¼)ì— ëŒ€í•´ ê·¸ë¦¼ ê·¸ë ¤ ì£¼ê¸° */
 			MgraColor(graph_id/*M_DEFAULT*/, M_COLOR_RED);
 			/* Draw the model */
 			MmodDraw(M_DEFAULT, mlResult, grab_id, miOperation, i, M_DEFAULT);
 #endif
-			/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+			/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 			if (!angle)
 			{
-				/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+				/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 				GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 			}
 
-			/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+			/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 			m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-			/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+			/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 			m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-			/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+			/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 			if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 			else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 			/* --------------------------------------------------------------------------------------- */
-			/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+			/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 			m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 				m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 				m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -2875,10 +2875,10 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle)
 		}
 	}
 
-	/* °á°ú ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ê²°ê³¼ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 	MmodFree(mlResult);
 
-	/* 1 °³ ÀÌ»ó Ã£¾Æ¾ß µÊ */
+	/* 1 ê°œ ì´ìƒ ì°¾ì•„ì•¼ ë¨ */
 	m_u8MarkFindGet = UINT8(miModResults);
 	return miModResults > 0;
 }
@@ -2928,78 +2928,141 @@ static inline bool FitCircleLS(const std::vector<std::pair<double, double>>& P,
 	return true;
 }
 
-// n: °ËÃâµÈ Á¡ °³¼ö, xs/ys: °¢ Á¡ ÁÂÇ¥. ±â´ë °³¼ö K=16 °íÁ¤.
-// ¸®ÅÏ: (cx, cy). ½ÇÆĞ ½Ã (NaN, NaN)
 std::pair<double, double> EstimateCircleCenterRobust(int n, const double* xs, const double* ys)
 {
-	const int K = 16;                 // ±â´ë µµÆ® ¼ö
+	const int K = 16;
 	if (n < 3) return { NAN,NAN };
 
-	// --- 1) RANSAC·Î ´ë·« ¿ø ÃßÁ¤ ---
+	double Cx = 0, Cy = 0, R = 0;
+	int bestInl = -1;
+	double bestScore = -1e18;
+
 	std::mt19937 rng(0xC0FFEE);
 	std::uniform_int_distribution<int> uni(0, n - 1);
-	int bestInl = -1; double Cx = 0, Cy = 0, R = 0;
+
+	double radiusTole = 0.06;  // ë°˜ì§€ë¦„ 6%
+	double minTol = 2.0;      // ìµœì†Œ 2px
+
 	for (int it = 0; it < 300; ++it) {
 		int i = uni(rng), j = uni(rng), k = uni(rng);
 		if (i == j || j == k || i == k) continue;
-		double cx, cy, r;
-		if (!CircleFrom3(xs[i], ys[i], xs[j], ys[j], xs[k], ys[k], cx, cy, r)) continue;
-		double tol = std::max(1.0, r * 0.03); // ¹İÁö¸§ 3% or ÃÖ¼Ò 1px
-		int inl = 0;
-		for (int t = 0; t < n; ++t) {
-			double rr = std::hypot(xs[t] - cx, ys[t] - cy);
-			if (std::fabs(rr - r) <= tol) ++inl;
-		}
-		if (inl > bestInl) { bestInl = inl; Cx = cx; Cy = cy; R = r; }
-	}
-	if (bestInl < 3) return { NAN,NAN };
 
-	// --- 2) ¹İÁö¸§ ¹êµå ÄÆ & ¼½ÅÍ¸µÀ¸·Î °í½ºÆ® Á¦°Å ---
-	// ¹İÁö¸§ ¹êµå
+		double cx, cy, r;
+		if (!CircleFrom3(xs[i], ys[i], xs[j], ys[j], xs[k], ys[k], cx, cy, r))
+			continue;
+
+		double tol = std::max(minTol, r * radiusTole);
+
+		std::vector<double> rrInlier;
+		rrInlier.reserve(n);
+
+		for (int t = 0; t < n; ++t) {
+			double rr = hypot(xs[t] - cx, ys[t] - cy);
+			if (fabs(rr - r) <= tol)
+				rrInlier.push_back(rr);
+		}
+
+		int inl = rrInlier.size();
+		if (inl < 3) continue;
+
+		
+		double mean = 0; for (double v : rrInlier) mean += v;
+		mean /= inl;
+
+		double var = 0;
+		for (double v : rrInlier) var += (v - mean) * (v - mean);
+		var /= inl;
+
+		
+		double score = inl - var * 0.1;
+
+		if (score > bestScore) {
+			bestScore = score;
+			bestInl = inl;
+			Cx = cx; Cy = cy; R = r;
+		}
+	}
+
+	if (bestInl < 3) return { NAN, NAN };
+
+
 	std::vector<int> keepIdx;
-	keepIdx.reserve(n);
-	double rTol = std::max(1.0, R * 0.03);
+	double tolR = std::max(minTol, R * radiusTole);
 	for (int t = 0; t < n; ++t) {
-		double rr = std::hypot(xs[t] - Cx, ys[t] - Cy);
-		if (std::fabs(rr - R) <= rTol) keepIdx.push_back(t);
+		double rr = hypot(xs[t] - Cx, ys[t] - Cy);
+		if (fabs(rr - R) <= tolR)
+			keepIdx.push_back(t);
 	}
 	if (keepIdx.size() < 3) return { NAN,NAN };
 
-	// ¼½ÅÍ¸µ(°¢µµ ±â¹İ KµîºĞ, ¼½ÅÍ´ç 1°³¸¸)
+
+	std::vector<double> rs; rs.reserve(keepIdx.size());
+	for (int idx : keepIdx) rs.push_back(hypot(xs[idx] - Cx, ys[idx] - Cy));
+
+	std::sort(rs.begin(), rs.end());
+	double rMed = rs[rs.size() / 2];
+	double tolSimple = std::max(minTol, rMed * radiusTole);
+
+	{
+		std::vector<int> tmp;
+		tmp.reserve(keepIdx.size());
+		for (int idx : keepIdx) {
+			double rr = hypot(xs[idx] - Cx, ys[idx] - Cy);
+			if (fabs(rr - rMed) <= tolSimple)
+				tmp.push_back(idx);
+		}
+		keepIdx.swap(tmp);
+	}
+	if (keepIdx.size() < 3) return { NAN,NAN };
+
+
+	{
+		std::vector<std::pair<double, double>> pts;
+		pts.reserve(keepIdx.size());
+		for (int idx : keepIdx) pts.emplace_back(xs[idx], ys[idx]);
+		double tx, ty, tR;
+		if (FitCircleLS(pts, tx, ty, tR)) {
+			Cx = tx; Cy = ty; R = tR;
+		}
+	}
+
+
 	std::vector<std::vector<int>> buckets(K);
-	buckets.assign(K, {});
 	for (int idx : keepIdx) {
-		double th = std::atan2(ys[idx] - Cy, xs[idx] - Cx);
+		double th = atan2(ys[idx] - Cy, xs[idx] - Cx);
 		if (th < 0) th += 2 * M_PI;
-		int bin = (int)std::floor(th * (K / (2 * M_PI)));
+		int bin = int(floor(th * (K / (2 * M_PI))));
 		if (bin >= K) bin -= K;
 		buckets[bin].push_back(idx);
 	}
+
 
 	std::vector<std::pair<double, double>> finalPts;
 	finalPts.reserve(K);
 	for (int b = 0; b < K; ++b) {
 		if (buckets[b].empty()) continue;
-		// ¼½ÅÍ ¾È¿¡¼­ ¹İÁö¸§ ÆíÂ÷°¡ ÃÖ¼ÒÀÎ Á¡ ¼±ÅÃ
 		auto& v = buckets[b];
-		std::sort(v.begin(), v.end(), [&](int i, int j) {
-			double di = std::fabs(std::hypot(xs[i] - Cx, ys[i] - Cy) - R);
-			double dj = std::fabs(std::hypot(xs[j] - Cx, ys[j] - Cy) - R);
-			return di < dj;
+		std::sort(v.begin(), v.end(), [&](int a, int j) {
+			return fabs(hypot(xs[a] - Cx, ys[a] - Cy) - R) <
+				fabs(hypot(xs[j] - Cx, ys[j] - Cy) - R);
 			});
 		finalPts.emplace_back(xs[v[0]], ys[v[0]]);
 	}
 	if (finalPts.size() < 3) return { NAN,NAN };
 
-	// --- 3) ÃÖÁ¾ ¿ø ÀçÇÇÆÃ(ÃÖ¼ÒÁ¦°ö) ¹× ¼¾ÅÍ »êÃâ ---
+
 	double fx, fy, fR;
 	if (!FitCircleLS(finalPts, fx, fy, fR)) {
-		// ½ÇÆĞ ½Ã fallback: ´Ü¼ø Æò±Õ
-		double sx = 0, sy = 0; for (auto& p : finalPts) { sx += p.first; sy += p.second; }
+		double sx = 0, sy = 0;
+		for (auto& p : finalPts) { sx += p.first; sy += p.second; }
 		fx = sx / finalPts.size(); fy = sy / finalPts.size();
 	}
+
 	return { fx, fy };
 }
+
+
+
 
 
 /* desc : Geometric Model Find */
@@ -3039,14 +3102,14 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	DOUBLE dbPosX, dbPosY, dbScore, dbScale, dbAngle, dbCovg, dbFitErr, dbCircleR;
 	MIL_ID mlResult = M_NULL, miModResults = 0, miOperation;
 
-	/* ±¸Á¶Ã¼ °ª ÃÊ±âÈ­ (!!! ¹İµå½Ã ÃÊ±âÈ­ !!!) */
+	/* êµ¬ì¡°ì²´ ê°’ ì´ˆê¸°í™” (!!! ë°˜ë“œì‹œ ì´ˆê¸°í™” !!!) */
 	m_u8MarkFindGet = 0x00;
 	ResetMarkResult();
 
 	/* Get the size of grabbed image (buffer) */
 	u32GrabWidth = (UINT32)MbufInquire(grab_id, M_SIZE_X, NULL);
 	u32GrabHeight = (UINT32)MbufInquire(grab_id, M_SIZE_Y, NULL);
-	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ÁÂÇ¥ °ªÀº Zero-based ÀÌ¹Ç·Î */
+	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ì¢Œí‘œ ê°’ì€ Zero-based ì´ë¯€ë¡œ */
 	dbGrabCentY = (DOUBLE)u32GrabHeight / 2.0f;
 	CRect tmpSearchROI;
 	// Search ROI 
@@ -3078,7 +3141,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SIZE_Y, theApp.clMilMain.rectSearhROI[m_camid - 1].bottom - theApp.clMilMain.rectSearhROI[m_camid - 1].top);
 	}
 	MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 40);
-	MmodPreprocess(m_mlModelID[mark_no], M_DEFAULT); // find ÇÒ¶§ Preprocess ÇÏµµ·Ï...
+	MmodPreprocess(m_mlModelID[mark_no], M_DEFAULT); // find í• ë•Œ Preprocess í•˜ë„ë¡...
 
 	MIL_DOUBLE m_ModelType;
 	MmodInquire(m_mlModelID[mark_no], M_DEFAULT, M_MODEL_TYPE, &m_ModelType);
@@ -3099,7 +3162,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		swprintf_s(tzData, 128, L"Not all mark were found : search (%u) / found (%u)",
 			m_u8MarkFindSet, UINT8(miModResults));
 		LOG_WARN(ENG_EDIC::en_mil, tzData);
-		/* °á°ú ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+		/* ê²°ê³¼ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 		MmodFree(mlResult);
 		if (useMilDisp) {
 			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid - 1);
@@ -3121,7 +3184,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	/* If a model was found above the acceptance threshold */
 	
 	/* Read results */
-	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* ¸ğµ¨ ¿©·¯°³ µî·ÏÇßÀ» ¶§, °Ë»öµÈ ¸ğµ¨ÀÇ ¹øÈ£ */
+	MmodGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* ëª¨ë¸ ì—¬ëŸ¬ê°œ ë“±ë¡í–ˆì„ ë•Œ, ê²€ìƒ‰ëœ ëª¨ë¸ì˜ ë²ˆí˜¸ */
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_X, m_pFindPosX);
 	MmodGetResult(mlResult, M_DEFAULT, M_POSITION_Y, m_pFindPosY);
 	MmodGetResult(mlResult, M_DEFAULT, M_SCORE, m_pFindScore);
@@ -3135,7 +3198,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 
 	
 
-	/* º¹ÇÕ ¸¶Å© °Ë»ö ¹æ½ÄÀÏ °æ¿ì, °Ë»ö ´ë»ó °³¼ö¸¸Å­ Ã£Áö ¸øÇß´ÂÁö ¿©ºÎ È®ÀÎ */
+	/* ë³µí•© ë§ˆí¬ ê²€ìƒ‰ ë°©ì‹ì¼ ê²½ìš°, ê²€ìƒ‰ ëŒ€ìƒ ê°œìˆ˜ë§Œí¼ ì°¾ì§€ ëª»í–ˆëŠ”ì§€ ì—¬ë¶€ í™•ì¸ */
 	if (ENG_MMSM::en_cent_side == m_enMarkMethod || ENG_MMSM::en_multi_only == m_enMarkMethod)
 	{
 
@@ -3169,33 +3232,33 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		
 		 center = EstimateCircleCenterRobust(miModResults, m_pFindPosX, m_pFindPosY);
 
-		if (miModResults < m_u8MarkFindSet && (std::isnan(center.first) || std::isnan(center.second))) //´Ù Ã£Áö¸øÇß°Å³ª, Ã£Àº°á°ú°¡ ¿µ ½Ã¿øÂúÀ»¶§./
+		if (miModResults < m_u8MarkFindSet && (std::isnan(center.first) || std::isnan(center.second))) //ë‹¤ ì°¾ì§€ëª»í–ˆê±°ë‚˜, ì°¾ì€ê²°ê³¼ê°€ ì˜ ì‹œì›ì°®ì„ë•Œ./
 		{
 			center.first = 0;
 			center.second = 0;
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miModResults));
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
-			bSucc = FALSE;	/* ÀÛ¾÷ ½ÇÆĞ */
+			bSucc = FALSE;	/* ì‘ì—… ì‹¤íŒ¨ */
 		}
-		/* ¸¸¾à Ã£°íÀÚ ÇÏ´Â °³¼öº¸´Ù ¸¹ÀÌ °Ë»öµÈ °æ¿ì, Score or Scale °ªÀÌ °¡Àå ³ôÀº ¼ø (³»¸²Â÷¼ø)À¸·Î Á¤·Ä */
+		/* ë§Œì•½ ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë³´ë‹¤ ë§ì´ ê²€ìƒ‰ëœ ê²½ìš°, Score or Scale ê°’ì´ ê°€ì¥ ë†’ì€ ìˆœ (ë‚´ë¦¼ì°¨ìˆœ)ìœ¼ë¡œ ì •ë ¬ */
 		else if (miModResults > m_u8MarkFindSet)
 		{
-			/* ¸¶Áö¸· ¿ø¼Ò Àü±îÁö ºñ±³ÇÏ¸é µÇ¹Ç·Î n-1 °³¼ö¸¸Å­ ºñ±³ */
+			/* ë§ˆì§€ë§‰ ì›ì†Œ ì „ê¹Œì§€ ë¹„êµí•˜ë©´ ë˜ë¯€ë¡œ n-1 ê°œìˆ˜ë§Œí¼ ë¹„êµ */
 			for (i = 0; i < miModResults - 1; i++)
 			{
-				k = i;	/* ±âÁØ ÀÎµ¦½º */
+				k = i;	/* ê¸°ì¤€ ì¸ë±ìŠ¤ */
 				for (j = i + 1; j < miModResults; j++)
 				{
 #if 0
-					/* SCALE °ªÀÌ 0.000f °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½  */
-					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 °ª¿¡ °¡Àå °¡±î¿î °ªÀÌ ³ôÀº Á¡¼öÀÓ */
+					/* SCALE ê°’ì´ 0.000f ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ  */
+					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì´ ë†’ì€ ì ìˆ˜ì„ */
 #else
-					/* SCORE °ªÀÌ 100.000 °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½ */
-					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* °¡Àå ³ôÀº °ªÀÏ¼ö·Ï ³ôÀ½ Á¡¼öÀÓ */
+					/* SCORE ê°’ì´ 100.000 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ */
+					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* ê°€ì¥ ë†’ì€ ê°’ì¼ìˆ˜ë¡ ë†’ìŒ ì ìˆ˜ì„ */
 #endif
 				}
-				/* ±âÁ¸ À§Ä¡ °ª ÀÓ½Ã ¹é¾÷ */
+				/* ê¸°ì¡´ ìœ„ì¹˜ ê°’ ì„ì‹œ ë°±ì—… */
 				dbPosX = m_pFindPosX[i];
 				dbPosY = m_pFindPosY[i];
 				dbScore = m_pFindScore[i];
@@ -3204,7 +3267,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 				dbCovg = m_pFindCovg[i];
 				dbFitErr = m_pFindFitErr[i];
 				dbCircleR = m_pFindCircleRadius[i];
-				/* ÇöÀç °Ë»ö ±âÁØ À§Ä¡¿¡ °¡Àå ³ôÀº °ªÀ¸·Î º¯°æ */
+				/* í˜„ì¬ ê²€ìƒ‰ ê¸°ì¤€ ìœ„ì¹˜ì— ê°€ì¥ ë†’ì€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 				m_pFindPosX[i] = m_pFindPosX[k];
 				m_pFindPosY[i] = m_pFindPosY[k];
 				m_pFindScore[i] = m_pFindScore[k];
@@ -3213,7 +3276,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 				m_pFindCovg[i] = m_pFindCovg[k];
 				m_pFindFitErr[i] = m_pFindFitErr[k];
 				m_pFindCircleRadius[i] = m_pFindCircleRadius[k];
-				/* ±âÁ¸ °¡Àå ³ôÀº °ªÀ» °Ë»ö ±âÁØ °ªÀ¸·Î º¯°æ */
+				/* ê¸°ì¡´ ê°€ì¥ ë†’ì€ ê°’ì„ ê²€ìƒ‰ ê¸°ì¤€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 				m_pFindPosX[k] = dbPosX;
 				m_pFindPosY[k] = dbPosY;
 				m_pFindScore[k] = dbScore;
@@ -3224,10 +3287,10 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 				m_pFindCircleRadius[k] = dbCircleR;
 			}
 		}
-		/* °­Á¦·Î °Ë»ö °³¼ö¸¦ ÃÖÁ¾ Ã£°íÀÚ ÇÏ´Â °³¼ö·Î ¼³Á¤ */
+		/* ê°•ì œë¡œ ê²€ìƒ‰ ê°œìˆ˜ë¥¼ ìµœì¢… ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë¡œ ì„¤ì • */
 		
 	}
-	// X ±âÁØ sorting 
+	// X ê¸°ì¤€ sorting 
 	//if (ENG_MMSM::en_ph_step == m_enMarkMethod) {
 	if (dlg_id == DISP_TYPE_CALB_EXPO) 
 	{
@@ -3236,25 +3299,25 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miModResults));
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
-			bSucc = FALSE;	/* ÀÛ¾÷ ½ÇÆĞ */
+			bSucc = FALSE;	/* ì‘ì—… ì‹¤íŒ¨ */
 		}
-		/* ¸¸¾à Ã£°íÀÚ ÇÏ´Â °³¼öº¸´Ù ¸¹ÀÌ °Ë»öµÈ °æ¿ì, Score or Scale °ªÀÌ °¡Àå ³ôÀº ¼ø (³»¸²Â÷¼ø)À¸·Î Á¤·Ä */
-			/* ¸¶Áö¸· ¿ø¼Ò Àü±îÁö ºñ±³ÇÏ¸é µÇ¹Ç·Î n-1 °³¼ö¸¸Å­ ºñ±³ */
+		/* ë§Œì•½ ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë³´ë‹¤ ë§ì´ ê²€ìƒ‰ëœ ê²½ìš°, Score or Scale ê°’ì´ ê°€ì¥ ë†’ì€ ìˆœ (ë‚´ë¦¼ì°¨ìˆœ)ìœ¼ë¡œ ì •ë ¬ */
+			/* ë§ˆì§€ë§‰ ì›ì†Œ ì „ê¹Œì§€ ë¹„êµí•˜ë©´ ë˜ë¯€ë¡œ n-1 ê°œìˆ˜ë§Œí¼ ë¹„êµ */
 		for (i = 0; i < miModResults - 1; i++)
 		{
-			k = i;	/* ±âÁØ ÀÎµ¦½º */
+			k = i;	/* ê¸°ì¤€ ì¸ë±ìŠ¤ */
 			for (j = i + 1; j < miModResults; j++)
 			{
 #if 0
-				/* SCALE °ªÀÌ 0.000f °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½  */
-				if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 °ª¿¡ °¡Àå °¡±î¿î °ªÀÌ ³ôÀº Á¡¼öÀÓ */
+				/* SCALE ê°’ì´ 0.000f ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ  */
+				if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì´ ë†’ì€ ì ìˆ˜ì„ */
 #else
-				/* SCORE °ªÀÌ 100.000 °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½ */
-				//if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* °¡Àå ³ôÀº °ªÀÏ¼ö·Ï ³ôÀ½ Á¡¼öÀÓ */
-				if (m_pFindPosX[j] < m_pFindPosX[k])	k = j;	/* °¡Àå ³ôÀº °ªÀÏ¼ö·Ï ³ôÀ½ Á¡¼öÀÓ */
+				/* SCORE ê°’ì´ 100.000 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ */
+				//if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* ê°€ì¥ ë†’ì€ ê°’ì¼ìˆ˜ë¡ ë†’ìŒ ì ìˆ˜ì„ */
+				if (m_pFindPosX[j] < m_pFindPosX[k])	k = j;	/* ê°€ì¥ ë†’ì€ ê°’ì¼ìˆ˜ë¡ ë†’ìŒ ì ìˆ˜ì„ */
 #endif
 			}
-			/* ±âÁ¸ À§Ä¡ °ª ÀÓ½Ã ¹é¾÷ */
+			/* ê¸°ì¡´ ìœ„ì¹˜ ê°’ ì„ì‹œ ë°±ì—… */
 			dbPosX = m_pFindPosX[i];
 			dbPosY = m_pFindPosY[i];
 			dbScore = m_pFindScore[i];
@@ -3263,7 +3326,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 			dbCovg = m_pFindCovg[i];
 			dbFitErr = m_pFindFitErr[i];
 			dbCircleR = m_pFindCircleRadius[i];
-			/* ÇöÀç °Ë»ö ±âÁØ À§Ä¡¿¡ °¡Àå ³ôÀº °ªÀ¸·Î º¯°æ */
+			/* í˜„ì¬ ê²€ìƒ‰ ê¸°ì¤€ ìœ„ì¹˜ì— ê°€ì¥ ë†’ì€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 			m_pFindPosX[i] = m_pFindPosX[k];
 			m_pFindPosY[i] = m_pFindPosY[k];
 			m_pFindScore[i] = m_pFindScore[k];
@@ -3272,7 +3335,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 			m_pFindCovg[i] = m_pFindCovg[k];
 			m_pFindFitErr[i] = m_pFindFitErr[k];
 			m_pFindCircleRadius[i] = m_pFindCircleRadius[k];
-			/* ±âÁ¸ °¡Àå ³ôÀº °ªÀ» °Ë»ö ±âÁØ °ªÀ¸·Î º¯°æ */
+			/* ê¸°ì¡´ ê°€ì¥ ë†’ì€ ê°’ì„ ê²€ìƒ‰ ê¸°ì¤€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 			m_pFindPosX[k] = dbPosX;
 			m_pFindPosY[k] = dbPosY;
 			m_pFindScore[k] = dbScore;
@@ -3286,7 +3349,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		
 		
 
-		/* °­Á¦·Î °Ë»ö °³¼ö¸¦ ÃÖÁ¾ Ã£°íÀÚ ÇÏ´Â °³¼ö·Î ¼³Á¤ */
+		/* ê°•ì œë¡œ ê²€ìƒ‰ ê°œìˆ˜ë¥¼ ìµœì¢… ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë¡œ ì„¤ì • */
 		miModResults = m_u8MarkFindSet;
 	}
 
@@ -3294,7 +3357,7 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 	if (useMilDisp && (dlg_id != DISP_TYPE_EXPO && dlg_id != DISP_TYPE_CALB_EXPO)) {
 		if (bSucc || (miModResults != 0 && (ENG_MMSM::en_cent_side == m_enMarkMethod || ENG_MMSM::en_multi_only == m_enMarkMethod)))
 		{
-			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid-1,FlipDir::X); //lk91 ÀÓ½Ã, fi_NoÀÎµ¥.. m_camid ³ÖÀ½
+			theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid-1,FlipDir::X); //lk91 ì„ì‹œ, fi_Noì¸ë°.. m_camid ë„£ìŒ
 			for (i = 0; i < miModResults; i++) {
 				CRect	rectArea;
 				rectArea.left = (int)(m_pFindPosX[i] - m_pstMarkModel[mark_no].iOffsetP.x);
@@ -3314,22 +3377,22 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 					theApp.clMilDisp.AddBoxList(dlg_id, m_camid - 1, rectArea.left, rectArea.top, rectArea.right, rectArea.bottom, PS_SOLID, COLOR_GREEN);
 				}
 
-				/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+				/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 				if (!angle)
 				{
-					/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+					/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 					GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 				}
 
-				/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+				/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 				m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-				/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+				/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 				m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-				/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+				/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 				if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 				else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 				/* --------------------------------------------------------------------------------------- */
-				/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+				/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 				m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 					m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -3366,22 +3429,22 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 					theApp.clMilDisp.AddBoxList(dlg_id, i, rectArea.left - tmpSearchROI.left, rectArea.top - tmpSearchROI.top,
 						rectArea.right - tmpSearchROI.left, rectArea.bottom - tmpSearchROI.top, PS_SOLID, COLOR_GREEN);
 
-					/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+					/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 					if (!angle)
 					{
-						/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+						/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 						GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 					}
 
-					/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+					/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 					m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-					/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+					/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 					m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-					/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+					/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 					if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 					else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 					/* --------------------------------------------------------------------------------------- */
-					/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+					/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 					m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 						m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 						m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -3411,27 +3474,27 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 				//			miOperation	= M_TARGET+M_DRAW_BOX+M_DRAW_EDGES+M_DRAW_POSITION;
 				//			miOperation	= M_DRAW_EDGES+M_DRAW_BOX+M_DRAW_POSITION/*+M_DRAW_WEIGHT_REGIONS*/;
 
-				/* °Ë»öµÈ ¸ğµ¨ÀÇ Target (Matching ¸ğµ¨ÀÌ ¾Æ´Ï¶ó)¿¡ ´ëÇØ ±×¸² ±×·Á ÁÖ±â */
+				/* ê²€ìƒ‰ëœ ëª¨ë¸ì˜ Target (Matching ëª¨ë¸ì´ ì•„ë‹ˆë¼)ì— ëŒ€í•´ ê·¸ë¦¼ ê·¸ë ¤ ì£¼ê¸° */
 				MgraColor(graph_id/*M_DEFAULT*/, M_COLOR_RED);
 				/* Draw the model */
 				MmodDraw(M_DEFAULT, mlResult, grab_id, miOperation, i, M_DEFAULT);
 #endif
-				/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+				/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 				if (!angle)
 				{
-					/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+					/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 					GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 				}
 
-				/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+				/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 				m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-				/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+				/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 				m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-				/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+				/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 				if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 				else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 				/* --------------------------------------------------------------------------------------- */
-				/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+				/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 				m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 					m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -3440,10 +3503,10 @@ BOOL CMilModel::RunModelFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 
 		}
 	}
 
-	/* °á°ú ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ê²°ê³¼ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 	MmodFree(mlResult);
 
-	/* 1 °³ ÀÌ»ó Ã£¾Æ¾ß µÊ */
+	/* 1 ê°œ ì´ìƒ ì°¾ì•„ì•¼ ë¨ */
 	m_u8MarkFindGet = UINT8(miModResults);
 	return miModResults > 0;
 }
@@ -3464,14 +3527,14 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 	MIL_ID mlResult = M_NULL, miOperation;
 	MIL_INT miPatResults = 0;
 
-	/* ±¸Á¶Ã¼ °ª ÃÊ±âÈ­ (!!! ¹İµå½Ã ÃÊ±âÈ­ !!!) */
+	/* êµ¬ì¡°ì²´ ê°’ ì´ˆê¸°í™” (!!! ë°˜ë“œì‹œ ì´ˆê¸°í™” !!!) */
 	m_u8MarkFindGet = 0x00;
 	ResetMarkResult();
 
 	/* Get the size of grabbed image (buffer) */
 	u32GrabWidth = (UINT32)MbufInquire(grab_id, M_SIZE_X, NULL);
 	u32GrabHeight = (UINT32)MbufInquire(grab_id, M_SIZE_Y, NULL);
-	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ÁÂÇ¥ °ªÀº Zero-based ÀÌ¹Ç·Î */
+	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ì¢Œí‘œ ê°’ì€ Zero-based ì´ë¯€ë¡œ */
 	dbGrabCentY = (DOUBLE)u32GrabHeight / 2.0f;
 
 	CRect tmpSearchROI;
@@ -3520,7 +3583,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 		swprintf_s(tzData, 128, L"Not all PAT mark were found : search (%u) / found (%u)",
 			m_u8MarkFindSet, UINT8(miPatResults));
 		LOG_WARN(ENG_EDIC::en_mil, tzData);
-		/* °á°ú ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+		/* ê²°ê³¼ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 		MpatFree(mlResult);
 		if (useMilDisp) {
 			theApp.clMilDisp.DrawOverlayDC(false, dispType, m_camid - 1);
@@ -3537,7 +3600,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 	/* If a model was found above the acceptance threshold */
 	if (miPatResults > u32MaxCount)	miPatResults = u32MaxCount;
 	/* Read results */
-	MpatGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* ¸ğµ¨ ¿©·¯°³ µî·ÏÇßÀ» ¶§, °Ë»öµÈ ¸ğµ¨ÀÇ ¹øÈ£ */
+	MpatGetResult(mlResult, M_DEFAULT, M_INDEX + M_TYPE_MIL_INT, m_pMilIndex);	/* ëª¨ë¸ ì—¬ëŸ¬ê°œ ë“±ë¡í–ˆì„ ë•Œ, ê²€ìƒ‰ëœ ëª¨ë¸ì˜ ë²ˆí˜¸ */
 	MpatGetResult(mlResult, M_DEFAULT, M_POSITION_X, m_pFindPosX);
 	MpatGetResult(mlResult, M_DEFAULT, M_POSITION_Y, m_pFindPosY);
 	MpatGetResult(mlResult, M_DEFAULT, M_SCORE, m_pFindScore);
@@ -3549,7 +3612,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 		m_pFindFitErr[i] = 0.0;
 	}
 
-	/* º¹ÇÕ ¸¶Å© °Ë»ö ¹æ½ÄÀÏ °æ¿ì, °Ë»ö ´ë»ó °³¼ö¸¸Å­ Ã£Áö ¸øÇß´ÂÁö ¿©ºÎ È®ÀÎ */
+	/* ë³µí•© ë§ˆí¬ ê²€ìƒ‰ ë°©ì‹ì¼ ê²½ìš°, ê²€ìƒ‰ ëŒ€ìƒ ê°œìˆ˜ë§Œí¼ ì°¾ì§€ ëª»í–ˆëŠ”ì§€ ì—¬ë¶€ í™•ì¸ */
 	if (ENG_MMSM::en_cent_side == m_enMarkMethod || ENG_MMSM::en_multi_only == m_enMarkMethod)
 	{
 		if (miPatResults < m_u8MarkFindSet)
@@ -3557,26 +3620,26 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 			swprintf_s(tzData, 128, L"Not all were found (RunPATFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miPatResults));
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
-			bSucc = FALSE;	/* ÀÛ¾÷ ½ÇÆĞ */
+			bSucc = FALSE;	/* ì‘ì—… ì‹¤íŒ¨ */
 		}
-		/* ¸¸¾à Ã£°íÀÚ ÇÏ´Â °³¼öº¸´Ù ¸¹ÀÌ °Ë»öµÈ °æ¿ì, Score or Scale °ªÀÌ °¡Àå ³ôÀº ¼ø (³»¸²Â÷¼ø)À¸·Î Á¤·Ä */
+		/* ë§Œì•½ ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë³´ë‹¤ ë§ì´ ê²€ìƒ‰ëœ ê²½ìš°, Score or Scale ê°’ì´ ê°€ì¥ ë†’ì€ ìˆœ (ë‚´ë¦¼ì°¨ìˆœ)ìœ¼ë¡œ ì •ë ¬ */
 		else if (miPatResults > m_u8MarkFindSet)
 		{
-			/* ¸¶Áö¸· ¿ø¼Ò Àü±îÁö ºñ±³ÇÏ¸é µÇ¹Ç·Î n-1 °³¼ö¸¸Å­ ºñ±³ */
+			/* ë§ˆì§€ë§‰ ì›ì†Œ ì „ê¹Œì§€ ë¹„êµí•˜ë©´ ë˜ë¯€ë¡œ n-1 ê°œìˆ˜ë§Œí¼ ë¹„êµ */
 			for (i = 0; i < miPatResults - 1; i++)
 			{
-				k = i;	/* ±âÁØ ÀÎµ¦½º */
+				k = i;	/* ê¸°ì¤€ ì¸ë±ìŠ¤ */
 				for (j = i + 1; j < miPatResults; j++)
 				{
 #if 0
-					/* SCALE °ªÀÌ 0.000f °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½  */
-					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 °ª¿¡ °¡Àå °¡±î¿î °ªÀÌ ³ôÀº Á¡¼öÀÓ */
+					/* SCALE ê°’ì´ 0.000f ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ  */
+					if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì´ ë†’ì€ ì ìˆ˜ì„ */
 #else
-					/* SCORE °ªÀÌ 100.000 °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½ */
-					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* °¡Àå ³ôÀº °ªÀÏ¼ö·Ï ³ôÀ½ Á¡¼öÀÓ */
+					/* SCORE ê°’ì´ 100.000 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ */
+					if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* ê°€ì¥ ë†’ì€ ê°’ì¼ìˆ˜ë¡ ë†’ìŒ ì ìˆ˜ì„ */
 #endif
 				}
-				/* ±âÁ¸ À§Ä¡ °ª ÀÓ½Ã ¹é¾÷ */
+				/* ê¸°ì¡´ ìœ„ì¹˜ ê°’ ì„ì‹œ ë°±ì—… */
 				dbPosX = m_pFindPosX[i];
 				dbPosY = m_pFindPosY[i];
 				dbScore = m_pFindScore[i];
@@ -3584,7 +3647,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 				dbAngle = m_pFindAngle[i];
 				dbCovg = m_pFindCovg[i];
 				dbFitErr = m_pFindFitErr[i];
-				/* ÇöÀç °Ë»ö ±âÁØ À§Ä¡¿¡ °¡Àå ³ôÀº °ªÀ¸·Î º¯°æ */
+				/* í˜„ì¬ ê²€ìƒ‰ ê¸°ì¤€ ìœ„ì¹˜ì— ê°€ì¥ ë†’ì€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 				m_pFindPosX[i] = m_pFindPosX[k];
 				m_pFindPosY[i] = m_pFindPosY[k];
 				m_pFindScore[i] = m_pFindScore[k];
@@ -3592,7 +3655,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 				m_pFindAngle[i] = m_pFindAngle[k];
 				m_pFindCovg[i] = m_pFindCovg[k];
 				m_pFindFitErr[i] = m_pFindFitErr[k];
-				/* ±âÁ¸ °¡Àå ³ôÀº °ªÀ» °Ë»ö ±âÁØ °ªÀ¸·Î º¯°æ */
+				/* ê¸°ì¡´ ê°€ì¥ ë†’ì€ ê°’ì„ ê²€ìƒ‰ ê¸°ì¤€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 				m_pFindPosX[k] = dbPosX;
 				m_pFindPosY[k] = dbPosY;
 				m_pFindScore[k] = dbScore;
@@ -3602,10 +3665,10 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 				m_pFindFitErr[k] = dbFitErr;
 			}
 		}
-		/* °­Á¦·Î °Ë»ö °³¼ö¸¦ ÃÖÁ¾ Ã£°íÀÚ ÇÏ´Â °³¼ö·Î ¼³Á¤ */
+		/* ê°•ì œë¡œ ê²€ìƒ‰ ê°œìˆ˜ë¥¼ ìµœì¢… ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë¡œ ì„¤ì • */
 		miPatResults = m_u8MarkFindSet;
 	}
-	// X ±âÁØ sorting 
+	// X ê¸°ì¤€ sorting 
 	//if (ENG_MMSM::en_ph_step == m_enMarkMethod) {
 	if (dispType == DISP_TYPE_CALB_EXPO) {
 		if (miPatResults < m_u8MarkFindSet)
@@ -3613,25 +3676,25 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 			swprintf_s(tzData, 128, L"Not all were found (RunModelFind) : find_set (%u) > find_get (%u)",
 				m_u8MarkFindSet, UINT8(miPatResults));
 			LOG_ERROR(ENG_EDIC::en_mil, tzData);
-			bSucc = FALSE;	/* ÀÛ¾÷ ½ÇÆĞ */
+			bSucc = FALSE;	/* ì‘ì—… ì‹¤íŒ¨ */
 		}
-		/* ¸¸¾à Ã£°íÀÚ ÇÏ´Â °³¼öº¸´Ù ¸¹ÀÌ °Ë»öµÈ °æ¿ì, Score or Scale °ªÀÌ °¡Àå ³ôÀº ¼ø (³»¸²Â÷¼ø)À¸·Î Á¤·Ä */
-			/* ¸¶Áö¸· ¿ø¼Ò Àü±îÁö ºñ±³ÇÏ¸é µÇ¹Ç·Î n-1 °³¼ö¸¸Å­ ºñ±³ */
+		/* ë§Œì•½ ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë³´ë‹¤ ë§ì´ ê²€ìƒ‰ëœ ê²½ìš°, Score or Scale ê°’ì´ ê°€ì¥ ë†’ì€ ìˆœ (ë‚´ë¦¼ì°¨ìˆœ)ìœ¼ë¡œ ì •ë ¬ */
+			/* ë§ˆì§€ë§‰ ì›ì†Œ ì „ê¹Œì§€ ë¹„êµí•˜ë©´ ë˜ë¯€ë¡œ n-1 ê°œìˆ˜ë§Œí¼ ë¹„êµ */
 		for (i = 0; i < miPatResults - 1; i++)
 		{
-			k = i;	/* ±âÁØ ÀÎµ¦½º */
+			k = i;	/* ê¸°ì¤€ ì¸ë±ìŠ¤ */
 			for (j = i + 1; j < miPatResults; j++)
 			{
 #if 0
-				/* SCALE °ªÀÌ 0.000f °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½  */
-				if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 °ª¿¡ °¡Àå °¡±î¿î °ªÀÌ ³ôÀº Á¡¼öÀÓ */
+				/* SCALE ê°’ì´ 0.000f ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ  */
+				if (abs(1.0f - m_pFindScale[j]) > abs(1.0f - m_pFindScale[k]))	k = j;	/* 0.0 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì´ ë†’ì€ ì ìˆ˜ì„ */
 #else
-				/* SCORE °ªÀÌ 100.000 °ª¿¡ °¡Àå °¡±î¿î °ªÀÏ¼ö·Ï ÁÁÀ½ */
-				//if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* °¡Àå ³ôÀº °ªÀÏ¼ö·Ï ³ôÀ½ Á¡¼öÀÓ */
-				if (m_pFindPosX[j] < m_pFindPosX[k])	k = j;	/* °¡Àå ³ôÀº °ªÀÏ¼ö·Ï ³ôÀ½ Á¡¼öÀÓ */
+				/* SCORE ê°’ì´ 100.000 ê°’ì— ê°€ì¥ ê°€ê¹Œìš´ ê°’ì¼ìˆ˜ë¡ ì¢‹ìŒ */
+				//if (m_pFindScore[j] > m_pFindScore[k])	k = j;	/* ê°€ì¥ ë†’ì€ ê°’ì¼ìˆ˜ë¡ ë†’ìŒ ì ìˆ˜ì„ */
+				if (m_pFindPosX[j] < m_pFindPosX[k])	k = j;	/* ê°€ì¥ ë†’ì€ ê°’ì¼ìˆ˜ë¡ ë†’ìŒ ì ìˆ˜ì„ */
 #endif
 			}
-			/* ±âÁ¸ À§Ä¡ °ª ÀÓ½Ã ¹é¾÷ */
+			/* ê¸°ì¡´ ìœ„ì¹˜ ê°’ ì„ì‹œ ë°±ì—… */
 			dbPosX = m_pFindPosX[i];
 			dbPosY = m_pFindPosY[i];
 			dbScore = m_pFindScore[i];
@@ -3639,7 +3702,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 			dbAngle = m_pFindAngle[i];
 			dbCovg = m_pFindCovg[i];
 			dbFitErr = m_pFindFitErr[i];
-			/* ÇöÀç °Ë»ö ±âÁØ À§Ä¡¿¡ °¡Àå ³ôÀº °ªÀ¸·Î º¯°æ */
+			/* í˜„ì¬ ê²€ìƒ‰ ê¸°ì¤€ ìœ„ì¹˜ì— ê°€ì¥ ë†’ì€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 			m_pFindPosX[i] = m_pFindPosX[k];
 			m_pFindPosY[i] = m_pFindPosY[k];
 			m_pFindScore[i] = m_pFindScore[k];
@@ -3647,7 +3710,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 			m_pFindAngle[i] = m_pFindAngle[k];
 			m_pFindCovg[i] = m_pFindCovg[k];
 			m_pFindFitErr[i] = m_pFindFitErr[k];
-			/* ±âÁ¸ °¡Àå ³ôÀº °ªÀ» °Ë»ö ±âÁØ °ªÀ¸·Î º¯°æ */
+			/* ê¸°ì¡´ ê°€ì¥ ë†’ì€ ê°’ì„ ê²€ìƒ‰ ê¸°ì¤€ ê°’ìœ¼ë¡œ ë³€ê²½ */
 			m_pFindPosX[k] = dbPosX;
 			m_pFindPosY[k] = dbPosY;
 			m_pFindScore[k] = dbScore;
@@ -3657,7 +3720,7 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 			m_pFindFitErr[k] = dbFitErr;
 		}
 
-		/* °­Á¦·Î °Ë»ö °³¼ö¸¦ ÃÖÁ¾ Ã£°íÀÚ ÇÏ´Â °³¼ö·Î ¼³Á¤ */
+		/* ê°•ì œë¡œ ê²€ìƒ‰ ê°œìˆ˜ë¥¼ ìµœì¢… ì°¾ê³ ì í•˜ëŠ” ê°œìˆ˜ë¡œ ì„¤ì • */
 		miPatResults = m_u8MarkFindSet;
 	}
 
@@ -3683,22 +3746,22 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 					theApp.clMilDisp.AddBoxList(dispType, m_camid - 1, rectArea.left, rectArea.top, rectArea.right, rectArea.bottom, PS_SOLID, COLOR_GREEN);
 				}
 
-				/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+				/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 				if (!angle)
 				{
-					/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+					/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 					GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 				}
 
-				/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+				/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 				m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-				/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+				/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 				m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-				/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+				/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 				if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 				else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 				/* --------------------------------------------------------------------------------------- */
-				/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+				/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 				m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 					m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -3729,22 +3792,22 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 				theApp.clMilDisp.AddBoxList(dispType, m_camid - 1, rectArea.left - tmpSearchROI.left, rectArea.top - tmpSearchROI.top,
 					rectArea.right - tmpSearchROI.left, rectArea.bottom - tmpSearchROI.top, PS_SOLID, COLOR_GREEN);
 
-				/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+				/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 				if (!angle)
 				{
-					/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+					/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 					GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 				}
 
-				/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+				/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 				m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-				/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+				/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 				m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-				/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+				/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 				if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 				else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 				/* --------------------------------------------------------------------------------------- */
-				/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+				/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 				m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 					m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -3773,27 +3836,27 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 				//			miOperation	= M_TARGET+M_DRAW_BOX+M_DRAW_EDGES+M_DRAW_POSITION;
 				//			miOperation	= M_DRAW_EDGES+M_DRAW_BOX+M_DRAW_POSITION/*+M_DRAW_WEIGHT_REGIONS*/;
 
-							/* °Ë»öµÈ ¸ğµ¨ÀÇ Target (Matching ¸ğµ¨ÀÌ ¾Æ´Ï¶ó)¿¡ ´ëÇØ ±×¸² ±×·Á ÁÖ±â */
+							/* ê²€ìƒ‰ëœ ëª¨ë¸ì˜ Target (Matching ëª¨ë¸ì´ ì•„ë‹ˆë¼)ì— ëŒ€í•´ ê·¸ë¦¼ ê·¸ë ¤ ì£¼ê¸° */
 				MgraColor(graph_id/*M_DEFAULT*/, M_COLOR_RED);
 				/* Draw the model */
 				MpatDraw(M_DEFAULT, mlResult, grab_id, miOperation, i, M_DEFAULT);
 #endif
-				/* °¢µµ ÃøÁ¤ ÇÁ·Î±×·¥¿¡¼­ È£ÃâÇÑ °æ¿ì¶ó¸é, ¾Æ·¡ Ä«¸Ş¶ó È¸Àü °ªÀ» Àû¿ëÇÑ ÁÂÇ¥ °ª ÃßÃâÇÏÁö ¾ÊÀ½ */
+				/* ê°ë„ ì¸¡ì • í”„ë¡œê·¸ë¨ì—ì„œ í˜¸ì¶œí•œ ê²½ìš°ë¼ë©´, ì•„ë˜ ì¹´ë©”ë¼ íšŒì „ ê°’ì„ ì ìš©í•œ ì¢Œí‘œ ê°’ ì¶”ì¶œí•˜ì§€ ì•ŠìŒ */
 				if (!angle)
 				{
-					/* ¾ó¶óÀÎ Ä«¸Ş¶óÀÇ È¸Àü °¢µµ¿¡ µû¶ó °Ë»öµÈ ¸¶Å©ÀÇ Áß½É À§Ä¡°¡ ´Ş¶óÁü */
+					/* ì–¼ë¼ì¸ ì¹´ë©”ë¼ì˜ íšŒì „ ê°ë„ì— ë”°ë¼ ê²€ìƒ‰ëœ ë§ˆí¬ì˜ ì¤‘ì‹¬ ìœ„ì¹˜ê°€ ë‹¬ë¼ì§ */
 					GetFindRotatePosXY(dbGrabCentX, dbGrabCentY, m_pFindPosX[i], m_pFindPosY[i]);
 				}
 
-				/* Grabbed ImageÀÇ Áß½É ÁÂÇ¥¿¡¼­ °Ë»öµÈ MarkÀÇ Áß½É ÁÂÇ¥ °£ÀÇ Á÷¼±ÀÇ °Å¸® ±¸ÇÏ±â */
+				/* Grabbed Imageì˜ ì¤‘ì‹¬ ì¢Œí‘œì—ì„œ ê²€ìƒ‰ëœ Markì˜ ì¤‘ì‹¬ ì¢Œí‘œ ê°„ì˜ ì§ì„ ì˜ ê±°ë¦¬ êµ¬í•˜ê¸° */
 				m_pFindDist[i] = CalcLineDist(m_pFindPosX[i], m_pFindPosY[i], dbGrabCentX, dbGrabCentY);
-				/* Scale Rate °ªÀÇ ¿ÀÂ÷ °ªÀ» 100 percent ±âÁØÀ¸·Î È¯»êÇÏ¿© º¯°æ ÈÄ ÀúÀå */
+				/* Scale Rate ê°’ì˜ ì˜¤ì°¨ ê°’ì„ 100 percent ê¸°ì¤€ìœ¼ë¡œ í™˜ì‚°í•˜ì—¬ ë³€ê²½ í›„ ì €ì¥ */
 				m_pFindScale[i] = (1.0f - fabs(1.0f - m_pFindScale[i])) * 100.0f;
-				/* °Ë»öµÈ °´Ã¼ÀÇ Å©±â°¡ µî·ÏµÈ ¸¶Å© ±âÁØ ´ëºñ Å« °ÍÀÎÁö ¾Æ´ÑÁö ÇÃ·¡±× ¼³Á¤ */
+				/* ê²€ìƒ‰ëœ ê°ì²´ì˜ í¬ê¸°ê°€ ë“±ë¡ëœ ë§ˆí¬ ê¸°ì¤€ ëŒ€ë¹„ í° ê²ƒì¸ì§€ ì•„ë‹Œì§€ í”Œë˜ê·¸ ì„¤ì • */
 				if (m_pFindScale[i] > 1.0f)			u8ScaleSize = 0x01;
 				else if (m_pFindScale[i] < 1.0f)	u8ScaleSize = 0x02;
 				/* --------------------------------------------------------------------------------------- */
-				/* °Ë»ö ´ë»ó¿¡ ºÎÇÕµÇ´ÂÁö È®ÀÎ */
+				/* ê²€ìƒ‰ ëŒ€ìƒì— ë¶€í•©ë˜ëŠ”ì§€ í™•ì¸ */
 				m_pstModResult[i].SetValue(UINT32(m_pMilIndex[i]),
 					m_pFindScale[i], m_pFindScore[i], m_pFindDist[i],
 					m_pFindAngle[i], m_pFindCovg[i], m_pFindFitErr[i],
@@ -3801,44 +3864,44 @@ BOOL CMilModel::RunPATFind(MIL_ID graph_id, MIL_ID grab_id, BOOL angle, UINT8 im
 			}
 		}
 	}
-	/* °á°ú ¹öÆÛ ¸Ş¸ğ¸® ÇØÁ¦ */
+	/* ê²°ê³¼ ë²„í¼ ë©”ëª¨ë¦¬ í•´ì œ */
 	MpatFree(mlResult);
 
-	/* 1 °³ ÀÌ»ó Ã£¾Æ¾ß µÊ */
+	/* 1 ê°œ ì´ìƒ ì°¾ì•„ì•¼ ë¨ */
 	m_u8MarkFindGet = UINT8(miPatResults);
 	return miPatResults > 0;
 }
 #endif
 
-/* desc : Mark Á¤º¸ ¼³Á¤ - MMF (MIL Model Find File) */
+/* desc : Mark ì •ë³´ ì„¤ì • - MMF (MIL Model Find File) */
 BOOL CMilModel::SetModelDefineMMF(PTCHAR name, PTCHAR mmf, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no)
 {
 	CUniToChar csCnv;
 
-	/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+	/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 	ReleaseMarkModel(mark_no, 0);
-	/* ±âÁ¸ °á°ú Á¤º¸ ÃÊ±âÈ­ */
+	/* ê¸°ì¡´ ê²°ê³¼ ì •ë³´ ì´ˆê¸°í™” */
 	ResetMarkResult();
-	/* µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ÀÇ °³¼ö ÆÄ¾Ç */
-	//m_u8ModelRegist = 0x01;	/* MMF ÀÎ °æ¿ì, ¹«Á¶°Ç 1°³ ¹Û¿¡ ¾ÈµÊ */
+	/* ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ì˜ ê°œìˆ˜ íŒŒì•… */
+	//m_u8ModelRegist = 0x01;	/* MMF ì¸ ê²½ìš°, ë¬´ì¡°ê±´ 1ê°œ ë°–ì— ì•ˆë¨ */
 #ifndef _NOT_USE_MIL_
-	/* Model ÀûÀç */
+	/* Model ì ì¬ */
 	MmodRestore(mmf, theApp.clMilMain.m_mSysID, M_DEFAULT, &m_mlModelID[mark_no]);
 	if (!m_mlModelID[mark_no] || MappGetError(M_CURRENT, M_NULL))
 	{
 		LOG_ERROR(ENG_EDIC::en_mil, L"MIL_ERR : Failed to restore the mark image (buffer, mmf)");
 		return FALSE;
 	}
-	/* Model Á¤º¸ ¼³Á¤ */
+	/* Model ì •ë³´ ì„¤ì • */
 	m_pstMarkModel[mark_no].type = UINT32(ENG_MMDT::en_image);
 	m_pstMarkModel[mark_no].iSizeP = m_MarkSizeP;
 	m_pstMarkModel[mark_no].iOffsetP = m_MarkCenterP;
 	sprintf_s(m_pstMarkModel[mark_no].name, MARK_MODEL_NAME_LENGTH, "%s", csCnv.Str2Ansi(name));
-	/* Model Size ¾ò±â */
+	/* Model Size ì–»ê¸° */
 #if 0
 	m_pstModelSize[0].x = (DOUBLE)MbufInquire(m_mlModelID, M_SIZE_X, M_NULL);
 	m_pstModelSize[0].y = (DOUBLE)MbufInquire(m_mlModelID, M_SIZE_Y, M_NULL);
-#else	/* ÇöÀç MMF¿¡ µî·ÏµÈ ¸ğµ¨ Å©±â ¾ò¾î¿À´Â ¹æ¹ıÀ» ¸ô¶ó¼­. ¹«Á¶°Ç 100 °ªÀ¸·Î °íÁ¤ (?) T.T */
+#else	/* í˜„ì¬ MMFì— ë“±ë¡ëœ ëª¨ë¸ í¬ê¸° ì–»ì–´ì˜¤ëŠ” ë°©ë²•ì„ ëª°ë¼ì„œ. ë¬´ì¡°ê±´ 100 ê°’ìœ¼ë¡œ ê³ ì • (?) T.T */
 #if 0
 	DOUBLE dbPixelToMM = m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 	m_pstModelSize[0].x = (m_u32MMFMarkWidth / (dbPixelToMM * 1000.0f)) / 2.0f;
@@ -3851,7 +3914,7 @@ BOOL CMilModel::SetModelDefineMMF(PTCHAR name, PTCHAR mmf, CPoint m_MarkSizeP, C
 #endif
 	MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_REFERENCE_X, m_pstMarkModel[mark_no].iOffsetP.x);
 	MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_REFERENCE_Y, m_pstMarkModel[mark_no].iOffsetP.y);
-	MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, 1); // lk91 ÀÌ¹ÌÁö´Â ÀÏ´Ü 1°³·Î °íÁ¤...
+	MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, 1); // lk91 ì´ë¯¸ì§€ëŠ” ì¼ë‹¨ 1ê°œë¡œ ê³ ì •...
 	//double smooth = 80.0;
 	//DOUBLE dbSmooth = (DOUBLE)uvEng_GetConfig()->mark_find.model_smooth;
 	DOUBLE dbSmooth = (DOUBLE)m_pstConfig->mark_find.model_smooth;
@@ -3864,17 +3927,17 @@ BOOL CMilModel::SetModelDefineMMF(PTCHAR name, PTCHAR mmf, CPoint m_MarkSizeP, C
 	return TRUE;
 }
 
-/* desc : Mark Á¤º¸ ¼³Á¤ - PAT (MIL Model Find File) */
+/* desc : Mark ì •ë³´ ì„¤ì • - PAT (MIL Model Find File) */
 BOOL CMilModel::SetModelDefinePAT(PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, CPoint m_MarkCenterP, UINT8 mark_no)
 {
 	CUniToChar csCnv;
 
-	/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+	/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 	ReleaseMarkModel(mark_no, 1);
-	/* ±âÁ¸ °á°ú Á¤º¸ ÃÊ±âÈ­ */
+	/* ê¸°ì¡´ ê²°ê³¼ ì •ë³´ ì´ˆê¸°í™” */
 	ResetMarkResult();
-	/* µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ÀÇ °³¼ö ÆÄ¾Ç */
-	//m_u8ModelRegist = 0x01;	/* MMF ÀÎ °æ¿ì, ¹«Á¶°Ç 1°³ ¹Û¿¡ ¾ÈµÊ */
+	/* ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ì˜ ê°œìˆ˜ íŒŒì•… */
+	//m_u8ModelRegist = 0x01;	/* MMF ì¸ ê²½ìš°, ë¬´ì¡°ê±´ 1ê°œ ë°–ì— ì•ˆë¨ */
 #ifndef _NOT_USE_MIL_
 	if (m_mlPATID[mark_no]) {
 		MpatFree(m_mlPATID[mark_no]);
@@ -3882,23 +3945,23 @@ BOOL CMilModel::SetModelDefinePAT(PTCHAR name, PTCHAR pat, CPoint m_MarkSizeP, C
 	}
 	MpatAlloc(theApp.clMilMain.m_mSysID, M_DEFAULT, M_DEFAULT, &m_mlPATID[mark_no]);
 
-	/* Model ÀûÀç */
+	/* Model ì ì¬ */
 	MpatRestore(pat, theApp.clMilMain.m_mSysID, M_DEFAULT, &m_mlPATID[mark_no]);
 	if (!m_mlPATID[mark_no] || MappGetError(M_CURRENT, M_NULL))
 	{
 		LOG_ERROR(ENG_EDIC::en_mil, L"MIL_ERR : Failed to restore the mark image (buffer, pat)");
 		return FALSE;
 	}
-	/* Model Á¤º¸ ¼³Á¤ */
+	/* Model ì •ë³´ ì„¤ì • */
 	m_pstMarkModel[mark_no].type = UINT32(ENG_MMDT::en_none);
 	m_pstMarkModel[mark_no].iSizeP = m_MarkSizeP;
 	m_pstMarkModel[mark_no].iOffsetP = m_MarkCenterP;
 	sprintf_s(m_pstMarkModel[mark_no].name, MARK_MODEL_NAME_LENGTH, "%s", csCnv.Str2Ansi(name));
-	/* Model Size ¾ò±â */
+	/* Model Size ì–»ê¸° */
 #if 0
 	m_pstModelSize[0].x = (DOUBLE)MbufInquire(m_mlModelID, M_SIZE_X, M_NULL);
 	m_pstModelSize[0].y = (DOUBLE)MbufInquire(m_mlModelID, M_SIZE_Y, M_NULL);
-#else	/* ÇöÀç MMF¿¡ µî·ÏµÈ ¸ğµ¨ Å©±â ¾ò¾î¿À´Â ¹æ¹ıÀ» ¸ô¶ó¼­. ¹«Á¶°Ç 100 °ªÀ¸·Î °íÁ¤ (?) T.T */
+#else	/* í˜„ì¬ MMFì— ë“±ë¡ëœ ëª¨ë¸ í¬ê¸° ì–»ì–´ì˜¤ëŠ” ë°©ë²•ì„ ëª°ë¼ì„œ. ë¬´ì¡°ê±´ 100 ê°’ìœ¼ë¡œ ê³ ì • (?) T.T */
 #if 0
 	DOUBLE dbPixelToMM = m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 	m_pstModelSize[0].x = (m_u32MMFMarkWidth / (dbPixelToMM * 1000.0f)) / 2.0f;
@@ -3934,7 +3997,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 	if (ENG_MMDT(m_pstMarkModel[mark_no].type) != ENG_MMDT::en_image ) 
 	{
 
-		/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+		/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 		ReleaseMarkModel(mark_no, 0);
 
 		UINT32 i = 0, j = 0;
@@ -3942,10 +4005,10 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 		LONG lLevel[3] = { M_MEDIUM, M_HIGH, M_VERY_HIGH };
 		LONG lFilter[3] = { M_DEFAULT , M_KERNEL , M_RECURSIVE };	/* Filter Mode */
 		DOUBLE dbPixel[4] = { NULL };	/* um --> size */
-		DOUBLE dbDivSize = 1.0f;	/* Ring°ú CircleÀÇ °æ¿ì, ¸ğµ¨ Å©±â µî·ÏÇÒ ¶§, ¹İÁö¸§À¸·Î ÇØ¾ßÇÏ±â ¶§¹®¿¡ */
+		DOUBLE dbDivSize = 1.0f;	/* Ringê³¼ Circleì˜ ê²½ìš°, ëª¨ë¸ í¬ê¸° ë“±ë¡í•  ë•Œ, ë°˜ì§€ë¦„ìœ¼ë¡œ í•´ì•¼í•˜ê¸° ë•Œë¬¸ì— */
 		DOUBLE dbPixelToMM = m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 		DOUBLE dbCertainty = 0.0f;
-		/* °¡Àå ÃÖ±Ù¿¡ µî·ÏµÈ Mark Model ÀúÀå */
+		/* ê°€ì¥ ìµœê·¼ì— ë“±ë¡ëœ Mark Model ì €ì¥ */
 		if (m_mlModelID[mark_no]) {
 			MmodFree(m_mlModelID[mark_no]);
 			m_mlModelID[mark_no] = M_NULL;
@@ -3956,14 +4019,14 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 			LOG_ERROR(ENG_EDIC::en_mil, L"MILL_ERR : Failed to allocate the model image (buffer)");
 			return FALSE;
 		}
-		/* Pixel Size ±¸ÇÏ±â */
+		/* Pixel Size êµ¬í•˜ê¸° */
 		for (j = 0; j < 4; j++)
 		{
 			dbPixel[j] = m_pstMarkModel[mark_no].param[j + 1] / (dbPixelToMM * 1000.0f);
 		}
 		switch (m_pstMarkModel[mark_no].type)
 		{
-			/* ¾Æ·¡ 2°³ÀÇ TypeÀº °Ë»ö µî·Ï ÇÒ ¶§, Áö¸§ (±æÀÌ)ÀÌ ¾Æ´Ñ ¹İÁö¸§ */
+			/* ì•„ë˜ 2ê°œì˜ Typeì€ ê²€ìƒ‰ ë“±ë¡ í•  ë•Œ, ì§€ë¦„ (ê¸¸ì´)ì´ ì•„ë‹Œ ë°˜ì§€ë¦„ */
 		case ENG_MMDT::en_ring:
 		case ENG_MMDT::en_circle:	dbDivSize = 2.0f;
 			m_pstModelSize[mark_no].x = dbPixel[0] / 2.0f;
@@ -3995,18 +4058,18 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 				dbPixel[2] / dbDivSize, dbPixel[3] / dbDivSize);
 		}
 		
-		// lk91 MmodControl µ¿ÀÏÇÏ°Ô À¯Áö...
-		/* ÀÌ¹ÌÁö ³ëÀÌÁî °¨¼Ò °ª ¼³Á¤ */
+		// lk91 MmodControl ë™ì¼í•˜ê²Œ ìœ ì§€...
+		/* ì´ë¯¸ì§€ ë…¸ì´ì¦ˆ ê°ì†Œ ê°’ ì„¤ì • */
 		if (smooth < 0.0f || smooth > 100.0f)	smooth = 50.0f;
-		/* ¸ğµ¨ÀÇ °Ë»ö ¼Óµµ ÁöÁ¤ (¸ğµ¨ Å©±â°¡ ÀÛ°Å³ª ¸ÅÄª·ü¿¡¼­ ³ôÀº Á¤È®¼ºÀ» ÇÊ¿ä·Î ÇÏ°Å³ª, ¸ğµ¨ÀÇ ¿¡Áö°¡ ±âÇÏÇĞÀûÀ¸·Î º¹ÀâÇÑ °æ¿ì¿¡´Â µğÆúÆ® ¼³Á¤ (M_MEDIUM) »ç¿ë) */
+		/* ëª¨ë¸ì˜ ê²€ìƒ‰ ì†ë„ ì§€ì • (ëª¨ë¸ í¬ê¸°ê°€ ì‘ê±°ë‚˜ ë§¤ì¹­ë¥ ì—ì„œ ë†’ì€ ì •í™•ì„±ì„ í•„ìš”ë¡œ í•˜ê±°ë‚˜, ëª¨ë¸ì˜ ì—ì§€ê°€ ê¸°í•˜í•™ì ìœ¼ë¡œ ë³µì¡í•œ ê²½ìš°ì—ëŠ” ë””í´íŠ¸ ì„¤ì • (M_MEDIUM) ì‚¬ìš©) */
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_SPEED, lSpeed[speed]);
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_SMOOTHNESS, smooth);
-		/* ¸ğµ¨ÀÇ Á¤È®¼ºÀ» ¿ä±¸ÇÒ ¶§ (Accuracy°¡ ³ôÀ»¼ö·Ï Ã³¸® ¼Óµµ´Â ¶³¾îÁö°Ô µÊ) */
+		/* ëª¨ë¸ì˜ ì •í™•ì„±ì„ ìš”êµ¬í•  ë•Œ (Accuracyê°€ ë†’ì„ìˆ˜ë¡ ì²˜ë¦¬ ì†ë„ëŠ” ë–¨ì–´ì§€ê²Œ ë¨) */
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACCURACY, M_MEDIUM);
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_POLARITY, M_ANY);
 		MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_TIMEOUT, 2000);
-		/* Target Image¿¡¼­ °Ë»öÇÏ°íÀÚ ÇÏ´Â ÃÖ´ë °³¼ö ÁöÁ¤ */
+		/* Target Imageì—ì„œ ê²€ìƒ‰í•˜ê³ ì í•˜ëŠ” ìµœëŒ€ ê°œìˆ˜ ì§€ì • */
 		MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, MIL_INT(count));
 	
 
@@ -4019,7 +4082,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 		m_pstMarkModel[mark_no].iSizeP.x = (LONG)tSize_x;
 		m_pstMarkModel[mark_no].iSizeP.y = (LONG)tSize_y;
 
-		// lk91 mark ÆĞÅÏ ÀÌ¹ÌÁö°¡ ¾Æ´Ñ°Å´Â OffsetÀÌ 0°ªÀÌ¶ó¼­ Á÷Á¢ ³ª´²Áà¾ßÇÔ
+		// lk91 mark íŒ¨í„´ ì´ë¯¸ì§€ê°€ ì•„ë‹Œê±°ëŠ” Offsetì´ 0ê°’ì´ë¼ì„œ ì§ì ‘ ë‚˜ëˆ ì¤˜ì•¼í•¨
 		DOUBLE tOffset_x = 0, tOffset_y = 0;
 
 		m_pstMarkModel[mark_no].iOffsetP.x = (LONG)(tSize_x / 2.0);
@@ -4045,7 +4108,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 			return FALSE;
 		}
 		if (tmpFindMode == 0) {
-			/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+			/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 			ReleaseMarkModel(mark_no, 0);
 			if (m_mlModelID[mark_no]) {
 				MmodFree(m_mlModelID[mark_no]);
@@ -4060,7 +4123,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 				return FALSE;
 			}
 
-			if (m_pstMarkModel[mark_no].iSizeP.x == 0 && m_pstMarkModel[mark_no].iSizeP.y == 0) { // lk91 mark ÀÌ¹ÌÁö·Î ÀúÀå ¾ÈÇßÀ»¶§ ¿¹¿ÜÃ³¸®
+			if (m_pstMarkModel[mark_no].iSizeP.x == 0 && m_pstMarkModel[mark_no].iSizeP.y == 0) { // lk91 mark ì´ë¯¸ì§€ë¡œ ì €ì¥ ì•ˆí–ˆì„ë•Œ ì˜ˆì™¸ì²˜ë¦¬
 				DOUBLE tSize_x = 0, tSize_y = 0;
 				MmodInquire(m_mlModelID[mark_no], M_DEFAULT, M_ALLOC_SIZE_X, &tSize_x); 
 				MmodInquire(m_mlModelID[mark_no], M_DEFAULT, M_ALLOC_SIZE_Y, &tSize_y);
@@ -4079,13 +4142,13 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 				MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_REFERENCE_Y, m_pstMarkModel[mark_no].iOffsetP.y);
 			}
 
-			// lk91 MmodControl µ¿ÀÏÇÏ°Ô À¯Áö...
-			/* ÀÌ¹ÌÁö ³ëÀÌÁî °¨¼Ò °ª ¼³Á¤ */
+			// lk91 MmodControl ë™ì¼í•˜ê²Œ ìœ ì§€...
+			/* ì´ë¯¸ì§€ ë…¸ì´ì¦ˆ ê°ì†Œ ê°’ ì„¤ì • */
 			if (smooth < 0.0f || smooth > 100.0f)	smooth = 50.0f;
-			/* ¸ğµ¨ÀÇ °Ë»ö ¼Óµµ ÁöÁ¤ (¸ğµ¨ Å©±â°¡ ÀÛ°Å³ª ¸ÅÄª·ü¿¡¼­ ³ôÀº Á¤È®¼ºÀ» ÇÊ¿ä·Î ÇÏ°Å³ª, ¸ğµ¨ÀÇ ¿¡Áö°¡ ±âÇÏÇĞÀûÀ¸·Î º¹ÀâÇÑ °æ¿ì¿¡´Â µğÆúÆ® ¼³Á¤ (M_MEDIUM) »ç¿ë) */
+			/* ëª¨ë¸ì˜ ê²€ìƒ‰ ì†ë„ ì§€ì • (ëª¨ë¸ í¬ê¸°ê°€ ì‘ê±°ë‚˜ ë§¤ì¹­ë¥ ì—ì„œ ë†’ì€ ì •í™•ì„±ì„ í•„ìš”ë¡œ í•˜ê±°ë‚˜, ëª¨ë¸ì˜ ì—ì§€ê°€ ê¸°í•˜í•™ì ìœ¼ë¡œ ë³µì¡í•œ ê²½ìš°ì—ëŠ” ë””í´íŠ¸ ì„¤ì • (M_MEDIUM) ì‚¬ìš©) */
 			MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_SPEED, lSpeed[speed]);
 			MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_SMOOTHNESS, smooth);
-			/* ¸ğµ¨ÀÇ Á¤È®¼ºÀ» ¿ä±¸ÇÒ ¶§ (Accuracy°¡ ³ôÀ»¼ö·Ï Ã³¸® ¼Óµµ´Â ¶³¾îÁö°Ô µÊ) */
+			/* ëª¨ë¸ì˜ ì •í™•ì„±ì„ ìš”êµ¬í•  ë•Œ (Accuracyê°€ ë†’ì„ìˆ˜ë¡ ì²˜ë¦¬ ì†ë„ëŠ” ë–¨ì–´ì§€ê²Œ ë¨) */
 			MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACCURACY, M_MEDIUM);
 			MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
 			MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_POLARITY, M_ANY);
@@ -4096,7 +4159,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 			//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_ANGLE_DELTA_POS, 45.0);
 			//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_FIT_ERROR_WEIGHTING_FACTOR, 25);
 			MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_TIMEOUT, 2000);
-			/* Target Image¿¡¼­ °Ë»öÇÏ°íÀÚ ÇÏ´Â ÃÖ´ë °³¼ö ÁöÁ¤ */
+			/* Target Imageì—ì„œ ê²€ìƒ‰í•˜ê³ ì í•˜ëŠ” ìµœëŒ€ ê°œìˆ˜ ì§€ì • */
 			MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, MIL_INT(count));
 			//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SCALE_RANGE, M_ENABLE);
 			//MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SHARED_EDGES, M_ENABLE);
@@ -4107,7 +4170,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 
 		}
 		else {
-			/* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+			/* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 			ReleaseMarkModel(mark_no, 1);
 			if (m_mlPATID[mark_no]) {
 				MpatFree(m_mlPATID[mark_no]);
@@ -4115,7 +4178,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 			}
 			MpatAlloc(theApp.clMilMain.m_mSysID, M_DEFAULT, M_DEFAULT, &m_mlPATID[mark_no]);
 
-			/* Model ÀûÀç */
+			/* Model ì ì¬ */
 			MpatRestore(file, theApp.clMilMain.m_mSysID, M_DEFAULT, &m_mlPATID[mark_no]);
 			if (!m_mlPATID[mark_no] || MappGetError(M_CURRENT, M_NULL))
 			{
@@ -4140,7 +4203,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 			MpatControl(m_mlPATID[mark_no], M_DEFAULT, M_REFERENCE_X, m_pstMarkModel[mark_no].iOffsetP.x);
 			MpatControl(m_mlPATID[mark_no], M_DEFAULT, M_REFERENCE_Y, m_pstMarkModel[mark_no].iOffsetP.y);
 
-			// lk91 ÀÓ½Ã Ãß°¡
+			// lk91 ì„ì‹œ ì¶”ê°€
 			MpatControl(m_mlPATID[mark_no], M_DEFAULT, M_ACCEPTANCE, 20.0);
 			//MpatSetAcceptance(m_mlPATID[mark_no], 20.0);
 			MpatControl(m_mlPATID[mark_no], M_DEFAULT, M_ACCURACY, M_MEDIUM);
@@ -4165,13 +4228,13 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 {
 	//UINT8 i = 0;
 
-	///* ±âÁ¸ ¼³Á¤µÇ¾î ÀÖ´Ù¸é ÀÏ´Ü ÇØÁ¦ */
+	///* ê¸°ì¡´ ì„¤ì •ë˜ì–´ ìˆë‹¤ë©´ ì¼ë‹¨ í•´ì œ */
 	//ReleaseMarkModel(mark_no);
-	/* ±âÁ¸ °á°ú Á¤º¸ ÃÊ±âÈ­ */
+	/* ê¸°ì¡´ ê²°ê³¼ ì •ë³´ ì´ˆê¸°í™” */
 	ResetMarkResult();
-	/* µî·ÏÇÏ°íÀÚ ÇÏ´Â ¸ğµ¨ °³¼ö ¼³Á¤ */
+	/* ë“±ë¡í•˜ê³ ì í•˜ëŠ” ëª¨ë¸ ê°œìˆ˜ ì„¤ì • */
 	//m_u8ModelRegist = count;
-	/* µî·Ï ´ë»ó ¸ğµ¨ÀÇ °³¼ö°¡ ÃÊ°úÇÏ¸é, ÃÖ´ë °ªÀ¸·Î ¼³Á¤ */
+	/* ë“±ë¡ ëŒ€ìƒ ëª¨ë¸ì˜ ê°œìˆ˜ê°€ ì´ˆê³¼í•˜ë©´, ìµœëŒ€ ê°’ìœ¼ë¡œ ì„¤ì • */
 	//if (m_pstConfig->mark_find.max_mark_regist < count)
 	//{
 	//	m_u8ModelRegist = m_pstConfig->mark_find.max_mark_regist;
@@ -4179,7 +4242,7 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 	//		L"and replaced with the maximum value defined in the config file",
 	//		MB_ICONINFORMATION);
 	//}
-	/* À¯È¿ÇÑ °Ë»ö ´ë»óÀÇ ¸ğµ¨ °ª ÀúÀå */
+	/* ìœ íš¨í•œ ê²€ìƒ‰ ëŒ€ìƒì˜ ëª¨ë¸ ê°’ ì €ì¥ */
 	//for (i = 0; i < m_u8ModelRegist && value[i].IsValid(); i++)
 	//{
 	//	memcpy(&m_pstMarkModel[i], &value[i], sizeof(STG_CMPV));
@@ -4190,22 +4253,22 @@ BOOL CMilModel::SetModelDefine_tot(UINT8 speed, UINT8 level, UINT8 count, DOUBLE
 }
 
 BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count, DOUBLE smooth, UINT8 mark_no, TCHAR* file1, TCHAR* file2,
-	TCHAR* RecipeName, DOUBLE scale_min, DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt) // file1, file2, ·¹½ÃÇÇ ¸í
+	TCHAR* RecipeName, DOUBLE scale_min, DOUBLE scale_max, DOUBLE score_min, DOUBLE score_tgt) // file1, file2, ë ˆì‹œí”¼ ëª…
 {
 #ifndef _NOT_USE_MIL_
-	// ¹öÆ° ÇÏ³ª·Î Á¾°á
+	// ë²„íŠ¼ í•˜ë‚˜ë¡œ ì¢…ê²°
 	LONG lSpeed[4] = { M_LOW, M_MEDIUM, M_HIGH, M_VERY_HIGH };
 	const int cntMerge = 3;
 	const int cntParam = 4;
 	MIL_INT64 m_type[cntMerge];
 	DOUBLE modelParam[cntMerge][cntParam];
-	DOUBLE dbDivSize = 1.0f;	/* Ring°ú CircleÀÇ °æ¿ì, ¸ğµ¨ Å©±â µî·ÏÇÒ ¶§, ¹İÁö¸§À¸·Î ÇØ¾ßÇÏ±â ¶§¹®¿¡ */
+	DOUBLE dbDivSize = 1.0f;	/* Ringê³¼ Circleì˜ ê²½ìš°, ëª¨ë¸ í¬ê¸° ë“±ë¡í•  ë•Œ, ë°˜ì§€ë¦„ìœ¼ë¡œ í•´ì•¼í•˜ê¸° ë•Œë¬¸ì— */
 	DOUBLE dbPixelToMM = m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1);
 	MIL_DOUBLE dbPixel[cntMerge][cntParam] = { NULL };	/* um --> size */
 	DOUBLE dbSizeX[cntMerge];
 	DOUBLE dbSizeY[cntMerge];
-	DOUBLE dbMaxSizeX = 0.0; // merge ÇÒ ¶§, margin °ª ³Ö±â À§ÇØ
-	DOUBLE dbMaxSizeY = 0.0; // merge ÇÒ ¶§, margin °ª ³Ö±â À§ÇØ
+	DOUBLE dbMaxSizeX = 0.0; // merge í•  ë•Œ, margin ê°’ ë„£ê¸° ìœ„í•´
+	DOUBLE dbMaxSizeY = 0.0; // merge í•  ë•Œ, margin ê°’ ë„£ê¸° ìœ„í•´
 	MIL_INT LastIndex = 0;
 
 	CString strTmp;
@@ -4223,7 +4286,7 @@ BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count,
 		}
 	}
 
-	// ÀÓ½Ã °ª ¼³Á¤.. ÃßÈÄ dialog ·Î °ª ¹ŞÀ» ¿¹Á¤...
+	// ì„ì‹œ ê°’ ì„¤ì •.. ì¶”í›„ dialog ë¡œ ê°’ ë°›ì„ ì˜ˆì •...
 	// type
 	m_type[0] = (MIL_INT64)ENG_MMDT::en_circle;
 	m_type[1] = (MIL_INT64)ENG_MMDT::en_rectangle;
@@ -4240,7 +4303,7 @@ BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count,
 	modelParam[2][0] = 1960;
 	modelParam[2][1] = 1960;
 
-	/* °¡Àå ÃÖ±Ù¿¡ µî·ÏµÈ Mark Model ÀúÀå */
+	/* ê°€ì¥ ìµœê·¼ì— ë“±ë¡ëœ Mark Model ì €ì¥ */
 	MIL_ID mergeModelID;
 	MmodAlloc(theApp.clMilMain.m_mSysID, M_GEOMETRIC, M_DEFAULT, &mergeModelID);
 
@@ -4250,7 +4313,7 @@ BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count,
 		return FALSE;
 	}
 
-	/* Pixel Size ±¸ÇÏ±â */
+	/* Pixel Size êµ¬í•˜ê¸° */
 	for (int i = 0; i < cntMerge; i++) {
 		for (int j = 0; j < cntParam; j++) {
 			dbPixel[i][j] = modelParam[i][j] / (dbPixelToMM * 1000.0f);
@@ -4260,7 +4323,7 @@ BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count,
 	for (int i = 0; i < cntMerge; i++) {
 		switch (ENG_MMDT(m_type[i]))
 		{
-			/* ¾Æ·¡ 2°³ÀÇ TypeÀº °Ë»ö µî·Ï ÇÒ ¶§, Áö¸§ (±æÀÌ)ÀÌ ¾Æ´Ñ ¹İÁö¸§ */
+			/* ì•„ë˜ 2ê°œì˜ Typeì€ ê²€ìƒ‰ ë“±ë¡ í•  ë•Œ, ì§€ë¦„ (ê¸¸ì´)ì´ ì•„ë‹Œ ë°˜ì§€ë¦„ */
 		case ENG_MMDT::en_ring:
 		case ENG_MMDT::en_circle:	
 			dbDivSize = 2.0f;
@@ -4341,10 +4404,10 @@ BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count,
 	UINT8 u8Speed = (UINT8)m_pstConfig->mark_find.model_speed;
 	DOUBLE dbSmooth = (DOUBLE)m_pstConfig->mark_find.model_smooth;
 
-	// lk91 MmodControl µ¿ÀÏÇÏ°Ô À¯Áö...
-	/* ÀÌ¹ÌÁö ³ëÀÌÁî °¨¼Ò °ª ¼³Á¤ */
+	// lk91 MmodControl ë™ì¼í•˜ê²Œ ìœ ì§€...
+	/* ì´ë¯¸ì§€ ë…¸ì´ì¦ˆ ê°ì†Œ ê°’ ì„¤ì • */
 	if (dbSmooth < 0.0f || dbSmooth > 100.0f)	dbSmooth = 50.0f;
-	/* ¸ğµ¨ÀÇ °Ë»ö ¼Óµµ ÁöÁ¤ (¸ğµ¨ Å©±â°¡ ÀÛ°Å³ª ¸ÅÄª·ü¿¡¼­ ³ôÀº Á¤È®¼ºÀ» ÇÊ¿ä·Î ÇÏ°Å³ª, ¸ğµ¨ÀÇ ¿¡Áö°¡ ±âÇÏÇĞÀûÀ¸·Î º¹ÀâÇÑ °æ¿ì¿¡´Â µğÆúÆ® ¼³Á¤ (M_MEDIUM) »ç¿ë) */
+	/* ëª¨ë¸ì˜ ê²€ìƒ‰ ì†ë„ ì§€ì • (ëª¨ë¸ í¬ê¸°ê°€ ì‘ê±°ë‚˜ ë§¤ì¹­ë¥ ì—ì„œ ë†’ì€ ì •í™•ì„±ì„ í•„ìš”ë¡œ í•˜ê±°ë‚˜, ëª¨ë¸ì˜ ì—ì§€ê°€ ê¸°í•˜í•™ì ìœ¼ë¡œ ë³µì¡í•œ ê²½ìš°ì—ëŠ” ë””í´íŠ¸ ì„¤ì • (M_MEDIUM) ì‚¬ìš©) */
 	MmodControl(mergeModelID, M_CONTEXT, M_SPEED, lSpeed[u8Speed]);
 	MmodControl(mergeModelID, M_CONTEXT, M_SMOOTHNESS, dbSmooth);
 	MmodControl(mergeModelID, M_CONTEXT, M_ACCURACY, M_MEDIUM);
@@ -4367,7 +4430,7 @@ BOOL CMilModel::MergeMark(LPG_CMPV value, UINT8 speed, UINT8 level, UINT8 count,
 	if (!file.FindFile(strTmp)) {
 		CreateDirectory(strTmp + "\\", NULL);
 	}
-	// ÃßÈÄ¿¡´Â ÆÄÀÏ¸í ¹Ş¾Æ¼­ ÀúÀå ÇÒ ¼ö ÀÖµµ·Ï...
+	// ì¶”í›„ì—ëŠ” íŒŒì¼ëª… ë°›ì•„ì„œ ì €ì¥ í•  ìˆ˜ ìˆë„ë¡...
 	strMergePath.Format(_T("%s\\merge_result.mmf"), strTmp);
 	MmodSave(strMergePath, mergeModelID, M_DEFAULT);
 
@@ -4384,7 +4447,7 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 
 	dlg_id = DISP_TYPE_MARK_LIVE;
 
-	// lk91 ProcImage() »ç¿ë..
+	// lk91 ProcImage() ì‚¬ìš©..
 	theApp.clMilMain.ProcImage(m_camid - 1, 0);
 
 	UINT8 u8ScaleSize = 0x00 /* equal */; /* 0x01 : ScaleUp, 0x02 : ScaleDown */
@@ -4392,9 +4455,9 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	TCHAR tzData[128] = { NULL };
 	UINT32 u32GrabWidth = 0, u32GrabHeight = 0, i, j, k;
 	UINT32 u32MaxCount;
-	int calib_col = col; // lk91 ³ªÁß¿¡ °ª ¹Ş¾Æ¾ßÇØ
+	int calib_col = col; // lk91 ë‚˜ì¤‘ì— ê°’ ë°›ì•„ì•¼í•´
 	int calib_row = row;
-	u32MaxCount = calib_col * calib_row; // lk91 ÀÓ½Ã!! row * col
+	u32MaxCount = calib_col * calib_row; // lk91 ì„ì‹œ!! row * col
 
 	int* Point_x = new int[calib_row * calib_col]; //(int*)malloc(sizeof(int) * (calib_row * calib_col));
 	int* Point_y = new int[calib_row * calib_col];// (int*)malloc(sizeof(int) * (calib_row * calib_col));
@@ -4407,14 +4470,14 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	DOUBLE dbPosX, dbPosY, dbScore, dbScale, dbAngle, dbCovg, dbFitErr, dbCircleR;
 	MIL_ID mlResult = M_NULL, miModResults = 0, miOperation;
 
-	/* ±¸Á¶Ã¼ °ª ÃÊ±âÈ­ (!!! ¹İµå½Ã ÃÊ±âÈ­ !!!) */
+	/* êµ¬ì¡°ì²´ ê°’ ì´ˆê¸°í™” (!!! ë°˜ë“œì‹œ ì´ˆê¸°í™” !!!) */
 	m_u8MarkFindGet = 0x00;
 	ResetMarkResult();
 
 	/* Get the size of grabbed image (buffer) */
 	u32GrabWidth = (UINT32)MbufInquire(grab_id, M_SIZE_X, NULL);
 	u32GrabHeight = (UINT32)MbufInquire(grab_id, M_SIZE_Y, NULL);
-	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ÁÂÇ¥ °ªÀº Zero-based ÀÌ¹Ç·Î */
+	dbGrabCentX = (DOUBLE)u32GrabWidth / 2.0f;	/* ì¢Œí‘œ ê°’ì€ Zero-based ì´ë¯€ë¡œ */
 	dbGrabCentY = (DOUBLE)u32GrabHeight / 2.0f;
 	CString sTmp;
 	
@@ -4428,10 +4491,10 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 			MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SIZE_X, roi_right[i + (j * calib_col)] - roi_left[i + (j * calib_col)]);
 			MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_SEARCH_SIZE_Y, roi_bottom[i + (j * calib_col)] - roi_top[i + (j * calib_col)]);
 			MmodControl(m_mlModelID[mark_no], M_CONTEXT, M_ACTIVE_EDGELS, 100.0);
-			MmodPreprocess(m_mlModelID[mark_no], M_DEFAULT); // find ÇÒ¶§ Preprocess ÇÏµµ·Ï...
+			MmodPreprocess(m_mlModelID[mark_no], M_DEFAULT); // find í• ë•Œ Preprocess í•˜ë„ë¡...
 
 			MmodAllocResult(theApp.clMilMain.m_mSysID, M_DEFAULT, &mlResult);
-			MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, 1); // ÇÑ roi ³»¿¡ °ªÀº 1°³
+			MmodControl(m_mlModelID[mark_no], M_DEFAULT, M_NUMBER, 1); // í•œ roi ë‚´ì— ê°’ì€ 1ê°œ
 
 			MmodFind(m_mlModelID[mark_no], theApp.clMilMain.m_mImgProc[m_camid - 1], mlResult);
 
@@ -4462,7 +4525,7 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	}
 
 	//theApp.clMilDisp.DrawOverlayDC(false, dlg_id, m_camid - 1);
-	sTmp = "´ÜÀ§ : [mm]";
+	sTmp = "ë‹¨ìœ„ : [mm]";
 	theApp.clMilDisp.AddTextList(dlg_id, m_camid - 1, ACA1920_SIZE_X - 300, ACA1920_SIZE_Y - 100, sTmp, eM_COLOR_MAGENTA, 10, 20, VISION_FONT_TEXT, true);
 
 	// x
@@ -4472,7 +4535,7 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 		if (i == (calib_col * cnt) - 1)
 			cnt++;
 		else{
-			if ((Point_x[i + 1] == 0 && Point_y[i + 1] == 0) || (Point_x[i] == 0 && Point_y[i] == 0)) // NG ¿¹¿ÜÃ³¸®
+			if ((Point_x[i + 1] == 0 && Point_y[i + 1] == 0) || (Point_x[i] == 0 && Point_y[i] == 0)) // NG ì˜ˆì™¸ì²˜ë¦¬
 				continue;
 			sTmp.Format(_T("%.3f"), (Point_x[i + 1] - Point_x[i]) * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1));
 			theApp.clMilDisp.AddTextList(dlg_id, m_camid - 1, (Point_x[i + 1] + Point_x[i]) / 2,
@@ -4485,7 +4548,7 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	// y
 	for (int i = 0; i < (calib_row - 1) * calib_col; i++)
 	{
-		if ((Point_x[i + calib_col] == 0 && Point_y[i + calib_col] == 0) || (Point_x[i] == 0 && Point_y[i] == 0)) // NG ¿¹¿ÜÃ³¸®
+		if ((Point_x[i + calib_col] == 0 && Point_y[i + calib_col] == 0) || (Point_x[i] == 0 && Point_y[i] == 0)) // NG ì˜ˆì™¸ì²˜ë¦¬
 			continue;
 		sTmp.Format(_T("%.3f"), (Point_y[i + calib_col] - Point_y[i]) * m_pstConfig->acam_spec.GetPixelToMM(m_u8ACamID - 1));
 		theApp.clMilDisp.AddTextList(dlg_id, m_camid - 1, Point_x[i],
@@ -4501,7 +4564,7 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 	return TRUE;
 }
 
-/* desc : MIL ÇÒ´ç ÇØÁ¦ */
+/* desc : MIL í• ë‹¹ í•´ì œ */
 //VOID CMilModel::CloseMilModel()
 //{
 //#ifndef _NOT_USE_MIL_
@@ -4519,12 +4582,12 @@ BOOL CMilModel::RunModel_VisionCalib(MIL_ID graph_id, MIL_ID grab_id, UINT8 img_
 
 #if 0
 // 3. Find Marker
-Marker¸¦ °Ë»öÇÕ´Ï´Ù.°Ë»ö ÈÄ, °á°ú¸¦ Draw ÇÔ¼ö¸¦ ÀÌ¿ëÇÏ¿© width ¿Í ÃøÁ¤»óÀÚÀÇ ¿Ü°ûÀ» ±×¸³´Ï´Ù
+Markerë¥¼ ê²€ìƒ‰í•©ë‹ˆë‹¤.ê²€ìƒ‰ í›„, ê²°ê³¼ë¥¼ Draw í•¨ìˆ˜ë¥¼ ì´ìš©í•˜ì—¬ width ì™€ ì¸¡ì •ìƒìì˜ ì™¸ê³½ì„ ê·¸ë¦½ë‹ˆë‹¤
 MmeasFindMarker(M_DEFAULT, MilTargetImage, MilStripMarker, M_CONTRAST);
 MmeasDraw(M_DEFAULT, MilStripMarker, MilOverlay, M_DRAW_WIDTH + M_DRAW_BOX, M_DEFAULT, M_RESULT);
 
 // 4. Result
-GetResultÇÔ¼ö¸¦ ÀÌ¿ëÇÏ¿© width ¸¦ ¾ò¾î¿Í¼­ Ãâ·ÂÇÕ´Ï´Ù
+GetResultí•¨ìˆ˜ë¥¼ ì´ìš©í•˜ì—¬ width ë¥¼ ì–»ì–´ì™€ì„œ ì¶œë ¥í•©ë‹ˆë‹¤
 MmeasGetResult(MilStripMarker, M_WIDTH, &vWidth, M_NULL);
 strWidth.Format("Width= %. 3f pixels", vWidth);
 MgraText(M_DEFAULT, MilOverlay, 0, 0, (char*)(const char*)strWidth);

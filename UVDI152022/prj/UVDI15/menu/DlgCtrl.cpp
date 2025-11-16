@@ -463,11 +463,13 @@ VOID CDlgCtrl::InitMotionIndex()
 	for (int i = 0; i < m_u8StageCount; i++)
 	{
 		stTemp.strMotorName.Format(_T("STAGE%d X"), i + 1);
-		stTemp.DeviceNum = ENG_MMDI::en_stage_x;
+		stTemp.DeviceNum = ENG_MMDI(i * 2);
+		//stTemp.DeviceNum = ENG_MMDI::en_stage_x; y2를 마스터로
 		m_vMotor.push_back(stTemp);
 
 		stTemp.strMotorName.Format(_T("STAGE%d Y"), i + 1);
-		stTemp.DeviceNum = ENG_MMDI::en_stage_y;// ENG_MMDI((i * 2) + 1);
+		stTemp.DeviceNum = ENG_MMDI((i * 2) + 1);
+		//stTemp.DeviceNum = ENG_MMDI::en_stage_y;y2를 마스터로 
 		m_vMotor.push_back(stTemp);
 	}
 

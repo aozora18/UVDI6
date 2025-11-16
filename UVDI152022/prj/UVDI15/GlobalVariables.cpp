@@ -1308,15 +1308,20 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 					double x = align.GetAxises()["stage"]["x"].currPos;
 					double y = align.GetAxises()["stage"]["y"].currPos;
 
-					double cz1 = ajin.GetAxisInfo()[0].position;
-					double cz2 = ajin.GetAxisInfo()[1].position;
-					double cz3 = ajin.GetAxisInfo()[2].position;
-					
-					btSpp.AddOrUpdateMonitoringValue("stageX", to_str3(x).c_str(), "stage X(mm)");
-					btSpp.AddOrUpdateMonitoringValue("stageY", to_str3(y).c_str(), "stage Y(mm)");
-					btSpp.AddOrUpdateMonitoringValue("cam1Z", to_str3(cz1).c_str(), "cam1 Z(mm)");
-					btSpp.AddOrUpdateMonitoringValue("cam2Z", to_str3(cz2).c_str(), "cam2 Z(mm)");
-					btSpp.AddOrUpdateMonitoringValue("cam3Z", to_str3(cz3).c_str(), "cam3 Z(mm)");
+					auto ajinAxis = ajin.GetAxisInfo();
+
+					if (ajinAxis)
+					{
+						double cz1 = ajin.GetAxisInfo()[0].position;
+						double cz2 = ajin.GetAxisInfo()[1].position;
+						double cz3 = ajin.GetAxisInfo()[2].position;
+
+						btSpp.AddOrUpdateMonitoringValue("stageX", to_str3(x).c_str(), "stage X(mm)");
+						btSpp.AddOrUpdateMonitoringValue("stageY", to_str3(y).c_str(), "stage Y(mm)");
+						btSpp.AddOrUpdateMonitoringValue("cam1Z", to_str3(cz1).c_str(), "cam1 Z(mm)");
+						btSpp.AddOrUpdateMonitoringValue("cam2Z", to_str3(cz2).c_str(), "cam2 Z(mm)");
+						btSpp.AddOrUpdateMonitoringValue("cam3Z", to_str3(cz3).c_str(), "cam3 Z(mm)");
+					}
 					btSpp.RefreshMonitoringValue();
 				}
 				btSpp.Unload();

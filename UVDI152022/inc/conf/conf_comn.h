@@ -277,8 +277,8 @@ typedef enum class __en_mc2_device_move_direct__ : UINT8
 typedef enum class __en_mc2_motion_drive_id__ : UINT8
 {
 	en_stage_x						= 0x00,
-	en_stage_y						= 0x01,
-	//en_stage_y						= 0x02,
+	en_stage_y						= 0x01, 
+	//en_stage_y						= 0x02, //y2를 마스터로
 
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)

@@ -916,7 +916,7 @@ BOOL CAccuracyMgr::SetRegistModel()
 		if (!uvEng_Camera_SetModelDefineEx(i + 1,
 			pstCfg->mark_find.model_speed,
 			pstCfg->mark_find.detail_level,
-			pstCfg->mark_find.max_mark_find,
+			1,
 			pstCfg->mark_find.model_smooth,
 			&u32Model, &dbMColor, &dbMSize,
 			NULL, NULL, NULL, TMP_MARK,

@@ -348,6 +348,7 @@ VOID CSystem::SetRecvSystemSystemStatus(PUINT8 data, UINT32 size)
 		if (u32Status[2] != m_pstSystem->get_system_status[2])	SaveLuriaPCStatus(u32Status[2]);
 		/* 가장 최근 값 복사 */
 		memcpy(m_pstSystem->get_system_status, u32Status, 12);
+		
 	}
 }
 
@@ -493,7 +494,7 @@ VOID CSystem::SaveMotorStatus(UINT32 status)
 */
 VOID CSystem::SavePotoHeadStatus(UINT32 status)
 {
-	if (0 == (0xffff0000 & status))	return;
+	if (0 == (0x0000ffff & status))	return;
 
 	TCHAR tzMesg[128]	= {NULL};
 	if ((0x000000ff & status))

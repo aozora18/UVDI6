@@ -494,15 +494,15 @@ VOID CSystem::SaveMotorStatus(UINT32 status)
 */
 VOID CSystem::SavePotoHeadStatus(UINT32 status)
 {
-	if (0 == (0x0000ffff & status))	return;
+	if (0 == (0x000000ff & status))	return;
 
 	TCHAR tzMesg[128]	= {NULL};
-	if ((0x000000ff & status))
+	if ((0x0000000f & status))
 	{
 		swprintf_s(tzMesg, 128, L"PH : Head must be initialized [%08x]", status);
 		LOG_ERROR(ENG_EDIC::en_luria, tzMesg);
 	}
-	if ((0x0000ff00 & status))
+	if ((0x000000f0 & status))
 	{
 		swprintf_s(tzMesg, 128, L"PH : Communication with head failed [%08x]", status);
 		LOG_ERROR(ENG_EDIC::en_luria, tzMesg);

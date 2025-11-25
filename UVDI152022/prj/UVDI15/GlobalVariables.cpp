@@ -464,10 +464,10 @@ void AlignMotion::Update()
 	{
 		Refresh();
 		
-		/*bool interlocked = CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, axises["stage"]["x"].currPos) || 
-						   CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, axises["stage"]["y"].currPos);*/
-
-		uvEng_MC2_SetInterlockState(false);
+		bool interlocked = CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, axises["stage"]["x"].currPos) || 
+						   CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, axises["stage"]["y"].currPos);
+		
+		uvEng_MC2_SetInterlockState(interlocked);
 
 		this_thread::sleep_for(chrono::milliseconds(updateDelay));
 	}
@@ -1379,10 +1379,6 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 									pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, 0, 0);
 									if (pstGrab && 0x00 != pstGrab->marked)	break;
 									
-									
-									
-									
-
 									if (u64Tick + 100 < GetTickCount64())	break;
 
 									Sleep(100);

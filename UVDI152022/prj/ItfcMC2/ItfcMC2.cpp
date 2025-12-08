@@ -338,7 +338,7 @@ API_EXPORT BOOL uvMC2_SendDevGoVelo(ENG_MMDI drv_id, UINT32 velo)
 {
 	if (velo < 1)	return FALSE;
 	
-	if (interlocked)
+	if (interlocked && (drv_id == ENG_MMDI::en_stage_x || drv_id == ENG_MMDI::en_stage_y))
 	{
 		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevGoVelo() false , interlocked!");
 		return FALSE;
@@ -375,7 +375,7 @@ API_EXPORT BOOL uvMC2_SendDevBaseVeloAcce(ENG_MMDI drv_id, UINT32 velo, UINT32 a
 {
 	if (velo < 1 || acce < 1)	return FALSE;
 
-	if (interlocked)
+	if (interlocked && (drv_id == ENG_MMDI::en_stage_x || drv_id == ENG_MMDI::en_stage_y))
 	{
 		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevBaseVeloAcce() false , interlocked!");
 		return FALSE;
@@ -462,7 +462,7 @@ API_EXPORT BOOL uvMC2_SendDevRefMove(ENG_MMMM method, ENG_MMDI drv_id,
 	INT32 i32DrvPos	= 0;
 	INT32 i32MaxDist= (INT32)ROUNDED(g_pstConfig->mc2_svc.max_dist[UINT8(drv_id)] * 10000.0f, 0);
 	
-	if (interlocked)
+	if (interlocked && (drv_id == ENG_MMDI::en_stage_x || drv_id == ENG_MMDI::en_stage_y))
 	{
 		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevRefMove() false , interlocked!");
 		return FALSE;
@@ -555,7 +555,7 @@ API_EXPORT BOOL uvMC2_SendDevAbsMove(ENG_MMDI drv_id, INT32 move, UINT32 velo)
 	INT32 i32MinDist, i32MaxDist;
 	UINT8 u8drv_id;
 
-	if (interlocked)
+	if (interlocked && (drv_id == ENG_MMDI::en_stage_x || drv_id == ENG_MMDI::en_stage_y))
 	{
 		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevAbsMove() false , interlocked!");
 		return FALSE;
@@ -624,7 +624,7 @@ API_EXPORT BOOL uvMC2_SendDevMovingHome(ENG_MMDI drv_id, INT32 velo)
 {
 	if (velo < 1)	return FALSE;
 
-	if (interlocked)
+	if (interlocked && (drv_id == ENG_MMDI::en_stage_x || drv_id == ENG_MMDI::en_stage_y))
 	{
 		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevMovingHome() false, interlocked!");
 		return FALSE;
@@ -852,7 +852,7 @@ API_EXPORT BOOL uvMC2_SendDevHoming(ENG_MMDI drv_id)
 #elif(MC2_DRIVE_2SET == 1)
 	UINT8 u8drv_id;
 
-	if (interlocked)
+	if (interlocked && (drv_id == ENG_MMDI::en_stage_x || drv_id == ENG_MMDI::en_stage_x))
 	{
 		LOG_WARN(ENG_EDIC::en_mc2, L"uvMC2_SendDevHoming() false , interlocked!");
 		return FALSE;

@@ -466,7 +466,7 @@ void AlignMotion::Update()
 		
 		bool interlocked = CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, axises["stage"]["x"].currPos) || 
 						   CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, axises["stage"]["y"].currPos);
-
+		
 		uvEng_MC2_SetInterlockState(interlocked);
 
 		this_thread::sleep_for(chrono::milliseconds(updateDelay));
@@ -1304,16 +1304,18 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 						}
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-					auto ainfo = ajin.GetAxisInfo();
-					if(ainfo)
-					{
-						double x = align.GetAxises()["stage"]["x"].currPos;
-						double y = align.GetAxises()["stage"]["y"].currPos;
 
+					double x = align.GetAxises()["stage"]["x"].currPos;
+					double y = align.GetAxises()["stage"]["y"].currPos;
+
+					auto ajinAxis = ajin.GetAxisInfo();
+
+					if (ajinAxis)
+					{
 						double cz1 = ajin.GetAxisInfo()[0].position;
 						double cz2 = ajin.GetAxisInfo()[1].position;
 						double cz3 = ajin.GetAxisInfo()[2].position;
-					
+
 						btSpp.AddOrUpdateMonitoringValue("stageX", to_str3(x).c_str(), "stage X(mm)");
 						btSpp.AddOrUpdateMonitoringValue("stageY", to_str3(y).c_str(), "stage Y(mm)");
 						btSpp.AddOrUpdateMonitoringValue("cam1Z", to_str3(cz1).c_str(), "cam1 Z(mm)");
@@ -1377,10 +1379,6 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 									pstGrab = uvEng_Camera_RunModelCali(u8ACamID, mode, (UINT8)DISP_TYPE_MARK_LIVE, TMP_MARK, TRUE, 0, 0);
 									if (pstGrab && 0x00 != pstGrab->marked)	break;
 									
-									
-									
-									
-
 									if (u64Tick + 100 < GetTickCount64())	break;
 
 									Sleep(100);

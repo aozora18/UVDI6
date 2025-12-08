@@ -320,6 +320,10 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE s
 
 		LPG_CMPV pstMark = uvEng_Mark_GetModelName(csCnv.Ansi2Uni(pstAlignRecipe->m_name[GLOBAL_MARK_NAME_INDEX]));
 
+		TCHAR tzMsg[256] = { NULL };
+		swprintf_s(tzMsg, 256, L"mark Recipe Param - name %s count : %d , size(um)", pstMark->name, pstAlignRecipe->search_count , pstMark->param[1]);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
 		if (pstMark)
 		{
 			if (ENG_MMDT(pstMark->type) != ENG_MMDT::en_image)

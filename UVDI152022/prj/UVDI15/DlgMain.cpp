@@ -842,7 +842,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_SELECT:
 
 		updatePender();
-		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil, this, m_bMainBusy);
+		CRecvPhil::GetInstance()->PhilSendSelectRecipe(pstPhil, this, IsBusyWorkJob());
 	break;
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST:
@@ -857,7 +857,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		updatePender();
 		
 		/*Recv 정상 수신 확인*/
-		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
+		if (PhilSendMoveRecvAck(pstPhil, IsBusyWorkJob()))
 		{
 			for (int i = 0; i < pstPhil->st_c2p_abs_move.usCount; i++)
 			{
@@ -876,7 +876,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		updatePender();
 
 
-		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
+		if (PhilSendMoveRecvAck(pstPhil, IsBusyWorkJob()))
 		{
 			for (int i = 0; i < pstPhil->st_c2p_rel_move.usCount; i++)
 			{
@@ -895,7 +895,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		updatePender();
 
 
-		if (PhilSendMoveRecvAck(pstPhil, m_bMainBusy))
+		if (PhilSendMoveRecvAck(pstPhil, IsBusyWorkJob()))
 		{
 			for (int i = 0; i < pstPhil->st_c2p_char_move.usCount; i++)
 			{
@@ -912,7 +912,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	case (int)ENG_PHPC::ePHILHMI_C2P_PROCESS_EXECUTE		 :
 
 		updatePender();
-		CRecvPhil::GetInstance()->PhilSendProcessExecute(pstPhil, this, m_bMainBusy);
+		CRecvPhil::GetInstance()->PhilSendProcessExecute(pstPhil, this, IsBusyWorkJob());
 		break; 
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_SUB_PROCESS_EXECUTE	 :
@@ -931,7 +931,7 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 		
 		updatePender();
 
-		CRecvPhil::GetInstance()->PhilSendInitialExecute(pstPhil, this, m_bMainBusy);
+		CRecvPhil::GetInstance()->PhilSendInitialExecute(pstPhil, this, IsBusyWorkJob());
 		break;
 	case (int)ENG_PHPC::ePHILHMI_C2P_EVENT_STATUS:
 		PhilSendEventStatus(pstPhil);

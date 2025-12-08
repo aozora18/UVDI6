@@ -256,7 +256,7 @@ void CWorkMarkMove::DoInitOnthefly2cam()
 {
 	
 	m_u8StepTotal = 0x09;
-	
+	GlobalVariables::GetInstance()->GetAlignMotion().SetFiducialPool();
 
 }
 

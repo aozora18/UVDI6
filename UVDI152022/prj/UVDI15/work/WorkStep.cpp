@@ -2128,6 +2128,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	/* XML 파일에 등록된 Mark 개수 확인 */
 	u8MarkG = uvEng_Luria_GetMarkCount(ENG_AMTF::en_global);
 	u8MarkL = uvEng_Luria_GetMarkCount(ENG_AMTF::en_local);
+
 	pstMarks = new STG_I32XY[u8MarkG + u8MarkL];// (LPG_I32XY)::Alloc(sizeof(STG_I32XY) * UINT32(u8MarkG + u8MarkL));
 	ASSERT(pstMarks);
 
@@ -3136,6 +3137,7 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 		pstJobRecipe->step_size, pstExpoRecipe->led_duty_cycle, pstJobRecipe->frame_rate);
 	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 
+	m_dexpo_energy = pstJobRecipe->expo_energy;
 
 	return ENG_JWNS::en_next;
 }
@@ -4565,6 +4567,60 @@ ENG_JWNS CWorkStep::CameraSetCamMode(ENG_VCCM mode)
 
 	/* Vision : Grabbed Mode */
 	uvEng_Camera_SetCamMode(mode);
+
+	return ENG_JWNS::en_next;
+}
+
+
+
+/*
+ desc : Panel Data 기능으로 FEM 노광 조건 표시
+ parm : None
+ retn : None
+*/
+ENG_JWNS CWorkStep::SetFEMPanelData()
+{
+	int text_size = 32;
+	TCHAR tzJobName[32] = { NULL };
+	int len;
+	PUINT8 pBuffer;
+
+	LPG_RJAF pstRecipe = nullptr;
+	bool isLocalSelectRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	pstRecipe = uvEng_JobRecipe_GetSelectRecipe(isLocalSelectRecipe);
+
+	//PH1
+	swprintf_s(tzJobName, text_size, L"P1=%.1f mj / %.3f mm", m_dexpo_energy, m_dbPhZAxisSet[0]);
+	len = WideCharToMultiByte(CP_UTF8, 0, tzJobName, -1, NULL, 0, NULL, NULL);
+	pBuffer = (PUINT8)malloc(len);
+
+	WideCharToMultiByte(CP_UTF8, 0, tzJobName, -1, (char*)pBuffer, len, NULL, NULL);
+	//Dcode 60
+	//char* ptchar = "asdcasdcasdcasdcasdcasdc";
+	//uvEng_Luria_ReqSetPanelData(60, string("asdcasdcasdcasdcasdcasdc").length() ,(PUINT8)(ptchar), 0, 0, 1000, 1000);
+	//uvEng_Luria_ReqSetPanelData(60, text_size, pBuffer, 0, 0, 1000, 1000);
+	uvEng_Luria_ReqSetPanelData(60, sizeof(pBuffer)*2.5, pBuffer, 0, 0, 800, 800);
+
+	/*QR*/
+	//uvEng_Luria_ReqSetPanelData(25, sizeof(pBuffer)*2.5, pBuffer, 0, 0, 8000, 8000);
+
+	////PH2
+	swprintf_s(tzJobName, text_size, L"P2=%.1fmj / %.3fmm", m_dexpo_energy, m_dbPhZAxisSet[1]);
+	PUINT8 pBuffer2;
+	len = WideCharToMultiByte(CP_UTF8, 0, tzJobName, -1, NULL, 0, NULL, NULL);
+	pBuffer2 = (PUINT8)malloc(len);
+	WideCharToMultiByte(CP_UTF8, 0, tzJobName, -1, (char*)pBuffer2, len, NULL, NULL);
+	//Dcode 61
+	uvEng_Luria_ReqSetPanelData(61, sizeof(pBuffer2)*2.5, pBuffer2, 0, 0, 800, 800);
+
+	/*QR*/
+	//uvEng_Luria_ReqSetPanelData(26, sizeof(pBuffer2) * 2.5, pBuffer2, 0, 0, 80000, 80000);
+
+
+	/*BMP*/
+	////char* paths = "C:\\iconic2.bmp";
+	//char* paths = "D:\\BMP\\DIMaster.bmp";
+	//uvEng_Luria_ReqSetPanelData(25, strlen(paths), (PUINT8)paths, 0, 0, 0, 0);
 
 	return ENG_JWNS::en_next;
 }

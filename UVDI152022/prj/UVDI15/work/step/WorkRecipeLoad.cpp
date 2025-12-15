@@ -106,6 +106,10 @@ void SetMTC()
 }
 
 
+void WriteOutErrStr(TCHAR* tzMsg)
+{
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+}
 /*
  desc : 주기적으로 작업 수행
  parm : None
@@ -122,6 +126,42 @@ VOID CWorkRecipeLoad::DoWork()
 	{
 	case 0x01 : 
 	{
+		/*uvEng_Luria_ReqGetSystemStatus();
+		
+
+		bool allInited = TRUE;
+		for (int i = 1; i <= phCnt; i++)
+		{
+			if (allInited != uvEng_ShMem_GetLuria()->system.IsInitedPH(i))
+				allInited = FALSE;
+		}
+
+		if (allInited == FALSE)
+		{
+			uvEng_Luria_ReqSetHWInit();
+			Sleep(5000);
+			uvEng_Luria_ReqGetSystemStatus();
+			Sleep(2000);
+
+			bool finished = GlobalVariables::GetInstance()->Waiter([&]()->bool
+				{
+					vector<BOOL> allOK;
+					for (int i = 1; i <= phCnt; i++)
+					{
+						allOK.push_back(uvEng_ShMem_GetLuria()->system.IsInitedPH(i));
+						Sleep(300);
+					}
+					return std::find(allOK.begin(), allOK.end(), FALSE) == allOK.end();
+				}, 10000);
+
+			if (finished == false)
+			{
+				WriteOutErrStr(_T("failed to initialize photohead."));
+				m_enWorkState = ENG_JWNS::en_error;
+				break;
+			}
+				
+		}*/
 
 		uvEng_Camera_ResetGrabbedImage();
 
@@ -394,6 +434,11 @@ ENG_JWNS CWorkRecipeLoad::SetMarkRecipe()
 
 		if (pstMark)
 		{
+			TCHAR tzMsg[256] = { NULL };
+			swprintf_s(tzMsg, 256, L"mark Recipe Param - name : %s ,count : %d , size(um)", csCnv.Ansi2Uni(pstMark->name), pstAlignRecipe->search_count, pstMark->param[1]);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+
+
 			if (ENG_MMDT(pstMark->type) != ENG_MMDT::en_image)
 			{
 				bmmfFile = true;

@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../../inc/conf/vision_uvdi15.h"
-
+class CDlgMain;
 class CFlushErrorMgr
 {
 /* 생성자 & 파괴자 */
@@ -19,8 +19,15 @@ public:
 /* 열거형 */
 protected:
 
-	enum EnMeasureStep
+	enum EnMeasureStep : int
 	{
+		eMEASURE_LOAD_RECIPE = -7,
+		eMEASURE_IS_LOAD_COMPLETE = -6,
+		eMEASURE_SET_EXPO_POS = -5,
+		eMEASURE_PREPRINT = -4,
+		eMEASURE_IS_PREPRINT = -3,
+		eMEASURE_PRINT = -2,
+		eMEASURE_IS_PRINT=-1,
 		eMEASURE_GRABBED_IMAGE = 0,
 		eMEASURE_MOVE_MOTION,
 		eMEASURE_MAX
@@ -43,6 +50,8 @@ protected:
 	BOOL				m_bStop;				/* 정지 플래그 */
 	UINT8				m_u8CurStep;
 	UINT8				m_u8MaxStep;
+	int measureCount=1;
+	int completedCount = 0;
 	BOOL				m_bResultSucc;
 	LPG_ACGR			m_pstGrabData;
 
@@ -50,6 +59,7 @@ protected:
 
 	CWinThread*			m_pMeasureThread;		/* 측정 쓰레드 */
 	BOOL				m_bRunnigThread;		/* 쓰레드 동작 유무 파악*/
+
 
 
 /* 로컬 함수 */
@@ -64,7 +74,7 @@ protected:
 /* 공용 함수 */
 public:
 	/* 내부 대기동작으로 인해 쓰레드를 제외한 UI에서 호출을 금지한다. */
-	BOOL Measurement(HWND hHwnd = NULL);
+	BOOL Measurement(HWND hHwnd, int count, CDlgMain* dlgMain);
 	////////////////////////////////////////////////////////////////////
 
 	VOID Initialize();
@@ -79,7 +89,7 @@ public:
 
 	BOOL IsProcessWorking() { return m_bRunnigThread; }
 
-	VOID MeasureStart(HWND hHwnd = NULL);
+	VOID MeasureStart(HWND hHwnd ,int count, CDlgMain* dlgMain);
 	VOID SetStopProcess() { m_bStop = TRUE; }
 // 	VOID MeasureEnd();
 };

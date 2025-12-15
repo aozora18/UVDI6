@@ -40,7 +40,7 @@
 #include "Ajinprotocol.h"
 #include "CommWrapper.h"
 #include <queue>
-
+class CDlgMain;
 
 using namespace std;
 using namespace mini;
@@ -420,6 +420,7 @@ struct Params
 
 	double distCam2cam[4] = { 0, };
 	int centerCamIdx = 3;
+	bool localAlignTest = 0;
 	double centerMarkzeroOffsetX = 0;
 	double centerMarkzeroOffsetY = 0;
 	ENG_AMOS alignMotion; ENG_AMOS prevAlignMotion; ENG_AMOS processedAlignMotion;
@@ -1213,6 +1214,8 @@ public:
 	}
 
 private:
+	
+	CDlgMain* dlgMain = nullptr;
 	map<string, atomic<int>> counter;
 	map<string, thread> waiter;
 	mutex motionMutex;
@@ -1242,7 +1245,15 @@ public:
 
 public:
 	FEMRunState femRunState;
+	void SetDlgMain(CDlgMain* dlg)
+	{
+		dlgMain = dlg;
+	}
 
+	CDlgMain* GetDlgMain()
+	{
+		return dlgMain;
+	}
 	AlignMotion& GetAlignMotion()
 	{
 		return *alignMotion;

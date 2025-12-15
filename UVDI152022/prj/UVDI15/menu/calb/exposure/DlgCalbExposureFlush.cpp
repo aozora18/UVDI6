@@ -8,6 +8,9 @@
 #include <iostream>
 #include <string>
 
+
+#include "../../../GlobalVariables.h"
+
 /*
  desc : 생성자
  parm : id		- [in]  자신의 윈도 ID
@@ -917,7 +920,7 @@ VOID CDlgCalbExposureFlush::MatchOnce()
 	CFlushErrorMgr::GetInstance()->SetCurStep(u8MarkCnt);
 	CFlushErrorMgr::GetInstance()->SetMaxStep(u8MarkCnt);
 
-	CFlushErrorMgr::GetInstance()->MeasureStart(this->GetSafeHwnd());
+	CFlushErrorMgr::GetInstance()->MeasureStart(this->GetSafeHwnd(),-1,nullptr);
 
 	m_btn_ctl[eCALB_EXPOSURE_FLUSH_BTN_MATCH_ONCE].SetBgColor(LIGHT_RED);
 	m_btn_ctl[eCALB_EXPOSURE_FLUSH_BTN_MATCH_ONCE].SetWindowTextW(_T("STOP"));
@@ -950,8 +953,10 @@ VOID CDlgCalbExposureFlush::DoMeasure()
 	CFlushErrorMgr::GetInstance()->SetCurStep(1);
 	CFlushErrorMgr::GetInstance()->SetMaxStep(uvEng_GetConfig()->luria_svc.ph_count * DEF_PH_MEASURE_COUNT);
 
-	CFlushErrorMgr::GetInstance()->MeasureStart(this->GetSafeHwnd());
 
+	CGridCtrl* pGrid = &m_grd_ctl[eCALB_EXPOSURE_FLUSH_GRD_OPTION];
+	int cnt = pGrid->GetItemTextToInt(eOPTION_ROW_EXPOSE_ROUND, eOPTION_COL_VALUE);
+	CFlushErrorMgr::GetInstance()->MeasureStart(this->GetSafeHwnd(), cnt, GlobalVariables::GetInstance()->GetDlgMain());
 	m_btn_ctl[eCALB_EXPOSURE_FLUSH_BTN_MEASURE].SetBgColor(LIGHT_RED);
 	m_btn_ctl[eCALB_EXPOSURE_FLUSH_BTN_MEASURE].SetWindowTextW(_T("STOP"));
 }

@@ -565,7 +565,8 @@ PUINT8 CPanelPreparation::GetPktPanelData(ENG_LPGS flag,
 										  UINT32 dcode, UINT16 s_len, PUINT8 text, 
 										  UINT8 flip_x, UINT8 flip_y, UINT16 font_h, UINT16 font_v)
 {
-	UINT8 u8Body[96]= { NULL }, *pBody = u8Body;
+	//UINT8 u8Body[96]= { NULL }, *pBody = u8Body;
+	UINT8 u8Body[512] = { NULL }, * pBody = u8Body;
 	UINT16 u16Len	= s_len;
 	UINT32 u32Pkts	= 256;
 	UINT32 u32Body	= 4/*dcode*/+2/*flip_x/y*/+4/*font_xy*/+2/*s_len*/+s_len;

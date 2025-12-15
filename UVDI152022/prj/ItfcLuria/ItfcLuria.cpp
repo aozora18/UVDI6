@@ -2390,8 +2390,13 @@ API_EXPORT BOOL uvLuria_ReqSetAllPhotoheads(UINT8 count, UINT8 pitch, UINT16 rat
  retn : TRUE or FALSE
  note : In case of HW init failure, then it may take up to 4 seconds until a reply is given
 */
+
+
+	
+
 API_EXPORT BOOL uvLuria_ReqSetInitializeHardware()
 {
+	g_pstShMemLuria->focus.initialized = FALSE;
 	PUINT8 pPktBuff	= g_pPktSS->GetPktInitializeHardware();
 	return AddPktSend(pPktBuff, g_pPktSS->GetPktSize(), WFILE);
 }

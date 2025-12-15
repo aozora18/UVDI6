@@ -93,23 +93,25 @@ VOID CWorkFEMExpo::DoWork()
 	case 0x06: m_enWorkState = SetStepDutyFrame();				break;
 	case 0x07: m_enWorkState = IsStepDutyFrame();				break;
 
+	case 0x08: m_enWorkState = SetFEMPanelData();				break;
+
 	/////////////
 	/*≥Î±§ µø¿€*/
 	/////////////
 	//case 0x08: m_enWorkState = SetExposeReady(FALSE, FALSE, FALSE, m_stExpoInfo.expo_count);	break;
 
-	case 0x08: m_enWorkState = SetPrePrinting();				break;
-	case 0x09: m_enWorkState = IsPrePrinted();					break;
+	case 0x09: m_enWorkState = SetPrePrinting();				break;
+	case 0x0a: m_enWorkState = IsPrePrinted();					break;
 
-	case 0x0a: m_enWorkState = SetPrinting();					break;
-	case 0x0b: m_enWorkState = IsPrinted();						break;
+	case 0x0b: m_enWorkState = SetPrinting();					break;
+	case 0x0c: m_enWorkState = IsPrinted();						break;
 
-	case 0x0c: m_enWorkState = IsMotorDriveStopAll();			break;
+	case 0x0d: m_enWorkState = IsMotorDriveStopAll();			break;
 
-	case 0x0d: m_enWorkState = SetWorkWaitTime(1000);			break;
-	case 0x0e: m_enWorkState = IsWorkWaitTime();				break;
+	case 0x0e: m_enWorkState = SetWorkWaitTime(1000);			break;
+	case 0x0f: m_enWorkState = IsWorkWaitTime();				break;
 
-	case 0x0f: m_enWorkState = CheckMeasCount();				break;
+	case 0x10: m_enWorkState = CheckMeasCount();				break;
 
 	}
 
@@ -480,6 +482,8 @@ ENG_JWNS CWorkFEMExpo::SetStepDutyFrame()
 	TCHAR tzMesg[1024] = { NULL };
 	swprintf_s(tzMesg, 1024, L"[FEM][%d][%d] EXPO ENERGY %.4f", m_u8PritCntX, m_u8PritCntY, dexpo_energy);
 	LOG_MESG(ENG_EDIC::en_debug, tzMesg);
+
+	m_dexpo_energy = dexpo_energy;
 
 	for (i=0; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{

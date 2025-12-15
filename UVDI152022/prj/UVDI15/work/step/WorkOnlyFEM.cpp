@@ -50,6 +50,7 @@ BOOL CWorkOnlyFEM::InitWork()
 
 	/* 전체 작업 단계 */
 	m_u8StepTotal = 0x09;
+	//m_u8StepTotal = 0x0a;
 
 	return TRUE;
 }
@@ -77,6 +78,8 @@ VOID CWorkOnlyFEM::DoWork()
 		/* Led Duty Cycle & Frame Rate */
 	case 0x08: m_enWorkState = SetStepDutyFrame();				break;
 	case 0x09: m_enWorkState = IsStepDutyFrame();				break;
+
+	case 0x0a: m_enWorkState = SetFEMPanelData();				break;
 // #if 1
 // 	/* 작업 적재 여부 화면 */
 // 	case 0x0e : m_enWorkState = IsGerberJobLoaded();			break;

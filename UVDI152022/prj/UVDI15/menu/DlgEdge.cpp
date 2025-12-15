@@ -263,7 +263,7 @@ VOID CDlgEdge::OnBoxSelChangeMark()
 	if (i32CurSel < 0)	return;
 
 	/* 임시 저장 파일 설정 */
-	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\save_img\\edge\\uvdi15_temp_mark.png", g_tzWorkDir);
+	swprintf_s(tzFile, MAX_PATH_LEN, L"%s\\save_img\\edge\\uvdi15_temp_mark.bmp", g_tzWorkDir);
 	/* 임시 저장 파일로 현재 선택된 마크 저장 */
 	if (!uvEng_Camera_SaveGrabbedMarkToFile(m_u8ACamID,
 											&uvEng_Camera_GetEdgeDetectResults(m_u8ACamID)[i32CurSel].box_area,

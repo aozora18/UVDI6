@@ -188,7 +188,6 @@ VOID CExpoVal::DrawText()
 */
 VOID CExpoVal::DrawValue()
 {
-	return;
 	TCHAR tzValue[32]	= {NULL};
 	UINT16 u16TempLed, u16TempBoard;
 	PUINT16 pPhTempLed	= NULL;

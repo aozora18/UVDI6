@@ -280,12 +280,10 @@ VOID CDlgMotr::InitMotionIndex()
 	{
 		stTemp.strMotorName.Format(_T("STAGE%d X"), i + 1);
 		stTemp.DeviceNum = ENG_MMDI(i * 2);
-		//stTemp.DeviceNum = ENG_MMDI::en_stage_x; y2를 마스터로 
 		m_stVctMotion.push_back(stTemp);
 
 		stTemp.strMotorName.Format(_T("STAGE%d Y"), i + 1);
 		stTemp.DeviceNum = ENG_MMDI((i * 2) + 1);
-		//stTemp.DeviceNum = ENG_MMDI::en_stage_y; y2를 마스터로
 		m_stVctMotion.push_back(stTemp);
 	}
 

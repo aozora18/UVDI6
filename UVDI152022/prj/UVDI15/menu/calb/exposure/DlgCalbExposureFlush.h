@@ -2,6 +2,8 @@
 #include "../../DlgSubTab.h"
 #include "../DlgCalbExposure.h"
 
+#include "../../../GlobalVariables.h"
+
 #define  SIMUL_CAMERA 1
 
 enum EnCalbExposureFlushBtn
@@ -308,7 +310,14 @@ protected:
 	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
 	CBrush brListBg;
 	CBrush brEditBg;
+	CBrush brPicBg;
+
+	
+
 	HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+
+	
+	
 public:
 
 	virtual BOOL		OnInitDlg();
@@ -321,7 +330,12 @@ public:
 
 	/* 로컬 변수 */
 protected:
-
+	HIDS   hCam = 0;
+	char* camImgMem = nullptr;
+	int    m_memId = 0;
+	int    m_imgW = 0;
+	int    m_imgH = 0;
+	int    m_bpp = 24;   
 
 
 //#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
@@ -435,7 +449,7 @@ protected:
 	CMyStatic pics[picMax];
 	CMyGrpBox groups[grpMax];
 	/* 로컬 함수 */
-
+	void UpdateIDSImage();
 
 protected:
 

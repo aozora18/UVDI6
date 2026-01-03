@@ -178,6 +178,7 @@ typedef enum class __en_child_tabmenu_dialog_id__ : UINT8
 
 	en_menu_tab_calb_exposure_fem	= 0x01,		/* Exposure FEM Dialog */
 	en_menu_tab_calb_exposure_flush = 0x02,		/* Exposure Flush Dialog */
+	en_menu_tab_calb_exposure_mirrortune = 0x03,		//미러튜닝
 
 	en_menu_tab_calb_accuracy_measure = 0x01,	/* Accuracy measure Dialog */
 	en_menu_tab_calb_accuracy_check = 0x02,		/* Accuracy check Dialog */

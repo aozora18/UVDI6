@@ -233,6 +233,7 @@ protected:
 	VOID				UpdateStepXY();
 	VOID				UpdatePhOffset();
 	VOID				UpdateLiveView();
+	VOID				UpdateWorkProgress();
 
 	VOID				LoadOption();
 	VOID				SaveOption();
@@ -266,6 +267,204 @@ protected:
 	afx_msg	void		OnClickGridResult(NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg	void		OnClickGridBtn(NMHDR* pNotifyStruct, LRESULT* pResult);
 	afx_msg	void		OnClickGridOption(NMHDR* pNotifyStruct, LRESULT* pResult);
+
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// 
+// 
+// 
+//
+// 
+//
+//
+//								시간 없으니 합승좀 하겠습니다.
+//
+// 
+// 
+// 
+//
+// 
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class CDlgCalbExposureMirrorTune : public CDlgSubTab
+{
+public:
+
+	/* 생성자 / 파괴자 */
+	CDlgCalbExposureMirrorTune(UINT32 id, CWnd* parent = NULL);
+	virtual ~CDlgCalbExposureMirrorTune();
+
+	/* 가상함수 선언 */
+protected:
+
+	virtual BOOL		PreTranslateMessage(MSG* msg);
+	virtual VOID		DoDataExchange(CDataExchange* dx);
+	virtual VOID		UpdateControl(UINT64 tick, BOOL is_busy);
+	CBrush brListBg;
+	CBrush brEditBg;
+	HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+public:
+
+	virtual BOOL		OnInitDlg();
+	virtual VOID		OnExitDlg();
+	virtual VOID		OnPaintDlg(CDC* dc);
+	virtual VOID		OnResizeDlg();
+	virtual void		RegisterUILevel() {}
+	virtual VOID		UpdatePeriod(UINT64 tick, BOOL is_busy);
+
+
+	/* 로컬 변수 */
+protected:
+
+
+
+//#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
+//#define IDC_BUTTON_MIRROR_LOADIMAGE         11772
+//#define IDC_BUTTON_MIRROR_UNLOADIMAGE       11773
+//#define IDC_BUTTON_MIRROR_IDS_OPEN          11774
+//#define IDC_BUTTON_MIRROR_IDS_CLOSE         11775
+//#define IDC_BUTTON_MIRROR_IDS_SNAPSHOT      11776
+//#define IDC_BUTTON_MIRROR_IDS_RECORD        11777
+//#define IDC_BUTTON_MIRROR_OPEN_MOTION_CONTROL 11778
+//#define IDC_BUTTON_MIRROR_EDIT_MOTIONLIST   11779
+//#define IDC_BUTTON_MIRROR_RUN_MOTION        11780
+	enum mirrorTuneBtns
+	{
+		LED_POWERSET,
+		LOADIMAGE,
+		UNLOADIMAGE,
+		OPEN,
+		CLOSE,
+		SNAPSHOT,
+		RECORD,
+		OPEN_MOTION_CONTROL,
+		EDIT_MOTIONLIST,
+		RUN_MOTION,
+		btnMax,
+	};
+
+
+//#define IDC_CHECK_MIRROR_LED1               11763
+//#define IDC_CHECK_MIRROR_LED2               11764
+//#define IDC_CHECK_MIRROR_LED3               11765
+//#define IDC_CHECK_MIRROR_LED4               11766
+//#define IDC_CHECK_MIRROR_KEEP_REFRESHING    11767
+	enum mirrorTuneChecks
+	{
+		LED1,
+		LED2,
+		LED3,
+		LED4,
+		KEEP_REFRESHING,
+		chkMax
+	};
+
+
+//#define IDC_COMBO_MIRROR_IMAGES             11768
+//#define IDC_COMBO_MIRROR_PHINDEX            11769
+	enum mirrorTuneCombos
+	{
+		IMAGES,
+		PHINDEX,
+		cmbMax,
+	};
+
+//#define IDC_STATIC_MIRROR_POWER_CURRENT     11762
+	enum mirrorTuneStatic
+	{
+		POWER_CURRENT,
+		stcMax
+	};
+
+//#define IDC_MIRROR_MOTION_LIST              11781
+	enum mirrorTuneList
+	{
+		MOTION_LIST,
+		lstMax,
+	};
+
+//#define IDC_MIRROR_MOTION_EDIT              11782
+	enum mirrorTuneEdit
+	{
+		MOTION_EDIT,
+		edtMax
+	};
+
+//#define IDC_IDSCAMERA_VIEW                  11783
+	enum mirrorTunePic
+	{
+		IDSCAMERA_VIEW,
+		picMax
+	};
+
+//#define IDC_GROUP_PH_SETTING                11784
+//#define IDC_GROUP_LED						11785
+//#define IDC_GROUP_CAMERA					11786
+//#define IDC_GROUP_IMAGE						11787
+//#define IDC_GROUP_MOTION					11788
+	enum mirrorTurnGroups
+	{
+		PH_SETTING,
+		LED,
+		CAMERA,
+		IMAGE,
+		MOTION,
+		grpMax
+	};
+
+//#define IDC_SLIDER_MIRROR_POWERINDEX        11770
+	enum mirrorTuneSlide
+	{
+		POWERINDEX,
+		sldMax
+	};
+
+	CEdit edits[edtMax];
+	CListBox lists[lstMax];
+	CSliderCtrl sliders[sldMax];
+	CMacCheckBox checks[chkMax];
+	CMacButton btns[btnMax];
+	CComboBox combos[cmbMax];
+	CMyStatic statics[stcMax];
+	CMyStatic pics[picMax];
+	CMyGrpBox groups[grpMax];
+	/* 로컬 함수 */
+
+
+protected:
+
+	VOID				InitCtrl();
+
+	VOID				InvalidateView();
+
+	/* 공용 함수 */
+public:
+
+	/* 내부 변수 */
+private:
+
+	/* 메시지 맵 */
+protected:
+	DECLARE_MESSAGE_MAP()
+	
+	afx_msg void OnMirrorBtnClick(UINT nID);
+	afx_msg void OnMirrorCheckClick(UINT nID);
+
+	afx_msg void OnSelChangeMirrorImages();
+	afx_msg void OnSelChangeMirrorPhIndex();
+	afx_msg void OnSelChangeMirrorMotionList();
+
+	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+
+	
+	afx_msg void OnSliderMirrorPowerChanging(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnSliderMirrorPowerDraw(NMHDR* pNMHDR, LRESULT* pResult);
 
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);

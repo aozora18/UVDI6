@@ -886,9 +886,45 @@ VOID CDlgCalbExposureFlush::DoPrint()
 	stExpo.Init();
 	stExpo.ready_mode = 1; //단차 모드 변경
 
-	m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_onlyfem);
+	CDlgMain* pMainDlg = (CDlgMain*)::AfxGetMainWnd();
+	//m_pDlgMain->RunWorkJob(ENG_BWOK::en_gerb_onlyfem);
+	//m_pDlgMain->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&stExpo));
 
-	m_pDlgMain->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&stExpo));
+	/*시작 위치 변경*/
+	DOUBLE pStartX = uvEng_GetConfig()->luria_svc.table_expo_start_xy[0][0];
+	DOUBLE pStartY = uvEng_GetConfig()->luria_svc.table_expo_start_xy[0][1];
+	double startXoffset, startYoffset;
+
+	startXoffset = pStartX;
+	startYoffset = (uvEng_GetConfig()->ph_step.expose_round - 1) * uvEng_GetConfig()->ph_step.y_pos_plus + pStartY;
+
+	if (!uvEng_Luria_ReqSetTableExposureStartPos(0x01, startXoffset, startYoffset))	/* table number is fixed */
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposeStartXY)");
+	}
+
+
+	//헤더 단차 변경
+	/* 기존 단차 정보 초기화 */
+	LPG_LDMC pstMemMach = &uvEng_ShMem_GetLuria()->machine;
+	pstMemMach->ResetPhOffset();
+	LPG_CLSI pstLuria = &uvEng_GetConfig()->luria_svc;
+	INT32 i32OffsetX, i32OffsetY;
+	/* 광학계 Offset X / Y 값 설정 (2 번 광학계 부터) */
+	for (int i = 1; i < pstLuria->ph_count; i++)
+	{
+		i32OffsetX = (INT32)(pstLuria->ph_offset_x[i] * 1000000.0f);	/* unit : nm */
+		i32OffsetY = (INT32)(pstLuria->ph_offset_y[i] * 1000000.0f);	/* unit : nm */
+
+		/* Photohead의 Offset 값 적용하기 위함 (최초는 Photohead Number가 2 값임) */
+		if (!uvEng_Luria_ReqSetSpecPhotoHeadOffset(i + 1, i32OffsetX, i32OffsetY))
+		{
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSpecPhotoHeadOffset)");
+		}
+	}
+
+	//m_pDlgMain->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&stExpo));
+	pMainDlg->RunWorkJob(ENG_BWOK::en_expo_only, PUINT64(&stExpo));
 }
 
 
@@ -1251,6 +1287,7 @@ void CDlgCalbExposureFlush::OnTimer(UINT_PTR nIDEvent)
 	if (eCALB_EXPOSURE_FLUSH_TIMER_UPDATE == nIDEvent)
 	{
 		UpdateStepXY();
+		UpdateWorkProgress();
 		UpdatePhOffset();
 
 		if (FALSE == CFlushErrorMgr::GetInstance()->IsProcessWorking())
@@ -1997,3 +2034,472 @@ VOID CDlgCalbExposureFlush::UpdateLiveView()
 	if (!uvEng_Camera_IsCamModeLive())	return;
 	uvEng_Camera_DrawImageBitmap(DISP_TYPE_CALB_EXPO, 0, 1);
 }
+
+VOID CDlgCalbExposureFlush::UpdateWorkProgress()
+{
+	CDlgMain* pMainDlg = (CDlgMain*)::AfxGetMainWnd();
+
+	// 작업중일 때
+	if (TRUE == pMainDlg->IsBusyWorkJob())
+	{
+		// 그 작업이 expo only 이라면
+		if (ENG_BWOK::en_expo_only == pMainDlg->GetWorkJobID())
+		{
+			m_pgr_ctl[eCALB_EXPOSURE_FLUSH_PGR_RATE].SetPos((int)uvEng_GetWorkStepRate());
+			m_txt_ctl[eCALB_EXPOSURE_FLUSH_TXT_STATE].SetTextToStr(uvEng_GetWorkStepName());
+		}
+	}
+}
+
+
+
+
+///////////////////////////////////////////////////////////////
+//
+//
+// 
+// 
+// 
+// 
+// 
+//				시간없으니 합승좀 하겠습니다.
+//
+// 
+// 
+// 
+// 
+//
+//
+///////////////////////////////////////////////////////////////
+
+
+CDlgCalbExposureMirrorTune::CDlgCalbExposureMirrorTune(UINT32 id, CWnd * parent)
+	: CDlgSubTab(id, parent)
+{
+	m_enDlgID = ENG_CMDI_TAB::en_menu_tab_calb_exposure_mirrortune;
+}
+
+CDlgCalbExposureMirrorTune::~CDlgCalbExposureMirrorTune()
+{
+
+}
+
+VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
+{
+	CDlgSubTab::DoDataExchange(dx);
+
+	UINT32 i, u32StartID;
+
+	u32StartID = IDC_BUTTON_MIRROR_LED_POWERSET;
+	for (i = 0; i < btnMax; i++)		DDX_Control(dx, u32StartID + i, btns[i]);
+
+	u32StartID = IDC_CHECK_MIRROR_LED1;
+	for (i = 0; i < chkMax; i++)		DDX_Control(dx, u32StartID + i, checks[i]);
+
+	u32StartID = IDC_COMBO_MIRROR_IMAGES;
+	for (i = 0; i < cmbMax; i++)		DDX_Control(dx, u32StartID + i, combos[i]);
+
+	u32StartID = IDC_STATIC_MIRROR_POWER_CURRENT;
+	for (i = 0; i < stcMax; i++)		DDX_Control(dx, u32StartID + i, statics[i]);
+
+	u32StartID = IDC_MIRROR_MOTION_LIST;
+	for (i = 0; i < lstMax; i++)		DDX_Control(dx, u32StartID + i, lists[i]);
+
+	u32StartID = IDC_MIRROR_MOTION_EDIT;
+	for (i = 0; i < edtMax; i++)		DDX_Control(dx, u32StartID + i, edits[i]);
+
+	u32StartID = IDC_IDSCAMERA_VIEW;
+	for (i = 0; i < picMax; i++)		DDX_Control(dx, u32StartID + i, pics[i]);
+
+	u32StartID = IDC_SLIDER_MIRROR_POWERINDEX;
+	for (i = 0; i < sldMax; i++)		DDX_Control(dx, u32StartID + i, sliders[i]);
+
+	u32StartID = IDC_GROUP_PH_SETTING;
+	for (i = 0; i < grpMax; i++)		DDX_Control(dx, u32StartID + i, groups[i]);
+}
+
+BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
+	// 버튼(여러개 한 함수로)
+	ON_CONTROL_RANGE(BN_CLICKED,
+		IDC_BUTTON_MIRROR_LED_POWERSET,
+		IDC_BUTTON_MIRROR_RUN_MOTION,
+		&CDlgCalbExposureMirrorTune::OnMirrorBtnClick)
+
+	// 체크박스(체크 변경도 BN_CLICKED로 받음)
+	ON_CONTROL_RANGE(BN_CLICKED,
+		IDC_CHECK_MIRROR_LED1,
+		IDC_CHECK_MIRROR_KEEP_REFRESHING,
+		&CDlgCalbExposureMirrorTune::OnMirrorCheckClick)
+
+	// 콤보박스: 선택 변경
+	ON_CBN_SELCHANGE(IDC_COMBO_MIRROR_IMAGES, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorImages)
+	ON_CBN_SELCHANGE(IDC_COMBO_MIRROR_PHINDEX, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex)
+
+	// 리스트박스: 선택 변경
+	ON_LBN_SELCHANGE(IDC_MIRROR_MOTION_LIST, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList)
+
+	// 슬라이더: 값 변경(드래그 중/놓을 때 둘 다)
+	ON_NOTIFY(TRBN_THUMBPOSCHANGING, IDC_SLIDER_MIRROR_POWERINDEX, &CDlgCalbExposureMirrorTune::OnSliderMirrorPowerChanging) // (있는 경우)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_MIRROR_POWERINDEX, &CDlgCalbExposureMirrorTune::OnSliderMirrorPowerDraw)     // (드래그 중에도 많이 옴)
+	ON_WM_HSCROLL()
+	ON_WM_TIMER()
+	ON_WM_CTLCOLOR()
+END_MESSAGE_MAP()
+
+
+/*
+ desc : 모든 메시지 가로채기 ㅋㅋㅋ
+ parm : msg	- 메시지 정보가 저장된 구조체 포인터
+ retn : 상위 부모 메시지 함수 호출... 혹은 1 or 0
+*/
+BOOL CDlgCalbExposureMirrorTune::PreTranslateMessage(MSG* msg)
+{
+	if (msg->message == WM_KEYDOWN)
+	{
+		if (msg->wParam == VK_ESCAPE)
+		{
+			return TRUE;
+		}
+	}
+	return CDlgSubTab::PreTranslateMessage(msg);
+}
+
+
+/*
+ desc : 초기 실행시에 한 번 호출됨
+ parm : None
+ retn : TRUE or FALSE
+*/
+BOOL CDlgCalbExposureMirrorTune::OnInitDlg()
+{
+	/* 컨트롤 초기화 */
+	InitCtrl();
+	SetTimer(10302, 200, NULL);
+	return TRUE;
+}
+
+VOID CDlgCalbExposureMirrorTune::OnExitDlg()
+{
+	KillTimer(10302);
+}
+
+VOID CDlgCalbExposureMirrorTune::OnPaintDlg(CDC* dc)
+{
+	CDlgSubTab::DrawOutLine();
+}
+
+VOID CDlgCalbExposureMirrorTune::OnResizeDlg()
+{
+}
+
+VOID CDlgCalbExposureMirrorTune::UpdatePeriod(UINT64 tick, BOOL is_busy)
+{
+	UpdateControl(tick, is_busy);
+}
+
+VOID CDlgCalbExposureMirrorTune::UpdateControl(UINT64 tick, BOOL is_busy)
+{
+}
+
+HBRUSH CDlgCalbExposureMirrorTune::OnCtlColor(
+	CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDlgSubTab::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	const UINT id = pWnd->GetDlgCtrlID();
+
+	switch (nCtlColor)
+	{
+	case CTLCOLOR_LISTBOX:
+		if (id == IDC_MIRROR_MOTION_LIST)
+		{
+			pDC->SetTextColor(RGB(30, 30, 30));
+			pDC->SetBkColor(RGB(220, 220, 220));
+			return (HBRUSH)brListBg.GetSafeHandle();
+		}
+		break;
+
+	case CTLCOLOR_EDIT:
+		if (id == IDC_MIRROR_MOTION_EDIT)
+		{
+			pDC->SetTextColor(RGB(30, 30, 30));
+			pDC->SetBkColor(RGB(220, 220, 220));
+			return (HBRUSH)brEditBg.GetSafeHandle();
+		}
+		break;
+	}
+
+	if (!pWnd) return hbr;
+}
+
+/*
+ desc : 공통 컨트롤 초기화
+ parm : None
+ retn : None
+*/
+VOID CDlgCalbExposureMirrorTune::InitCtrl()
+{
+	CResizeUI clsResizeUI;
+	CString strTemp;
+	CRect rctCtrl;
+
+	SetRedraw(FALSE);
+	SetRedraw(TRUE);
+	Invalidate(FALSE);
+
+	if (brListBg.GetSafeHandle()) brListBg.DeleteObject();
+	brListBg.CreateSolidBrush(RGB(180, 180, 220));
+
+	if (brEditBg.GetSafeHandle()) brEditBg.DeleteObject();
+	brEditBg.CreateSolidBrush(RGB(220, 220, 220));
+
+	for (int i = 0; i < grpMax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &groups[i]);
+	}
+
+
+	for (int i = 0; i < btnMax; i++)
+	{
+		
+		btns[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
+		btns[i].SetBgColor(g_clrBtnColor);
+		btns[i].SetTextColor(g_clrBtnTextColor);
+		clsResizeUI.ResizeControl(this, &btns[i]);
+	}
+
+	for (int i = 0; i < cmbMax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &combos[i]);
+	}
+
+	for (int i = 0; i < lstMax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &lists[i]);
+	}
+	
+	for (int i = 0; i < chkMax; i++)
+	{
+		checks[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
+		
+		clsResizeUI.ResizeControl(this, &checks[i]);
+	}
+
+
+
+	for (int i = 0; i < stcMax; i++)
+	{
+		
+		
+		
+		clsResizeUI.ResizeControl(this, &statics[i]);
+		
+		
+	}
+
+
+
+
+	for (int i = 0; i < sldMax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &sliders[i]);
+	}
+
+	for (int i = 0; i < picMax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &pics[i]);
+	}
+
+	for (int i = 0; i < edtMax; i++)
+	{
+
+		clsResizeUI.ResizeControl(this, &edits[i]);	
+	}
+
+
+	/*for (int i = 0; i < grpMax; i++)
+	{
+		clsResizeUI.ResizeControl(this, &groups[i]);
+		groups[i].GetWindowRect(rctCtrl);
+		this->ScreenToClient(rctCtrl);
+		groups[i].MoveWindow(rctCtrl);
+	}*/
+
+}
+
+/*
+ desc : 이미지 뷰 영역 갱신
+ parm : None
+ retn : None
+*/
+VOID CDlgCalbExposureMirrorTune::InvalidateView()
+{
+	CRect rView;
+	pics[0].GetWindowRect(rView);
+	if (brListBg.GetSafeHandle()) brListBg.DeleteObject();
+	if (brEditBg.GetSafeHandle()) brEditBg.DeleteObject();
+	ScreenToClient(rView);
+	InvalidateRect(rView, TRUE);
+}
+             
+
+/*
+ desc : 일반 버튼 클릭한 경우
+ parm : id	- [in]  일반 버튼 ID
+ retn : None
+*/
+VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
+{
+	int nBtnID = id - IDC_BUTTON_MIRROR_LED_POWERSET;
+
+	switch (nBtnID)
+	{
+		case LED_POWERSET:
+		case LOADIMAGE:
+		case UNLOADIMAGE:
+		case OPEN:
+		case CLOSE:
+		case SNAPSHOT:
+		case RECORD:
+		case OPEN_MOTION_CONTROL:
+		case EDIT_MOTIONLIST:
+		case RUN_MOTION:
+		{
+			int debug = 0;
+		}
+		break;
+		default:
+		break;
+	}
+}
+
+
+void CDlgCalbExposureMirrorTune::OnMirrorCheckClick(UINT nID)
+{
+	const BOOL bChecked = (IsDlgButtonChecked(nID) == BST_CHECKED);
+
+	switch (nID)
+	{
+	case IDC_CHECK_MIRROR_LED1:
+		// TODO: LED1 ON/OFF (bChecked)
+		break;
+
+	case IDC_CHECK_MIRROR_LED2:
+		// TODO: LED2 ON/OFF (bChecked)
+		break;
+
+	case IDC_CHECK_MIRROR_LED3:
+		// TODO: LED3 ON/OFF (bChecked)
+		break;
+
+	case IDC_CHECK_MIRROR_LED4:
+		// TODO: LED4 ON/OFF (bChecked)
+		break;
+
+	case IDC_CHECK_MIRROR_KEEP_REFRESHING:
+		// TODO: Keep Refreshing (bChecked)
+		break;
+
+	default:
+		break;
+	}
+}
+
+void CDlgCalbExposureMirrorTune::OnSelChangeMirrorImages()
+{
+	CComboBox* pCb = (CComboBox*)GetDlgItem(IDC_COMBO_MIRROR_IMAGES);
+	if (!pCb) return;
+
+	const int sel = pCb->GetCurSel();
+	if (sel == CB_ERR) return;
+
+	CString text;
+	pCb->GetLBText(sel, text);
+
+	// TODO: text/sel 사용
+}
+
+void CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex()
+{
+	CComboBox* pCb = (CComboBox*)GetDlgItem(IDC_COMBO_MIRROR_PHINDEX);
+	if (!pCb) return;
+
+	const int sel = pCb->GetCurSel();
+	if (sel == CB_ERR) return;
+
+	CString text;
+	pCb->GetLBText(sel, text);
+
+	// TODO
+}
+
+void CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList()
+{
+	CListBox* pLb = (CListBox*)GetDlgItem(IDC_MIRROR_MOTION_LIST);
+	if (!pLb) return;
+
+	const int sel = pLb->GetCurSel();
+	if (sel == LB_ERR) return;
+
+	CString text;
+	pLb->GetText(sel, text);
+
+	// TODO
+}
+
+void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	// 트랙바 이벤트만 필터링
+	if (pScrollBar && pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_POWERINDEX)->GetSafeHwnd())
+	{
+		CSliderCtrl* pSl = (CSliderCtrl*)pScrollBar;
+		const int pos = pSl->GetPos();
+
+		switch (nSBCode)
+		{
+		case TB_THUMBTRACK:
+			// TODO: 드래그 중 실시간 반영(원할 때만)
+			// pos 사용
+			break;
+
+		case TB_ENDTRACK:
+		case TB_THUMBPOSITION:
+			// TODO: 드래그 끝(값 확정) 처리
+			// pos 사용
+			break;
+
+		default:
+			// 라인업/다운 등도 필요하면 처리
+			break;
+		}
+	}
+
+	CDlgSubTab::OnHScroll(nSBCode, nPos, pScrollBar);
+}
+
+// ===== (선택) NM_CUSTOMDRAW =====
+void CDlgCalbExposureMirrorTune::OnSliderMirrorPowerDraw(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// 보통 여기서는 그리기 단계에 따라 들어오는데
+	// 값 변경 이벤트로 쓰고 싶으면 OnHScroll이 더 안정적이다.
+	*pResult = 0;
+}
+
+// ===== (선택) TRBN_THUMBPOSCHANGING =====
+void CDlgCalbExposureMirrorTune::OnSliderMirrorPowerChanging(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// 트랙바에서 항상 발생하지 않을 수 있음.
+	*pResult = 0;
+}
+
+
+void CDlgCalbExposureMirrorTune::OnTimer(UINT_PTR nIDEvent)
+{
+	if (nIDEvent == 10302)
+	{
+		int debug = 0;
+	}
+
+	CDlgSubTab::OnTimer(nIDEvent);
+}
+                 

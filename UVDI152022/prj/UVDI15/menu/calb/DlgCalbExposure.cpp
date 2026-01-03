@@ -39,7 +39,10 @@ VOID CDlgCalbExposure::DoDataExchange(CDataExchange* dx)
 	
 	/* button - normal */
 	u32StartID = IDC_CALB_EXPOSURE_BTN_SUBMENU_FEM;
-	for (i = 0; i < eCALB_EXPOSURE_BTN_MAX; i++)		DDX_Control(dx, u32StartID + i, m_btn_ctl[i]);
+	for (i = 0; i < eCALB_EXPOSURE_BTN_MIRRORTUNE; i++)
+		DDX_Control(dx, u32StartID + i, m_btn_ctl[i]);
+
+	DDX_Control(dx, IDC_CALB_EXPOSURE_BTN_SUBMENU_MIRRORTUNE, m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE]);
 	
 	/* static - picture */
 	u32StartID = IDC_CALB_EXPOSURE_PIC_MENU;
@@ -48,6 +51,8 @@ VOID CDlgCalbExposure::DoDataExchange(CDataExchange* dx)
 
 BEGIN_MESSAGE_MAP(CDlgCalbExposure, CDlgSubMenu)
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_CALB_EXPOSURE_BTN_SUBMENU_FEM, IDC_CALB_EXPOSURE_BTN_SUBMENU_FLUSH, OnBtnClick)
+	ON_CONTROL_RANGE(BN_CLICKED, IDC_CALB_EXPOSURE_BTN_SUBMENU_MIRRORTUNE, IDC_CALB_EXPOSURE_BTN_SUBMENU_MIRRORTUNE, OnBtnClick)
+	
 	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
@@ -135,12 +140,18 @@ VOID CDlgCalbExposure::UpdateControl(UINT64 tick, BOOL is_busy)
 	/* 현재 상태 정보 메뉴 다이얼로그 ID가 아니면, 상태 버튼에는 알람 여부에 따른 색상 표현 */
 	if (m_enTabDlgID != m_pDlgMenu->GetDlgID())
 	{
-		for (i = 0; i < eCALB_EXPOSURE_BTN_MAX; i++)
+		for (i = 0; i < eCALB_EXPOSURE_BTN_MIRRORTUNE; i++)
 		{
 			m_btn_ctl[i].SetBgColor(DEF_COLOR_BTN_MENU_NORMAL);
 			m_btn_ctl[i].SetTextColor(DEF_COLOR_BTN_MENU_NORMAL_TEXT);
 			m_btn_ctl[i].Invalidate(TRUE);
 		}
+
+		m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE].SetBgColor(DEF_COLOR_BTN_MENU_NORMAL);
+		m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE].SetTextColor(DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+		m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE].Invalidate(TRUE);
+
+
 
 		/* 현재 선택된 메뉴 (자식) 다이얼로그 ID 저장 */
 		m_enTabDlgID = m_pDlgMenu->GetDlgID();
@@ -150,6 +161,7 @@ VOID CDlgCalbExposure::UpdateControl(UINT64 tick, BOOL is_busy)
 		{
 		case ENG_CMDI_TAB::en_menu_tab_calb_exposure_fem:		i = eCALB_EXPOSURE_BTN_FEM;		break;
 		case ENG_CMDI_TAB::en_menu_tab_calb_exposure_flush:		i = eCALB_EXPOSURE_BTN_FLUSH;	break;
+		case ENG_CMDI_TAB::en_menu_tab_calb_exposure_mirrortune:	i = eCALB_EXPOSURE_BTN_MIRRORTUNE;	break;
 		}
 		if (i != 0xff)
 		{
@@ -170,7 +182,7 @@ VOID CDlgCalbExposure::InitCtrl()
 	CResizeUI clsResizeUI;
 
 	/* button - normal */
-	for (int i = 0; i < eCALB_EXPOSURE_BTN_MAX; i++)
+	for (int i = 0; i < eCALB_EXPOSURE_BTN_MIRRORTUNE; i++)
 	{
 		m_btn_ctl[i].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
 		m_btn_ctl[i].SetBgColor(g_clrBtnColor);
@@ -181,6 +193,12 @@ VOID CDlgCalbExposure::InitCtrl()
 		// by sysandj : Resize UI
 	}
 
+
+	m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE].SetLogFont(g_lf[eFONT_LEVEL2_BOLD]);
+	m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE].SetBgColor(g_clrBtnColor);
+	m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE].SetTextColor(g_clrBtnTextColor);
+	clsResizeUI.ResizeControl(this, &m_btn_ctl[eCALB_EXPOSURE_BTN_MIRRORTUNE]);
+	
 	for (int i = 0; i < eCALB_EXPOSURE_PIC_MAX; i++)
 	{
 		// by sysandj : Resize UI
@@ -250,8 +268,18 @@ BOOL CDlgCalbExposure::CreateMenu(UINT32 id)
 	/* 해당 자식 (메뉴) 윈도 메모리 할당 */
 	switch (id)
 	{
-	case IDC_CALB_EXPOSURE_BTN_SUBMENU_FEM: m_pDlgMenu = new CDlgCalbExposureFEM(u32DlgID, this);	break;
-	case IDC_CALB_EXPOSURE_BTN_SUBMENU_FLUSH: m_pDlgMenu = new CDlgCalbExposureFlush(u32DlgID, this);	break;
+		case IDC_CALB_EXPOSURE_BTN_SUBMENU_FEM: 
+			m_pDlgMenu = new CDlgCalbExposureFEM(u32DlgID, this);	
+		break;
+
+		case IDC_CALB_EXPOSURE_BTN_SUBMENU_FLUSH: 
+			m_pDlgMenu = new CDlgCalbExposureFlush(u32DlgID, this);	
+		break;
+
+		case IDC_CALB_EXPOSURE_BTN_SUBMENU_MIRRORTUNE:
+			u32DlgID = IDD_CALB_EXPOSURE_MIRRORTUNE;
+			m_pDlgMenu = new CDlgCalbExposureMirrorTune(u32DlgID, this);
+		break;
 	}
 
 	/* 자식 (메뉴) 윈도 생성 */

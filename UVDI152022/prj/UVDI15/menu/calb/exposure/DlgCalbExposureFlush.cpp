@@ -11,6 +11,9 @@
 
 #include "../../../GlobalVariables.h"
 
+#include <ShellScalingApi.h>
+#pragma comment(lib, "Shcore.lib")
+
 class IDScamManager;
 /*
  desc : 생성자
@@ -2301,12 +2304,7 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 
 	for (int i = 0; i < stcMax; i++)
 	{
-		
-		
-		
-		clsResizeUI.ResizeControl(this, &statics[i]);
-		
-		
+		clsResizeUI.ResizeControl(this, &statics[i]);	
 	}
 
 
@@ -2320,7 +2318,10 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	for (int i = 0; i < picMax; i++)
 	{
 		clsResizeUI.ResizeControl(this, &pics[i]);
+		
 	}
+
+	FixControlToPhysicalPixels(IDC_IDSCAMERA_VIEW, 512, 512);
 
 	for (int i = 0; i < edtMax; i++)
 	{
@@ -2370,6 +2371,10 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 
 			if (!GlobalVariables::GetInstance()->GetIDSManager().Connect(0, IDScamManager::Aoi(1664,1118,512,512))) //NEW IDS SETTING.INI에서 가져옴
 				MessageBoxW(L"IDS camera connect failed", L"error", MB_OK);
+			GlobalVariables::GetInstance()->GetIDSManager().SetPixelClockMHz(7);
+			GlobalVariables::GetInstance()->GetIDSManager().SetFrameRate(0.68);
+			GlobalVariables::GetInstance()->GetIDSManager().SetExposureUs(1464);
+
 		}
 		break;
 		case CLOSE:
@@ -2514,7 +2519,7 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList()
 
 void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	// 트랙바 이벤트만 필터링
+	
 	if (pScrollBar && pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_POWERINDEX)->GetSafeHwnd())
 	{
 		CSliderCtrl* pSl = (CSliderCtrl*)pScrollBar;
@@ -2523,18 +2528,16 @@ void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* 
 		switch (nSBCode)
 		{
 		case TB_THUMBTRACK:
-			// TODO: 드래그 중 실시간 반영(원할 때만)
-			// pos 사용
+			
 			break;
 
 		case TB_ENDTRACK:
 		case TB_THUMBPOSITION:
-			// TODO: 드래그 끝(값 확정) 처리
-			// pos 사용
+			
 			break;
 
 		default:
-			// 라인업/다운 등도 필요하면 처리
+			
 			break;
 		}
 	}
@@ -2542,18 +2545,15 @@ void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* 
 	CDlgSubTab::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-// ===== (선택) NM_CUSTOMDRAW =====
+
 void CDlgCalbExposureMirrorTune::OnSliderMirrorPowerDraw(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	// 보통 여기서는 그리기 단계에 따라 들어오는데
-	// 값 변경 이벤트로 쓰고 싶으면 OnHScroll이 더 안정적이다.
+
 	*pResult = 0;
 }
 
-// ===== (선택) TRBN_THUMBPOSCHANGING =====
 void CDlgCalbExposureMirrorTune::OnSliderMirrorPowerChanging(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	// 트랙바에서 항상 발생하지 않을 수 있음.
 	*pResult = 0;
 }
 
@@ -2651,3 +2651,44 @@ void CDlgCalbExposureMirrorTune::UpdateIDSImage()
 	);
 }
                  
+
+
+
+void CDlgCalbExposureMirrorTune::FixControlToPhysicalPixels(UINT ctrlId, int targetWpx, int targetHpx)
+{
+
+	auto MulDivRound = [&](int a, int b, int c)->int{return (int)::MulDiv(a, b, c);};
+
+	CWnd* w = GetDlgItem(ctrlId);
+	if (!w || !::IsWindow(w->GetSafeHwnd()))
+		return;
+
+	CRect rc;
+	w->GetWindowRect(&rc);
+	ScreenToClient(&rc);
+
+	UINT dpi = 96;
+	HMODULE user32 = ::GetModuleHandleW(L"user32.dll");
+	auto pGetDpiForWindow = (UINT(WINAPI*)(HWND))::GetProcAddress(user32, "GetDpiForWindow");
+	if (pGetDpiForWindow)
+		dpi = pGetDpiForWindow(m_hWnd);
+	else
+	{
+		HDC hdc = ::GetDC(m_hWnd);
+		dpi = (UINT)::GetDeviceCaps(hdc, LOGPIXELSX);
+		::ReleaseDC(m_hWnd, hdc);
+	}
+
+	int newW = MulDivRound(targetWpx, 96, (int)dpi);
+	int newH = MulDivRound(targetHpx, 96, (int)dpi);
+
+	w->SetWindowPos(
+		nullptr,
+		rc.left, rc.top,
+		newW, newH,
+		SWP_NOZORDER | SWP_NOACTIVATE
+	);
+
+	
+	w->Invalidate();
+}

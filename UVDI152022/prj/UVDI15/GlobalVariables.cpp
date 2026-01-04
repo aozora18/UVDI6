@@ -2653,6 +2653,58 @@ bool IDScamManager::SetExposureUs(double us)
 	return is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, &v, sizeof(v)) == IS_SUCCESS;
 }
 
+
+bool IDScamManager::SetPixelClockMHz(int mhz)
+{
+	if (!connected) return false;
+
+	INT value = mhz;
+	return is_PixelClock(cam, IS_PIXELCLOCK_CMD_SET, (void*)&value, sizeof(value)) == IS_SUCCESS;
+}
+
+bool IDScamManager::GetPixelClockMHz(int& outMhz) const
+{
+	if (!connected) return false;
+
+	INT value = 0;
+	if (is_PixelClock(cam, IS_PIXELCLOCK_CMD_GET, (void*)&value, sizeof(value)) != IS_SUCCESS)
+		return false;
+
+	outMhz = (int)value;
+	return true;
+}
+
+bool IDScamManager::SetFrameRate(double fps)
+{
+	if (!connected) return false;
+
+	double newFps = fps;
+
+	double actual = 0.0;
+	INT ret = is_SetFrameRate(cam, newFps, &actual);
+	return ret == IS_SUCCESS;
+}
+
+bool IDScamManager::GetFrameRate(double& outFps) const
+{
+	if (!connected) return false;
+
+
+	double fps = 0.0;
+#ifdef IS_GET_FRAMERATE
+	double actual = 0.0;
+	INT ret = is_SetFrameRate(cam, IS_GET_FRAMERATE, &actual);
+	if (ret == IS_SUCCESS)
+	{
+		outFps = actual;
+		return true;
+	}
+#endif
+
+
+	return false;
+}
+
 bool IDScamManager::GetExposureUs(double& outUs) const
 {
 	if (!connected)

@@ -326,6 +326,8 @@ public:
 	virtual VOID		OnResizeDlg();
 	virtual void		RegisterUILevel() {}
 	virtual VOID		UpdatePeriod(UINT64 tick, BOOL is_busy);
+	BOOL PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 index);
+	BOOL PhotoImageLoad(UINT8 head, UINT8 imageNum);
 
 
 	/* 로컬 변수 */
@@ -449,7 +451,7 @@ protected:
 	void UpdateIDSImage();
 
 protected:
-
+	void FixControlToPhysicalPixels(UINT ctrlId, int targetWpx, int targetHpx);
 	VOID				InitCtrl();
 
 	VOID				InvalidateView();

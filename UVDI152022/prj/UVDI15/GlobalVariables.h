@@ -1227,6 +1227,11 @@ public:
 			this->h = h;
 		}
 	};
+	bool SetPixelClockMHz(int mhz);
+	bool GetPixelClockMHz(int& outMhz) const;
+
+	bool SetFrameRate(double fps);
+	bool GetFrameRate(double& outFps) const;
 
 	bool Connect(int cameraId , Aoi aoi);
 	void Disconnect();

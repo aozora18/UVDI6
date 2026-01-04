@@ -1343,6 +1343,10 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 							vector<string> msg = msgPool[BtSppApi::MsgType::CMD].front();
 							msgPool[BtSppApi::MsgType::CMD].pop();
+
+
+
+
 							if(msg[0] == "grab")
 							{
 								int camidx = stoi(msg[1]) != 0 ? 1 :
@@ -1403,6 +1407,37 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 									btSpp.UpdatePicture(buffer,bmpBytes );
 								}
 								//////////////////////
+							}
+							else if (msg[0] == "setImage" )
+							{
+								int ph = msg[1] == "1" ? 1 : 2;
+								int img = stoi(msg[2]);
+
+								
+								uvEng_Luria_ReqSetLoadInternalTestImage(ph, img);
+								//btSpp.Bind("setImage", vector<string>{ "selH", "imgIdx"});
+								int debug = 0;
+
+							}
+							
+							else if (msg[0] == "zeroPIndex")
+							{
+								int ph = msg[1] == "1" ? 1 : 2;
+								int led = msg[3] == "1" ? 1 :
+									led = msg[4] == "1" ? 2 :
+									led = msg[5] == "1" ? 3 : 4;
+								uvEng_Luria_ReqSetLedLightOnOff(ph, ENG_LLPI(led), 0);
+							}
+							else if (msg[0] == "setPIndex")
+							{
+								int ph = msg[1] == "1" ? 1 : 2;
+								int led = msg[3] == "1" ? 1 :
+									led = msg[4] == "1" ? 2 :
+									led = msg[5] == "1" ? 3 : 4;
+								int idx = std::stoi(msg[7]);
+
+								uvEng_Luria_ReqSetLightIntensity(ph, ENG_LLPI(led), idx);
+								uvEng_Luria_ReqSetLedLightOnOff(ph, ENG_LLPI(led), idx == 0 ? 0 : 1);
 							}
 							else if (msg[0] == "up" || msg[0] == "down" || msg[0] == "left" || msg[0] == "right")
 							{
@@ -1476,7 +1511,7 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 		int camzGroupShiftx = -250;
 		
-		btSpp.AddGroupbox("group2", "카메라z", 560+ camzGroupShiftx, 1,580, 280);
+		btSpp.AddGroupbox("group2", "카메라z", 560+ camzGroupShiftx, 1,580, 580);
 		btSpp.AddButton("upz", "↑", 570+5 + camzGroupShiftx, 15, 30, 30);
 		btSpp.AddButton("downz", "↓", 570+5 + camzGroupShiftx, 80, 30, 30);
 		
@@ -1488,6 +1523,25 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 		btSpp.AddRadioButton("selZ2", "cam2", "zaxis", false, 700 - 60 + camzGroupShiftx, 120);
 		btSpp.AddRadioButton("selZ3", "cam3", "zaxis", false, 780 - 60 + camzGroupShiftx, 120);
 		btSpp.AddButton("grab", "그랩", 650 + camzGroupShiftx, 155, 60, 30);
+
+		btSpp.AddRadioButton("selH1", "Head1", "selH", true, 560 + camzGroupShiftx, 230, 120);
+		btSpp.AddRadioButton("selH2", "Head2", "selH", false, 560 + camzGroupShiftx + 80, 230, 120);
+
+		btSpp.AddRadioButton("selL1", "360", "selL", true, 560 + camzGroupShiftx, 270, 120);
+		btSpp.AddRadioButton("selL1", "380", "selL", false, 560 + camzGroupShiftx + 70, 270, 120);
+		btSpp.AddRadioButton("selL3", "395", "selL", false, 560 + camzGroupShiftx + 130, 270, 120);
+		btSpp.AddRadioButton("selL4", "405", "selL", false, 560 + camzGroupShiftx + 190, 270, 120);
+
+		btSpp.AddLabel("lbl", "P.Index", 560 + camzGroupShiftx, 320, 80, 35);
+		btSpp.AddInputbox("pIndex", "100", 600 + camzGroupShiftx + 45, 320, 50, 35);
+		btSpp.AddButton("setPIndex", "설정", 640 + camzGroupShiftx + 65, 320, 60, 30);
+		btSpp.AddButton("zeroPIndex", "끄기", 640 + camzGroupShiftx + 125, 320, 60, 30);
+
+		btSpp.AddLabel("lbl", "이미지로드", 560 + camzGroupShiftx, 360, 80, 35);
+		btSpp.AddInputbox("imgIdx", "0", 600 + camzGroupShiftx + 45, 360, 30, 35);
+
+		btSpp.AddButton("setImage", "로드", 640 + camzGroupShiftx + 40, 360, 60, 30);
+
 
 		btSpp.AddLabel("lbl", "Pos", 620 + camzGroupShiftx, 80, 50, 35);
 		btSpp.AddInputbox("valuez", "0.000", 675 + camzGroupShiftx, 80, -1, 40);
@@ -1501,6 +1555,10 @@ void AlignMotion::Refresh() //바로 갱신이 필요하면 요거 다이렉트 
 
 		btSpp.Bind("upz", vector<string>{ "selZ1", "selZ2", "selZ3","AbsMoveRadZ","relMoveRadZ","valuez" });
 		btSpp.Bind("downz", vector<string>{ "selZ1", "selZ2", "selZ3", "AbsMoveRadZ", "relMoveRadZ", "valuez" });
+
+		btSpp.Bind("setImage", vector<string>{ "selH", "imgIdx"});
+		btSpp.Bind("setPIndex", vector<string>{ "selH", "selL", "pIndex"});
+		btSpp.Bind("zeroPIndex", vector<string>{ "selH", "selL"});
 
 		btSpp.AddOrUpdateMonitoringValue("stageX", "0", "stage X(mm)");
 		btSpp.AddOrUpdateMonitoringValue("stageY", "0", "stage Y(mm)");
@@ -2481,7 +2539,328 @@ void ThetaControl::SetBasicFeatures(double centerOfStageX,
 {
 	thetaFeature = feature(centerOfStageX, centerOfStageY, thetaMapping, dist3to1X, dist3to1Y);
 }
+////////////////////////////////////////////////////////////
+///			IDS 카메라 
+////////////////////////////////////////////////////////////
+IDScamManager::IDScamManager() = default;
 
+IDScamManager::~IDScamManager()
+{
+	Disconnect();
+}
+
+bool IDScamManager::Connect(int cameraId,  Aoi aoi)
+{
+	if (connected)
+		return true;
+
+	cam = (HIDS)cameraId;
+
+	IS_RECT r{};
+	r.s32X = aoi.x;
+	r.s32Y = aoi.y;
+	r.s32Width = aoi.w;
+	r.s32Height = aoi.h;
+
+	if (is_InitCamera(&cam, nullptr) != IS_SUCCESS)
+		return false;
+
+	
+	if (is_SetColorMode(cam, IS_CM_MONO8) != IS_SUCCESS) //흑백고정.
+		goto FAIL;
+
+		
+
+		if (is_AOI(cam, IS_AOI_IMAGE_SET_AOI, &r, sizeof(r)) != IS_SUCCESS)
+			goto FAIL;
+	
+	if (!AllocateImageMem())
+		goto FAIL;
+
+	if (is_CaptureVideo(cam, IS_DONT_WAIT) != IS_SUCCESS)
+		goto FAIL;
+
+	if (isavi_InitAVI(&aviId, cam) != IS_AVI_NO_ERR)
+		goto FAIL;
+
+	connected = true;
+	return true;
+
+FAIL:
+	Disconnect();
+	return false;
+}
+
+void IDScamManager::Disconnect()
+{
+	StopRecording();
+
+	if (cam)
+		is_StopLiveVideo(cam, IS_FORCE_VIDEO_STOP);
+
+	FreeImageMem();
+
+	if (aviId)
+	{
+		isavi_ExitAVI(aviId);
+		aviId = 0;
+	}
+
+	if (cam)
+	{
+		is_ExitCamera(cam);
+		cam = 0;
+	}
+
+	connected = false;
+	gainCache = -1;
+}
+
+bool IDScamManager::IsConnected() const
+{
+	return connected;
+}
+
+bool IDScamManager::GrabOnce()
+{
+	if (!connected)
+		return false;
+
+	if (is_FreezeVideo(cam, IS_WAIT) != IS_SUCCESS)
+		return false;
+
+	if (recording)
+		(void)isavi_AddFrame(aviId, imageMem);
+
+	return true;
+}
+
+void IDScamManager::GetFramePtr(const uint8_t*& ptr, int& w, int& h, int& bits, int& linePitch) const
+{
+	ptr = reinterpret_cast<const uint8_t*>(imageMem);
+	w = width;
+	h = height;
+	bits = bpp;
+	linePitch = pitch;
+}
+
+bool IDScamManager::SetExposureUs(double us)
+{
+	if (!connected)
+		return false;
+
+	double v = us;
+	return is_Exposure(cam, IS_EXPOSURE_CMD_SET_EXPOSURE, &v, sizeof(v)) == IS_SUCCESS;
+}
+
+bool IDScamManager::GetExposureUs(double& outUs) const
+{
+	if (!connected)
+		return false;
+
+	double v = 0;
+	if (is_Exposure(cam, IS_EXPOSURE_CMD_GET_EXPOSURE, &v, sizeof(v)) != IS_SUCCESS)
+		return false;
+
+	outUs = v;
+	return true;
+}
+
+bool IDScamManager::SetGain(int value)
+{
+	if (!connected)
+		return false;
+
+	INT ret = is_SetHardwareGain(
+		cam,
+		value,
+		IS_IGNORE_PARAMETER,
+		IS_IGNORE_PARAMETER,
+		IS_IGNORE_PARAMETER
+	);
+
+	if (ret != IS_SUCCESS)
+		return false;
+
+	gainCache = value;
+	return true;
+}
+
+bool IDScamManager::GetGain(int& outValue) const
+{
+	if (!connected)
+		return false;
+
+	if (gainCache < 0)
+		return false;
+
+	outValue = gainCache;
+	return true;
+}
+
+bool IDScamManager::SetAoi(int x, int y, int w, int h)
+{
+	if (!connected)
+		return false;
+
+	StopRecording();
+	is_StopLiveVideo(cam, IS_FORCE_VIDEO_STOP);
+
+	IS_RECT r{};
+	r.s32X = x;
+	r.s32Y = y;
+	r.s32Width = w;
+	r.s32Height = h;
+
+	if (is_AOI(cam, IS_AOI_IMAGE_SET_AOI, &r, sizeof(r)) != IS_SUCCESS)
+	{
+		is_CaptureVideo(cam, IS_DONT_WAIT);
+		return false;
+	}
+
+	if (!AllocateImageMem())
+	{
+		is_CaptureVideo(cam, IS_DONT_WAIT);
+		return false;
+	}
+
+	return is_CaptureVideo(cam, IS_DONT_WAIT) == IS_SUCCESS;
+}
+
+bool IDScamManager::GetAoi(Aoi& out) const
+{
+	if (!connected)
+		return false;
+
+	IS_RECT r{};
+	if (is_AOI(cam, IS_AOI_IMAGE_GET_AOI, &r, sizeof(r)) != IS_SUCCESS)
+		return false;
+
+	out.x = r.s32X;
+	out.y = r.s32Y;
+	out.w = r.s32Width;
+	out.h = r.s32Height;
+	return true;
+}
+
+bool IDScamManager::SnapshotFile(const wchar_t* path, int quality)
+{
+	if (!connected)
+		return false;
+
+	IMAGE_FILE_PARAMS p{};
+	p.pwchFileName = const_cast<wchar_t*>(path);
+	p.nFileType = IS_IMG_JPG;
+	p.nQuality = (UINT)quality;
+
+	char* mem = imageMem;
+	UINT id = (UINT)memId;
+
+	p.ppcImageMem = &mem;
+	p.pnImageID = &id;
+
+	return is_ImageFile(cam, IS_IMAGE_FILE_CMD_SAVE, &p, sizeof(p)) == IS_SUCCESS;
+}
+
+bool IDScamManager::SnapshotCopyTo(std::vector<uint8_t>& out)
+{
+	if (!connected)
+		return false;
+
+	int bytesPerPixel = (bpp + 7) / 8;
+	int rowBytes = width * bytesPerPixel;
+
+	out.resize((size_t)height * (size_t)rowBytes);
+
+	const uint8_t* src = reinterpret_cast<const uint8_t*>(imageMem);
+	if (!src)
+		return false;
+
+	for (int y = 0; y < height; ++y)
+	{
+		const uint8_t* s = src + (size_t)y * (size_t)pitch;
+		uint8_t* d = out.data() + (size_t)y * (size_t)rowBytes;
+		std::memcpy(d, s, (size_t)rowBytes);
+	}
+	return true;
+}
+
+bool IDScamManager::StartRecording(const wchar_t* path, double fps, int quality)
+{
+	if (!connected || recording)
+		return false;
+
+	int bytesPerPixel = (bpp + 7) / 8;
+	int bytesPerLine = width * bytesPerPixel;
+	int lineOffset = pitch - bytesPerLine;
+	if (lineOffset < 0) lineOffset = 0;
+
+	
+	CheckAvi(isavi_SetImageSize(aviId, IS_AVI_CM_Y8, width, height, 0, 0, lineOffset));
+	CheckAvi(isavi_OpenAVIW(aviId, path));
+	CheckAvi(isavi_SetFrameRate(aviId, fps));
+	if (quality >= 1 && quality <= 100)
+		CheckAvi(isavi_SetImageQuality(aviId, quality));
+	CheckAvi(isavi_StartAVI(aviId));
+
+	recording = true;
+	return true;
+}
+
+void IDScamManager::StopRecording()
+{
+	if (!recording)
+		return;
+
+	isavi_StopAVI(aviId);
+	isavi_CloseAVI(aviId);
+	recording = false;
+}
+
+bool IDScamManager::AllocateImageMem()
+{
+	FreeImageMem();
+
+	IS_RECT aoi{};
+	if (is_AOI(cam, IS_AOI_IMAGE_GET_AOI, &aoi, sizeof(aoi)) != IS_SUCCESS)
+		return false;
+
+	width = aoi.s32Width;
+	height = aoi.s32Height;
+	bpp = 8; // MONO8
+
+	if (is_AllocImageMem(cam, width, height, bpp, &imageMem, &memId) != IS_SUCCESS)
+		return false;
+
+	if (is_SetImageMem(cam, imageMem, memId) != IS_SUCCESS)
+		return false;
+
+	int iw = 0, ih = 0, ibpp = 0, p = 0;
+	if (is_InquireImageMem(cam, imageMem, memId, &iw, &ih, &ibpp, &p) != IS_SUCCESS)
+		return false;
+
+	pitch = p;
+	return true;
+}
+
+void IDScamManager::FreeImageMem()
+{
+	if (!imageMem)
+		return;
+
+	is_FreeImageMem(cam, imageMem, memId);
+	imageMem = nullptr;
+	memId = 0;
+}
+
+void IDScamManager::CheckAvi(int ret)
+{
+	if (ret == IS_AVI_NO_ERR)
+		return;
+
+	std::cerr << "[AVI ERROR] ret=" << ret << "\n";
+	std::exit(1);
+}
 
 
 ////////////////////////////////////////////////////////////

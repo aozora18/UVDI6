@@ -330,12 +330,9 @@ public:
 
 	/* 로컬 변수 */
 protected:
-	HIDS   hCam = 0;
-	char* camImgMem = nullptr;
-	int    m_memId = 0;
-	int    m_imgW = 0;
-	int    m_imgH = 0;
-	int    m_bpp = 24;   
+	std::vector<uint8_t> idsSnapshot; 
+	int idsW = 0;
+	int idsH = 0;
 
 
 //#define IDC_BUTTON_MIRROR_LED_POWERSET      11771

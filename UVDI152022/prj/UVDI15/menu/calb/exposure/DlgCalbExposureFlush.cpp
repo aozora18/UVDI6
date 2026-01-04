@@ -11,6 +11,7 @@
 
 #include "../../../GlobalVariables.h"
 
+class IDScamManager;
 /*
  desc : 생성자
  parm : id		- [in]  자신의 윈도 ID
@@ -2086,7 +2087,7 @@ CDlgCalbExposureMirrorTune::~CDlgCalbExposureMirrorTune()
 
 VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
 {
-	CDlgSubTab::DoDataExchange(dx);
+	
 
 	UINT32 i, u32StartID;
 
@@ -2116,6 +2117,7 @@ VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
 
 	u32StartID = IDC_GROUP_PH_SETTING;
 	for (i = 0; i < grpMax; i++)		DDX_Control(dx, u32StartID + i, groups[i]);
+	CDlgSubTab::DoDataExchange(dx);
 }
 
 BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
@@ -2145,6 +2147,7 @@ BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
 	ON_WM_TIMER()
 	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
+
 
 
 /*
@@ -2201,6 +2204,9 @@ VOID CDlgCalbExposureMirrorTune::UpdateControl(UINT64 tick, BOOL is_busy)
 {
 }
 
+
+
+
 HBRUSH CDlgCalbExposureMirrorTune::OnCtlColor(
 	CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
@@ -2210,6 +2216,9 @@ HBRUSH CDlgCalbExposureMirrorTune::OnCtlColor(
 
 	switch (nCtlColor)
 	{
+
+	
+
 	case CTLCOLOR_LISTBOX:
 		if (id == IDC_MIRROR_MOTION_LIST)
 		{
@@ -2248,10 +2257,13 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	Invalidate(FALSE);
 
 	if (brListBg.GetSafeHandle()) brListBg.DeleteObject();
-	brListBg.CreateSolidBrush(RGB(180, 180, 220));
+	brListBg.CreateSolidBrush(RGB(180, 180, 180));
 
 	if (brEditBg.GetSafeHandle()) brEditBg.DeleteObject();
 	brEditBg.CreateSolidBrush(RGB(220, 220, 220));
+
+	if (brPicBg.GetSafeHandle()) brPicBg.DeleteObject();
+	brPicBg.CreateSolidBrush(RGB(0, 0, 0)); 
 
 	for (int i = 0; i < grpMax; i++)
 	{
@@ -2315,16 +2327,6 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 
 		clsResizeUI.ResizeControl(this, &edits[i]);	
 	}
-
-
-	/*for (int i = 0; i < grpMax; i++)
-	{
-		clsResizeUI.ResizeControl(this, &groups[i]);
-		groups[i].GetWindowRect(rctCtrl);
-		this->ScreenToClient(rctCtrl);
-		groups[i].MoveWindow(rctCtrl);
-	}*/
-
 }
 
 /*
@@ -2338,6 +2340,7 @@ VOID CDlgCalbExposureMirrorTune::InvalidateView()
 	pics[0].GetWindowRect(rView);
 	if (brListBg.GetSafeHandle()) brListBg.DeleteObject();
 	if (brEditBg.GetSafeHandle()) brEditBg.DeleteObject();
+	if (brPicBg.GetSafeHandle()) brPicBg.DeleteObject();
 	ScreenToClient(rView);
 	InvalidateRect(rView, TRUE);
 }
@@ -2358,8 +2361,70 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 		case LOADIMAGE:
 		case UNLOADIMAGE:
 		case OPEN:
+		{
+				//aoi설정
+				//Start X = 1664
+				//Start Y = 1118
+				//Width = 512
+				//Height = 512
+
+			if (!GlobalVariables::GetInstance()->GetIDSManager().Connect(0, IDScamManager::Aoi(1664,1118,512,512))) //NEW IDS SETTING.INI에서 가져옴
+				MessageBoxW(L"IDS camera connect failed", L"error", MB_OK);
+		}
+		break;
 		case CLOSE:
+		{
+			GlobalVariables::GetInstance()->GetIDSManager().Disconnect();
+		}
+		break;
 		case SNAPSHOT:
+		{
+			auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+
+			if (!ids.IsConnected())
+			{
+				MessageBoxW(L"IDS camera is not connected", L"error", MB_OK);
+				return;
+			}
+
+			
+			if (!ids.GrabOnce())
+			{
+				MessageBoxW(L"GrabOnce failed", L"error", MB_OK);
+				return;
+			}
+
+			
+			std::vector<uint8_t> buf;
+			if (!ids.SnapshotCopyTo(buf))
+			{
+				MessageBoxW(L"SnapshotCopyTo failed", L"error", MB_OK);
+				return;
+			}
+
+			
+			const uint8_t* ptr = nullptr;
+			int w = 0, h = 0, bpp = 0, pitch = 0;
+			ids.GetFramePtr(ptr, w, h, bpp, pitch);
+
+			
+			if (bpp != 8 || w <= 0 || h <= 0)
+			{
+				MessageBoxW(L"Unexpected format (not MONO8)", L"error", MB_OK);
+				return;
+			}
+
+			idsSnapshot.swap(buf);
+			idsW = w;
+			idsH = h;
+
+			
+			UpdateIDSImage();
+
+
+		}
+		break;
+
 		case RECORD:
 		case OPEN_MOTION_CONTROL:
 		case EDIT_MOTIONLIST:
@@ -2497,9 +2562,92 @@ void CDlgCalbExposureMirrorTune::OnTimer(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == 10302)
 	{
-		int debug = 0;
+		UpdateIDSImage();
 	}
 
 	CDlgSubTab::OnTimer(nIDEvent);
+}
+
+BOOL CDlgCalbExposureMirrorTune::PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 index)
+{
+	if (index > 0)
+	{	
+		if (FALSE == uvEng_Luria_ReqSetLedPowerResetAll())				return FALSE;
+		if (FALSE == uvEng_Luria_ReqSetActiveSequence(head, 0x01))	return FALSE;
+		if (FALSE == uvEng_Luria_ReqSetLedPowerResetAll())				return FALSE;
+
+
+		if (FALSE == uvEng_Luria_ReqSetFlatnessMaskOn(head, 0x00))	return FALSE;
+		if (FALSE == uvEng_Luria_ReqSetDmdMirrorShake(head, 0x00))	return FALSE;
+		auto res = uvEng_Luria_ReqSetLightIntensity(head, ENG_LLPI(led), index);
+
+		if (res)
+		{
+			uvEng_Luria_ReqGetLedPower(head, ENG_LLPI(led));
+			res = uvEng_Luria_ReqSetLightPulseDuration(head, LIGHT_PULSE_DURATION);
+			if (res == false) return FALSE;
+		}
+	}
+	else
+	{
+		uvEng_Luria_ReqSetLedLightOnOff(head, (ENG_LLPI)led, false);
+	}
+	return TRUE;
+}
+
+BOOL CDlgCalbExposureMirrorTune::PhotoImageLoad(UINT8 head, UINT8 imageNum)
+{
+	if (FALSE == uvEng_Luria_ReqSetLoadInternalTestImage(head, imageNum))	
+		return FALSE;
+	return TRUE;
+}
+
+void CDlgCalbExposureMirrorTune::UpdateIDSImage()
+{
+	struct BitmapInfoGray8
+	{
+		BITMAPINFOHEADER header;
+		RGBQUAD colors[256];
+	};
+
+	CWnd* pView = GetDlgItem(IDC_IDSCAMERA_VIEW);
+	if (!pView || !::IsWindow(pView->GetSafeHwnd()))
+		return;
+
+	CRect rc;
+	pView->GetWindowRect(&rc);
+	ScreenToClient(&rc);
+
+	CClientDC dc(this);
+	dc.FillSolidRect(&rc, RGB(0, 0, 0));
+
+	if (idsSnapshot.empty() || idsW <= 0 || idsH <= 0)
+		return;
+
+	BitmapInfoGray8 bmi{};
+	bmi.header.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.header.biWidth = idsW;
+	bmi.header.biHeight = -idsH;      // top-down
+	bmi.header.biPlanes = 1;
+	bmi.header.biBitCount = 8;
+	bmi.header.biCompression = BI_RGB;
+
+	for (int i = 0; i < 256; ++i)
+	{
+		bmi.colors[i].rgbBlue = (BYTE)i;
+		bmi.colors[i].rgbGreen = (BYTE)i;
+		bmi.colors[i].rgbRed = (BYTE)i;
+		bmi.colors[i].rgbReserved = 0;
+	}
+
+	::StretchDIBits(
+		dc.GetSafeHdc(),
+		rc.left, rc.top, rc.Width(), rc.Height(),
+		0, 0, idsW, idsH,
+		idsSnapshot.data(),
+		reinterpret_cast<BITMAPINFO*>(&bmi),
+		DIB_RGB_COLORS,
+		SRCCOPY
+	);
 }
                  

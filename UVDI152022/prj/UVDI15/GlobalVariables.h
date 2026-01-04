@@ -40,6 +40,10 @@
 #include "Ajinprotocol.h"
 #include "CommWrapper.h"
 #include <queue>
+
+#include "ueye.h"
+#include "ueye_tools.h"
+
 class CDlgMain;
 
 using namespace std;
@@ -1041,6 +1045,9 @@ class AjinMotionNetwork
 };
 
 #ifdef USEBT
+////////////////////////////////////////////////////////////
+///			블루투스 통신모듈
+////////////////////////////////////////////////////////////
 class BTController
 {
 	BtSppApi btSpp;
@@ -1199,7 +1206,76 @@ private:
 	feature thetaFeature;
 };
 
+////////////////////////////////////////////////////////////
+///			IDS카메라
+////////////////////////////////////////////////////////////
+class IDScamManager
+{
+public:
+	struct Aoi
+	{
+		int x = 0;
+		int y = 0;
+		int w = 0;
+		int h = 0;
+		
+		Aoi(int x,int y,int w,int h)
+		{
+			this->x = x;
+			this->y = y;
+			this->w = w;
+			this->h = h;
+		}
+	};
 
+	bool Connect(int cameraId , Aoi aoi);
+	void Disconnect();
+	bool IsConnected() const;
+
+	bool GrabOnce();
+	void GetFramePtr(const uint8_t*& ptr, int& w, int& h, int& bits, int& linePitch) const;
+
+	bool SetExposureUs(double us);
+	bool GetExposureUs(double& outUs) const;
+
+	
+	bool SetGain(int value);
+	bool GetGain(int& outValue) const;
+
+	bool SetAoi(int x, int y, int w, int h);
+	bool GetAoi(Aoi& out) const;
+
+	bool SnapshotFile(const wchar_t* path, int quality = 80);
+	bool SnapshotCopyTo(std::vector<uint8_t>& out);
+
+	bool StartRecording(const wchar_t* path = L"record.avi", double fps = 30.0, int quality = 80);
+	void StopRecording();
+
+
+	IDScamManager();
+	~IDScamManager();
+
+private:
+	bool AllocateImageMem();
+	void FreeImageMem();
+	static void CheckAvi(int ret);
+
+private:
+	HIDS cam = 0;
+	bool connected = false;
+
+	char* imageMem = nullptr;
+	int memId = 0;
+	int width = 0;
+	int height = 0;
+	int bpp = 0;
+	int pitch = 0;
+
+	int aviId = 0;
+	bool recording = false;
+
+	int gainCache = -1; 
+};
 
 //인라인클래스 
 class GlobalVariables
@@ -1230,7 +1306,7 @@ private:
 	unique_ptr<AutoFocus> autoFocus;
 	unique_ptr <AjinMotionNetwork> ajinMotion;
 	unique_ptr <ThetaControl> thetaControl;
-	
+	unique_ptr < IDScamManager> idsManager;
 	template <typename MapType>
 	bool IsKeyExist(const MapType& map, string key)
 	{
@@ -1298,6 +1374,12 @@ public:
 		return *thetaControl;
 	}
 
+	IDScamManager& GetIDSManager()
+	{
+		return *idsManager;
+	}
+
+	
 	void Destroy()
 	{
 		
@@ -1320,6 +1402,7 @@ public:
 		environmental.reset();
 		ajinMotion.reset();
 		thetaControl.reset();
+		idsManager.reset();
 	}
 
 	void waitForAllWaiter()
@@ -1416,7 +1499,7 @@ public:
 #ifdef USEBT
 		btMonitor = make_unique<BTController>();
 #endif
-
+		idsManager = make_unique<IDScamManager>();
 	}
 
 	/*GlobalVariables()

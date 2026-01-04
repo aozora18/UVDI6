@@ -62,8 +62,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>USEBT;TOUCH_KBD;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(UEYE_SDK_DIR)\Develop\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -72,8 +71,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
-      <AdditionalLibraryDirectories>.\db\sqlite;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sqlite3.lib;Winmm.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\db\sqlite;$(UEYE_SDK_DIR)\Develop\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite3.lib;Winmm.lib;ueye_api_64.lib;ueye_tools_64.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

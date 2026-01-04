@@ -311,6 +311,7 @@ protected:
 	CBrush brListBg;
 	CBrush brEditBg;
 	CBrush brPicBg;
+	double zoom = 1;
 	std::atomic<bool> snapshotLock{ false }; 
 	std::atomic<bool> doSnap{ false };
 	std::atomic<bool> keepRefreshing{ false };
@@ -340,6 +341,7 @@ protected:
 	int ledSelected = 0;
 	int indexPower = 0;
 	int headSelected = 1;
+	CPoint customCrossPt{ -1, -1 };
 
 //#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
 //#define IDC_BUTTON_MIRROR_LOADIMAGE         11772
@@ -478,7 +480,9 @@ protected:
 	afx_msg void OnSelChangeMirrorMotionList();
 
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	
 	afx_msg void OnSliderMirrorPowerChanging(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnSliderMirrorPowerDraw(NMHDR* pNMHDR, LRESULT* pResult);

@@ -2137,22 +2137,84 @@ BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
 		IDC_CHECK_MIRROR_KEEP_REFRESHING,
 		&CDlgCalbExposureMirrorTune::OnMirrorCheckClick)
 
-	// 콤보박스: 선택 변경
 	ON_CBN_SELCHANGE(IDC_COMBO_MIRROR_IMAGES, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorImages)
 	ON_CBN_SELCHANGE(IDC_COMBO_MIRROR_PHINDEX, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex)
 
-	// 리스트박스: 선택 변경
 	ON_LBN_SELCHANGE(IDC_MIRROR_MOTION_LIST, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList)
 
-	// 슬라이더: 값 변경(드래그 중/놓을 때 둘 다)
 	ON_NOTIFY(TRBN_THUMBPOSCHANGING, IDC_SLIDER_MIRROR_POWERINDEX, &CDlgCalbExposureMirrorTune::OnSliderMirrorPowerChanging) // (있는 경우)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_MIRROR_POWERINDEX, &CDlgCalbExposureMirrorTune::OnSliderMirrorPowerDraw)     // (드래그 중에도 많이 옴)
 	ON_WM_HSCROLL()
 	ON_WM_TIMER()
 	ON_WM_CTLCOLOR()
+	ON_WM_MOUSEWHEEL()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
+void CDlgCalbExposureMirrorTune::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	CWnd* pView = GetDlgItem(IDC_IDSCAMERA_VIEW);
+	if (pView && ::IsWindow(pView->GetSafeHwnd()))
+	{
+		CRect rcView;
+		pView->GetWindowRect(&rcView);
+		ScreenToClient(&rcView);
+
+		if (rcView.PtInRect(point))
+		{			
+			zoom = 1.0;               
+			customCrossPt = CPoint(-1, -1);
+			InvalidateRect(rcView, FALSE);
+			return; // 여기서 끝
+		}
+	}
+
+	CDlgSubTab::OnRButtonDown(nFlags, point);
+}
+
+void CDlgCalbExposureMirrorTune::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	CWnd* pView = GetDlgItem(IDC_IDSCAMERA_VIEW);
+	if (pView && ::IsWindow(pView->GetSafeHwnd()))
+	{
+		CRect rcView;
+		pView->GetWindowRect(&rcView);
+		ScreenToClient(&rcView);
+
+		
+		if (rcView.PtInRect(point))
+		{
+			customCrossPt = CPoint(point.x - rcView.left, point.y - rcView.top);	
+			InvalidateRect(rcView, FALSE);
+		}
+	}
+
+	CDlgSubTab::OnLButtonDown(nFlags, point);
+}
+
+BOOL CDlgCalbExposureMirrorTune::OnMouseWheel(UINT flags, short delta, CPoint pt)
+{
+	CRect rcView;
+	GetDlgItem(IDC_IDSCAMERA_VIEW)->GetWindowRect(&rcView);
+	if (!rcView.PtInRect(pt))
+		return CDlgSubTab::OnMouseWheel(flags, delta, pt);
+
+	const int steps = delta / WHEEL_DELTA; 
+	if (steps != 0)
+	{
+		if (steps > 0) zoom *= 1.1;
+		else           zoom /= 1.1;
+	
+		if (zoom < 1) zoom = 1;
+		if (zoom > 10.0) zoom = 10.0;
+
+		InvalidateView(); 
+	}
+
+	return TRUE; 
+}
 
 /*
  desc : 모든 메시지 가로채기 ㅋㅋㅋ
@@ -2700,46 +2762,92 @@ void CDlgCalbExposureMirrorTune::UpdateIDSImage()
 	CRect rc;
 	pView->GetWindowRect(&rc);
 	ScreenToClient(&rc);
+
 	CClientDC dc(this);
 
+
+	int saved = dc.SaveDC();
+	dc.IntersectClipRect(&rc);
+
 	if (snapshotLock.load() == true)
+	{
+		dc.RestoreDC(saved);
 		return;
+	}
 
 	if (idsSnapshot.empty() || idsW <= 0 || idsH <= 0)
 	{
 		dc.FillSolidRect(&rc, RGB(0, 0, 0));
+		dc.RestoreDC(saved);
 		return;
 	}
-	else
+
+	BitmapInfoGray8 bmi{};
+	bmi.header.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.header.biWidth = idsW;
+	bmi.header.biHeight = -idsH;  // top-down
+	bmi.header.biPlanes = 1;
+	bmi.header.biBitCount = 8;
+	bmi.header.biCompression = BI_RGB;
+
+	for (int i = 0; i < 256; ++i)
 	{
-
-		BitmapInfoGray8 bmi{};
-		bmi.header.biSize = sizeof(BITMAPINFOHEADER);
-		bmi.header.biWidth = idsW;
-		bmi.header.biHeight = -idsH;  
-		bmi.header.biPlanes = 1;
-		bmi.header.biBitCount = 8;
-		bmi.header.biCompression = BI_RGB;
-
-		for (int i = 0; i < 256; ++i)
-		{
-			bmi.colors[i].rgbBlue = (BYTE)i;
-			bmi.colors[i].rgbGreen = (BYTE)i;
-			bmi.colors[i].rgbRed = (BYTE)i;
-			bmi.colors[i].rgbReserved = 0;
-		}
-
-		::StretchDIBits(
-			dc.GetSafeHdc(),
-			rc.left, rc.top, rc.Width(), rc.Height(),
-			0, 0, idsW, idsH,
-			idsSnapshot.data(),
-			reinterpret_cast<BITMAPINFO*>(&bmi),
-			DIB_RGB_COLORS,
-			SRCCOPY
-		);
+		bmi.colors[i].rgbBlue = (BYTE)i;
+		bmi.colors[i].rgbGreen = (BYTE)i;
+		bmi.colors[i].rgbRed = (BYTE)i;
+		bmi.colors[i].rgbReserved = 0;
 	}
 
+	
+	const int viewW = rc.Width();
+	const int viewH = rc.Height();
+
+	const int dstW = (int)std::lround(viewW * zoom);
+	const int dstH = (int)std::lround(viewH * zoom);
+
+	CPoint c = rc.CenterPoint();
+	const int dstL = c.x - dstW / 2;
+	const int dstT = c.y - dstH / 2;
+
+	::StretchDIBits(
+		dc.GetSafeHdc(),
+		dstL, dstT, dstW, dstH,          // dest (zoom 적용)
+		0, 0, idsW, idsH,                // src
+		idsSnapshot.data(),
+		reinterpret_cast<BITMAPINFO*>(&bmi),
+		DIB_RGB_COLORS,
+		SRCCOPY
+	);
+
+	
+	{
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+		HGDIOBJ oldPen = ::SelectObject(dc.GetSafeHdc(), hPen);
+		HGDIOBJ oldBrush = ::SelectObject(dc.GetSafeHdc(), ::GetStockObject(NULL_BRUSH));
+
+		int cx = rc.CenterPoint().x;
+		int cy = rc.CenterPoint().y;
+
+		if (customCrossPt.x >= 0 && customCrossPt.y >= 0)
+		{
+			cx = rc.left + customCrossPt.x;
+			cy = rc.top + customCrossPt.y;
+		}
+
+		// 가로선
+		::MoveToEx(dc.GetSafeHdc(), rc.left, cy, nullptr);
+		::LineTo(dc.GetSafeHdc(), rc.right, cy);
+
+		// 세로선
+		::MoveToEx(dc.GetSafeHdc(), cx, rc.top, nullptr);
+		::LineTo(dc.GetSafeHdc(), cx, rc.bottom);
+
+		::SelectObject(dc.GetSafeHdc(), oldBrush);
+		::SelectObject(dc.GetSafeHdc(), oldPen);
+		::DeleteObject(hPen);
+	}
+
+	dc.RestoreDC(saved);
 }
                  
 

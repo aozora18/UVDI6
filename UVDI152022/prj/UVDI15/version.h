@@ -1,0 +1,22 @@
+#define STRINGIFY(X) #X
+#define XSTRINGIFY(X) STRINGIFY(X)
+#define JOIN(X, Y) X ## Y
+#define XJOIN(X, Y) JOIN(X, Y)
+
+#define PRODUCT_VERSION_NUMBER          4, 97, 0, 0
+#define PRODUCT_VERSION                 4.97.0.0
+#define PRODUCT_VERSION_TEXT            XSTRINGIFY(PRODUCT_VERSION)
+
+#define FILE_VERSION_NUMBER             4, 97, 434, 0
+#define FILE_VERSION                    4.97.434.0
+#define FILE_VERSION_TEXT               XSTRINGIFY(FILE_VERSION)
+
+#define CURRENT_YEAR                    2025
+#define CURRENT_YEAR_TEXT               XSTRINGIFY(CURRENT_YEAR)
+
+#define PROGRAM_COMPANY                 IDS Imaging Development Systems GmbH
+#define PROGRAM_COMPANY_TEXT            XSTRINGIFY(PROGRAM_COMPANY)
+
+#define LEGAL_COPYRIGHT_TEXT(FROM_YEAR) XSTRINGIFY(JOIN(Copyright (C), FROM_YEAR) - CURRENT_YEAR PROGRAM_COMPANY)
+#define PROGRAM_NAME_TEXT(PROGRAM_NAME) XSTRINGIFY(PROGRAM_NAME)
+

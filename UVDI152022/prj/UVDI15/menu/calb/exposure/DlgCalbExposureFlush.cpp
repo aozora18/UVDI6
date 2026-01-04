@@ -21,6 +21,7 @@ class IDScamManager;
 		parent	- [in]  자신을 호출한 부모 윈도 클래스 포인터
  retn : None
 */
+atomic<bool> exitSnap = false;
 CDlgCalbExposureFlush::CDlgCalbExposureFlush(UINT32 id, CWnd* parent)
 	: CDlgSubTab(id, parent)
 {
@@ -2085,7 +2086,7 @@ CDlgCalbExposureMirrorTune::CDlgCalbExposureMirrorTune(UINT32 id, CWnd * parent)
 
 CDlgCalbExposureMirrorTune::~CDlgCalbExposureMirrorTune()
 {
-
+	exitSnap.store(true);
 }
 
 VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
@@ -2180,7 +2181,7 @@ BOOL CDlgCalbExposureMirrorTune::OnInitDlg()
 {
 	/* 컨트롤 초기화 */
 	InitCtrl();
-	SetTimer(10302, 200, NULL);
+	SetTimer(10302, 100, NULL);
 	return TRUE;
 }
 
@@ -2239,6 +2240,10 @@ HBRUSH CDlgCalbExposureMirrorTune::OnCtlColor(
 			return (HBRUSH)brEditBg.GetSafeHandle();
 		}
 		break;
+
+	default:
+	 
+	break;
 	}
 
 	if (!pWnd) return hbr;
@@ -2251,6 +2256,10 @@ HBRUSH CDlgCalbExposureMirrorTune::OnCtlColor(
 */
 VOID CDlgCalbExposureMirrorTune::InitCtrl()
 {
+
+	auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+	ids.Disconnect();
+
 	CResizeUI clsResizeUI;
 	CString strTemp;
 	CRect rctCtrl;
@@ -2268,6 +2277,8 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	if (brPicBg.GetSafeHandle()) brPicBg.DeleteObject();
 	brPicBg.CreateSolidBrush(RGB(0, 0, 0)); 
 
+	
+	
 	for (int i = 0; i < grpMax; i++)
 	{
 		clsResizeUI.ResizeControl(this, &groups[i]);
@@ -2321,13 +2332,30 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 		
 	}
 
-	FixControlToPhysicalPixels(IDC_IDSCAMERA_VIEW, 512, 512);
-
 	for (int i = 0; i < edtMax; i++)
 	{
-
 		clsResizeUI.ResizeControl(this, &edits[i]);	
 	}
+	
+//리사이징 이후 작업들	
+	FixControlToPhysicalPixels(IDC_IDSCAMERA_VIEW, 512, 512);
+
+	CComboBox* pCb = (CComboBox*)GetDlgItem(IDC_COMBO_MIRROR_PHINDEX);
+	ASSERT(pCb);
+
+	UINT8 phCount = uvEng_Conf_GetLuria()->ph_count;
+
+	for (int i = 0; i < phCount; i++)
+	{
+		CString text;
+		text.Format(L"PH %d", i + 1);   
+		pCb->AddString(text);
+	}
+	
+	pCb->SetCurSel(0); 
+	sliders[POWERINDEX].SetPos(0);
+	statics[POWER_CURRENT].SetTextToNum(0, 0);
+	ledSelected = 0;
 }
 
 /*
@@ -2345,8 +2373,62 @@ VOID CDlgCalbExposureMirrorTune::InvalidateView()
 	ScreenToClient(rView);
 	InvalidateRect(rView, TRUE);
 }
-             
+    
 
+void CDlgCalbExposureMirrorTune::SnapShot()
+{
+	
+	ThreadManager::getInstance().addThread("IDSsnapshot", exitSnap, [&]() 
+	{
+		std::vector<uint8_t> buf;
+		while (exitSnap.load() == false)
+		{
+			if (doSnap.load() == false && keepRefreshing.load() == false)
+				continue;
+
+			auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+
+			if (!ids.IsConnected())
+			{
+				MessageBoxW(L"IDS camera is not connected", L"error", MB_OK);
+				return;
+			}
+
+			if (!ids.GrabOnce())
+			{
+				MessageBoxW(L"GrabOnce failed", L"error", MB_OK);
+				goto UNLOCK;
+			}
+			buf.clear();
+
+			if (!ids.SnapshotCopyTo(buf))
+			{
+				MessageBoxW(L"SnapshotCopyTo failed", L"error", MB_OK);
+				goto UNLOCK;
+			}
+
+			const uint8_t* ptr = nullptr;
+			int w = 0, h = 0, bpp = 0, pitch = 0;
+			ids.GetFramePtr(ptr, w, h, bpp, pitch);
+
+			if (bpp != 8 || w <= 0 || h <= 0)
+			{
+				MessageBoxW(L"Unexpected format (not MONO8)", L"error", MB_OK);
+				goto UNLOCK;
+			}
+			snapshotLock.store(true);
+			idsSnapshot.swap(buf);
+			idsW = w;
+			idsH = h;
+			doSnap.store(false);
+		UNLOCK:
+			snapshotLock.store(false);
+
+			Sleep(500);
+		}
+		
+	});
+}
 /*
  desc : 일반 버튼 클릭한 경우
  parm : id	- [in]  일반 버튼 ID
@@ -2359,8 +2441,23 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 	switch (nBtnID)
 	{
 		case LED_POWERSET:
+		{
+			if (headSelected <= 0)
+				MessageBoxW(L"no head selected", L"error", MB_OK);
+			else
+				for(int i=0;i<4;i++)
+					if(ledSelected & 1<<i)
+						PhotoLedOnOff(headSelected, i+1, indexPower);
+		}
+		break;
+
 		case LOADIMAGE:
 		case UNLOADIMAGE:
+		{
+
+		}
+		break;
+
 		case OPEN:
 		{
 				//aoi설정
@@ -2369,68 +2466,38 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 				//Width = 512
 				//Height = 512
 
-			if (!GlobalVariables::GetInstance()->GetIDSManager().Connect(0, IDScamManager::Aoi(1664,1118,512,512))) //NEW IDS SETTING.INI에서 가져옴
+			if (!GlobalVariables::GetInstance()->GetIDSManager().Connect(0, IDScamManager::Aoi(1664, 1118, 512, 512))) //NEW IDS SETTING.INI에서 가져옴
+			{
 				MessageBoxW(L"IDS camera connect failed", L"error", MB_OK);
+				return;
+			}
+
 			GlobalVariables::GetInstance()->GetIDSManager().SetPixelClockMHz(7);
 			GlobalVariables::GetInstance()->GetIDSManager().SetFrameRate(0.68);
 			GlobalVariables::GetInstance()->GetIDSManager().SetExposureUs(1464);
-
+			MessageBoxW(L"IDS camera connected", L"ok", MB_OK);
 		}
 		break;
 		case CLOSE:
 		{
+			keepRefreshing.store(false);
 			GlobalVariables::GetInstance()->GetIDSManager().Disconnect();
+			MessageBoxW(L"IDS camera disconnected", L"ok", MB_OK);
 		}
 		break;
 		case SNAPSHOT:
 		{
-			auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
-
-			if (!ids.IsConnected())
-			{
-				MessageBoxW(L"IDS camera is not connected", L"error", MB_OK);
-				return;
-			}
-
-			
-			if (!ids.GrabOnce())
-			{
-				MessageBoxW(L"GrabOnce failed", L"error", MB_OK);
-				return;
-			}
-
-			
-			std::vector<uint8_t> buf;
-			if (!ids.SnapshotCopyTo(buf))
-			{
-				MessageBoxW(L"SnapshotCopyTo failed", L"error", MB_OK);
-				return;
-			}
-
-			
-			const uint8_t* ptr = nullptr;
-			int w = 0, h = 0, bpp = 0, pitch = 0;
-			ids.GetFramePtr(ptr, w, h, bpp, pitch);
-
-			
-			if (bpp != 8 || w <= 0 || h <= 0)
-			{
-				MessageBoxW(L"Unexpected format (not MONO8)", L"error", MB_OK);
-				return;
-			}
-
-			idsSnapshot.swap(buf);
-			idsW = w;
-			idsH = h;
-
-			
-			UpdateIDSImage();
-
-
+			doSnap.store(true);
+			SnapShot();
 		}
 		break;
 
 		case RECORD:
+		{
+
+		}
+		break;
+
 		case OPEN_MOTION_CONTROL:
 		case EDIT_MOTIONLIST:
 		case RUN_MOTION:
@@ -2446,29 +2513,41 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 
 void CDlgCalbExposureMirrorTune::OnMirrorCheckClick(UINT nID)
 {
-	const BOOL bChecked = (IsDlgButtonChecked(nID) == BST_CHECKED);
+	
+	
 
 	switch (nID)
 	{
 	case IDC_CHECK_MIRROR_LED1:
-		// TODO: LED1 ON/OFF (bChecked)
-		break;
-
 	case IDC_CHECK_MIRROR_LED2:
-		// TODO: LED2 ON/OFF (bChecked)
-		break;
-
 	case IDC_CHECK_MIRROR_LED3:
-		// TODO: LED3 ON/OFF (bChecked)
-		break;
-
 	case IDC_CHECK_MIRROR_LED4:
-		// TODO: LED4 ON/OFF (bChecked)
-		break;
+	{
+		ledSelected = 0;
+
+		if (checks[LED1].GetCheck() == 1) ledSelected |= 1 << 0;
+		if (checks[LED2].GetCheck() == 1) ledSelected |= 1 << 1;
+		if (checks[LED3].GetCheck() == 1) ledSelected |= 1 << 2;
+		if (checks[LED4].GetCheck() == 1) ledSelected |= 1 << 3;
+	}
+	break;
 
 	case IDC_CHECK_MIRROR_KEEP_REFRESHING:
-		// TODO: Keep Refreshing (bChecked)
-		break;
+	{
+		bool checked = checks[nID - IDC_CHECK_MIRROR_LED1].GetCheck() == 1;
+		
+		if (checked && GlobalVariables::GetInstance()->GetIDSManager().IsConnected() == false)
+		{
+			checks[nID - IDC_CHECK_MIRROR_LED1].SetCheck(0);
+			keepRefreshing.store(false);
+			MessageBoxW(L"IDS camera not connected", L"error", MB_OK);
+		}
+		else
+			keepRefreshing.store(checked ? true : false);
+
+		
+	}
+	break;
 
 	default:
 		break;
@@ -2497,9 +2576,7 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex()
 	const int sel = pCb->GetCurSel();
 	if (sel == CB_ERR) return;
 
-	CString text;
-	pCb->GetLBText(sel, text);
-
+	headSelected = sel+1;
 	// TODO
 }
 
@@ -2523,7 +2600,9 @@ void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* 
 	if (pScrollBar && pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_POWERINDEX)->GetSafeHwnd())
 	{
 		CSliderCtrl* pSl = (CSliderCtrl*)pScrollBar;
-		const int pos = pSl->GetPos();
+		indexPower = pSl->GetPos();
+
+		statics[POWER_CURRENT].SetTextToNum(indexPower,0);
 
 		switch (nSBCode)
 		{
@@ -2570,8 +2649,10 @@ void CDlgCalbExposureMirrorTune::OnTimer(UINT_PTR nIDEvent)
 
 BOOL CDlgCalbExposureMirrorTune::PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 index)
 {
-	if (index > 0)
-	{	
+	static bool inited = false;
+
+	if (inited == false)
+	{
 		if (FALSE == uvEng_Luria_ReqSetLedPowerResetAll())				return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetActiveSequence(head, 0x01))	return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetLedPowerResetAll())				return FALSE;
@@ -2579,20 +2660,22 @@ BOOL CDlgCalbExposureMirrorTune::PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 ind
 
 		if (FALSE == uvEng_Luria_ReqSetFlatnessMaskOn(head, 0x00))	return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetDmdMirrorShake(head, 0x00))	return FALSE;
-		auto res = uvEng_Luria_ReqSetLightIntensity(head, ENG_LLPI(led), index);
+		if (FALSE == uvEng_Luria_ReqSetLightPulseDuration(head, LIGHT_PULSE_DURATION)) return FALSE;
+		inited = true;
+	}
 
+	if (index > 0)
+	{		
+		auto res = uvEng_Luria_ReqSetLightIntensity(head, ENG_LLPI(led), index);
 		if (res)
-		{
-			uvEng_Luria_ReqGetLedPower(head, ENG_LLPI(led));
-			res = uvEng_Luria_ReqSetLightPulseDuration(head, LIGHT_PULSE_DURATION);
-			if (res == false) return FALSE;
-		}
+			return uvEng_Luria_ReqGetLedPower(head, ENG_LLPI(led));
+		return false;
 	}
 	else
 	{
-		uvEng_Luria_ReqSetLedLightOnOff(head, (ENG_LLPI)led, false);
+		return uvEng_Luria_ReqSetLedLightOnOff(head, (ENG_LLPI)led, false);
 	}
-	return TRUE;
+	
 }
 
 BOOL CDlgCalbExposureMirrorTune::PhotoImageLoad(UINT8 head, UINT8 imageNum)
@@ -2617,38 +2700,46 @@ void CDlgCalbExposureMirrorTune::UpdateIDSImage()
 	CRect rc;
 	pView->GetWindowRect(&rc);
 	ScreenToClient(&rc);
-
 	CClientDC dc(this);
-	dc.FillSolidRect(&rc, RGB(0, 0, 0));
 
-	if (idsSnapshot.empty() || idsW <= 0 || idsH <= 0)
+	if (snapshotLock.load() == true)
 		return;
 
-	BitmapInfoGray8 bmi{};
-	bmi.header.biSize = sizeof(BITMAPINFOHEADER);
-	bmi.header.biWidth = idsW;
-	bmi.header.biHeight = -idsH;      // top-down
-	bmi.header.biPlanes = 1;
-	bmi.header.biBitCount = 8;
-	bmi.header.biCompression = BI_RGB;
-
-	for (int i = 0; i < 256; ++i)
+	if (idsSnapshot.empty() || idsW <= 0 || idsH <= 0)
 	{
-		bmi.colors[i].rgbBlue = (BYTE)i;
-		bmi.colors[i].rgbGreen = (BYTE)i;
-		bmi.colors[i].rgbRed = (BYTE)i;
-		bmi.colors[i].rgbReserved = 0;
+		dc.FillSolidRect(&rc, RGB(0, 0, 0));
+		return;
+	}
+	else
+	{
+
+		BitmapInfoGray8 bmi{};
+		bmi.header.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.header.biWidth = idsW;
+		bmi.header.biHeight = -idsH;  
+		bmi.header.biPlanes = 1;
+		bmi.header.biBitCount = 8;
+		bmi.header.biCompression = BI_RGB;
+
+		for (int i = 0; i < 256; ++i)
+		{
+			bmi.colors[i].rgbBlue = (BYTE)i;
+			bmi.colors[i].rgbGreen = (BYTE)i;
+			bmi.colors[i].rgbRed = (BYTE)i;
+			bmi.colors[i].rgbReserved = 0;
+		}
+
+		::StretchDIBits(
+			dc.GetSafeHdc(),
+			rc.left, rc.top, rc.Width(), rc.Height(),
+			0, 0, idsW, idsH,
+			idsSnapshot.data(),
+			reinterpret_cast<BITMAPINFO*>(&bmi),
+			DIB_RGB_COLORS,
+			SRCCOPY
+		);
 	}
 
-	::StretchDIBits(
-		dc.GetSafeHdc(),
-		rc.left, rc.top, rc.Width(), rc.Height(),
-		0, 0, idsW, idsH,
-		idsSnapshot.data(),
-		reinterpret_cast<BITMAPINFO*>(&bmi),
-		DIB_RGB_COLORS,
-		SRCCOPY
-	);
 }
                  
 

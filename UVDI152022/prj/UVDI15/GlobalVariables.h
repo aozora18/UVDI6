@@ -1229,10 +1229,10 @@ public:
 	};
 	bool SetPixelClockMHz(int mhz);
 	bool GetPixelClockMHz(int& outMhz) const;
+	bool GetPixelClockRangeMHz(int& minMHz, int& maxMHz, int& incMHz);
 
 	bool SetFrameRate(double fps);
 	bool GetFrameRate(double& outFps) const;
-
 	bool Connect(int cameraId , Aoi aoi);
 	void Disconnect();
 	bool IsConnected() const;
@@ -1243,6 +1243,8 @@ public:
 	bool SetExposureUs(double us);
 	bool GetExposureUs(double& outUs) const;
 
+	bool GetFrameRateRange(double& minFps, double& maxFps);
+	bool GetExposureRange(double& minUs, double& maxUs, double& incUs);
 	
 	bool SetGain(int value);
 	bool GetGain(int& outValue) const;
@@ -1256,6 +1258,8 @@ public:
 	bool StartRecording(const wchar_t* path = L"record.avi", double fps = 30.0, int quality = 80);
 	void StopRecording();
 
+	
+	
 
 	IDScamManager();
 	~IDScamManager();

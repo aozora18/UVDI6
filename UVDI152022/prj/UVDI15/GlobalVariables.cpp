@@ -2674,6 +2674,29 @@ bool IDScamManager::GetPixelClockMHz(int& outMhz) const
 	return true;
 }
 
+
+bool IDScamManager::GetPixelClockRangeMHz(int& minMHz, int& maxMHz, int& incMHz)
+{
+	if (!connected)
+		return false;
+
+	INT r[3] = { 0, 0, 0 }; // [min, max, inc]
+
+	if (is_PixelClock(
+		cam,
+		IS_PIXELCLOCK_CMD_GET_RANGE,
+		r,
+		sizeof(r)) != IS_SUCCESS)
+		return false;
+
+	minMHz = (int)r[0];
+	maxMHz = (int)r[1];
+	incMHz = (int)r[2];
+	return true;
+}
+
+
+
 bool IDScamManager::SetFrameRate(double fps)
 {
 	if (!connected) return false;
@@ -2703,6 +2726,42 @@ bool IDScamManager::GetFrameRate(double& outFps) const
 
 
 	return false;
+}
+
+
+bool IDScamManager::GetExposureRange(double& minUs, double& maxUs, double& incUs)
+{
+	if (!connected) return false;
+
+	double range[3] = {}; // [min, max, increment]
+
+	if (is_Exposure(
+		cam,
+		IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE,
+		range,
+		sizeof(range)) != IS_SUCCESS)
+		return false;
+
+	minUs = range[0];
+	maxUs = range[1];
+	incUs = range[2];
+	return true;
+}
+
+
+bool IDScamManager::GetFrameRateRange(double& minFps, double& maxFps)
+{
+	if (!connected) return false;
+
+	double minFt = 0, maxFt = 0, incFt = 0;
+
+	if (is_GetFrameTimeRange(cam, &minFt, &maxFt, &incFt) != IS_SUCCESS)
+		return false;
+
+	maxFps = (minFt > 0) ? (1.0 / minFt) : 0.0;
+	minFps = (maxFt > 0) ? (1.0 / maxFt) : 0.0;
+
+	return true;
 }
 
 bool IDScamManager::GetExposureUs(double& outUs) const

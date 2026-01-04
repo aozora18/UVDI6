@@ -311,9 +311,10 @@ protected:
 	CBrush brListBg;
 	CBrush brEditBg;
 	CBrush brPicBg;
-
+	std::atomic<bool> snapshotLock{ false }; 
+	std::atomic<bool> doSnap{ false };
+	std::atomic<bool> keepRefreshing{ false };
 	
-
 	HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
 	
@@ -335,7 +336,10 @@ protected:
 	std::vector<uint8_t> idsSnapshot; 
 	int idsW = 0;
 	int idsH = 0;
-
+	
+	int ledSelected = 0;
+	int indexPower = 0;
+	int headSelected = 1;
 
 //#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
 //#define IDC_BUTTON_MIRROR_LOADIMAGE         11772
@@ -449,7 +453,7 @@ protected:
 	CMyGrpBox groups[grpMax];
 	/* 로컬 함수 */
 	void UpdateIDSImage();
-
+	void SnapShot();
 protected:
 	void FixControlToPhysicalPixels(UINT ctrlId, int targetWpx, int targetHpx);
 	VOID				InitCtrl();

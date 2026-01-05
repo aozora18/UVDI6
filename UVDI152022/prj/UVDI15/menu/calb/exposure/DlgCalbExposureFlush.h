@@ -338,11 +338,12 @@ protected:
 	int idsW = 0;
 	int idsH = 0;
 	
+	int imgSelected = 0;
 	int ledSelected = 0;
 	int indexPower = 0;
 	int headSelected = 1;
 	CPoint customCrossPt{ -1, -1 };
-
+	atomic<bool> exitSnap = false;
 //#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
 //#define IDC_BUTTON_MIRROR_LOADIMAGE         11772
 //#define IDC_BUTTON_MIRROR_UNLOADIMAGE       11773
@@ -357,7 +358,7 @@ protected:
 	{
 		LED_POWERSET,
 		LOADIMAGE,
-		UNLOADIMAGE,
+		INIT,
 		OPEN,
 		CLOSE,
 		SNAPSHOT,
@@ -453,13 +454,16 @@ protected:
 	CMyStatic statics[stcMax];
 	CMyStatic pics[picMax];
 	CMyGrpBox groups[grpMax];
+
 	/* 로컬 함수 */
 	void UpdateIDSImage();
 	void SnapShot();
+	void Record();
+	void StopRecord();
+	void RemoveSnapshotThread();
 protected:
 	void FixControlToPhysicalPixels(UINT ctrlId, int targetWpx, int targetHpx);
 	VOID				InitCtrl();
-
 	VOID				InvalidateView();
 
 	/* 공용 함수 */

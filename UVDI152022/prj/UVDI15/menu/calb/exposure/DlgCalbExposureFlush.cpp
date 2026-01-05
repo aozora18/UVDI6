@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-
+#include "../../../stuffs.h"
 #include "../../../GlobalVariables.h"
 
 #include <ShellScalingApi.h>
@@ -21,7 +21,7 @@ class IDScamManager;
 		parent	- [in]  자신을 호출한 부모 윈도 클래스 포인터
  retn : None
 */
-atomic<bool> exitSnap = false;
+
 CDlgCalbExposureFlush::CDlgCalbExposureFlush(UINT32 id, CWnd* parent)
 	: CDlgSubTab(id, parent)
 {
@@ -2086,7 +2086,11 @@ CDlgCalbExposureMirrorTune::CDlgCalbExposureMirrorTune(UINT32 id, CWnd * parent)
 
 CDlgCalbExposureMirrorTune::~CDlgCalbExposureMirrorTune()
 {
-	exitSnap.store(true);
+	auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+	ids.Disconnect();
+
+	RemoveSnapshotThread();
+
 }
 
 VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
@@ -2418,6 +2422,20 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	sliders[POWERINDEX].SetPos(0);
 	statics[POWER_CURRENT].SetTextToNum(0, 0);
 	ledSelected = 0;
+	headSelected = 1;
+
+	pCb = (CComboBox*)GetDlgItem(IDC_COMBO_MIRROR_IMAGES);
+	ASSERT(pCb);
+
+	for (int i = 0; i < 5; i++)
+	{
+		CString text;
+		text.Format(L"#%d", i + 1);
+		pCb->AddString(text);
+	}
+
+	pCb->SetCurSel(0);
+	imgSelected = 1;
 }
 
 /*
@@ -2436,10 +2454,65 @@ VOID CDlgCalbExposureMirrorTune::InvalidateView()
 	InvalidateRect(rView, TRUE);
 }
     
+void CDlgCalbExposureMirrorTune::StopRecord()
+{
+	auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+
+	if (!ids.IsConnected())
+	{
+		MessageBoxW(L"IDS camera is not connected", L"error", MB_OK);
+		return;
+	}
+
+	if (!ids.IsRecording())
+	{
+		MessageBoxW(L"no recording works.", L"error", MB_OK);
+		return;
+	}
+
+	if (IDYES == MessageBoxW(L"stop recording?", L"", MB_YESNO))
+		ids.StopRecording();
+
+}
+
+void CDlgCalbExposureMirrorTune::Record()
+{
+	auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+
+	if (!ids.IsConnected())
+	{
+		MessageBoxW(L"IDS camera is not connected", L"error", MB_OK);
+		return;
+	}
+
+	if (ids.IsRecording())
+	{
+		StopRecord();
+		return;
+	}
+
+	auto s = Stuffs::GetStuffs().GetNowString();
+
+	if (IDYES == MessageBoxW(L"start recording?", L"", MB_YESNO))
+		ids.StartRecording();
+
+	
+}
+
+
+void CDlgCalbExposureMirrorTune::RemoveSnapshotThread()
+{
+	exitSnap.store(true);
+	keepRefreshing.store(false);
+	doSnap.store(false);
+	ThreadManager::getInstance().removeThread("IDSsnapshot");
+}
 
 void CDlgCalbExposureMirrorTune::SnapShot()
 {
-	
+	exitSnap.store(false);
+	doSnap.store(true);
+
 	ThreadManager::getInstance().addThread("IDSsnapshot", exitSnap, [&]() 
 	{
 		std::vector<uint8_t> buf;
@@ -2453,6 +2526,7 @@ void CDlgCalbExposureMirrorTune::SnapShot()
 			if (!ids.IsConnected())
 			{
 				MessageBoxW(L"IDS camera is not connected", L"error", MB_OK);
+				RemoveSnapshotThread();
 				return;
 			}
 
@@ -2504,19 +2578,40 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 	{
 		case LED_POWERSET:
 		{
+			
+			vector<BOOL>res;
 			if (headSelected <= 0)
 				MessageBoxW(L"no head selected", L"error", MB_OK);
 			else
-				for(int i=0;i<4;i++)
+				for(int i=0;i<(int)ENG_LLPI::en_405nm;i++)
 					if(ledSelected & 1<<i)
-						PhotoLedOnOff(headSelected, i+1, indexPower);
+						res.push_back(PhotoLedOnOff(headSelected, i+1, indexPower));
+
+			if (std::find(res.begin(), res.end(), FALSE) != res.end())
+				MessageBoxW(L"set led power failed", L"error", MB_OK);
+							
+		}
+		break;
+
+		case INIT:
+		{
+			UINT8 LastRecipe;
+			LastRecipe = uvCmn_Luria_GetJobCount();
+
+			if (LastRecipe && !uvEng_Luria_ReqSetDeleteSelectedJob())
+			{
+				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetDeleteSelectedJob)");
+			}
+
+			uvEng_Luria_ReqSetHWInit();
+			MessageBoxW(L"ph initialized", L"ok", MB_OK);
 		}
 		break;
 
 		case LOADIMAGE:
-		case UNLOADIMAGE:
 		{
-
+			if (FALSE == uvEng_Luria_ReqSetLoadInternalTestImage(headSelected, imgSelected));
+				MessageBoxW(L"set image failed", L"error", MB_OK);
 		}
 		break;
 
@@ -2540,16 +2635,18 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 			MessageBoxW(L"IDS camera connected", L"ok", MB_OK);
 		}
 		break;
+
 		case CLOSE:
 		{
-			keepRefreshing.store(false);
+			RemoveSnapshotThread();
 			GlobalVariables::GetInstance()->GetIDSManager().Disconnect();
 			MessageBoxW(L"IDS camera disconnected", L"ok", MB_OK);
 		}
 		break;
+
 		case SNAPSHOT:
 		{
-			doSnap.store(true);
+			
 			SnapShot();
 		}
 		break;
@@ -2557,10 +2654,19 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 		case RECORD:
 		{
 
+			Record();
 		}
 		break;
 
 		case OPEN_MOTION_CONTROL:
+		{
+			if (AfxGetMainWnd()->GetSafeHwnd()) //모션 컨트롤패널.
+			{
+				::SendMessage(AfxGetMainWnd()->GetSafeHwnd(), eMSG_MAIN_OPEN_CONSOLE, NULL, NULL);
+			}
+		}
+		break;
+
 		case EDIT_MOTIONLIST:
 		case RUN_MOTION:
 		{
@@ -2624,10 +2730,7 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorImages()
 	const int sel = pCb->GetCurSel();
 	if (sel == CB_ERR) return;
 
-	CString text;
-	pCb->GetLBText(sel, text);
-
-	// TODO: text/sel 사용
+	imgSelected = sel + 1;
 }
 
 void CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex()
@@ -2639,7 +2742,7 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex()
 	if (sel == CB_ERR) return;
 
 	headSelected = sel+1;
-	// TODO
+
 }
 
 void CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList()
@@ -2711,10 +2814,10 @@ void CDlgCalbExposureMirrorTune::OnTimer(UINT_PTR nIDEvent)
 
 BOOL CDlgCalbExposureMirrorTune::PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 index)
 {
-	static bool inited = false;
+	//static bool inited = false;
 
-	if (inited == false)
-	{
+	//if (inited == false)
+	//{
 		if (FALSE == uvEng_Luria_ReqSetLedPowerResetAll())				return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetActiveSequence(head, 0x01))	return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetLedPowerResetAll())				return FALSE;
@@ -2723,8 +2826,8 @@ BOOL CDlgCalbExposureMirrorTune::PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 ind
 		if (FALSE == uvEng_Luria_ReqSetFlatnessMaskOn(head, 0x00))	return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetDmdMirrorShake(head, 0x00))	return FALSE;
 		if (FALSE == uvEng_Luria_ReqSetLightPulseDuration(head, LIGHT_PULSE_DURATION)) return FALSE;
-		inited = true;
-	}
+	//	inited = true;
+	//}
 
 	if (index > 0)
 	{		

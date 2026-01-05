@@ -1236,7 +1236,7 @@ public:
 	bool Connect(int cameraId , Aoi aoi);
 	void Disconnect();
 	bool IsConnected() const;
-
+	bool IsRecording() {return recording;}
 	bool GrabOnce();
 	void GetFramePtr(const uint8_t*& ptr, int& w, int& h, int& bits, int& linePitch) const;
 

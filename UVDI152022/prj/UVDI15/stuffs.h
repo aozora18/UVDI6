@@ -198,6 +198,20 @@ public:
 		return string(CT2CA(path.Left(spiltIndex)));
 	}
 
+
+	CString GetNowString()
+	{
+		SYSTEMTIME st;
+		GetLocalTime(&st);
+
+		CString s;
+		s.Format(L"%04d-%02d-%02d %02d:%02d:%02d",
+			st.wYear, st.wMonth, st.wDay,
+			st.wHour, st.wMinute, st.wSecond);
+
+		return s;
+	}
+
 	void RemoveOldFiles(UINT8 bmpDelect, UINT8 logDelect)
 	{
 		//RemoveOldfiles(GetCurrentExePath() + "\\save_img",1*24); //하루지난건 싹 삭제.

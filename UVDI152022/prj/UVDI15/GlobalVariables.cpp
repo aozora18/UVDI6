@@ -58,6 +58,7 @@ void ThreadManager::removeThread(const std::string& key)
 		if (thread->joinable())
 		{
 			stopFlag.store(true);
+			Sleep(3000);
 			thread ->join();
 		}
 		threads_.erase(it);
@@ -2915,7 +2916,56 @@ bool IDScamManager::StartRecording(const wchar_t* path, double fps, int quality)
 	CheckAvi(isavi_StartAVI(aviId));
 
 	recording = true;
-	return true;
+	
+	recordThread = std::thread(&IDScamManager::RecordThreadProc, this, fps);
+}
+
+void IDScamManager::RecordThreadProc(double reqFps)
+{
+	
+	double maxFps = GetMaxFpsByCurrentSetting();
+	double useFps = maxFps;
+
+	if (reqFps > 0.1 && reqFps < maxFps)
+		useFps = reqFps;
+
+	if (useFps <= 0.1)
+		useFps = 30.0;  
+	useFps = 10;
+	const double frameIntervalSec = 1.0 / useFps;
+
+	
+	LARGE_INTEGER freq{}, last{}, now{};
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&last);
+
+	while (recording && connected)
+	{
+		QueryPerformanceCounter(&now);
+		double elapsed = double(now.QuadPart - last.QuadPart) / freq.QuadPart;
+
+		if (elapsed < frameIntervalSec)
+		{
+			Sleep(1);
+			continue;
+		}
+
+		last = now;
+
+	
+		if (is_FreezeVideo(cam, IS_WAIT) != IS_SUCCESS)
+			continue;
+
+		char* pMem = nullptr;
+		if (is_GetImageMem(cam, (void**)&pMem) != IS_SUCCESS || !pMem)
+			continue;
+
+		INT ret = isavi_AddFrame(aviId, pMem);
+		if (ret != IS_SUCCESS)
+		{
+			int debug = 0;
+		}
+	}
 }
 
 void IDScamManager::StopRecording()
@@ -2923,10 +2973,28 @@ void IDScamManager::StopRecording()
 	if (!recording)
 		return;
 
+	recording = false;
+
+	if (recordThread.joinable())
+		recordThread.join();
+
 	isavi_StopAVI(aviId);
 	isavi_CloseAVI(aviId);
-	recording = false;
 }
+
+double IDScamManager::GetMaxFpsByCurrentSetting() 
+{
+	double minMs = 0.0, maxMs = 0.0, incMs = 0.0;
+
+	if (is_GetFrameTimeRange(cam, &minMs, &maxMs, &incMs) != IS_SUCCESS)
+		return 0.0;
+
+	if (minMs <= 0.0)
+		return 0.0;
+
+	return 1000.0 / minMs;
+}
+
 
 bool IDScamManager::AllocateImageMem()
 {

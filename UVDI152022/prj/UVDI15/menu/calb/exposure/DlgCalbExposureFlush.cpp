@@ -12,6 +12,7 @@
 #include "../../../GlobalVariables.h"
 
 #include "DlgStepOffsetCalc.h"
+#include "../../../work/Work.h"
 
 #include <ShellScalingApi.h>
 #pragma comment(lib, "Shcore.lib")
@@ -2094,7 +2095,7 @@ VOID CDlgCalbExposureFlush::UpdateWorkProgress()
 //
 ///////////////////////////////////////////////////////////////
 
-
+atomic<bool> CDlgCalbExposureMirrorTune::exitMotion = false;
 CDlgCalbExposureMirrorTune::CDlgCalbExposureMirrorTune(UINT32 id, CWnd * parent)
 	: CDlgSubTab(id, parent)
 {
@@ -2658,9 +2659,9 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 				return;
 			}
 
-			GlobalVariables::GetInstance()->GetIDSManager().SetPixelClockMHz(7);
-			GlobalVariables::GetInstance()->GetIDSManager().SetFrameRate(0.68);
-			GlobalVariables::GetInstance()->GetIDSManager().SetExposureUs(1464);
+			GlobalVariables::GetInstance()->GetIDSManager().SetPixelClockMHz(36);
+			GlobalVariables::GetInstance()->GetIDSManager().SetFrameRate(10);
+			GlobalVariables::GetInstance()->GetIDSManager().SetExposureUs(100);
 			MessageBoxW(L"IDS camera connected", L"ok", MB_OK);
 		}
 		break;
@@ -2728,16 +2729,148 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 		break;
 	}
 }
+
+
+
+bool MoveTillArrive(double x, double y, double spd)
+{
+	auto& motion = GlobalVariables::GetInstance()->GetAlignMotion();
+	motion.Refresh();
+
+	LPG_MDSM pstShMC2 = uvEng_ShMem_GetMC2();
+
+	if (pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_x)) ||
+		pstShMC2->IsDriveBusy(UINT8(ENG_MMDI::en_stage_y)) ||
+		!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_x)) ||
+		!pstShMC2->IsDriveCmdDone(UINT8(ENG_MMDI::en_stage_y)) ||
+		!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_x)) ||
+		!pstShMC2->IsDriveReached(UINT8(ENG_MMDI::en_stage_y)))
+	{
+		return false;
+	}
+
+	if (motion.isArrive("stage", "x", x) && motion.isArrive("stage", "y", y))
+		return true;
+
+	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, x) || CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, y))
+		return false;
+
+	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_x);
+	uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI::en_stage_y);
+
+	if (x == -1 || y == -1)
+	{
+		if (uvEng_MC2_SendDevAbsMove(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x,
+			x == -1 ? y : x, spd) == false)
+			return false;
+
+		return GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return uvCmn_MC2_IsDrvDoneToggled(x == -1 ? ENG_MMDI::en_stage_y : ENG_MMDI::en_stage_x);
+
+			}, 300000);
+	}
+	else
+	{
+		ENG_MMDI vecAxis = ENG_MMDI::en_axis_none;
+		if (!uvEng_MC2_SendDevMoveVectorXY(ENG_MMDI::en_stage_x, ENG_MMDI::en_stage_y, x, y, spd, vecAxis))
+		{
+			return false;
+		}
+		return GlobalVariables::GetInstance()->Waiter([&]()->bool
+			{
+				return (ENG_MMDI::en_axis_none == vecAxis || uvCmn_MC2_IsDrvDoneToggled(vecAxis));
+			}, 300000);
+	}
+
+	return false;
+}
+
+bool doneMotion = false;
 void CDlgCalbExposureMirrorTune::RunMotion()
 {
+	auto execute = [&](vector<Position> posList)
+	{
+		CDlgCalbExposureMirrorTune::exitMotion.store(false);
+		ThreadManager::getInstance().addThread("MirrorMotion", exitMotion, [=]()
+		{
+			doneMotion = false;;
+			for (int i = 0; i < (int)posList.size(); i++)
+			{
+				if (CDlgCalbExposureMirrorTune::exitMotion.load() == true || CWork::GetAbort())
+				{
+					goto QUIT;
+				}
 
+				if (MoveTillArrive(posList[i].x, posList[i].y, uvEng_GetConfig()->mc2_svc.max_velo[UINT8(ENG_MMDI::en_stage_x)]) == false)
+				{	
+					goto QUIT;
+				}
+				Sleep(2000);
+			}
+			MessageBoxW(L"motion done!", L"", MB_OK);
+			QUIT:
+			doneMotion = true;
+		});
+	};
+
+	if (doneMotion == true)
+	{
+		ThreadManager::getInstance().removeThread("MirrorMotion");
+	}
+	else if (ThreadManager::getInstance().isThreadRunning("MirrorMotion"))
+	{
+		if (IDYES == MessageBoxW(L"motion stop?", L"", MB_YESNO))
+		{
+			ThreadManager::getInstance().removeThread("MirrorMotion");
+			return;
+		}
+	}
+	
+	
+
+	CListBox* pLb = (CListBox*)GetDlgItem(IDC_MIRROR_MOTION_LIST);
+	if (!pLb || !::IsWindow(pLb->GetSafeHwnd()))
+		return;
+
+	const int selCount = pLb->GetSelCount();
+	int msgSel = 0;
+	if (selCount <= 0) //전체루프
+	{
+		msgSel = MessageBoxW(L"move to all listed position. ok?", L"", MB_YESNO);
+		if (msgSel == IDYES)
+			execute(positionVector);
+	}
+	else //선택루프
+	{
+		std::vector<int> selIdx(selCount);
+		const int got = pLb->GetSelItems(selCount, selIdx.data());
+		if (got <= 0)
+			return;
+		
+		std::sort(selIdx.begin(), selIdx.end());
+		selIdx.erase(std::unique(selIdx.begin(), selIdx.end()), selIdx.end());
+
+		std::vector<Position> cropped;
+		cropped.reserve(selIdx.size());
+
+		for (int idx : selIdx)
+		{
+			if (idx >= 0 && idx < (int)positionVector.size())
+				cropped.push_back(positionVector[idx]);
+		}
+
+		if (!cropped.empty())
+		{
+			msgSel = MessageBoxW(L"move to all selected position. ok?", L"", MB_YESNO);
+			if (msgSel == IDYES)
+				execute(cropped);
+		}
+	}
 }
 
 void CDlgCalbExposureMirrorTune::OnMirrorCheckClick(UINT nID)
 {
-	
-	
-
 	switch (nID)
 	{
 	case IDC_CHECK_MIRROR_LED1:
@@ -3068,8 +3201,8 @@ bool CDlgCalbExposureMirrorTune::BuildPositionVector()
 	if (!pLb || !::IsWindow(pLb->GetSafeHwnd()))
 		return false;
 
-	std::vector<Position> positionVector;
-	positionVector.reserve(256);
+	positionVector.clear();
+	
 
 	pLb->ResetContent();
 

@@ -1258,8 +1258,8 @@ public:
 	bool StartRecording(const wchar_t* path = L"record.avi", double fps = 30.0, int quality = 80);
 	void StopRecording();
 
-	
-	
+	double GetMaxFpsByCurrentSetting();
+	void RecordThreadProc(double reqFps);
 
 	IDScamManager();
 	~IDScamManager();
@@ -1271,7 +1271,7 @@ private:
 
 private:
 	HIDS cam = 0;
-	bool connected = false;
+	
 
 	char* imageMem = nullptr;
 	int memId = 0;
@@ -1281,7 +1281,10 @@ private:
 	int pitch = 0;
 
 	int aviId = 0;
-	bool recording = false;
+	
+	std::atomic<bool> recording{ false };
+	std::atomic<bool> connected{ false };
+	std::thread recordThread;
 
 	int gainCache = -1; 
 };

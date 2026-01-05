@@ -180,6 +180,7 @@
     <ClInclude Include="menu\calb\DlgCalbUVPower.h" />
     <ClInclude Include="menu\calb\exposure\DlgCalbExposureFEM.h" />
     <ClInclude Include="menu\calb\exposure\DlgCalbExposureFlush.h" />
+    <ClInclude Include="menu\calb\exposure\DlgStepOffsetCalc.h" />
     <ClInclude Include="menu\calb\uvpower\DlgCalbUVPowerCheck.h" />
     <ClInclude Include="menu\calb\uvpower\DlgCalbUVPowerMeasure.h" />
     <ClInclude Include="menu\conf\DlgConfSetting.h" />
@@ -322,6 +323,7 @@
     <ClCompile Include="menu\calb\DlgCalbUVPower.cpp" />
     <ClCompile Include="menu\calb\exposure\DlgCalbExposureFEM.cpp" />
     <ClCompile Include="menu\calb\exposure\DlgCalbExposureFlush.cpp" />
+    <ClCompile Include="menu\calb\exposure\DlgStepOffsetCalc.cpp" />
     <ClCompile Include="menu\calb\uvpower\DlgCalbUVPowerCheck.cpp" />
     <ClCompile Include="menu\calb\uvpower\DlgCalbUVPowerMeasure.cpp" />
     <ClCompile Include="menu\conf\DlgConfSetting.cpp" />

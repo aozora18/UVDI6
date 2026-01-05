@@ -549,6 +549,9 @@
     <ClInclude Include="btControlInterop.h">
       <Filter>02.메인 파일</Filter>
     </ClInclude>
+    <ClInclude Include="menu\calb\exposure\DlgStepOffsetCalc.h">
+      <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -955,6 +958,9 @@
     </ClCompile>
     <ClCompile Include="MiniTcpProto.cpp">
       <Filter>02.메인 파일\AjinNetwork</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\calb\exposure\DlgStepOffsetCalc.cpp">
+      <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

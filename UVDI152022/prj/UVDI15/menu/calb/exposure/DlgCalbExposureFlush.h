@@ -243,6 +243,7 @@ protected:
 	VOID				SetStepCalc();
 	VOID				SavePhOffset();
 
+	VOID				SavePhOffsetdlg();
 	VOID				MoveStartPos();
 	VOID				MoveUnloadPos();
 

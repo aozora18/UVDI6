@@ -11,6 +11,8 @@
 #include "../../../stuffs.h"
 #include "../../../GlobalVariables.h"
 
+#include "DlgStepOffsetCalc.h"
+
 #include <ShellScalingApi.h>
 #pragma comment(lib, "Shcore.lib")
 
@@ -1114,7 +1116,8 @@ VOID CDlgCalbExposureFlush::OnBtnClick(UINT32 id)
 		SetLiveView(m_bCamLiveState);
 		break;
 	case eCALB_EXPOSURE_FLUSH_BTN_SAVE:
-		SavePhOffset();
+		//SavePhOffset();
+		SavePhOffsetdlg();
 		break;
 	case eCALB_EXPOSURE_FLUSH_BTN_MOVE_MEASURE:
 		MoveStartPos();
@@ -1759,6 +1762,20 @@ VOID CDlgCalbExposureFlush::SavePhOffset()
 		SaveStepData(stStep);
 	}
 }
+
+/*
+ desc : 현재 측정된 광학계 간의 단차 값 저장
+ parm : None
+ retn : None
+ note : 알고리즘 - 단차공식 (Hysterisis)_v0.31.xlsx 파일 참조
+*/
+VOID CDlgCalbExposureFlush::SavePhOffsetdlg()
+{
+	CDlgStepOffsetCalc dlg;
+
+	dlg.MyDoModal();
+}
+
 
 
 VOID CDlgCalbExposureFlush::MoveStartPos()

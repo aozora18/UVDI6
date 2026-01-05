@@ -2233,7 +2233,19 @@ BOOL CDlgCalbExposureMirrorTune::PreTranslateMessage(MSG* msg)
 		{
 			return TRUE;
 		}
+		else if (msg->wParam == VK_RETURN)
+		{
+			CWnd* pFocus = GetFocus();
+			if (pFocus && pFocus->GetDlgCtrlID() == IDC_MIRROR_MOTION_EDIT)
+			{
+				CEdit* pEd = (CEdit*)pFocus;
+				pEd->ReplaceSel(L"\r\n", TRUE);
+				return TRUE; 
+			}
+		}
 	}
+
+	
 	return CDlgSubTab::PreTranslateMessage(msg);
 }
 
@@ -2610,7 +2622,7 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 
 		case LOADIMAGE:
 		{
-			if (FALSE == uvEng_Luria_ReqSetLoadInternalTestImage(headSelected, imgSelected));
+			if (FALSE == uvEng_Luria_ReqSetLoadInternalTestImage(headSelected, imgSelected))
 				MessageBoxW(L"set image failed", L"error", MB_OK);
 		}
 		break;
@@ -2668,16 +2680,41 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 		break;
 
 		case EDIT_MOTIONLIST:
+		{
+			CWnd* pEdit = GetDlgItem(IDC_MIRROR_MOTION_EDIT);
+			CWnd* pList = GetDlgItem(IDC_MIRROR_MOTION_LIST);
+			if (!pEdit || !pList) return;
+			editMode = !editMode; 
+			pEdit->ShowWindow(editMode ? SW_SHOW : SW_HIDE);
+			pList->ShowWindow(editMode ? SW_HIDE : SW_SHOW);
+
+			pEdit->SetWindowPos(editMode ? &CWnd::wndTop : &CWnd::wndBottom,
+				0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			pList->SetWindowPos(editMode ? &CWnd::wndBottom : &CWnd::wndTop,
+				0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+			
+			if (editMode) pEdit->SetFocus();
+			else          pList->SetFocus();
+
+			if (!editMode)
+				BuildPositionVector();
+		}
+		break;
+
 		case RUN_MOTION:
 		{
-			int debug = 0;
+			RunMotion();
 		}
 		break;
 		default:
 		break;
 	}
 }
+void CDlgCalbExposureMirrorTune::RunMotion()
+{
 
+}
 
 void CDlgCalbExposureMirrorTune::OnMirrorCheckClick(UINT nID)
 {
@@ -2952,7 +2989,104 @@ void CDlgCalbExposureMirrorTune::UpdateIDSImage()
 
 	dc.RestoreDC(saved);
 }
-                 
+
+static inline void TrimInPlace(CString& s)
+{
+	s.TrimLeft();
+	s.TrimRight();
+}
+
+bool CDlgCalbExposureMirrorTune::BuildPositionVector()
+{
+	auto ParseLineXY = [&](const CString& lineIn, Position& outPos)-> bool
+		{
+			CString s = lineIn;
+			TrimInPlace(s);
+			if (s.IsEmpty()) return false;
+
+			// 콤마로 분리
+			int comma = s.Find(L',');
+			if (comma < 0) 
+				return false;
+
+			CString sx = s.Left(comma);
+			CString sy = s.Mid(comma + 1);
+
+			TrimInPlace(sx);
+			TrimInPlace(sy);
+
+			if (sx.IsEmpty() || sy.IsEmpty()) return false;
+
+			const wchar_t* px = sx.GetString();
+			const wchar_t* py = sy.GetString();
+
+			wchar_t* endx = nullptr;
+			wchar_t* endy = nullptr;
+
+			double x = wcstod(px, &endx);
+			double y = wcstod(py, &endy);
+
+			// 숫자 변환 자체 실패(문자열 시작에서 변환 안됨)
+			if (endx == px || endy == py) return false;
+
+			// 끝까지 소비했는지(공백만 허용)
+			while (*endx && iswspace(*endx)) ++endx;
+			while (*endy && iswspace(*endy)) ++endy;
+
+			if (*endx != 0 || *endy != 0) return false;
+
+			outPos.x = x;
+			outPos.y = y;
+			return true;
+		};
+
+	CEdit* pEd = (CEdit*)GetDlgItem(IDC_MIRROR_MOTION_EDIT);
+	if (!pEd || !::IsWindow(pEd->GetSafeHwnd()))
+		return false;
+
+	CString all;
+	pEd->GetWindowText(all);
+
+	CListBox* pLb = (CListBox*)GetDlgItem(IDC_MIRROR_MOTION_LIST);
+	if (!pLb || !::IsWindow(pLb->GetSafeHwnd()))
+		return false;
+
+	std::vector<Position> positionVector;
+	positionVector.reserve(256);
+
+	pLb->ResetContent();
+
+	const int lineCount = pEd->GetLineCount();
+
+	for (int i = 0; i < lineCount; ++i)
+	{
+		int len = pEd->LineLength(pEd->LineIndex(i));
+		CString line;
+		pEd->GetLine(i, line.GetBuffer(len + 2), len + 1);
+		line.ReleaseBuffer(len);
+
+		CString trimmed = line;
+		TrimInPlace(trimmed);
+		if (trimmed.IsEmpty())
+			continue;
+
+		Position pos{};
+		if (!ParseLineXY(trimmed, pos))
+		{
+			CString msg;
+			msg.Format(L"%d 라인, \"%s\" 에서 형식에러!", (i + 1), trimmed.GetString());
+			::AfxMessageBox(msg, MB_ICONERROR | MB_OK);
+			return false; // 중단
+		}
+
+		positionVector.push_back(pos);
+
+		CString item;
+		item.Format(L"%.6f,%.6f", pos.x, pos.y);
+		pLb->AddString(item);
+	}
+	return true;
+}
 
 
 

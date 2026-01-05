@@ -296,12 +296,20 @@ public:
 
 class CDlgCalbExposureMirrorTune : public CDlgSubTab
 {
+	struct Position
+	{
+		double x;
+		double y;
+	};
+
+	vector< Position> positionVector;
 public:
 
 	/* 생성자 / 파괴자 */
 	CDlgCalbExposureMirrorTune(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgCalbExposureMirrorTune();
 
+	bool BuildPositionVector();
 	/* 가상함수 선언 */
 protected:
 
@@ -344,6 +352,7 @@ protected:
 	int headSelected = 1;
 	CPoint customCrossPt{ -1, -1 };
 	atomic<bool> exitSnap = false;
+	bool editMode = false;
 //#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
 //#define IDC_BUTTON_MIRROR_LOADIMAGE         11772
 //#define IDC_BUTTON_MIRROR_UNLOADIMAGE       11773
@@ -461,6 +470,7 @@ protected:
 	void Record();
 	void StopRecord();
 	void RemoveSnapshotThread();
+	void RunMotion();
 protected:
 	void FixControlToPhysicalPixels(UINT ctrlId, int targetWpx, int targetHpx);
 	VOID				InitCtrl();

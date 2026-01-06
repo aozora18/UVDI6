@@ -2127,7 +2127,7 @@ VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
 	for (i = 0; i < cmbMax; i++)		DDX_Control(dx, u32StartID + i, combos[i]);
 
 	u32StartID = IDC_STATIC_MIRROR_POWER_CURRENT;
-	for (i = 0; i < stcMax; i++)		DDX_Control(dx, u32StartID + i, statics[i]);
+	for (i = 0; i < (int)mirrorTuneStatic::stcMax; i++)		DDX_Control(dx, u32StartID + i, statics[i]);
 
 	u32StartID = IDC_MIRROR_MOTION_LIST;
 	for (i = 0; i < lstMax; i++)		DDX_Control(dx, u32StartID + i, lists[i]);
@@ -2139,7 +2139,7 @@ VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
 	for (i = 0; i < picMax; i++)		DDX_Control(dx, u32StartID + i, pics[i]);
 
 	u32StartID = IDC_SLIDER_MIRROR_POWERINDEX;
-	for (i = 0; i < sldMax; i++)		DDX_Control(dx, u32StartID + i, sliders[i]);
+	for (i = 0; i < (int)mirrorTuneSlide::sldMax; i++)		DDX_Control(dx, u32StartID + i, sliders[i]);
 
 	u32StartID = IDC_GROUP_PH_SETTING;
 	for (i = 0; i < grpMax; i++)		DDX_Control(dx, u32StartID + i, groups[i]);
@@ -2373,13 +2373,10 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	if (brPicBg.GetSafeHandle()) brPicBg.DeleteObject();
 	brPicBg.CreateSolidBrush(RGB(0, 0, 0)); 
 
-	
-	
 	for (int i = 0; i < grpMax; i++)
 	{
 		clsResizeUI.ResizeControl(this, &groups[i]);
 	}
-
 
 	for (int i = 0; i < btnMax; i++)
 	{
@@ -2407,17 +2404,12 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 		clsResizeUI.ResizeControl(this, &checks[i]);
 	}
 
-
-
-	for (int i = 0; i < stcMax; i++)
+	for (int i = 0; i < (int)mirrorTuneStatic::stcMax; i++)
 	{
 		clsResizeUI.ResizeControl(this, &statics[i]);	
 	}
 
-
-
-
-	for (int i = 0; i < sldMax; i++)
+	for (int i = 0; i < (int)mirrorTuneSlide::sldMax; i++)
 	{
 		clsResizeUI.ResizeControl(this, &sliders[i]);
 	}
@@ -2449,8 +2441,8 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	}
 	
 	pCb->SetCurSel(0); 
-	sliders[POWERINDEX].SetPos(0);
-	statics[POWER_CURRENT].SetTextToNum(0, 0);
+	sliders[(int)mirrorTuneSlide::POWERINDEX].SetPos(0);
+	statics[(int)mirrorTuneStatic::POWER_CURRENT].SetTextToNum(0, 0);
 	ledSelected = 0;
 	headSelected = 1;
 
@@ -2524,7 +2516,10 @@ void CDlgCalbExposureMirrorTune::Record()
 	auto s = Stuffs::GetStuffs().GetNowString();
 
 	if (IDYES == MessageBoxW(L"start recording?", L"", MB_YESNO))
-		ids.StartRecording();
+	{
+		CA2W w(s.c_str(), CP_UTF8);
+		ids.StartRecording(w);
+	}
 
 	
 }
@@ -2949,30 +2944,33 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList()
 void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	
-	if (pScrollBar && pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_POWERINDEX)->GetSafeHwnd())
-	{
-		CSliderCtrl* pSl = (CSliderCtrl*)pScrollBar;
-		indexPower = pSl->GetPos();
+	if (pScrollBar == nullptr)
+		return;
 
-		statics[POWER_CURRENT].SetTextToNum(indexPower,0);
+	CSliderCtrl* pSl = (CSliderCtrl*)pScrollBar;
 
-		switch (nSBCode)
-		{
-		case TB_THUMBTRACK:
-			
-			break;
-
-		case TB_ENDTRACK:
-		case TB_THUMBPOSITION:
-			
-			break;
-
-		default:
-			
-			break;
-		}
+	int pos = pSl->GetPos();
+	if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_POWERINDEX)->GetSafeHwnd())
+	{	
+		indexPower = pos;
+		statics[(int)mirrorTuneStatic::POWER_CURRENT].SetTextToNum(indexPower,0);
 	}
-
+	else if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_PIXELCLOCK)->GetSafeHwnd()) 
+	{
+		clockSpeed = pos;
+		statics[(int)mirrorTuneStatic::PIXELCLOCK].SetTextToNum(clockSpeed, 0);
+	}
+	else if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_FRAMESPEED)->GetSafeHwnd())
+	{
+		frameSpeed = pos;
+		statics[(int)mirrorTuneStatic::FRAMESPEED].SetTextToNum(frameSpeed, 0);
+	}
+	else if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_EXPOSURE)->GetSafeHwnd())
+	{
+		exposure = pos;
+		statics[(int)mirrorTuneStatic::EXPOSURE].SetTextToNum(exposure, 0);
+	}
+	
 	CDlgSubTab::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 

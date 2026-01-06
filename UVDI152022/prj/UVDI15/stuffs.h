@@ -199,7 +199,7 @@ public:
 	}
 
 
-	CString GetNowString()
+	string GetNowString()
 	{
 		SYSTEMTIME st;
 		GetLocalTime(&st);
@@ -209,7 +209,10 @@ public:
 			st.wYear, st.wMonth, st.wDay,
 			st.wHour, st.wMinute, st.wSecond);
 
-		return s;
+		CT2A a(s);            
+		std::string ss(a);
+
+		return ss;
 	}
 
 	void RemoveOldFiles(UINT8 bmpDelect, UINT8 logDelect)

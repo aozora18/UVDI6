@@ -307,6 +307,9 @@ class CDlgCalbExposureMirrorTune : public CDlgSubTab
 	vector< Position> positionVector;
 public:
 	static atomic<bool> exitMotion;
+	std::atomic<bool> snapshotLock{ false };
+	std::atomic<bool> doSnap{ false };
+	std::atomic<bool> keepRefreshing{ false };
 	/* 생성자 / 파괴자 */
 	CDlgCalbExposureMirrorTune(UINT32 id, CWnd* parent = NULL);
 	virtual ~CDlgCalbExposureMirrorTune();
@@ -321,10 +324,8 @@ protected:
 	CBrush brListBg;
 	CBrush brEditBg;
 	CBrush brPicBg;
-	double zoom = 1;
-	std::atomic<bool> snapshotLock{ false }; 
-	std::atomic<bool> doSnap{ false };
-	std::atomic<bool> keepRefreshing{ false };
+	
+	
 	
 	HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
@@ -344,28 +345,41 @@ public:
 
 	/* 로컬 변수 */
 protected:
+	//랜더
 	std::vector<uint8_t> idsSnapshot; 
 	int idsW = 0;
 	int idsH = 0;
-	
+	//줌
+	double zoom = 1;
+	CPoint customCrossPt{ -1, -1 };
+	//상태
 	int imgSelected = 0;
 	int ledSelected = 0;
 	int indexPower = 0;
 	int headSelected = 1;
-	CPoint customCrossPt{ -1, -1 };
+	
 	atomic<bool> exitSnap = false;
 	
 	bool editMode = false;
-//#define IDC_BUTTON_MIRROR_LED_POWERSET      11771
-//#define IDC_BUTTON_MIRROR_LOADIMAGE         11772
-//#define IDC_BUTTON_MIRROR_UNLOADIMAGE       11773
-//#define IDC_BUTTON_MIRROR_IDS_OPEN          11774
-//#define IDC_BUTTON_MIRROR_IDS_CLOSE         11775
-//#define IDC_BUTTON_MIRROR_IDS_SNAPSHOT      11776
-//#define IDC_BUTTON_MIRROR_IDS_RECORD        11777
-//#define IDC_BUTTON_MIRROR_OPEN_MOTION_CONTROL 11778
-//#define IDC_BUTTON_MIRROR_EDIT_MOTIONLIST   11779
-//#define IDC_BUTTON_MIRROR_RUN_MOTION        11780
+
+	double clockSpeed;
+	double frameSpeed;
+	double exposure;
+
+//IDC_BUTTON_MIRROR_LED_POWERSET       11783
+//IDC_BUTTON_MIRROR_LOADIMAGE          11784
+//IDC_BUTTON_MIRROR_UNLOADIMAGE        11785
+//IDC_BUTTON_MIRROR_IDS_OPEN           11786
+//IDC_BUTTON_MIRROR_IDS_CLOSE          11787
+//IDC_BUTTON_MIRROR_IDS_SNAPSHOT       11788
+//IDC_BUTTON_MIRROR_IDS_RECORD         11789
+//IDC_BUTTON_MIRROR_OPEN_MOTION_CONTROL 11790
+//IDC_BUTTON_MIRROR_EDIT_MOTIONLIST    11791
+//IDC_BUTTON_MIRROR_RUN_MOTION         11792
+//IDC_BUTTON_MIRROR_PIXELCLOCK         11793
+//IDC_BUTTON_MIRROR_FRAMESPEED         11794
+//IDC_BUTTON_MIRROR_EXPOSURE           11795
+
 	enum mirrorTuneBtns
 	{
 		LED_POWERSET,
@@ -378,6 +392,9 @@ protected:
 		OPEN_MOTION_CONTROL,
 		EDIT_MOTIONLIST,
 		RUN_MOTION,
+		PIXELCLOCK,
+		FRAMESPEED,
+		EXPOSURE,
 		btnMax,
 	};
 
@@ -408,9 +425,30 @@ protected:
 	};
 
 //#define IDC_STATIC_MIRROR_POWER_CURRENT     11762
-	enum mirrorTuneStatic
+//#define IDC_STATIC_PIXELCLOCK                11774
+//#define IDC_STATIC_FRAMESPEED                11775
+//#define IDC_STATIC_EXPOSURE                  11776
+//#define IDC_STATIC_EXPOSURE_MIN              11777
+//#define IDC_STATIC_EXPOSURE_MAX              11778
+//#define IDC_STATIC_FRAMESPEED_MIN            11779
+//#define IDC_STATIC_FRAMESPEED_MAX            11780
+//#define IDC_STATIC_PIXELCLOCK_MIN            11781
+//#define IDC_STATIC_PIXELCLOCK_MAX            11782
+	enum class mirrorTuneStatic : int
 	{
 		POWER_CURRENT,
+		PIXELCLOCK,
+		FRAMESPEED,
+		EXPOSURE,
+		EXPOSURE_MIN,
+		EXPOSURE_MAX,
+		FRAMESPEED_MIN,
+		FRAMESPEED_MAX,
+		PIXELCLOCK_MIN,
+		PIXELCLOCK_MAX,
+		PIXELCLOCK_NAME,
+		FRAMESPEED_NAME,
+		EXPOSURE_NAME,
 		stcMax
 	};
 
@@ -435,11 +473,13 @@ protected:
 		picMax
 	};
 
-//#define IDC_GROUP_PH_SETTING                11784
-//#define IDC_GROUP_LED						11785
-//#define IDC_GROUP_CAMERA					11786
-//#define IDC_GROUP_IMAGE						11787
-//#define IDC_GROUP_MOTION					11788
+//#define IDC_GROUP_PH_SETTING                 11799
+//#define IDC_GROUP_LED                        11800
+//#define IDC_GROUP_CAMERA                     11801
+//#define IDC_GROUP_IMAGE                      11802
+//#define IDC_GROUP_MOTION                     11803
+//#define IDC_GROUP_CAMPRESET                  11804
+
 	enum mirrorTurnGroups
 	{
 		PH_SETTING,
@@ -447,23 +487,30 @@ protected:
 		CAMERA,
 		IMAGE,
 		MOTION,
+		CAMPRESET,
 		grpMax
 	};
 
-//#define IDC_SLIDER_MIRROR_POWERINDEX        11770
-	enum mirrorTuneSlide
+//#define IDC_SLIDER_MIRROR_POWERINDEX         11769
+//#define IDC_SLIDER_MIRROR_PIXELCLOCK         11770
+//#define IDC_SLIDER_MIRROR_FRAMESPEED         11771
+//#define IDC_SLIDER_MIRROR_EXPOSURE           11772
+	enum class mirrorTuneSlide : int 
 	{
 		POWERINDEX,
+		PIXELCLOCK,
+		FRAMESPEED,
+		EXPOSURE,
 		sldMax
 	};
 
 	CEdit edits[edtMax];
 	CListBox lists[lstMax];
-	CSliderCtrl sliders[sldMax];
+	CSliderCtrl sliders[(int)mirrorTuneSlide::sldMax];
 	CMacCheckBox checks[chkMax];
 	CMacButton btns[btnMax];
 	CComboBox combos[cmbMax];
-	CMyStatic statics[stcMax];
+	CMyStatic statics[(int)mirrorTuneStatic::stcMax];
 	CMyStatic pics[picMax];
 	CMyGrpBox groups[grpMax];
 

@@ -2922,17 +2922,7 @@ bool IDScamManager::StartRecording(const wchar_t* path, double fps, int quality)
 
 void IDScamManager::RecordThreadProc(double reqFps)
 {
-	
-	double maxFps = GetMaxFpsByCurrentSetting();
-	double useFps = maxFps;
-
-	if (reqFps > 0.1 && reqFps < maxFps)
-		useFps = reqFps;
-
-	if (useFps <= 0.1)
-		useFps = 30.0;  
-	useFps = 10;
-	const double frameIntervalSec = 1.0 / useFps;
+	const double frameIntervalSec = 1.0 / reqFps;
 
 	
 	LARGE_INTEGER freq{}, last{}, now{};

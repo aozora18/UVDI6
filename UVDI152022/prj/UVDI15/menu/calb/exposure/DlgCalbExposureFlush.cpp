@@ -2096,6 +2096,8 @@ VOID CDlgCalbExposureFlush::UpdateWorkProgress()
 ///////////////////////////////////////////////////////////////
 
 atomic<bool> CDlgCalbExposureMirrorTune::exitMotion = false;
+bool CDlgCalbExposureMirrorTune::doneMotion = true;
+
 CDlgCalbExposureMirrorTune::CDlgCalbExposureMirrorTune(UINT32 id, CWnd * parent)
 	: CDlgSubTab(id, parent)
 {
@@ -2114,7 +2116,6 @@ CDlgCalbExposureMirrorTune::~CDlgCalbExposureMirrorTune()
 VOID CDlgCalbExposureMirrorTune::DoDataExchange(CDataExchange* dx)
 {
 	
-
 	UINT32 i, u32StartID;
 
 	u32StartID = IDC_BUTTON_MIRROR_LED_POWERSET;
@@ -2150,7 +2151,7 @@ BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
 	// 버튼(여러개 한 함수로)
 	ON_CONTROL_RANGE(BN_CLICKED,
 		IDC_BUTTON_MIRROR_LED_POWERSET,
-		IDC_BUTTON_MIRROR_RUN_MOTION,
+		IDC_BUTTON_MIRROR_EXPOSURE,
 		&CDlgCalbExposureMirrorTune::OnMirrorBtnClick)
 
 	// 체크박스(체크 변경도 BN_CLICKED로 받음)
@@ -2442,9 +2443,10 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	
 	pCb->SetCurSel(0); 
 	sliders[(int)mirrorTuneSlide::POWERINDEX].SetPos(0);
+	sliders[(int)mirrorTuneSlide::POWERINDEX].SetRange(0, 300); //파워값조절.
 	statics[(int)mirrorTuneStatic::POWER_CURRENT].SetTextToNum(0, 0);
-	ledSelected = 0;
-	headSelected = 1;
+	uiValues.ledSelected = 0;
+	uiValues.headSelected = 1;
 
 	pCb = (CComboBox*)GetDlgItem(IDC_COMBO_MIRROR_IMAGES);
 	ASSERT(pCb);
@@ -2457,7 +2459,7 @@ VOID CDlgCalbExposureMirrorTune::InitCtrl()
 	}
 
 	pCb->SetCurSel(0);
-	imgSelected = 1;
+	uiValues.imgSelected = 1;
 }
 
 /*
@@ -2513,12 +2515,12 @@ void CDlgCalbExposureMirrorTune::Record()
 		return;
 	}
 
-	auto s = Stuffs::GetStuffs().GetNowString();
+	//auto s = Stuffs::GetStuffs().GetNowString();
 
 	if (IDYES == MessageBoxW(L"start recording?", L"", MB_YESNO))
 	{
-		CA2W w(s.c_str(), CP_UTF8);
-		ids.StartRecording(w);
+		//CA2W w(s.c_str(), CP_UTF8);
+		ids.StartRecording(L"record.avi", camPresets.frameSpeed,100);
 	}
 
 	
@@ -2605,12 +2607,12 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 		{
 			
 			vector<BOOL>res;
-			if (headSelected <= 0)
+			if (uiValues.headSelected <= 0)
 				MessageBoxW(L"no head selected", L"error", MB_OK);
 			else
 				for(int i=0;i<(int)ENG_LLPI::en_405nm;i++)
-					if(ledSelected & 1<<i)
-						res.push_back(PhotoLedOnOff(headSelected, i+1, indexPower));
+					if(uiValues.ledSelected & 1<<i)
+						res.push_back(PhotoLedOnOff(uiValues.headSelected, i+1, uiValues.indexPowerSelected));
 
 			if (std::find(res.begin(), res.end(), FALSE) != res.end())
 				MessageBoxW(L"set led power failed", L"error", MB_OK);
@@ -2635,7 +2637,7 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 
 		case LOADIMAGE:
 		{
-			if (FALSE == uvEng_Luria_ReqSetLoadInternalTestImage(headSelected, imgSelected))
+			if (FALSE == uvEng_Luria_ReqSetLoadInternalTestImage(uiValues.headSelected, uiValues.imgSelected))
 				MessageBoxW(L"set image failed", L"error", MB_OK);
 		}
 		break;
@@ -2653,6 +2655,8 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 				MessageBoxW(L"IDS camera connect failed", L"error", MB_OK);
 				return;
 			}
+
+			camPresets.NeedRefresh();
 
 			GlobalVariables::GetInstance()->GetIDSManager().SetPixelClockMHz(36);
 			GlobalVariables::GetInstance()->GetIDSManager().SetFrameRate(10);
@@ -2697,20 +2701,20 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 			CWnd* pEdit = GetDlgItem(IDC_MIRROR_MOTION_EDIT);
 			CWnd* pList = GetDlgItem(IDC_MIRROR_MOTION_LIST);
 			if (!pEdit || !pList) return;
-			editMode = !editMode; 
-			pEdit->ShowWindow(editMode ? SW_SHOW : SW_HIDE);
-			pList->ShowWindow(editMode ? SW_HIDE : SW_SHOW);
+			uiValues.editMode = !uiValues.editMode;
+			pEdit->ShowWindow(uiValues.editMode ? SW_SHOW : SW_HIDE);
+			pList->ShowWindow(uiValues.editMode ? SW_HIDE : SW_SHOW);
 
-			pEdit->SetWindowPos(editMode ? &CWnd::wndTop : &CWnd::wndBottom,
+			pEdit->SetWindowPos(uiValues.editMode ? &CWnd::wndTop : &CWnd::wndBottom,
 				0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-			pList->SetWindowPos(editMode ? &CWnd::wndBottom : &CWnd::wndTop,
+			pList->SetWindowPos(uiValues.editMode ? &CWnd::wndBottom : &CWnd::wndTop,
 				0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
 			
-			if (editMode) pEdit->SetFocus();
+			if (uiValues.editMode) pEdit->SetFocus();
 			else          pList->SetFocus();
 
-			if (!editMode)
+			if (!uiValues.editMode)
 				BuildPositionVector();
 		}
 		break;
@@ -2720,6 +2724,40 @@ VOID CDlgCalbExposureMirrorTune::OnMirrorBtnClick(UINT32 id)
 			RunMotion();
 		}
 		break;
+		
+		case PIXELCLOCK:
+		{
+			if (!GlobalVariables::GetInstance()->GetIDSManager().SetPixelClockMHz(uiValues.pixelClockSelected))
+			{
+				MessageBoxW(L"set plxelclock failed", L"error",MB_OK);
+			}
+			else
+				camPresets.NeedRefresh();
+		}
+		break;
+
+		case FRAMESPEED:
+		{
+			if (!GlobalVariables::GetInstance()->GetIDSManager().SetFrameRate(uiValues.frameSpeedSelected))
+			{
+				MessageBoxW(L"set framerate failed", L"error", MB_OK);
+			}
+			else
+				camPresets.NeedRefresh();
+		}
+		break;
+
+		case EXPOSURE:
+		{
+			if (!GlobalVariables::GetInstance()->GetIDSManager().SetExposureUs(uiValues.exposureSelected))
+			{
+				MessageBoxW(L"set exposure failed", L"error", MB_OK);
+			}
+			else
+				camPresets.NeedRefresh();
+		}
+		break;
+
 		default:
 		break;
 	}
@@ -2781,7 +2819,7 @@ bool MoveTillArrive(double x, double y, double spd)
 	return false;
 }
 
-bool doneMotion = false;
+
 void CDlgCalbExposureMirrorTune::RunMotion()
 {
 	auto execute = [&](vector<Position> posList)
@@ -2873,12 +2911,12 @@ void CDlgCalbExposureMirrorTune::OnMirrorCheckClick(UINT nID)
 	case IDC_CHECK_MIRROR_LED3:
 	case IDC_CHECK_MIRROR_LED4:
 	{
-		ledSelected = 0;
+		uiValues.ledSelected = 0;
 
-		if (checks[LED1].GetCheck() == 1) ledSelected |= 1 << 0;
-		if (checks[LED2].GetCheck() == 1) ledSelected |= 1 << 1;
-		if (checks[LED3].GetCheck() == 1) ledSelected |= 1 << 2;
-		if (checks[LED4].GetCheck() == 1) ledSelected |= 1 << 3;
+		if (checks[LED1].GetCheck() == 1) uiValues.ledSelected |= 1 << 0;
+		if (checks[LED2].GetCheck() == 1) uiValues.ledSelected |= 1 << 1;
+		if (checks[LED3].GetCheck() == 1) uiValues.ledSelected |= 1 << 2;
+		if (checks[LED4].GetCheck() == 1) uiValues.ledSelected |= 1 << 3;
 	}
 	break;
 
@@ -2912,7 +2950,7 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorImages()
 	const int sel = pCb->GetCurSel();
 	if (sel == CB_ERR) return;
 
-	imgSelected = sel + 1;
+	uiValues.imgSelected = sel + 1;
 }
 
 void CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex()
@@ -2923,7 +2961,7 @@ void CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex()
 	const int sel = pCb->GetCurSel();
 	if (sel == CB_ERR) return;
 
-	headSelected = sel+1;
+	uiValues.headSelected = sel+1;
 
 }
 
@@ -2952,23 +2990,23 @@ void CDlgCalbExposureMirrorTune::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* 
 	int pos = pSl->GetPos();
 	if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_POWERINDEX)->GetSafeHwnd())
 	{	
-		indexPower = pos;
-		statics[(int)mirrorTuneStatic::POWER_CURRENT].SetTextToNum(indexPower,0);
+		uiValues.indexPowerSelected = pos;
+		statics[(int)mirrorTuneStatic::POWER_CURRENT].SetTextToNum(pos,1);
 	}
 	else if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_PIXELCLOCK)->GetSafeHwnd()) 
 	{
-		clockSpeed = pos;
-		statics[(int)mirrorTuneStatic::PIXELCLOCK].SetTextToNum(clockSpeed, 0);
+		uiValues.pixelClockSelected = pos;
+		statics[(int)mirrorTuneStatic::PIXELCLOCK].SetTextToNum(pos, 1);
 	}
 	else if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_FRAMESPEED)->GetSafeHwnd())
 	{
-		frameSpeed = pos;
-		statics[(int)mirrorTuneStatic::FRAMESPEED].SetTextToNum(frameSpeed, 0);
+		uiValues.frameSpeedSelected = pos;
+		statics[(int)mirrorTuneStatic::FRAMESPEED].SetTextToNum(pos, 0);
 	}
 	else if (pScrollBar->GetSafeHwnd() == GetDlgItem(IDC_SLIDER_MIRROR_EXPOSURE)->GetSafeHwnd())
 	{
-		exposure = pos;
-		statics[(int)mirrorTuneStatic::EXPOSURE].SetTextToNum(exposure, 0);
+		uiValues.exposureSelected = pos;
+		statics[(int)mirrorTuneStatic::EXPOSURE].SetTextToNum(pos, 0);
 	}
 	
 	CDlgSubTab::OnHScroll(nSBCode, nPos, pScrollBar);
@@ -2992,10 +3030,52 @@ void CDlgCalbExposureMirrorTune::OnTimer(UINT_PTR nIDEvent)
 	if (nIDEvent == 10302)
 	{
 		UpdateIDSImage();
+		
+		RefreshCamPresetUI();
+		
 	}
 
 	CDlgSubTab::OnTimer(nIDEvent);
 }
+
+
+void CDlgCalbExposureMirrorTune::RefreshCamPresetUI()
+{
+	camPresets.Refresh();
+
+	if (!camPresets.IsNeedRedraw())
+		return;
+	
+	//여기서 리프레시 필요
+
+	
+	sliders[(int)mirrorTuneSlide::PIXELCLOCK].SetRange(camPresets.pixelClockMin <= 0 ? 1 : camPresets.pixelClockMin, camPresets.pixelClockMax);
+	sliders[(int)mirrorTuneSlide::PIXELCLOCK].SetPos(camPresets.pixelClock);
+
+	statics[(int)mirrorTuneStatic::PIXELCLOCK].SetTextToNum(camPresets.pixelClock, 0);
+	statics[(int)mirrorTuneStatic::PIXELCLOCK_MIN].SetTextToNum(camPresets.pixelClockMin <= 0 ? 1 : camPresets.pixelClockMin, 0);
+	statics[(int)mirrorTuneStatic::PIXELCLOCK_MAX].SetTextToNum(camPresets.pixelClockMax, 0);
+
+	
+	sliders[(int)mirrorTuneSlide::FRAMESPEED].SetRange(camPresets.frameSpeedMin <= 0 ? 1 : camPresets.frameSpeedMin , camPresets.frameSpeedMax);
+	sliders[(int)mirrorTuneSlide::FRAMESPEED].SetPos(camPresets.frameSpeed);
+
+	statics[(int)mirrorTuneStatic::FRAMESPEED].SetTextToNum(camPresets.frameSpeed,0);
+	statics[(int)mirrorTuneStatic::FRAMESPEED_MIN].SetTextToNum(camPresets.frameSpeedMin <= 0 ? 1 : camPresets.frameSpeedMin, 0);
+	statics[(int)mirrorTuneStatic::FRAMESPEED_MAX].SetTextToNum(camPresets.frameSpeedMax,0);
+
+	
+	sliders[(int)mirrorTuneSlide::EXPOSURE].SetRange(camPresets.exposureMin <= 0 ? 1 : camPresets.exposureMin, camPresets.exposureMax);
+	sliders[(int)mirrorTuneSlide::EXPOSURE].SetPos(camPresets.exposure);
+
+	statics[(int)mirrorTuneStatic::EXPOSURE].SetTextToNum(camPresets.exposure, 0);
+	statics[(int)mirrorTuneStatic::EXPOSURE_MIN].SetTextToNum(camPresets.exposureMin <= 0 ? 1 : camPresets.exposureMin,0);
+	statics[(int)mirrorTuneStatic::EXPOSURE_MAX].SetTextToNum(camPresets.exposureMax, 0);
+	//플래그 off
+	camPresets.NoNeedRedraw();
+
+}
+
 
 BOOL CDlgCalbExposureMirrorTune::PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 index)
 {

@@ -304,8 +304,96 @@ class CDlgCalbExposureMirrorTune : public CDlgSubTab
 		double y;
 	};
 
+	struct UIvalues 
+	{
+		int imgSelected = 0;
+		int ledSelected = 0;
+		int pixelClockSelected = 0;
+		double frameSpeedSelected = 0;
+		double exposureSelected = 0;
+		int indexPowerSelected = 0;
+		int headSelected = 1;
+		bool editMode = false;
+	};
+
+	class CamPresets
+	{
+	private:
+		bool refreshed = false;
+		bool needRefreshing = false;
+
+	public:
+		int pixelClock;
+		int pixelClockMin;
+		int pixelClockMax;
+		int pixelClockInc;
+
+		int frameSpeed;
+		int frameSpeedMin;
+		int frameSpeedMax;
+		int frameSpeedInc;
+
+		double exposure;
+		double exposureMin;
+		double exposureMax;
+		double exposureInc;
+		
+		void NeedRefresh()
+		{
+			needRefreshing = true;
+		}
+
+		bool IsNeedRedraw()
+		{
+			return refreshed;
+		}
+
+		void NoNeedRedraw()
+		{
+			refreshed = false;
+		}
+
+		void Refresh()
+		{
+			if (!needRefreshing) return;
+			auto& ids = GlobalVariables::GetInstance()->GetIDSManager();
+			double temp1 = 0, temp2 = 0, temp3 = 0;
+			int temp4=0, temp5=0, temp6=0;
+			
+			//노출
+			ids.GetExposureUs(temp1);
+			this->exposure = temp1;
+
+			ids.GetExposureRange(temp1, temp2, temp3);
+			this->exposureMin = temp1;
+			this->exposureMax = temp2;
+			this->exposureInc = 1;
+
+			//
+			ids.GetFrameRate(temp1);
+			this->frameSpeed = (int)temp1;
+			ids.GetFrameRateRange(temp1,temp2);
+			this->frameSpeedMin = (int)temp1;
+			this->frameSpeedMax = (int)temp2;
+			this->frameSpeedInc = 1;
+
+			
+			ids.GetPixelClockMHz(temp4);
+			this->pixelClock = temp4;
+			ids.GetPixelClockRangeMHz(temp4, temp5, temp6);
+
+			this->pixelClockMin = temp4;
+			this->pixelClockMax = temp5;
+			this->pixelClockInc = 1;
+			refreshed = true;
+			needRefreshing = false;
+		}
+	};
 	vector< Position> positionVector;
+	CamPresets camPresets;
+	UIvalues uiValues;
 public:
+	static bool doneMotion;
 	static atomic<bool> exitMotion;
 	std::atomic<bool> snapshotLock{ false };
 	std::atomic<bool> doSnap{ false };
@@ -341,7 +429,8 @@ public:
 	virtual VOID		UpdatePeriod(UINT64 tick, BOOL is_busy);
 	BOOL PhotoLedOnOff(UINT8 head, UINT8 led, UINT16 index);
 	BOOL PhotoImageLoad(UINT8 head, UINT8 imageNum);
-
+	void RefreshCamPresetUI();
+	
 
 	/* 로컬 변수 */
 protected:
@@ -353,18 +442,14 @@ protected:
 	double zoom = 1;
 	CPoint customCrossPt{ -1, -1 };
 	//상태
-	int imgSelected = 0;
-	int ledSelected = 0;
-	int indexPower = 0;
-	int headSelected = 1;
+
 	
+
 	atomic<bool> exitSnap = false;
 	
-	bool editMode = false;
+	
 
-	double clockSpeed;
-	double frameSpeed;
-	double exposure;
+
 
 //IDC_BUTTON_MIRROR_LED_POWERSET       11783
 //IDC_BUTTON_MIRROR_LOADIMAGE          11784

@@ -2164,7 +2164,7 @@ BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
 	ON_CBN_SELCHANGE(IDC_COMBO_MIRROR_PHINDEX, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorPhIndex)
 
 	ON_LBN_SELCHANGE(IDC_MIRROR_MOTION_LIST, &CDlgCalbExposureMirrorTune::OnSelChangeMirrorMotionList)
-
+	ON_LBN_DBLCLK(IDC_MIRROR_MOTION_LIST, &CDlgCalbExposureMirrorTune::OnDblClkMotionListBox)
 	ON_NOTIFY(TRBN_THUMBPOSCHANGING, IDC_SLIDER_MIRROR_POWERINDEX, &CDlgCalbExposureMirrorTune::OnSliderMirrorPowerChanging) // (있는 경우)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_MIRROR_POWERINDEX, &CDlgCalbExposureMirrorTune::OnSliderMirrorPowerDraw)     // (드래그 중에도 많이 옴)
 	ON_WM_HSCROLL()
@@ -2175,6 +2175,21 @@ BEGIN_MESSAGE_MAP(CDlgCalbExposureMirrorTune, CDlgSubTab)
 	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
+
+
+void CDlgCalbExposureMirrorTune::OnDblClkMotionListBox()
+{
+	CListBox* pLb = (CListBox*)GetDlgItem(IDC_MIRROR_MOTION_LIST);
+	if (!pLb) return;
+
+	const int sel = pLb->GetCurSel();
+	if (sel == LB_ERR) return;
+	
+	pLb->SetSel(-1, FALSE);
+	pLb->SetSel(sel, TRUE);
+
+	RunMotion(true);
+}
 
 void CDlgCalbExposureMirrorTune::OnRButtonDown(UINT nFlags, CPoint point)
 {
@@ -2820,7 +2835,7 @@ bool MoveTillArrive(double x, double y, double spd)
 }
 
 
-void CDlgCalbExposureMirrorTune::RunMotion()
+void CDlgCalbExposureMirrorTune::RunMotion(bool noAsk)
 {
 	auto execute = [&](vector<Position> posList)
 	{
@@ -2841,7 +2856,8 @@ void CDlgCalbExposureMirrorTune::RunMotion()
 				}
 				Sleep(2000);
 			}
-			MessageBoxW(L"motion done!", L"", MB_OK);
+			if(!noAsk)
+				MessageBoxW(L"motion done!", L"", MB_OK);
 			QUIT:
 			doneMotion = true;
 		});
@@ -2867,10 +2883,12 @@ void CDlgCalbExposureMirrorTune::RunMotion()
 		return;
 
 	const int selCount = pLb->GetSelCount();
-	int msgSel = 0;
+	int msgSel = IDYES;
 	if (selCount <= 0) //전체루프
 	{
-		msgSel = MessageBoxW(L"move to all listed position. ok?", L"", MB_YESNO);
+		if (!noAsk)
+			msgSel = MessageBoxW(L"move to all listed position. ok?", L"", MB_YESNO);
+
 		if (msgSel == IDYES)
 			execute(positionVector);
 	}
@@ -2895,7 +2913,8 @@ void CDlgCalbExposureMirrorTune::RunMotion()
 
 		if (!cropped.empty())
 		{
-			msgSel = MessageBoxW(L"move to all selected position. ok?", L"", MB_YESNO);
+			if (!noAsk)
+				msgSel = MessageBoxW(L"move to all selected position. ok?", L"", MB_YESNO);
 			if (msgSel == IDYES)
 				execute(cropped);
 		}
@@ -3310,7 +3329,7 @@ bool CDlgCalbExposureMirrorTune::BuildPositionVector()
 		positionVector.push_back(pos);
 
 		CString item;
-		item.Format(L"%.6f,%.6f", pos.x, pos.y);
+		item.Format(L"x:%.3f    y:%.3f", pos.x, pos.y);
 		pLb->AddString(item);
 	}
 	return true;

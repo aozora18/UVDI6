@@ -605,7 +605,7 @@ protected:
 	void Record();
 	void StopRecord();
 	void RemoveSnapshotThread();
-	void RunMotion();
+	void RunMotion(bool noAsk=false);
 protected:
 	void FixControlToPhysicalPixels(UINT ctrlId, int targetWpx, int targetHpx);
 	VOID				InitCtrl();
@@ -635,6 +635,7 @@ protected:
 	
 	afx_msg void OnSliderMirrorPowerChanging(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnSliderMirrorPowerDraw(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnDblClkMotionListBox();
 
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);

@@ -973,6 +973,10 @@ void CDlgManual::UpdateGridParameter()
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PARAMETER_ROW::SPEED, 1, _T("%.1f [%%]"), m_stJob.frame_rate / 10.0f);
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PARAMETER_ROW::STEP, 1, _T("%d"), m_stJob.step_size);
 		m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PARAMETER_ROW::THICKNESS, 1, _T("%d [um]"), m_stJob.material_thick);
+
+		Headoffset offset;
+		if (uvEng_GetConfig()->headOffsets.GetOffsets(pstExpo->headOffset, offset))
+			m_pGrd[nGridIndex]->SetItemTextFmt(EN_GRD_PARAMETER_ROW::MATERIAL, 1, _T("%s"), (LPCTSTR)CA2T(offset.offsetName, CP_UTF8));
 	}
 	
 
@@ -1032,6 +1036,8 @@ void CDlgManual::OnGrdParameter(NMHDR* pNotifyStruct)
 			pGrid->SetItemTextFmt(pItem->iRow, pItem->iColumn, _T("%s [um]"), strOutput);
 		}
 	}
+
+
 
 	pGrid->Refresh();
 }

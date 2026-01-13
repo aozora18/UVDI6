@@ -79,12 +79,15 @@ VOID CDlgAuto::DoDataExchange(CDataExchange* dx)
 	UINT32 i, u32StartID;
 
 	u32StartID = DEF_UI_AUTO_STT;
-	for (i = 0; i < EN_AUTO_STT::_size(); i++)
+	for (i = 0; i < (int)EN_AUTO_STT::MATERIAL; i++)
 	{
 		m_pStt[i] = new CMyStatic();
-
 		DDX_Control(dx, u32StartID + i, *m_pStt[i]);
 	}
+
+	m_pStt[(int)EN_AUTO_STT::MATERIAL] = new CMyStatic();
+	DDX_Control(dx, IDC_AUTO_STT_MATERIAL, *m_pStt[(int)EN_AUTO_STT::MATERIAL]);
+
 }
 
 BEGIN_MESSAGE_MAP(CDlgAuto, CDlgMenu)
@@ -492,6 +495,8 @@ VOID CDlgAuto::InitCtrl()
 	m_pStt[EN_AUTO_STT::AF_STATUS]->GetWindowRect(rtStt);
 	this->ScreenToClient(rtStt);
 
+	m_pStt[EN_AUTO_STT::MATERIAL]->GetWindowRect(rtStt);
+	this->ScreenToClient(rtStt);
 
 	m_pdlgMarkShow = new CDlgMarkShow(this);
 	m_pdlgMarkShow->Create();
@@ -1044,7 +1049,43 @@ VOID CDlgAuto::InitQuickIOGrid()
 
 	afIdx+=1;//한개 씀.
 	
-	for (int i= afIdx; i < eGRD_MAX; i++)
+	//머터리얼용
+	m_pStt[EN_AUTO_STT::MATERIAL]->GetWindowRect(rctOldSize);
+
+	rctSize.top = rctOldSize.bottom + DEF_UI_OFFSET;
+	rctSize.bottom = rctSize.top + 54;
+	rctSize.right += 2;
+
+	int matIdx = m_vQuickIO2.size() + 3;
+
+	m_pGrd[matIdx]->MoveWindow(rctSize);
+
+	m_pGrd[matIdx]->SetItemText(0, 0, _T("Matrial"));
+	
+	bool isLocalSelRecipe = uvEng_JobRecipe_WhatLastSelectIsLocal();
+	LPG_RJAF rcp = uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
+	if (rcp)
+	{
+		CUniToChar csCnv;
+		LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(rcp->expo_recipe));
+		if (pstRecipeExpo)
+		{
+			
+			Headoffset offset;
+			if (uvEng_GetConfig()->headOffsets.GetOffsets(pstRecipeExpo->headOffset, offset))
+			{
+				m_pGrd[matIdx]->SetItemText(1, 0, (LPCTSTR)CA2T(offset.offsetName, CP_UTF8));
+				m_pGrd[matIdx]->SetItemBkColour(1, 0, useAF ? LIGHT_RED : DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+			}
+			
+		}
+	}
+	
+	m_pGrd[matIdx]->Refresh();
+
+	matIdx += 1;//한개 씀.
+
+	for (int i= matIdx; i < eGRD_MAX; i++)
 	{
 		m_pGrd[i]->ShowWindow(SW_HIDE);
 	}

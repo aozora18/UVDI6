@@ -405,8 +405,9 @@ BOOL CDlgJob::InitGridRecipeList(BOOL bUpdate)
 	std::vector <int>			vRowSize(strArrRecipeList.GetCount());
 	std::vector <int>			vColSize(eJOB_GRD_COL_RECIPE_LIST_MAX);
 
-	vColSize[eJOB_GRD_COL_RECIPE_LIST_NO]	= (int)((double)rGrid.Width() * 0.2);
-	vColSize[eJOB_GRD_COL_RECIPE_LIST_NAME] = (int)((double)rGrid.Width() * 0.8);
+	vColSize[eJOB_GRD_COL_RECIPE_LIST_NO]	= (int)((double)rGrid.Width() * 0.1);
+	vColSize[eJOB_GRD_COL_RECIPE_LIST_MATERIAL] = (int)((double)rGrid.Width() * 0.2);
+	vColSize[eJOB_GRD_COL_RECIPE_LIST_NAME] = (int)((double)rGrid.Width() * 0.7);
 
 	int nHeight = (int)(DEF_DEFAULT_GRID_ROW_SIZE * clsResizeUI.GetRateY());
 	int nTotalHeight = 0;
@@ -472,8 +473,23 @@ BOOL CDlgJob::InitGridRecipeList(BOOL bUpdate)
 			pGrid->SetItemFormat(nRow, nCol, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		}
 
-		pGrid->SetItemTextFmt(nRow, 0, _T("%d"), nRow + 1);
-		pGrid->SetItemText(nRow, 1, strArrRecipeList.GetAt(nRow));
+		pGrid->SetItemTextFmt(nRow, (int)eJOB_GRD_COL_RECIPE_LIST_NO, _T("%d"), nRow + 1);
+		
+		LPG_RJAF rcp = uvEng_JobRecipe_GetRecipeOnlyName((PTCHAR)(LPCTSTR)strArrRecipeList.GetAt(nRow));
+		pGrid->SetItemTextFmt(nRow, (int)eJOB_GRD_COL_RECIPE_LIST_MATERIAL, _T("%s"),"");
+		if (rcp)
+		{
+			CUniToChar csCnv1;
+			LPG_REAF pstRecipeExpo = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv1.Ansi2Uni(rcp->expo_recipe));
+			if (pstRecipeExpo)
+			{
+				Headoffset offset;
+				if (uvEng_GetConfig()->headOffsets.GetOffsets(pstRecipeExpo->headOffset, offset))
+					pGrid->SetItemTextFmt(nRow, (int)eJOB_GRD_COL_RECIPE_LIST_MATERIAL, _T("%s"), (LPCTSTR)CA2T(offset.offsetName, CP_UTF8));
+			}
+		}
+		
+		pGrid->SetItemText(nRow, (int)eJOB_GRD_COL_RECIPE_LIST_NAME, strArrRecipeList.GetAt(nRow));
 	}
 
 
@@ -2847,6 +2863,7 @@ void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode)
 		{
 			m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipeOld[nCnt], 0, ALICE_BLUE);
 			m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipeOld[nCnt], 1, WHITE_);
+			m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipeOld[nCnt], 2, WHITE_);
 		}
 	}
 
@@ -2856,6 +2873,7 @@ void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode)
 	{
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 0, PALE_GREEN);
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 1, PALE_GREEN);
+		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_VIEW], 2, PALE_GREEN);
 
 		
 	}
@@ -2864,12 +2882,14 @@ void CDlgJob::SelectRecipe(int nSelect, EN_RECIPE_MODE eRecipeMode)
 	{
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_LOCAL], 0, LIGHT_MAGENTA);
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_LOCAL], 1, LIGHT_MAGENTA);
+		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_LOCAL], 2, LIGHT_MAGENTA);
 	}
 
 	if (-1 != m_nSelectRecipe[eRECIPE_MODE_SEL])
 	{
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_SEL], 0, LIGHT_CORAL);
 		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_SEL], 1, LIGHT_CORAL);
+		m_grd_ctl[eJOB_GRD_RECIPE_LIST].SetItemBkColour(m_nSelectRecipe[eRECIPE_MODE_SEL], 2, LIGHT_CORAL);
 	}
 
 	if (m_nSelectRecipe[eRECIPE_MODE_SEL] == m_nSelectRecipe[eRECIPE_MODE_VIEW] &&

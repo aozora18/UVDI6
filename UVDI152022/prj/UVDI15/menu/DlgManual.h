@@ -56,6 +56,7 @@ JHMI_ENUM(EN_GRD_PARAMETER_ROW, int
 	, SPEED 
 	, STEP
 	, THICKNESS
+	,MATERIAL
 )
 
 class CDlgManual : public CDlgMenu

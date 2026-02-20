@@ -133,6 +133,7 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_PKT_UNIQUEID_MISSMATCH			= 60002,	
 	ePHILHMI_ERR_PKT_BUFFER_FULL				= 60003,	
 	ePHILHMI_ERR_NOT_EXIST_RECVDATA				= 60004,	
+	ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE = 60005,    //(2026/02/20)소재 와피지한도 초과 
 };
 
 typedef enum class __en_philhmi_memory_address_array__ : UINT8

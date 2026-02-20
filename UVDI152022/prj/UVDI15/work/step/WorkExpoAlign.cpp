@@ -804,7 +804,7 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 		if (g_u8Romote == en_menu_phil_mode_auto)
 		{
 			/*노광 종료가 되면 Philhmil에 완료보고*/
-			SetPhilProcessCompelet();
+			SetPhilProcessCompelet(reportError);
 		}
 
 		TCHAR tzMesg[128] = { NULL };
@@ -1449,7 +1449,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 		if (g_u8Romote == en_menu_phil_mode_auto)
 		{
 			/*노광 종료가 되면 Philhmil에 완료보고*/
-			SetPhilProcessCompelet();
+			SetPhilProcessCompelet(reportError);
 		}
 		GlobalVariables::GetInstance()->GetAlignMotion().RevertPrevAlignMotion();
 	}
@@ -1512,7 +1512,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 
 
-VOID CWorkExpoAlign::SetPhilProcessCompelet()
+VOID CWorkExpoAlign::SetPhilProcessCompelet(__en_phiihmi_error_code__ reason)
 {
 	STG_PP_P2C_PROCESS_COMP			stProcessComp;
 	STG_PP_P2C_PROCESS_COMP_ACK		stProcessCompAck;
@@ -1584,10 +1584,12 @@ VOID CWorkExpoAlign::SetPhilProcessCompelet()
 	sprintf_s(stProcessComp.stVar[14].szParameterName, DEF_MAX_STATE_PARAM_NAME_LENGTH, "Led_Duty_Cycle");
 	sprintf_s(stProcessComp.stVar[14].szParameterValue, DEF_MAX_STATE_PARAM_VALUE_LENGTH, "%d", m_stExpoLog.led_duty_cycle);
 
-	if (!m_stExpoLog.expo_succ)
+	if (!m_stExpoLog.expo_succ || reason != ePHILHMI_ERR_OK)
 	{
-		stProcessComp.usErrorCode = ePHILHMI_ERR_STATUS_COMPLETE;
-		stProcessComp.usProgress = 2; 
+		stProcessComp.usErrorCode = reason != ePHILHMI_ERR_OK ? reason : ePHILHMI_ERR_STATUS_COMPLETE;
+
+		stProcessComp.usProgress = 2;
+
 	}
 
 	uvEng_Philhmi_Send_P2C_PROCESS_COMP(stProcessComp, stProcessCompAck);

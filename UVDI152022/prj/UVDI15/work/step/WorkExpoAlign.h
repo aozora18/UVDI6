@@ -103,7 +103,7 @@ protected:
 
 	CString				m_strLog;
 	VOID				txtWrite(CString msg);
-	VOID				SetPhilProcessCompelet();
+	VOID				SetPhilProcessCompelet(__en_phiihmi_error_code__ reason = ePHILHMI_ERR_OK);
 /* 공용 함수 */
 public:
 

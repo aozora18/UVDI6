@@ -2391,6 +2391,7 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					u8MarkLen[0], u8MarkLen[1], u8MarkLen[2], u8MarkLen[3],
 					u8MarkLen[4], u8MarkLen[5]);
 				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+				reportError = ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE; //<- 20260220 신규추가 
 			}
 			/* Mark들의 거리 및 간격 값 설정했다고 플래그 값 변경 */
 			pstMarkDiff->SetMarkLenData();

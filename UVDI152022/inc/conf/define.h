@@ -235,6 +235,13 @@
 	do {	\
 		uvLogs_SaveLogs(ENG_EDIC(apps), ENG_LNWE(level), mesg, WFILE, WFUNC, WLINE);	\
 	} while (0)
+
+#define LOG_ERROR_REPORT(apps, mesg)	\
+	do {	\
+		/* <-여기서보고 */ \
+		uvLogs_SaveLogs(ENG_EDIC(apps), ENG_LNWE::en_error, mesg, WFILE, WFUNC, WLINE);	\
+	} while (0)
+
 #define LOG_ERROR(apps, mesg)	\
 	do {	\
 		uvLogs_SaveLogs(ENG_EDIC(apps), ENG_LNWE::en_error, mesg, WFILE, WFUNC, WLINE);	\

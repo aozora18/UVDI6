@@ -1,4 +1,4 @@
-
+ï»¿
 /*
  desc : philhmi Config Information
 */
@@ -10,7 +10,7 @@
 #include "tcpip.h"
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                           »ó¼ö Á¤ÀÇ                                           */
+/*                                           ìƒìˆ˜ ì •ì˜                                           */
 /* --------------------------------------------------------------------------------------------- */
 #define		WM_PHILHMI_MSG_THREAD				WM_USER + 3000
 #define		DEF_MAX_RECIPE_NAME_LENGTH			128
@@ -35,7 +35,7 @@
 #define		DEF_MAX_MOVE_COUNT					5
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                            ¿­°ÅÇü                                             */
+/*                                            ì—´ê±°í˜•                                             */
 /* --------------------------------------------------------------------------------------------- */
 
 /* Packet Command */
@@ -89,43 +89,43 @@ ePHILHMI_C2P_RECIPE_CREATE			= 101,
 
 enum __en_phiihmi_error_code__
 {
-	ePHILHMI_ERR_OK,				// ÀÌ»ó ¾øÀ½
+	ePHILHMI_ERR_OK,				// ì´ìƒ ì—†ìŒ
 	/* RECIPE */
-	ePHILHMI_ERR_RECIPE_NOT_DEFINE				= 10001,	//	Á¤ÀÇµÇÁö ¾ÊÀº ·¹½ÃÇÇ
-	ePHILHMI_ERR_RECIPE_NOT_DEFINE_PROCESS		= 10002,	//	Á¤ÀÇµÇÁö ¾ÊÀº º¸Á¶ °øÁ¤
-	ePHILHMI_ERR_RECIPE_OUT_OF_RANGE			= 10003,	//	¹è¿­ ÃÖ´ë °³¼ö ÃÊ°ú
-	ePHILHMI_ERR_RECIPE_DELETE					= 10004,	//	·¹½ÃÇÇ »èÁ¦ ºÒ°¡
-	ePHILHMI_ERR_RECIPE_DUPLICATE_NAME			= 10005,	//  ·¹½ÃÇÇ ÀÌ¸§ Áßº¹ 
-	ePHILHMI_ERR_RECIPE_CREATE					= 10006,	//  ·¹½ÃÇÇ »ı¼º ºÒ°¡
-	ePHILHMI_ERR_RECIPE_MODIFY					= 10007,	//  ·¹½ÃÇÇ º¯°æ ºÒ°¡
-	ePHILHMI_ERR_RECIPE_LOAD					= 10008,	//  ·¹½ÃÇÇ ·Îµå ºÒ°¡
-	ePHILHMI_ERR_SEND_RECD_MISMATCH				= 10010,	//  ¿äÃ» <-> ¿Ï·á ºÒÀÏÄ¡
-	ePHILHMI_ERR_RECIPE_NOT_DEFINE_TYPE			= 11000,	//	Á¤ÀÇµÇÁö ¾ÊÀº µ¥ÀÌÅÍ Å¸ÀÔ
-	ePHILHMI_ERR_RECIPE_NOT_DEFINE_PARAMETER	= 12000,	//	Á¤ÀÇµÇÁö ¾ÊÀº ÆÄ¶ó¹ÌÅÍ
-	ePHILHMI_ERR_RECIPE_EXCEED_LOW				= 13000,	//	ÆÄ¶ó¹ÌÅÍ ÇÏÇÑ°ª ¹Ì´Ş
-	ePHILHMI_ERR_RECIPE_EXCEED_HIGH				= 14000,	//	ÆÄ¶ó¹ÌÅÍ »óÇÑ°ª ÃÊ°ú
+	ePHILHMI_ERR_RECIPE_NOT_DEFINE				= 10001,	//	ì •ì˜ë˜ì§€ ì•Šì€ ë ˆì‹œí”¼
+	ePHILHMI_ERR_RECIPE_NOT_DEFINE_PROCESS		= 10002,	//	ì •ì˜ë˜ì§€ ì•Šì€ ë³´ì¡° ê³µì •
+	ePHILHMI_ERR_RECIPE_OUT_OF_RANGE			= 10003,	//	ë°°ì—´ ìµœëŒ€ ê°œìˆ˜ ì´ˆê³¼
+	ePHILHMI_ERR_RECIPE_DELETE					= 10004,	//	ë ˆì‹œí”¼ ì‚­ì œ ë¶ˆê°€
+	ePHILHMI_ERR_RECIPE_DUPLICATE_NAME			= 10005,	//  ë ˆì‹œí”¼ ì´ë¦„ ì¤‘ë³µ 
+	ePHILHMI_ERR_RECIPE_CREATE					= 10006,	//  ë ˆì‹œí”¼ ìƒì„± ë¶ˆê°€
+	ePHILHMI_ERR_RECIPE_MODIFY					= 10007,	//  ë ˆì‹œí”¼ ë³€ê²½ ë¶ˆê°€
+	ePHILHMI_ERR_RECIPE_LOAD					= 10008,	//  ë ˆì‹œí”¼ ë¡œë“œ ë¶ˆê°€
+	ePHILHMI_ERR_SEND_RECD_MISMATCH				= 10010,	//  ìš”ì²­ <-> ì™„ë£Œ ë¶ˆì¼ì¹˜
+	ePHILHMI_ERR_RECIPE_NOT_DEFINE_TYPE			= 11000,	//	ì •ì˜ë˜ì§€ ì•Šì€ ë°ì´í„° íƒ€ì…
+	ePHILHMI_ERR_RECIPE_NOT_DEFINE_PARAMETER	= 12000,	//	ì •ì˜ë˜ì§€ ì•Šì€ íŒŒë¼ë¯¸í„°
+	ePHILHMI_ERR_RECIPE_EXCEED_LOW				= 13000,	//	íŒŒë¼ë¯¸í„° í•˜í•œê°’ ë¯¸ë‹¬
+	ePHILHMI_ERR_RECIPE_EXCEED_HIGH				= 14000,	//	íŒŒë¼ë¯¸í„° ìƒí•œê°’ ì´ˆê³¼
 	/* ACTUATOR	*/
-	ePHILHMI_ERR_MOTOR_NOT_DEFINE				= 20001,	//	Á¤ÀÇµÇÁö ¾ÊÀº ¸ğÅÍ
-	ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT			= 20002,	//	Á¤ÀÇµÇÁö ¾ÊÀº ÀÔ·Â
-	ePHILHMI_ERR_MOTOR_NOT_DEFINE_OUTPUT		= 20003,	//	Á¤ÀÇµÇÁö ¾ÊÀº Ãâ·Â
-	ePHILHMI_ERR_MOTOR_MOVING					= 20010,	//	¸ğÅÍ ±¸µ¿ Áß
-	ePHILHMI_ERR_MOTOR_CMD_FAILED				= 20011,	//	¸ğÅÍ ±¸µ¿ ½ÇÆĞ
-	ePHILHMI_ERR_MOTOR_PLM						= 20012,	//	PLM ¼¾¼­ °¨Áö Áß
-	ePHILHMI_ERR_MOTOR_NLM						= 20013,	//	NLM ¼¾¼­ °¨Áö Áß
-	ePHILHMI_ERR_MOTOR_ALARM					= 20014,	//	¸ğÅÍ ¾Ë¶÷ »óÅÂ
-	//ePHILHMI_ERR_MOTOR_OFF_LOCK					= 20015,	//	¸ğÅÍ ¼­¹ö Locked off »óÅÂ
-	ePHILHMI_ERR_MOTOR_RUN_TIMEOUT				= 20015,	//	¸ğÅÍ ±¸µ¿ ½Ã°£ ÃÊ°ú
-	//ePHILHMI_ERR_MOTOR_IO_CHECK					= 20016,	//  ¸ğÅÍ µ¿ÀÛ¿¡ ¹æÇØÇÏ´Â IO »óÅÂ
+	ePHILHMI_ERR_MOTOR_NOT_DEFINE				= 20001,	//	ì •ì˜ë˜ì§€ ì•Šì€ ëª¨í„°
+	ePHILHMI_ERR_MOTOR_NOT_DEFINE_INPUT			= 20002,	//	ì •ì˜ë˜ì§€ ì•Šì€ ì…ë ¥
+	ePHILHMI_ERR_MOTOR_NOT_DEFINE_OUTPUT		= 20003,	//	ì •ì˜ë˜ì§€ ì•Šì€ ì¶œë ¥
+	ePHILHMI_ERR_MOTOR_MOVING					= 20010,	//	ëª¨í„° êµ¬ë™ ì¤‘
+	ePHILHMI_ERR_MOTOR_CMD_FAILED				= 20011,	//	ëª¨í„° êµ¬ë™ ì‹¤íŒ¨
+	ePHILHMI_ERR_MOTOR_PLM						= 20012,	//	PLM ì„¼ì„œ ê°ì§€ ì¤‘
+	ePHILHMI_ERR_MOTOR_NLM						= 20013,	//	NLM ì„¼ì„œ ê°ì§€ ì¤‘
+	ePHILHMI_ERR_MOTOR_ALARM					= 20014,	//	ëª¨í„° ì•ŒëŒ ìƒíƒœ
+	//ePHILHMI_ERR_MOTOR_OFF_LOCK					= 20015,	//	ëª¨í„° ì„œë²„ Locked off ìƒíƒœ
+	ePHILHMI_ERR_MOTOR_RUN_TIMEOUT				= 20015,	//	ëª¨í„° êµ¬ë™ ì‹œê°„ ì´ˆê³¼
+	//ePHILHMI_ERR_MOTOR_IO_CHECK					= 20016,	//  ëª¨í„° ë™ì‘ì— ë°©í•´í•˜ëŠ” IO ìƒíƒœ
 	/* STATUS */
-	ePHILHMI_ERR_STATUS_MODE					= 30001,	//	Á¤ÀÇµÇÁö ¾ÊÀº ¸ğµå
-	ePHILHMI_ERR_STATUS_EVENT					= 30002,	//	Á¤ÀÇµÇÁö ¾ÊÀº ÀÌº¥Æ®
-	ePHILHMI_ERR_STATUS_BUSY					= 30003,	//	ÁÖ °øÁ¤ È¤Àº º¸Á¶ °øÁ¤ ÁøÇà Áß
-	ePHILHMI_ERR_STATUS_COMPLETE				= 30004,	//	ÁÖ °øÁ¤ ½ÃÄö½º ºñÁ¤»ó ¿Ï·á
-	ePHILHMI_ERR_STATUS_FAILED					= 30005,	//	ÁÖ °øÁ¤, ÁøÇà ºÒ°¡
-	ePHILHMI_ERR_RECIPE_VALIDATE_FAILED			= 30006,	//	·¹½ÃÇÇºÒÀÏÄ¡
-	ePHILHMI_ERR_STATUS_CHANGE					= 30010,	//	¸ğµå º¯°æ ºÒ°¡
-	ePHILHMI_ERR_STATUS_INIT					= 30011,	//	ÃÊ±âÈ­ ½ÇÆĞ
-	ePHILHMI_ERR_STATUS_INIT_NEED				= 30012,	//	ÃÊ±âÈ­ ÇÊ¿ä
+	ePHILHMI_ERR_STATUS_MODE					= 30001,	//	ì •ì˜ë˜ì§€ ì•Šì€ ëª¨ë“œ
+	ePHILHMI_ERR_STATUS_EVENT					= 30002,	//	ì •ì˜ë˜ì§€ ì•Šì€ ì´ë²¤íŠ¸
+	ePHILHMI_ERR_STATUS_BUSY					= 30003,	//	ì£¼ ê³µì • í˜¹ì€ ë³´ì¡° ê³µì • ì§„í–‰ ì¤‘
+	ePHILHMI_ERR_STATUS_COMPLETE				= 30004,	//	ì£¼ ê³µì • ì‹œí€€ìŠ¤ ë¹„ì •ìƒ ì™„ë£Œ
+	ePHILHMI_ERR_STATUS_FAILED					= 30005,	//	ì£¼ ê³µì •, ì§„í–‰ ë¶ˆê°€
+	ePHILHMI_ERR_RECIPE_VALIDATE_FAILED			= 30006,	//	ë ˆì‹œí”¼ë¶ˆì¼ì¹˜
+	ePHILHMI_ERR_STATUS_CHANGE					= 30010,	//	ëª¨ë“œ ë³€ê²½ ë¶ˆê°€
+	ePHILHMI_ERR_STATUS_INIT					= 30011,	//	ì´ˆê¸°í™” ì‹¤íŒ¨
+	ePHILHMI_ERR_STATUS_INIT_NEED				= 30012,	//	ì´ˆê¸°í™” í•„ìš”
 
 	/* USER */
 	ePHILHMI_ERR_ACK_TIMEOUT					= 60000,	
@@ -133,7 +133,100 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_PKT_UNIQUEID_MISSMATCH			= 60002,	
 	ePHILHMI_ERR_PKT_BUFFER_FULL				= 60003,	
 	ePHILHMI_ERR_NOT_EXIST_RECVDATA				= 60004,	
-	ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE = 60005,    //(2026/02/20)¼ÒÀç ¿ÍÇÇÁöÇÑµµ ÃÊ°ú 
+	ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE = 60005,    //(2026/02/20)ì†Œì¬ ì™€í”¼ì§€í•œë„ ì´ˆê³¼ 
+
+	//di master side ì¶”ê°€ë³¸											ì„¤ëª…														ëŒ€ëµì  ì¶œë ¥ ë©”ì„¸ì§€
+	ePHILHMI_ERR_DI_MOVE_UNLOAD_POSITION = 60101,		 // ì–¸ë¡œë“œ ìœ„ì¹˜ ì´ë™ ì‹¤íŒ¨ (ì¸í„°ë½)					â€¢ Interlock ERROR: failed to move the unload position
+	ePHILHMI_ERR_DI_MOVE_EXPOSE_POSITION = 60102,		 // ë…¸ê´‘ ìœ„ì¹˜ ì´ë™ ì‹¤íŒ¨ (ì¸í„°ë½)					 â€¢ Interlock ERROR: failed to move the expose position
+	ePHILHMI_ERR_DI_MOVE_HOMING_POSITION = 60103,		 // í™ˆ ìœ„ì¹˜ ì´ë™ ì‹¤íŒ¨ (ì¸í„°ë½)					  â€¢ Interlock ERROR: failed to move the homming position
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM1_LEFT = 60104,		 // ì–¼ë¼ì¸ ì¹´ë©”ë¼1 ì¢Œì¸¡ ì´ë™ ì‹¤íŒ¨					â€¢ Failed to move the align camera (1) to (left)
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM2_LEFT = 60105,		 // ì–¼ë¼ì¸ ì¹´ë©”ë¼2 ì¢Œì¸¡ ì´ë™ ì‹¤íŒ¨					â€¢ Failed to move the align camera (2) to (left)
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM1_RIGHT = 60106,		 // ì–¼ë¼ì¸ ì¹´ë©”ë¼1 ìš°ì¸¡ ì´ë™ ì‹¤íŒ¨					â€¢ Failed to move the align camera (1) to (right)
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM2_RIGHT = 60107,		 // ì–¼ë¼ì¸ ì¹´ë©”ë¼2 ìš°ì¸¡ ì´ë™ ì‹¤íŒ¨					â€¢ Failed to move the align camera (2) to (right)
+	ePHILHMI_ERR_DI_HOME_ALIGN_CAM1_LEFT = 60108,		 // ì–¼ë¼ì¸ ì¹´ë©”ë¼1 ì¢Œì¸¡ í™ˆ ì´ë™ ì‹¤íŒ¨				   â€¢ Failed to home the align camera (1) to (left)
+	ePHILHMI_ERR_DI_HOME_ALIGN_CAM2_LEFT = 60109,		 // ì–¼ë¼ì¸ ì¹´ë©”ë¼2 ì¢Œì¸¡ í™ˆ ì´ë™ ì‹¤íŒ¨				   â€¢ Failed to home the align camera (2) to (left)
+	ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_LIMIT = 60110,		 // í¬í† í—¤ë“œ Zì¶• ë¦¬ë°‹ ì´ë™ ì‹¤íŒ¨					 â€¢ Failed to move the photohead z axis (min/max)
+	ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_POS = 60111,		 // í¬í† í—¤ë“œ Zì¶• ì§€ì • ìœ„ì¹˜ ì´ë™ ì‹¤íŒ¨				   â€¢ Failed to move the photohead z axis (set position)
+	ePHILHMI_ERR_DI_OPTICAL_Z_OUT_OF_RANGE = 60112,		 // ê´‘í•™ Zì¶• ì´ë™ ë²”ìœ„ ì´ˆê³¼						   â€¢ Optical Z Axis movement is out of range
+	ePHILHMI_ERR_DI_UNKNOWN_VECTOR_DRIVE = 60113,		 // ì•Œ ìˆ˜ ì—†ëŠ” ë²¡í„° ë“œë¼ì´ë¸Œ ì´ë™ ì‹¤íŒ¨			  â€¢ Failed to moving the vector (Unknown Vector Drive)
+	ePHILHMI_ERR_DI_MC2_NOT_CONNECTED = 60114,			 // MC2 ì—°ê²°ë˜ì§€ ì•ŠìŒ								  â€¢ MC2 not connected
+	ePHILHMI_ERR_DI_MC2_DRIVE_ERROR = 60115,			 // MC2 ë“œë¼ì´ë¸Œ ì—ëŸ¬ ë°œìƒ							â€¢ Motion: Drive error occurred in MC2
+	ePHILHMI_ERR_DI_MC2_DNC_ERROR = 60116,				 // MC2 DNC ì—ëŸ¬ ë°œìƒ								â€¢ DNC error occurred in MC2
+	ePHILHMI_ERR_DI_CMD_PRINT_ABORT = 60201,			 // ReqSetPrintAbort ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (ReqSetPrintAbort)
+	ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_STATE = 60202,		 // ReqSetExposureState ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetExposureState)
+	ePHILHMI_ERR_DI_CMD_GET_EXPOSURE_STATE = 60203,		 // ReqGetExposureState ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqGetExposureState)
+	ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_XY = 60204,		 // ReqSetExposureStarXY ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetExposureStarXY)
+	ePHILHMI_ERR_DI_CMD_SET_ALL_PHOTOHEADS = 60205,		 // ReqSetAllPhotoheads ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetAllPhotoheads)
+	ePHILHMI_ERR_DI_CMD_SET_PHOTOHEAD_UNIT = 60206,		 // ReqSetSpecPhotoHeadUnit ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨		  â€¢ Failed to send the cmd(ReqSetSpecPhotoHeadUnit)
+	ePHILHMI_ERR_DI_CMD_SET_MOTION_CONTROL = 60207,		 // ReqSetMotionControl ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetMotionControl)
+	ePHILHMI_ERR_DI_CMD_SET_MOTION_TYPE = 60208,		 // ReqSetMotionType1 ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (ReqSetMotionType1)
+	ePHILHMI_ERR_DI_CMD_SET_TABLE_SETTING = 60209,		 // ReqSetTableSetting ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (ReqSetTableSetting)
+	ePHILHMI_ERR_DI_CMD_SET_TABLE_LIMIT = 60210,		 // ReqSetTablePositionLimit ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨		  â€¢ Failed to send the cmd (ReqSetTablePosition Limit)
+	ePHILHMI_ERR_DI_CMD_UPDATE_PHOTOHEADS = 60211,		 // ReqSetUpdatePhotoheads ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetUpdatePhotoheads)
+	ePHILHMI_ERR_DI_CMD_SET_SYSTEM_SETTINGS = 60212,	 // ReqSetSystemSettings ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetSystemSettings)
+	ePHILHMI_ERR_DI_CMD_MOVE_STAGE_X = 60213,			 // SendDevAbsMoveStageX ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (SendDevAbsMoveStageX)
+	ePHILHMI_ERR_DI_CMD_MOVE_STAGE_Y = 60214,			 // SendDevAbsMoveStageY ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (SendDevAbsMoveStageY)
+	ePHILHMI_ERR_DI_CMD_MOVE_ACAM1 = 60215,				 // SendDevAbsMoveACam1 ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (SendDevAbsMoveACam1)
+	ePHILHMI_ERR_DI_CMD_MOVE_ACAM2 = 60216,				 // SendDevAbsMoveACamX2 ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (SendDevAbsMoveACamX2) / (SendDevAbsMoveACamX1)
+	ePHILHMI_ERR_DI_CMD_TUNE_REF_WRITE = 60217,			 // savEng_Tune_RefSetWrite ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨		  â€¢ Failed to send the cmd (savEng_Tune_RefSetWrite)
+	ePHILHMI_ERR_DI_CMD_GET_JOB_LIST = 60218,			 // ReqGetJobList ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨					  â€¢ Failed to send the cmd (ReqGetJobList)
+	ePHILHMI_ERR_DI_CMD_SELECT_JOB_NAME = 60219,		 // ReqSelectJobName ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (ReqSelectJobName)
+	ePHILHMI_ERR_DI_CMD_LOAD_JOB = 60220,				 // ReqSelectLoadSelectJob ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSelectLoadSelectJob)
+	ePHILHMI_ERR_DI_CMD_SET_UNLOAD_SIDE = 60221,		 // ReqSetSelectUnloadSide ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetSelectUnloadSide)
+	ePHILHMI_ERR_DI_CMD_SET_LOCAL_ZONE = 60222,			 // ReqSetSharedLocalZone ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetSharedLocalZone)
+	ePHILHMI_ERR_DI_CMD_SET_REGIS = 60223,				 // ReqSetRegis ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨					  â€¢ Failed to send the cmd (ReqSetRegis)
+	ePHILHMI_ERR_DI_CMD_GET_REGIS_STATUS = 60224,		 // ReqGetRegisStatus ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (ReqGetRegisStatus)
+	ePHILHMI_ERR_DI_CMD_SET_MOTOR_ABS_POS = 60225,		 // ReqSetMotorAbsPositionAll ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨		  â€¢ Failed to send the cmd (ReqSetMotorAbsPositionAll)
+	ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_FACTOR = 60226,	 // ReqSetExposureFactor ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (ReqSetExposureFactor)
+	ePHILHMI_ERR_DI_CMD_SET_LED_AMPLITUDE = 60227,		 // ReqSetLedAmplitude ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (ReqSetLedAmplitude)
+	ePHILHMI_ERR_DI_CMD_DEV_DEFAULT_RESET = 60228,		 // SendDevDefaultReset ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨			  â€¢ Failed to send the cmd (SendDevDefaultReset)
+	ePHILHMI_ERR_DI_CMD_DEV_HOMING_ALL = 60229,			 // SendDevHomingAll ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨				  â€¢ Failed to send the cmd (SendDevHomingAll) / (SendDevHoming)
+	ePHILHMI_ERR_DI_CMD_FAULT_RESET_ALL = 60230,		 // FaultResetAll ëª…ë ¹ ì „ì†¡ ì‹¤íŒ¨					  â€¢ Failed to send the cmd (FaultResetAll)
+	ePHILHMI_ERR_DI_ALIGN_MARK_COUNT_GLOBAL = 60301,	 // ê¸€ë¡œë²Œ ë§ˆí¬ ê°œìˆ˜ ì˜¤ë¥˜						   â€¢ The number of marks is incorrect (global = %u) â€¢ The number of global mark is not 1
+	ePHILHMI_ERR_DI_ALIGN_MARK_GET_POS_FAIL = 60302,	 // ë§ˆí¬ ì¸¡ì •ì„ ìœ„í•œ ì´ë™ ì¢Œí‘œ íšë“ ì‹¤íŒ¨			 â€¢ Failed to get a position to move motion for align mark measurement
+	ePHILHMI_ERR_DI_ALIGN_MARK_LOC_INFO_FAIL = 60303,	 // ë§ˆí¬ ìœ„ì¹˜ ì •ë³´ íšë“ ì‹¤íŒ¨						  â€¢ Failed to get the location information of global mark
+	ePHILHMI_ERR_DI_ALIGN_MARK_WIDTH_PERIOD = 60304,	 // ë§ˆí¬ ê°„ ë„ˆë¹„ ì£¼ê¸°ê°€ ì¹´ë©”ë¼ ì£¼ê¸°ë³´ë‹¤ ì‘ìŒ		   â€¢ Width: The period between marks is smaller than the physical camera period
+	ePHILHMI_ERR_DI_ALIGN_MARK_HEIGHT_PERIOD = 60305,	 // ë§ˆí¬ ê°„ ë†’ì´ ì£¼ê¸°ê°€ ì¹´ë©”ë¼ ì£¼ê¸°ë³´ë‹¤ ì‘ìŒ		   â€¢ Height: The period between marks is smaller than the physical camera period
+	ePHILHMI_ERR_DI_ALIGN_MARK_NO_REGISTERED = 60306,	 // ì¹´ë©”ë¼ì— ë“±ë¡ëœ ì–¼ë¼ì¸ ë§ˆí¬ ì—†ìŒ				  â€¢ No align marks are registered on the camera
+	ePHILHMI_ERR_DI_ALIGN_MARK_DIST_INVALID = 60307,	 // ì¸¡ì •ëœ ë§ˆí¬ ê°„ ê±°ë¦¬ ìœ íš¨í•˜ì§€ ì•ŠìŒ				  â€¢ the distance between measured marks is not valid
+	ePHILHMI_ERR_DI_ALIGN_MARK_HV_ERROR = 60308,		 // ë§ˆí¬ ê°€ë¡œ/ì„¸ë¡œ ê±°ë¦¬ ì˜¤ì°¨ ë°œìƒ					â€¢ The distance Horz, Vert Error
+	ePHILHMI_ERR_DI_ALIGN_MARK_ALL_INVALID = 60309,		 // ë°œê²¬ëœ ëª¨ë“  ë§ˆí¬ê°€ ìœ íš¨í•˜ì§€ ì•ŠìŒ				  â€¢ All found marks are invalid
+	ePHILHMI_ERR_DI_ALIGN_OFFSET_GLOBAL_FAIL = 60310,	 // ê¸€ë¡œë²Œ ë§ˆí¬ ë…¸ê´‘ ì˜¤í”„ì…‹ íšë“ ì‹¤íŒ¨				  â€¢ Failed to get expo offset - global mark
+	ePHILHMI_ERR_DI_ALIGN_OFFSET_LOCAL_FAIL = 60311,	 // ë¡œì»¬ ë§ˆí¬ ë…¸ê´‘ ì˜¤í”„ì…‹ íšë“ ì‹¤íŒ¨				   â€¢ Failed to get expo offset - local mark
+	ePHILHMI_ERR_DI_INSPECT_ALL_MARKS_FAIL = 60312,		 // ì „ì²´ ë§ˆí¬ ê²€ì‚¬ ì‹¤íŒ¨								â€¢ Failed to inspect all marks
+	ePHILHMI_ERR_DI_GERBER_GLOBAL_MARK_FAIL = 60401,	 // ì„ íƒëœ ê±°ë²„ì—ì„œ ê¸€ë¡œë²Œ ë§ˆí¬ íšë“ ì‹¤íŒ¨			â€¢ Failed to get the global mark from selected gerber file
+	ePHILHMI_ERR_DI_GERBER_LOCAL_MARK_FAIL = 60402,		 // ì„ íƒëœ ê±°ë²„ì—ì„œ ë¡œì»¬ ë§ˆí¬ íšë“ ì‹¤íŒ¨			 â€¢ Failed to get the local mark from selected gerber file
+	ePHILHMI_ERR_DI_GERBER_FILE_NOT_EXIST = 60403,		 // ê±°ë²„ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŒ						 â€¢ Gerber file does not exist
+	ePHILHMI_ERR_DI_GERBER_LOAD_TIMEOUT = 60404,		 // ê±°ë²„ ë¡œë”© ì‹œê°„ ì´ˆê³¼								â€¢ Timeout waiting for gerber file to complete loading â€¢ The gerber file did not complete loading
+	ePHILHMI_ERR_DI_GERBER_LOAD_INCOMPLETE = 60405,		 // ê±°ë²„ ë¡œë”© ë¯¸ì™„ë£Œ								 â€¢ Gerber file does not exist
+	ePHILHMI_ERR_DI_GERBER_REGIST_FAIL = 60406,			 // ê±°ë²„ ë“±ë¡ ì‹¤íŒ¨								  â€¢ Failed to regist the gerber file
+	ePHILHMI_ERR_DI_GERBER_ALREADY_REGISTERED = 60407,	 // ì´ë¯¸ ë“±ë¡ëœ ê±°ë²„ íŒŒì¼ ì¡´ì¬						 â€¢ The gerber file to be registered exists
+	ePHILHMI_ERR_DI_RECIPE_XML_LOAD_FAIL = 60408,		 // ë ˆì‹œí”¼ XML íŒŒì¼ ë¡œë“œ ì‹¤íŒ¨					   â€¢ Failed to load the xml file for selected recipe
+	ePHILHMI_ERR_DI_RECIPE_INVALID = 60409,				 // ìœ íš¨í•˜ì§€ ì•Šì€ ë ˆì‹œí”¼ ì„ íƒ						 â€¢ The selected recipe is not valid
+	ePHILHMI_ERR_DI_RECIPE_NO_THICKNESS_DATA = 60410,	 // ë ˆì‹œí”¼ì— ìì¬ ë‘ê»˜ ë³´ì • ë°ì´í„° ì—†ìŒ			 â€¢ There is no correction data related to material thickness...
+	ePHILHMI_ERR_DI_RECIPE_NO_THICKNESS_INFO = 60011,	 // í•´ë‹¹ ë ˆì‹œí”¼ì˜ ë‘ê»˜ ë³´ì • ì •ë³´ ì—†ìŒ				  â€¢ There is no thickness correction info. for recipe [%s]
+	ePHILHMI_ERR_DI_IMAGE_GRAB_GLOBAL_FAIL = 60501,		 // ê¸€ë¡œë²Œ ë§ˆí¬ ì´ë¯¸ì§€ íšë“ ì‹¤íŒ¨					â€¢ Failed to get the grabbed image (global mark)
+	ePHILHMI_ERR_DI_IMAGE_GRAB_LOCAL_FAIL = 60502,		 // ë¡œì»¬ ë§ˆí¬ ì´ë¯¸ì§€ íšë“ ì‹¤íŒ¨						 â€¢ Failed to get the grabbed image (local mark)
+	ePHILHMI_ERR_DI_MODEL_FIND_GLOBAL_FAIL = 60503,		 // ê¸€ë¡œë²Œ ë§ˆí¬ ëª¨ë¸ ì°¾ê¸° ì‹¤íŒ¨						 â€¢ The mark image (global) was grabbed, but failed to find a model
+	ePHILHMI_ERR_DI_MODEL_FIND_LOCAL_FAIL = 60504,		 // ë¡œì»¬ ë§ˆí¬ ëª¨ë¸ ì°¾ê¸° ì‹¤íŒ¨						  â€¢ The mark image (local) was grabbed, but failed to find a model
+	ePHILHMI_ERR_DI_IMAGE_CAPTURE_TIMEOUT = 60505,		 // ì´ë¯¸ì§€ ìº¡ì²˜ ëŒ€ê¸° ì‹œê°„ ì´ˆê³¼						 â€¢ Timeout waiting for all images to be captured
+	ePHILHMI_ERR_DI_CAIL_DATA_STAGE_Y_EMPTY = 60506,	 // Cail Data (Stage_Y) í˜¸ì¶œ ì‹¤íŒ¨					â€¢ no_cali_trig_data [Stage_Y]
+	ePHILHMI_ERR_DI_CAIL_DATA_GLOBAL_Y_EMPTY = 60507,	 // Cail Data (Global_Y) í˜¸ì¶œ ì‹¤íŒ¨					â€¢ no_cali_trig_data for global mark [Stage_Y]
+	ePHILHMI_ERR_DI_CAIL_DATA_LOCAL_Y_EMPTY = 60508,	 // Cail Data (Local_Y) í˜¸ì¶œ ì‹¤íŒ¨					â€¢ no_cali_trig_data for local mark [Stage_Y]
+	ePHILHMI_ERR_DI_WORK_STEP_ERROR = 60601,			 // Work ì‹œí€€ìŠ¤ ìŠ¤í… ì—ëŸ¬							 â€¢ Work <Error Step It = 0x%02x>
+	ePHILHMI_ERR_DI_WORK_EXPO_ALIGN_STEP_ERROR = 60602,	 // Align Expsose ìŠ¤í… ì—ëŸ¬							â€¢ Work Expo Align <Error Step It = 0x%02x>
+	ePHILHMI_ERR_DI_ALIGN_TWO_STEP_ERROR = 60603,		 // Align Test ì‹œí€€ìŠ¤ ìŠ¤í… ì—ëŸ¬					 â€¢ Align Test <Error Step It = 0x%02x>
+	ePHILHMI_ERR_DI_WORKING_STEP_TIMEOUT = 60604,		 // ì‘ì—… ìŠ¤í… ì‹œê°„ ì´ˆê³¼ (íƒ€ì„ì•„ì›ƒ)					â€¢ Working Step Timeout : %s (%d:0x%02x)
+	ePHILHMI_ERR_DI_STEP_REPETITION_EXCEEDED = 60605,	 // ë™ì¼ ìŠ¤í… ë°˜ë³µ íšŸìˆ˜ ì´ˆê³¼						  â€¢ The number of repetitions of the same step has exceeded
+	ePHILHMI_ERR_DI_EXPOSURE_START_POS_ERR = 60606,		 // ë…¸ê´‘ ì‹œì‘ ìœ„ì¹˜ ë¶€ì •í™•						   â€¢ The exposure start position is incorrect
+	ePHILHMI_ERR_DI_SERVICE_SYSTEM_ERROR = 60607,		 // ì„œë¹„ìŠ¤ ì‹œìŠ¤í…œ ì—ëŸ¬ (Code í¬í•¨)				  â€¢ An error has occurred in the service system (Code = %u)
+	ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR = 60608,	 // ìì¬ ë‘ê»˜ í—ˆìš© ì˜¤ì°¨ ë²”ìœ„ ì´ˆê³¼					â€¢ Failed to actual material thickness tolerance range
+	ePHILHMI_ERR_DI_PREFIT_JOB_RUN_FAIL = 60609,		 // Pre-fit ì‘ì—… ì‹¤í–‰ ì‹¤íŒ¨						  â€¢ Failed to run the pre-fit job
+	ePHILHMI_ERR_DI_EXPOSURE_OP_ERROR = 60610,			 // ë…¸ê´‘ ë™ì‘ ì¤‘ ë¬¸ì œ ë°œìƒ						   â€¢ There was a problem during the exposure operation
+	ePHILHMI_ERR_DI_MOTOR_OPTIC_PIC_ERROR = 60611,		 // ëª¨í„°/ê´‘í•™ë¶€/PIC í•˜ë“œì›¨ì–´ ì—ëŸ¬					 â€¢ motor <%u> optic <%u> pic <%u>
+	ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS = 60612,		 // ì•Œ ìˆ˜ ì—†ëŠ” ë“±ë¡ ìƒíƒœ ì½”ë“œ						  â€¢ Unknown registration status code (%u) â€¢ An error occurred in the registration status (%)
+	ePHILHMI_ERR_DI_HEAD_OFFSET_NOT_FOUND = 60613,		 // í—¤ë“œ ì˜¤í”„ì…‹ ë°ì´í„° ì—†ìŒ						  â€¢ headOffset not found
+
 };
 
 typedef enum class __en_philhmi_memory_address_array__ : UINT8
@@ -143,7 +236,7 @@ typedef enum class __en_philhmi_memory_address_array__ : UINT8
 }	ENG_PMAA;
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                            ±¸Á¶Ã¼                                             */
+/*                                            êµ¬ì¡°ì²´                                             */
 /* --------------------------------------------------------------------------------------------- */
 
 #pragma pack (push, 1)
@@ -172,14 +265,14 @@ typedef struct __st_phil_packet_dynamic_recipe__
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	char			szParameterType[DEF_MAX_RECIPE_PARAM_TYPE_LENGTH];	// Parameter µ¥ÀÌÅÍ Å¸ÀÔ
+	char			szParameterType[DEF_MAX_RECIPE_PARAM_TYPE_LENGTH];	// Parameter ë°ì´í„° íƒ€ì…
 	//	- BOOL
 	//	- INT
 	//	- DOUBLE
 	//	- STRING
 
-	char			szParameterName[DEF_MAX_RECIPE_PARAM_NAME_LENGTH];  // Parameter ¸íÀº ÃÖ´ë 40ÀÚ		
-	char			szParameterValue[DEF_MAX_RECIPE_PARAM_VALUE_LENGTH];// Parameter °ªÀº ÃÖ´ë 10ÀÚ		
+	char			szParameterName[DEF_MAX_RECIPE_PARAM_NAME_LENGTH];  // Parameter ëª…ì€ ìµœëŒ€ 40ì		
+	char			szParameterValue[DEF_MAX_RECIPE_PARAM_VALUE_LENGTH];// Parameter ê°’ì€ ìµœëŒ€ 10ì		
 }	STG_PP_VAR, * LPG_PP_VAR;
 
 typedef struct __st_phil_packet_dynamic_state__
@@ -189,17 +282,17 @@ typedef struct __st_phil_packet_dynamic_state__
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	char			szParameterType[DEF_MAX_STATE_PARAM_TYPE_LENGTH];	// Parameter µ¥ÀÌÅÍ Å¸ÀÔ
+	char			szParameterType[DEF_MAX_STATE_PARAM_TYPE_LENGTH];	// Parameter ë°ì´í„° íƒ€ì…
 	//	- BOOL
 	//	- INT
 	//	- DOUBLE
 	//	- STRING
 
-	char			szParameterName[DEF_MAX_STATE_PARAM_NAME_LENGTH];  // Parameter ¸íÀº ÃÖ´ë 40ÀÚ		
-	char			szParameterValue[DEF_MAX_STATE_PARAM_VALUE_LENGTH];// Parameter °ªÀº ÃÖ´ë 10ÀÚ		
+	char			szParameterName[DEF_MAX_STATE_PARAM_NAME_LENGTH];  // Parameter ëª…ì€ ìµœëŒ€ 40ì		
+	char			szParameterValue[DEF_MAX_STATE_PARAM_VALUE_LENGTH];// Parameter ê°’ì€ ìµœëŒ€ 10ì		
 }	STG_PP_STATE, * LPG_PP_STATE;
 
-/* ¼Û/¼ö½Å ÆĞÅ¶ */
+/* ì†¡/ìˆ˜ì‹  íŒ¨í‚· */
 //////////////////////////////////////////////////////////////////////////
 /// RECIPE INFORMATION
 typedef struct __st_phil_packet_cp2_recipe_information__ : public __st_phil_packet_header__
@@ -214,7 +307,7 @@ typedef struct __st_phil_packet_cp2_recipe_information__ : public __st_phil_pack
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 	}
 
-	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
+	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_C2P_RCP_INFO, * LPG_PP_C2P_RCP_INFO;
 
@@ -234,8 +327,8 @@ typedef struct __st_phil_packet_cp2_recipe_information_ack__ : public __st_phil_
 		memset(stVar, 0, sizeof(STG_PP_VAR) * DEF_MAX_RECIPE_PARAM_COUNT);
 	}
 
-	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	unsigned short	usCount;													// DV Parameter °³¼ö		
+	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	unsigned short	usCount;													// DV Parameter ê°œìˆ˜		
 	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 }	STG_PP_C2P_RCP_INFO_ACK, * LPG_PP_RCP_INFO_ACK;
@@ -270,9 +363,9 @@ typedef struct __st_phil_packet_c2p_recipe_list_ack__ : public __st_phil_packet_
 		memset(szArrRecipeName, 0, sizeof(char) * DEF_MAX_RECIPE_COUNT * DEF_MAX_RECIPE_NAME_LENGTH);
 	}
 
-	unsigned short	usCount;						// Recipe °³¼ö		
+	unsigned short	usCount;						// Recipe ê°œìˆ˜		
 	char			szSelectedRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];
-	char			szArrRecipeName[DEF_MAX_RECIPE_COUNT][DEF_MAX_RECIPE_NAME_LENGTH];		// Recipe ¸íÀº ÃÖ´ë 40ÀÚ, 200°³·Î Á¦ÇÑ		
+	char			szArrRecipeName[DEF_MAX_RECIPE_COUNT][DEF_MAX_RECIPE_NAME_LENGTH];		// Recipe ëª…ì€ ìµœëŒ€ 40ì, 200ê°œë¡œ ì œí•œ		
 
 }	STG_PP_C2P_RCP_LIST_ACK, * LPG_PP_C2P_RCP_LIST_ACK;
 //////////////////////////////////////////////////////////////////////////
@@ -292,7 +385,7 @@ typedef struct __st_phil_packet_c2p_recipe_select__ : public __st_phil_packet_he
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_C2P_RCP_SELECT, * LPG_PP_C2P_RCP_SELECT;
 
@@ -320,7 +413,7 @@ typedef struct __st_phil_packet_p2c_recipe_select__ : public __st_phil_packet_he
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_P2C_RCP_SELECT, * LPG_PP_P2C_RCP_SELECT;
 
@@ -353,8 +446,8 @@ typedef struct __st_phil_packet_c2p_recipe_create__ : public __st_phil_packet_he
 		memset(stVar, 0, sizeof(STG_PP_VAR) * DEF_MAX_RECIPE_PARAM_COUNT);
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ			
-	unsigned short	usCount;							// DV Parameter °³¼ö		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì			
+	unsigned short	usCount;							// DV Parameter ê°œìˆ˜		
 	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 }	STG_PP_C2P_RCP_CREATE, * LPG_PP_C2P_RCP_CREATE;
@@ -385,8 +478,8 @@ typedef struct __st_phil_packet_p2c_recipe_create__ : public __st_phil_packet_he
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ			
-	unsigned short	usCount;							// DV Parameter °³¼ö		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì			
+	unsigned short	usCount;							// DV Parameter ê°œìˆ˜		
 	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 }	STG_PP_P2C_RCP_CREATE, * LPG_PP_P2C_RCP_CREATE;
@@ -418,7 +511,7 @@ typedef struct __st_phil_packet_c2p_recipe_delete__ : public __st_phil_packet_he
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_C2P_RCP_DELETE, * LPG_PP_C2P_RCP_DELETE;
 
@@ -446,7 +539,7 @@ typedef struct __st_phil_packet_p2c_recipe_delete__ : public __st_phil_packet_he
 		memset(szRecipeName, 0, sizeof(szRecipeName));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_P2C_RCP_DELETE, * LPG_PP_P2C_RCP_DELETE;
 
@@ -477,8 +570,8 @@ typedef struct __st_phil_packet_c2p_recipe_modify__ : public __st_phil_packet_he
 		memset(stVar, 0, sizeof(STG_PP_VAR) * DEF_MAX_RECIPE_PARAM_COUNT);
 	}
 
-	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];   // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	unsigned short	usCount;									// Recipe Parameter °³¼ö		
+	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];   // Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	unsigned short	usCount;									// Recipe Parameter ê°œìˆ˜		
 	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 }	STG_PP_C2P_RCP_MODIFY, * LPG_PP_C2P_RCP_MODIFY;
@@ -509,8 +602,8 @@ typedef struct __st_phil_packet_p2c_recipe_modify__ : public __st_phil_packet_he
 		memset(stVar, 0, sizeof(STG_PP_VAR) * DEF_MAX_RECIPE_PARAM_COUNT);
 	}
 
-	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];   // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	unsigned short	usCount;									// Recipe Parameter °³¼ö		
+	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];   // Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	unsigned short	usCount;									// Recipe Parameter ê°œìˆ˜		
 	STG_PP_VAR		stVar[DEF_MAX_RECIPE_PARAM_COUNT];
 
 }	STG_PP_P2C_RCP_MODIFY, * LPG_PP_P2C_RCP_MODIFY;
@@ -557,10 +650,10 @@ typedef struct __st_phil_packet_p2c_io_status_ack__ : public __st_phil_packet_he
 		memset(usOutputData, 0, sizeof(usOutputData));
 	}
 
-	BYTE byInputCount;									// ÃÖ´ë 50 °³		
-	BYTE byOutputCount;									// ÃÖ´ë 50 °³		
-	unsigned short usInputData[DEF_MAX_IO_COUNT];		// 16Á¡ Data : ex) 1¹ø BoardÀÇ 1,5,15 OnÀÏ °æ¿ì 0x4011		
-	unsigned short usOutputData[DEF_MAX_IO_COUNT];		// 16Á¡ Data		
+	BYTE byInputCount;									// ìµœëŒ€ 50 ê°œ		
+	BYTE byOutputCount;									// ìµœëŒ€ 50 ê°œ		
+	unsigned short usInputData[DEF_MAX_IO_COUNT];		// 16ì  Data : ex) 1ë²ˆ Boardì˜ 1,5,15 Onì¼ ê²½ìš° 0x4011		
+	unsigned short usOutputData[DEF_MAX_IO_COUNT];		// 16ì  Data		
 	
 }	STG_PP_P2C_IO_STATUS_ACK, * LPG_PP_P2C_IO_STATUS_ACK;
 //////////////////////////////////////////////////////////////////////////
@@ -607,11 +700,11 @@ typedef struct __st_phil_packet_move_info__
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	char szAxisName[DEF_MAX_POSITION_AXIS_LENGTH];        // »çÀü ÇùÀÇ µÈ Axis ÀÌ¸§		
-	double dPosition;									// ÀÌµ¿ ÇÒ Àı´ë Position °ª		
-	double dSpeed;										// ÀÌµ¿ ÇÒ Speed °ª		
-	double dAcc;										// ÀÌµ¿ ÇÒ Acc °ª		
-	unsigned short usTimeout;							// ÀÌµ¿ ¿Ï·á ´ë±â ½Ã°£			
+	char szAxisName[DEF_MAX_POSITION_AXIS_LENGTH];        // ì‚¬ì „ í˜‘ì˜ ëœ Axis ì´ë¦„		
+	double dPosition;									// ì´ë™ í•  ì ˆëŒ€ Position ê°’		
+	double dSpeed;										// ì´ë™ í•  Speed ê°’		
+	double dAcc;										// ì´ë™ í•  Acc ê°’		
+	unsigned short usTimeout;							// ì´ë™ ì™„ë£Œ ëŒ€ê¸° ì‹œê°„			
 }	STG_PP_MOVE, * LPG_PP_MOVE;
 
 typedef struct __st_phil_packet_move_teach__
@@ -621,9 +714,9 @@ typedef struct __st_phil_packet_move_teach__
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	char szAxisName[DEF_MAX_POSITION_AXIS_LENGTH];           // »çÀü ÇùÀÇ µÈ Axis ÀÌ¸§		
-	char szPositionName[DEF_MAX_POSITION_NAME_LENGTH];       // Position ¸íÀº ÃÖ´ë 20ÀÚ		
-	unsigned short usTimeout;      // ÀÌµ¿ ¿Ï·á ´ë±â ½Ã°£		
+	char szAxisName[DEF_MAX_POSITION_AXIS_LENGTH];           // ì‚¬ì „ í˜‘ì˜ ëœ Axis ì´ë¦„		
+	char szPositionName[DEF_MAX_POSITION_NAME_LENGTH];       // Position ëª…ì€ ìµœëŒ€ 20ì		
+	unsigned short usTimeout;      // ì´ë™ ì™„ë£Œ ëŒ€ê¸° ì‹œê°„		
 
 }	STG_PP_MOVE_TEACH, * LPG_PP_MOVE_TEACH;
 
@@ -640,8 +733,8 @@ typedef struct __st_phil_packet_c2p_abs_move__ : public __st_phil_packet_header_
 		memset(stMove, 0, sizeof(STG_PP_MOVE) * _countof(stMove));
 	}
 
-	unsigned short	usCount;						// Move Axis °³¼ö		
-	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ÃÖ´ë 5°³·Î Á¦ÇÑ		
+	unsigned short	usCount;						// Move Axis ê°œìˆ˜		
+	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ìµœëŒ€ 5ê°œë¡œ ì œí•œ		
 
 }	STG_PP_C2P_ABS_MOVE, * LPG_PP_C2P_ABS_MOVE;
 
@@ -694,8 +787,8 @@ typedef struct __st_phil_packet_p2c_abs_move__ : public __st_phil_packet_header_
 		memset(stMove, 0, sizeof(STG_PP_MOVE) * _countof(stMove));
 	}
 
-	unsigned short	usCount;						// Move Axis °³¼ö		
-	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ÃÖ´ë 5°³·Î Á¦ÇÑ	
+	unsigned short	usCount;						// Move Axis ê°œìˆ˜		
+	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ìµœëŒ€ 5ê°œë¡œ ì œí•œ	
 
 }	STG_PP_P2C_ABS_MOVE, * LPG_PP_P2C_ABS_MOVE;
 
@@ -752,8 +845,8 @@ typedef struct __st_phil_packet_c2p_rel_move__ : public __st_phil_packet_header_
 		memset(stMove, 0, sizeof(STG_PP_MOVE) * _countof(stMove));
 	}
 
-	unsigned short	usCount;						// Move Axis °³¼ö		
-	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ÃÖ´ë 5°³·Î Á¦ÇÑ	
+	unsigned short	usCount;						// Move Axis ê°œìˆ˜		
+	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ìµœëŒ€ 5ê°œë¡œ ì œí•œ	
 
 }	STG_PP_C2P_REL_MOVE, * LPG_PP_C2P_REL_MOVE;
 
@@ -807,8 +900,8 @@ typedef struct __st_phil_packet_p2c_rel_move__ : public __st_phil_packet_header_
 		memset(stMove, 0, sizeof(STG_PP_MOVE) * _countof(stMove));
 	}
 
-	unsigned short	usCount;						// Move Axis °³¼ö		
-	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ÃÖ´ë 5°³·Î Á¦ÇÑ
+	unsigned short	usCount;						// Move Axis ê°œìˆ˜		
+	STG_PP_MOVE		stMove[DEF_MAX_MOVE_COUNT];     // ìµœëŒ€ 5ê°œë¡œ ì œí•œ
 
 }	STG_PP_P2C_REL_MOVE, * LPG_PP_P2C_REL_MOVE;
 
@@ -865,8 +958,8 @@ typedef struct __st_phil_packet_c2p_char_move__ : public __st_phil_packet_header
 		memset(stMoveTeach, 0, sizeof(STG_PP_MOVE_TEACH) * _countof(stMoveTeach));
 	}
 
-	unsigned short		usCount;							// Move Axis °³¼ö		
-	STG_PP_MOVE_TEACH	stMoveTeach[DEF_MAX_MOVE_COUNT];    // ÃÖ´ë 5°³·Î Á¦ÇÑ
+	unsigned short		usCount;							// Move Axis ê°œìˆ˜		
+	STG_PP_MOVE_TEACH	stMoveTeach[DEF_MAX_MOVE_COUNT];    // ìµœëŒ€ 5ê°œë¡œ ì œí•œ
 
 }	STG_PP_C2P_CHAR_MOVE, * LPG_PP_C2P_CHAR_MOVE;
 
@@ -920,8 +1013,8 @@ typedef struct __st_phil_packet_p2c_char_move__ : public __st_phil_packet_header
 		memset(stMoveTeach, 0, sizeof(STG_PP_MOVE_TEACH) * _countof(stMoveTeach));
 	}
 
-	unsigned short		usCount;							// Move Axis °³¼ö		
-	STG_PP_MOVE_TEACH	stMoveTeach[DEF_MAX_MOVE_COUNT];    // ÃÖ´ë 5°³·Î Á¦ÇÑ
+	unsigned short		usCount;							// Move Axis ê°œìˆ˜		
+	STG_PP_MOVE_TEACH	stMoveTeach[DEF_MAX_MOVE_COUNT];    // ìµœëŒ€ 5ê°œë¡œ ì œí•œ
 
 }	STG_PP_P2C_CHAR_MOVE, * LPG_PP_P2C_CHAR_MOVE;
 
@@ -978,8 +1071,8 @@ typedef struct __st_phil_packet_c2p_process_execute__ : public __st_phil_packet_
 		memset(szGlassID, 0, sizeof(szGlassID));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];         // Glass ID´Â ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];         // Glass IDëŠ” ìµœëŒ€ 40ì		
 
 }	STG_PP_C2P_PROCESS_EXECUTE, * LPG_PP_C2P_PROCESS_EXECUTE;
 
@@ -996,8 +1089,8 @@ typedef struct __st_phil_packet_c2p_process_execute_ack__ : public __st_phil_pac
 		memset(szGlassID, 0, sizeof(szGlassID));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];			// Glass ID´Â ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];			// Glass IDëŠ” ìµœëŒ€ 40ì		
 
 }	STG_PP_C2P_PROCESS_EXECUTE_ACK, * LPG_PP_C2P_PROCESS_EXECUTE_ACK;
 
@@ -1017,10 +1110,10 @@ typedef struct __st_phil_packet_p2c_process_complete__ : public __st_phil_packet
 		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_PROCESS_PARAM_COUNT);
 	}
 
-	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	char			szGlassID[DEF_MAX_GLASS_NAME_LENGTH];						// Glass ID´Â ÃÖ´ë 40ÀÚ	
-	unsigned short usProgress;              // Glass ÁøÇà»çÇ× 0:None, 1:Done, 2:NG		
-	unsigned short	usCount;													// DV Parameter °³¼ö		
+	char			szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];					// Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	char			szGlassID[DEF_MAX_GLASS_NAME_LENGTH];						// Glass IDëŠ” ìµœëŒ€ 40ì	
+	unsigned short usProgress;              // Glass ì§„í–‰ì‚¬í•­ 0:None, 1:Done, 2:NG		
+	unsigned short	usCount;													// DV Parameter ê°œìˆ˜		
 	STG_PP_STATE		stVar[DEF_MAX_PROCESS_PARAM_COUNT];
 
 
@@ -1040,8 +1133,8 @@ typedef struct __st_phil_packet_p2c_process_complete_ack__ : public __st_phil_pa
 		memset(szGlassID, 0, sizeof(szGlassID));
 	}
 
-	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ¸íÀº ÃÖ´ë 40ÀÚ		
-	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];			// Glass ID´Â ÃÖ´ë 40ÀÚ		
+	char szRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];      // Recipe ëª…ì€ ìµœëŒ€ 40ì		
+	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];			// Glass IDëŠ” ìµœëŒ€ 40ì		
 
 }	STG_PP_P2C_PROCESS_COMP_ACK, * LPG_PP_P2C_PROCESS_COMP_ACK;
 //////////////////////////////////////////////////////////////////////////
@@ -1060,7 +1153,7 @@ typedef struct __st_phil_packet_c2p_subprocess_execute__ : public __st_phil_pack
 		memset(szAckSubProcessName, 0, sizeof(szAckSubProcessName));
 	}
 
-	char szAckSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ¸íÀº ÃÖ´ë 20ÀÚ		
+	char szAckSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ëª…ì€ ìµœëŒ€ 20ì		
 
 }	STG_PP_C2P_SUBPROCESS_EXECUTE, * LPG_PP_C2P_SUBPROCESS_EXECUTE;
 
@@ -1076,7 +1169,7 @@ typedef struct __st_phil_packet_c2p_subprocess_execute_ack__ : public __st_phil_
 		memset(szAckSubProcessName, 0, sizeof(szAckSubProcessName));
 	}
 
-	char szAckSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ¸íÀº ÃÖ´ë 20ÀÚ	
+	char szAckSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ëª…ì€ ìµœëŒ€ 20ì	
 
 }	STG_PP_C2P_SUBPROCESS_EXECUTE_ACK, * LPG_PP_C2P_SUBPROCESS_EXECUTE_ACK;
 
@@ -1092,7 +1185,7 @@ typedef struct __st_phil_packet_p2c_subprocess_complete__ : public __st_phil_pac
 		memset(szSubProcessName, 0, sizeof(szSubProcessName));
 	}
 
-	char szSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ¸íÀº ÃÖ´ë 20ÀÚ	
+	char szSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ëª…ì€ ìµœëŒ€ 20ì	
 
 }	STG_PP_P2C_SUBPROCESS_COMP, * LPG_PP_P2C_SUBPROCESS_COMP;
 
@@ -1109,7 +1202,7 @@ typedef struct __st_phil_packet_p2c_subprocess_complete_ack__ : public __st_phil
 		memset(szAckSubProcessName, 0, sizeof(szAckSubProcessName));
 	}
 
-	char szAckSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ¸íÀº ÃÖ´ë 20ÀÚ	
+	char szAckSubProcessName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ëª…ì€ ìµœëŒ€ 20ì	
 
 }	STG_PP_P2C_SUBPROCESS_COMP_ACK, * LPG_PP_P2C_SUBPROCESS_COMP_ACK;
 //////////////////////////////////////////////////////////////////////////
@@ -1130,7 +1223,7 @@ typedef struct __st_phil_packet_p2c_process_step__ : public __st_phil_packet_hea
 	}
 
 	char szGlassName[DEF_MAX_GLASS_NAME_LENGTH];
-	char szProcessStepName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ¸íÀº ÃÖ´ë 20ÀÚ		
+	char szProcessStepName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ëª…ì€ ìµœëŒ€ 20ì		
 
 }	STG_PP_P2C_PROCESS_STEP, * LPG_PP_P2C_PROCESS_STEP;
 
@@ -1146,7 +1239,7 @@ typedef struct __st_phil_packet_p2c_process_step_ack__ : public __st_phil_packet
 		memset(szProcessStepName, 0, sizeof(szProcessStepName));
 	}
 
-	char szProcessStepName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ¸íÀº ÃÖ´ë 20ÀÚ	
+	char szProcessStepName[DEF_MAX_SUBPROCESS_NAME_LENGTH];   // Sub Process ëª…ì€ ìµœëŒ€ 20ì	
 
 }	STG_PP_P2C_PROCESS_STEP_ACK, * LPG_PP_P2C_PROCESS_STEP_ACK;
 //////////////////////////////////////////////////////////////////////////
@@ -1242,7 +1335,7 @@ typedef struct __st_phil_packet_c2p_event_status__ : public __st_phil_packet_hea
 		memset(szEventName, 0, sizeof(szEventName));
 	}
 
-	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_C2P_EVENT_STATUS, * LPG_PP_C2P_EVENT_STATUS;
 
@@ -1256,7 +1349,7 @@ typedef struct __st_phil_packet_c2p_event_status_ack__ : public __st_phil_packet
 		usErrorCode = ePHILHMI_ERR_OK;
 	}
 
-	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ¸íÀº ÃÖ´ë 40ÀÚ	
+	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ëª…ì€ ìµœëŒ€ 40ì	
 	bool bEventFlag;										 //
 
 }	STG_PP_C2P_EVENT_STATUS_ACK, * LPG_PP_C2P_EVENT_STATUS_ACK;
@@ -1273,7 +1366,7 @@ typedef struct __st_phil_packet_p2c_event_status__ : public __st_phil_packet_hea
 		memset(szEventName, 0, sizeof(szEventName));
 	}
 
-	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ëª…ì€ ìµœëŒ€ 40ì		
 
 }	STG_PP_P2C_EVENT_STATUS, * LPG_PP_P2C_EVENT_STATUS;
 
@@ -1287,7 +1380,7 @@ typedef struct __st_phil_packet_p2c_event_status_ack__ : public __st_phil_packet
 		usErrorCode = ePHILHMI_ERR_OK;
 	}
 
-	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ¸íÀº ÃÖ´ë 40ÀÚ	
+	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ëª…ì€ ìµœëŒ€ 40ì	
 	bool bEventFlag;										 //
 
 }	STG_PP_P2C_EVENT_STATUS_ACK, * LPG_PP_P2C_EVENT_STATUS_ACK;
@@ -1307,7 +1400,7 @@ typedef struct __st_phil_packet_c2p_event_notify__ : public __st_phil_packet_hea
 		memset(szEventName, 0, sizeof(szEventName));
 	}
 
-	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ëª…ì€ ìµœëŒ€ 40ì		
 	bool bEventFlag;
 
 }	STG_PP_C2P_EVENT_NOTIFY, * LPG_PP_C2P_EVENT_NOTIFY;
@@ -1336,7 +1429,7 @@ typedef struct __st_phil_packet_p2c_event_notify__ : public __st_phil_packet_hea
 		memset(szEventName, 0, sizeof(szEventName));
 	}
 
-	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ¸íÀº ÃÖ´ë 40ÀÚ		
+	char szEventName[DEF_MAX_EVENT_NAME_LENGTH];             // Event ëª…ì€ ìµœëŒ€ 40ì		
 	bool bEventFlag;										 //
 
 }	STG_PP_P2C_EVENT_NOTIFY, * LPG_PP_P2C_EVENT_NOTIFY;
@@ -1369,7 +1462,7 @@ typedef struct __st_phil_packet_c2p_time_sync__ : public __st_phil_packet_header
 	}
 
 	char szSyncTime[DEF_TIME_LENGTH] = {0,};       // YYYYMMDDhhmmss		
-											// ex)20230322142640 : 2023³â3¿ù22ÀÏ14½Ã26ºĞ40ÃÊ		
+											// ex)20230322142640 : 2023ë…„3ì›”22ì¼14ì‹œ26ë¶„40ì´ˆ		
 
 }	STG_PP_C2P_TIME_SYNC, * LPG_PP_C2P_TIME_SYNC;
 
@@ -1465,7 +1558,7 @@ typedef struct __st_phil_packet_c2p_status_value_ack__ : public __st_phil_packet
 
 	}
 
-	unsigned short	usCount;																				// DV Parameter °³¼ö		
+	unsigned short	usCount;																				// DV Parameter ê°œìˆ˜		
 	STG_PP_STATE		stVar[DEF_MAX_STATE_PARAM_VALUE_LENGTH];
 
 
@@ -1484,7 +1577,7 @@ typedef struct __st_phil_packet_p2c_ec_modify__ : public __st_phil_packet_header
 		memset(stVar, 0, sizeof(STG_PP_STATE) * DEF_MAX_ECM_PARAM_COUNT);
 	}
 
-	unsigned short	usCount;																				// DV Parameter °³¼ö		
+	unsigned short	usCount;																				// DV Parameter ê°œìˆ˜		
 	STG_PP_STATE		stVar[DEF_MAX_ECM_PARAM_COUNT];
 
 }	STG_PP_P2C_EC_MODIFY, * LPG_PP_P2C_EC_MODIFY;
@@ -1691,7 +1784,7 @@ typedef struct __st_philhmi_packet_register__
 	STG_PP_PACKET_RECV	pkt = { 0 };
 
 	/*
-	 desc : ±âÁ¸ µ¥ÀÌÅÍ ¸ğµÎ Á¦°Å
+	 desc : ê¸°ì¡´ ë°ì´í„° ëª¨ë‘ ì œê±°
 	 parm : None
 	 retn : None
 	*/

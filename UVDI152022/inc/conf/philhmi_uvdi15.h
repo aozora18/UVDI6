@@ -133,7 +133,111 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_PKT_UNIQUEID_MISSMATCH			= 60002,	
 	ePHILHMI_ERR_PKT_BUFFER_FULL				= 60003,	
 	ePHILHMI_ERR_NOT_EXIST_RECVDATA				= 60004,	
-	ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE = 60005,    //(2026/02/20)소재 와피지한도 초과 
+	ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE		= 60005,    //(2026/02/20)소재 와피지한도 초과 
+
+
+	/* MOTION & INTERLOCK (60100 ~) */
+	ePHILHMI_ERR_DI_MOVE_UNLOAD_POSITION		= 60101,	// 언로드 위치 이동 실패 (인터락)
+	ePHILHMI_ERR_DI_MOVE_EXPOSE_POSITION		= 60102,	// 노광 위치 이동 실패 (인터락)
+	ePHILHMI_ERR_DI_MOVE_HOMING_POSITION		= 60103,	// 홈 위치 이동 실패 (인터락)
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM1_LEFT		= 60104,	// 얼라인 카메라1 좌측 이동 실패
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM2_LEFT		= 60105,	// 얼라인 카메라2 좌측 이동 실패
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM1_RIGHT		= 60106,	// 얼라인 카메라1 우측 이동 실패
+	ePHILHMI_ERR_DI_MOVE_ALIGN_CAM2_RIGHT		= 60107,	// 얼라인 카메라2 우측 이동 실패
+	ePHILHMI_ERR_DI_HOME_ALIGN_CAM1_LEFT		= 60108,	// 얼라인 카메라1 좌측 홈 이동 실패
+	ePHILHMI_ERR_DI_HOME_ALIGN_CAM2_LEFT		= 60109,	// 얼라인 카메라2 좌측 홈 이동 실패
+	ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_LIMIT		= 60110,	// 포토헤드 Z축 리밋 이동 실패
+	ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_POS		= 60111,	// 포토헤드 Z축 지정 위치 이동 실패
+	ePHILHMI_ERR_DI_OPTICAL_Z_OUT_OF_RANGE		= 60112,	// 광학 Z축 이동 범위 초과
+	ePHILHMI_ERR_DI_UNKNOWN_VECTOR_DRIVE		= 60113,	// 알 수 없는 벡터 드라이브 이동 실패
+	ePHILHMI_ERR_DI_MC2_NOT_CONNECTED			= 60114,	// MC2 연결되지 않음
+	ePHILHMI_ERR_DI_MC2_DRIVE_ERROR				= 60115,	// MC2 드라이브 에러 발생
+	ePHILHMI_ERR_DI_MC2_DNC_ERROR				= 60116,	// MC2 DNC 에러 발생
+
+	/* COMMAND (CMD) SEND/RECV (60200 ~) */
+	ePHILHMI_ERR_DI_CMD_PRINT_ABORT				= 60201,	// ReqSetPrintAbort 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_STATE		= 60202,	// ReqSetExposureState 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_GET_EXPOSURE_STATE		= 60203,	// ReqGetExposureState 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_XY			= 60204,	// ReqSetExposureStarXY 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_ALL_PHOTOHEADS		= 60205,	// ReqSetAllPhotoheads 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_PHOTOHEAD_UNIT		= 60206,	// ReqSetSpecPhotoHeadUnit 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_MOTION_CONTROL		= 60207,	// ReqSetMotionControl 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_MOTION_TYPE			= 60208,	// ReqSetMotionType1 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_TABLE_SETTING		= 60209,	// ReqSetTableSetting 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_TABLE_LIMIT			= 60210,	// ReqSetTablePositionLimit 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_UPDATE_PHOTOHEADS		= 60211,	// ReqSetUpdatePhotoheads 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_SYSTEM_SETTINGS		= 60212,	// ReqSetSystemSettings 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_MOVE_STAGE_X			= 60213,	// SendDevAbsMoveStageX 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_MOVE_STAGE_Y			= 60214,	// SendDevAbsMoveStageY 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_MOVE_ACAM1				= 60215,	// SendDevAbsMoveACam1 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_MOVE_ACAM2				= 60216,	// SendDevAbsMoveACamX2 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_TUNE_REF_WRITE			= 60217,	// savEng_Tune_RefSetWrite 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_GET_JOB_LIST			= 60218,	// ReqGetJobList 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SELECT_JOB_NAME			= 60219,	// ReqSelectJobName 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_LOAD_JOB				= 60220,	// ReqSelectLoadSelectJob 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_UNLOAD_SIDE			= 60221,	// ReqSetSelectUnloadSide 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_LOCAL_ZONE			= 60222,	// ReqSetSharedLocalZone 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_REGIS				= 60223,	// ReqSetRegis 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_GET_REGIS_STATUS		= 60224,	// ReqGetRegisStatus 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_MOTOR_ABS_POS		= 60225,	// ReqSetMotorAbsPositionAll 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_FACTOR		= 60226,	// ReqSetExposureFactor 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_SET_LED_AMPLITUDE		= 60227,	// ReqSetLedAmplitude 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_DEV_DEFAULT_RESET		= 60228,	// SendDevDefaultReset 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_DEV_HOMING_ALL			= 60229,	// SendDevHomingAll 명령 전송 실패
+	ePHILHMI_ERR_DI_CMD_FAULT_RESET_ALL			= 60230,	// FaultResetAll 명령 전송 실패
+
+	/* ALIGN & MARK (60300 ~) */
+	ePHILHMI_ERR_DI_ALIGN_MARK_COUNT_GLOBAL		= 60301,	// 글로벌 마크 개수 오류
+	ePHILHMI_ERR_DI_ALIGN_MARK_GET_POS_FAIL		= 60302,	// 마크 측정을 위한 이동 좌표 획득 실패
+	ePHILHMI_ERR_DI_ALIGN_MARK_LOC_INFO_FAIL	= 60303,	// 마크 위치 정보 획득 실패
+	ePHILHMI_ERR_DI_ALIGN_MARK_WIDTH_PERIOD		= 60304,	// 마크 간 너비 주기가 카메라 주기보다 작음
+	ePHILHMI_ERR_DI_ALIGN_MARK_HEIGHT_PERIOD	= 60305,	// 마크 간 높이 주기가 카메라 주기보다 작음
+	ePHILHMI_ERR_DI_ALIGN_MARK_NO_REGISTERED	= 60306,	// 카메라에 등록된 얼라인 마크 없음
+	ePHILHMI_ERR_DI_ALIGN_MARK_DIST_INVALID		= 60307,	// 측정된 마크 간 거리 유효하지 않음
+	ePHILHMI_ERR_DI_ALIGN_MARK_HV_ERROR			= 60308,	// 마크 가로/세로 거리 오차 발생
+	ePHILHMI_ERR_DI_ALIGN_MARK_ALL_INVALID		= 60309,	// 발견된 모든 마크가 유효하지 않음
+	ePHILHMI_ERR_DI_ALIGN_OFFSET_GLOBAL_FAIL	= 60310,	// 글로벌 마크 노광 오프셋 획득 실패
+	ePHILHMI_ERR_DI_ALIGN_OFFSET_LOCAL_FAIL		= 60311,	// 로컬 마크 노광 오프셋 획득 실패
+	ePHILHMI_ERR_DI_INSPECT_ALL_MARKS_FAIL		= 60312,	// 전체 마크 검사 실패
+
+	/* GERBER & RECIPE (60400 ~) */
+	ePHILHMI_ERR_DI_GERBER_GLOBAL_MARK_FAIL		= 60401,	// 선택된 거버에서 글로벌 마크 획득 실패
+	ePHILHMI_ERR_DI_GERBER_LOCAL_MARK_FAIL		= 60402,	// 선택된 거버에서 로컬 마크 획득 실패
+	ePHILHMI_ERR_DI_GERBER_FILE_NOT_EXIST		= 60403,	// 거버 파일이 존재하지 않음
+	ePHILHMI_ERR_DI_GERBER_LOAD_TIMEOUT			= 60404,	// 거버 로딩 시간 초과
+	ePHILHMI_ERR_DI_GERBER_LOAD_INCOMPLETE		= 60405,	// 거버 로딩 미완료
+	ePHILHMI_ERR_DI_GERBER_REGIST_FAIL			= 60406,	// 거버 등록 실패
+	ePHILHMI_ERR_DI_GERBER_ALREADY_REGISTERED	= 60407,	// 이미 등록된 거버 파일 존재
+	ePHILHMI_ERR_DI_RECIPE_XML_LOAD_FAIL		= 60408,	// 레시피 XML 파일 로드 실패
+	ePHILHMI_ERR_DI_RECIPE_INVALID				= 60409,	// 유효하지 않은 레시피 선택
+	ePHILHMI_ERR_DI_RECIPE_NO_THICKNESS_DATA	= 60410,	// 레시피에 자재 두께 보정 데이터 없음
+	ePHILHMI_ERR_DI_RECIPE_NO_THICKNESS_INFO	= 60011,	// 해당 레시피의 두께 보정 정보 없음
+
+	/* VISION & IMAGE (60500 ~) */
+	ePHILHMI_ERR_DI_IMAGE_GRAB_GLOBAL_FAIL		= 60501,	// 글로벌 마크 이미지 획득 실패
+	ePHILHMI_ERR_DI_IMAGE_GRAB_LOCAL_FAIL		= 60502,	// 로컬 마크 이미지 획득 실패
+	ePHILHMI_ERR_DI_MODEL_FIND_GLOBAL_FAIL		= 60503,	// 글로벌 마크 모델 찾기 실패
+	ePHILHMI_ERR_DI_MODEL_FIND_LOCAL_FAIL		= 60504,	// 로컬 마크 모델 찾기 실패
+	ePHILHMI_ERR_DI_IMAGE_CAPTURE_TIMEOUT		= 60505,	// 이미지 캡처 대기 시간 초과
+	ePHILHMI_ERR_DI_BIG_DATA_STAGE_Y_EMPTY		= 60506,	// Big Data (Stage_Y) 호출 실패
+	ePHILHMI_ERR_DI_BIG_DATA_GLOBAL_Y_EMPTY		= 60507,	// Big Data (Global_Y) 호출 실패
+	ePHILHMI_ERR_DI_BIG_DATA_LOCAL_Y_EMPTY		= 60508,	// Big Data (Local_Y) 호출 실패
+
+	/* SYSTEM & PROCESS (60600 ~) */
+	ePHILHMI_ERR_DI_WORK_STEP_ERROR				= 60601,	// Work 시퀀스 스텝 에러
+	ePHILHMI_ERR_DI_WORK_EXPO_ALIGN_STEP_ERROR	= 60602,	// 노광 얼라인 스텝 에러
+	ePHILHMI_ERR_DI_ALIGN_TWO_STEP_ERROR		= 60603,	// Align Two 시퀀스 스텝 에러
+	ePHILHMI_ERR_DI_WORKING_STEP_TIMEOUT		= 60604,	// 작업 스텝 시간 초과 (타임아웃)
+	ePHILHMI_ERR_DI_STEP_REPETITION_EXCEEDED	= 60605,	// 동일 스텝 반복 횟수 초과
+	ePHILHMI_ERR_DI_EXPOSURE_START_POS_ERR		= 60606,	// 노광 시작 위치 부정확
+	ePHILHMI_ERR_DI_SERVICE_SYSTEM_ERROR		= 60607,	// 서비스 시스템 에러 (Code 포함)
+	ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR		= 60608,	// 자재 두께 허용 오차 범위 초과
+	ePHILHMI_ERR_DI_PREFIT_JOB_RUN_FAIL			= 60609,	// Pre-fit 작업 실행 실패
+	ePHILHMI_ERR_DI_EXPOSURE_OP_ERROR			= 60610,	// 노광 동작 중 문제 발생
+	ePHILHMI_ERR_DI_MOTOR_OPTIC_PIC_ERROR		= 60611,	// 모터/광학부/PIC 하드웨어 에러
+	ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS		= 60612,	// 알 수 없는 등록 상태 코드
+	ePHILHMI_ERR_DI_HEAD_OFFSET_NOT_FOUND		= 60613,	// 헤드 오프셋 데이터 없음
+
 };
 
 typedef enum class __en_philhmi_memory_address_array__ : UINT8

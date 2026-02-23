@@ -108,6 +108,11 @@ public:
 
 	BOOL IsBusy() { return m_bMainBusy; }
 	
+	CMainThread* GetMainthreadPtr()
+	{
+		return m_pMainThread;
+	}
+
 /* 가상 함수 */
 protected:
 
@@ -138,10 +143,7 @@ protected:
 
 	CMainThread			*m_pMainThread;
 	BOOL				m_bMainBusy;
-	CMainThread* GetMainthreadPtr() 
-	{
-		return m_pMainThread;
-	}
+	
 
 	
 	/* Logo Images 출력 */

@@ -497,7 +497,7 @@ BOOL CFlushErrorMgr::Measurement(HWND hHwnd,int count, CDlgMain* dlgMain)
 							return false;
 
 						UINT8 u8Offset = 0xff;
-						dlgMain->GetMainthreadPtr()->RunWorkJob(ENG_BWOK::en_gerb_load, (PUINT64)(&u8Offset));
+						//dlgMain->GetMainthreadPtr()->RunWorkJob(ENG_BWOK::en_gerb_load, (PUINT64)(&u8Offset));
 						Sleep(500);
 					}
 					else

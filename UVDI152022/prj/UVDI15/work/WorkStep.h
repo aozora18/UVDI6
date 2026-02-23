@@ -51,6 +51,8 @@ protected:
 
 	ENG_MMDI			m_enDrvACamID;			/* 현재 선택된 Motion Drive 중 Align Camera ID */
 	ENG_MMDI			m_enVectMoveDrv;		/* 가장 최근에 Vector로 스테이지 이동한 기준 축 */
+
+	DOUBLE				m_dexpo_energy;
 	__en_phiihmi_error_code__ reportError = ePHILHMI_ERR_OK; //<- 20260220 신규추가
 
 /* 로컬 함수 */
@@ -202,6 +204,7 @@ protected:
 
 	ENG_JWNS			ResetErrorMC2();			/* Reset the MC2 */
 	ENG_JWNS			CameraSetCamMode(ENG_VCCM mode);
+	ENG_JWNS			SetFEMPanelData();
 
 	public:
 		

@@ -355,8 +355,12 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 
 	
 
-
-	if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0) //선택이 다른경우.
+	if (selJob == nullptr)
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed");
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	}
+	else if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0) //선택이 다른경우.
 	{
 
 		wchar_t seljob[128] = { 0 };

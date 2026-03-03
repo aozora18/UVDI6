@@ -42,6 +42,11 @@ API_EXPORT UINT32 uvEng_JobRecipe_GetCount()
 	return g_pRecipe->GetJobRecipeCount();
 }
 
+API_EXPORT VOID uvEng_JobRecipe_ZeroSelectRecipe()
+{
+	if (g_pRecipe == nullptr) return;
+	g_pRecipe->ResetSelectJobRecipe();
+}
 /*
  desc : 현재 선택된 Job 레시피 기본 반환
  parm : None

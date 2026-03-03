@@ -2479,8 +2479,12 @@ VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 	BOOL bLoaded = uvCmn_Luria_IsJobNameLoaded();
 	/*레시피에 마크 등록 유무*/
 	BOOL bMarked = uvEng_Luria_IsMarkGlobal();
-
-	if (strcmp(selJob->job_name, m_stExpoLog.recipe_name) != 0)
+	if (selJob == nullptr)
+	{
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed");
+		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
+	}
+	else if (strcmp(selJob->job_name, m_stExpoLog.recipe_name) != 0)
 	{
 		LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;

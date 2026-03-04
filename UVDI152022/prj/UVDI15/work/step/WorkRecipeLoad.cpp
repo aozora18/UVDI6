@@ -418,6 +418,27 @@ ENG_JWNS CWorkRecipeLoad::SetMarkRecipe()
 	else
 		uvEng_Camera_SetMultiMarkArea(pstAlignRecipe->mark_area[0], pstAlignRecipe->mark_area[1]);
 
+
+	if (pstAlignRecipe == nullptr)
+	{
+		//ShowMsg(eWARN, L"Failed to select the recipe for mark", 0x01);
+		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to select the recipe for mark");
+		return ENG_JWNS::en_error;;
+	}
+	else
+	{
+		for (int i = 0; i < uvEng_GetConfig()->set_cams.acam_count; i++)
+		{
+			for (int j = 0; j < 2; j++)
+			{ // global, local 2°³
+				uvCmn_Camera_SetMarkFindMode(i + 1, pstAlignRecipe->mark_type, j);
+			}
+		}
+
+		uvEng_Camera_SetMarkMethod(ENG_MMSM(pstAlignRecipe->search_type), pstAlignRecipe->search_count);
+	}
+
+
 	const int GLOBAL_MARK_NAME_INDEX = 0;
 	for (int index = 0; index < 2; index++)
 	{

@@ -1432,7 +1432,7 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
-		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
+		swprintf_s(tzMesg, 128, L"Work Expo Align(Static) <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 

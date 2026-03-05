@@ -148,7 +148,7 @@ VOID CWorkInited::SetWorkNext()
 		PhilInitComp(0x00);
 
 		TCHAR tzMesg[128] = { NULL };
-		swprintf_s(tzMesg, 128, L"Work <Error Step It = 0x%02x>", m_u8StepIt);
+		swprintf_s(tzMesg, 128, L"Work inited <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 		m_u8StepIt = 0x00;

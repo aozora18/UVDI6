@@ -342,7 +342,7 @@ VOID CWorkRecipeLoad::SetWorkNext()
 		PhilRecipeLoadComp(0x00);
 
 		TCHAR tzMesg[128] = { NULL };
-		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
+		swprintf_s(tzMesg, 128, L"Work Reicp Load <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
 
 		//m_enWorkState = ENG_JWNS::en_comp;
@@ -904,27 +904,34 @@ ENG_JWNS CWorkRecipeLoad::SetLampJobParam()
 */
 VOID CWorkRecipeLoad::PhilRecipeLoadComp(UINT8 state)
 {
-	STG_PP_P2C_EVENT_NOTIFY			stP2CEventNotify;
-	STG_PP_P2C_EVENT_NOTIFY_ACK		stEventNotifyAck;
 
-	stP2CEventNotify.Reset();
-	stEventNotifyAck.Reset();
-
+	/*Reicpd Load가 실패시 PhilHMI에 알람 메시지 전송*/
 	if (state == 0x00)
 	{
-		stEventNotifyAck.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
-		stP2CEventNotify.bEventFlag = FALSE;
+		STG_PP_P2C_ALARM_OCCUR			stP2CAlarmOccur;
+		STG_PP_P2C_ALARM_OCCUR_ACK		stAlarmOccurAck;
+
+		stP2CAlarmOccur.Reset();
+		stAlarmOccurAck.Reset();
+
+		stP2CAlarmOccur.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
+
+		uvEng_Philhmi_Send_P2C_ALARM_OCCUR(stP2CAlarmOccur, stAlarmOccurAck);
+
 	}
+	/*Reicpe Load 성공시 PhilHMI에 이벤트 메시지 전송*/
 	else
 	{
+		STG_PP_P2C_EVENT_NOTIFY			stP2CEventNotify;
+		STG_PP_P2C_EVENT_NOTIFY_ACK		stEventNotifyAck;
+
+		stP2CEventNotify.Reset();
+		stEventNotifyAck.Reset();
+
 		stP2CEventNotify.bEventFlag = TRUE;
+		sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_EVENT_NAME_LENGTH, "RECIPE_COMP");
+		uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
 	}
-
-
-	sprintf_s(stP2CEventNotify.szEventName, DEF_MAX_EVENT_NAME_LENGTH, "RECIPE_COMP");
-	uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(stP2CEventNotify, stEventNotifyAck);
-
-
 }
 
 /*

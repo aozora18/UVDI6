@@ -43,6 +43,7 @@ CPhilhmiLib::CPhilhmiLib()
 	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_EC_MODIFY);
 	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_INITIAL_COMPLETE);
 	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_ALARM_OCCUR);
+	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_LIGHT_ALARM_NOTIFY);			//Ver1.15.0 버젼 추가
 	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_EVENT_NOTIFY);
 	m_vReplyMsg.push_back((int)ENG_PHPC::ePHILHMI_P2C_INTERRUPT_STOP);
 
@@ -1461,6 +1462,60 @@ int CPhilhmiLib::Send_P2C_ALARM_OCCUR(STG_PP_P2C_ALARM_OCCUR& stSend, STG_PP_P2C
 	return ePHILHMI_ERR_ACK_TIMEOUT;
 }
 
+int CPhilhmiLib::Send_P2C_LIGHT_ALARM_NOTIFY(STG_PP_P2C_LIGHT_ALARM_NOTIFY& stSend, STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK& stRecv, int nTimeout)
+{
+	if (false == g_pstConfig->set_comn.run_emulate_mode)
+	{
+		if (IsConnect() == FALSE)
+		{
+			return ePHILHMI_ERR_DISCONNECT;
+		}
+	}
+
+	stSend.ulUniqueID = GetUniqueID();
+	STG_PP_PACKET_SEND stUnionSend;
+	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
+	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
+	{
+		if (g_pstConfig->set_comn.run_emulate_mode && IsConnect() == FALSE)
+		{
+			memcpy(&m_stRecvData, &stSend, sizeof(STG_PPH));
+			m_stRecvData.st_header.usErrorCode = ePHILHMI_ERR_OK;
+		}
+
+		if (0 < nTimeout)
+		{
+			stRecv.usErrorCode = ePHILHMI_ERR_NOT_EXIST_RECVDATA;
+			m_syncResult.Enter();
+			for (auto datapos = m_lResultStruct.begin(); datapos != m_lResultStruct.end(); datapos++)
+			{
+				if (datapos->st_header.nCommand == stSend.nCommand && datapos->st_header.ulUniqueID == stSend.ulUniqueID)
+				{
+					memcpy(&stRecv, &(*datapos), sizeof(stRecv));
+					m_lResultStruct.erase(datapos);
+					break;
+				}
+			}
+			m_syncResult.Leave();
+
+			// Error Code
+			if (stRecv.usErrorCode != ePHILHMI_ERR_OK)
+			{
+				return stRecv.usErrorCode;
+			}
+
+			if (stSend.ulUniqueID != stRecv.ulUniqueID)
+			{
+				return ePHILHMI_ERR_PKT_UNIQUEID_MISSMATCH;
+			}
+		}
+
+		return ePHILHMI_ERR_OK;
+	}
+
+	return ePHILHMI_ERR_ACK_TIMEOUT;
+}
+
 int CPhilhmiLib::Send_P2C_EVENT_NOTIFY(STG_PP_P2C_EVENT_NOTIFY& stSend, STG_PP_P2C_EVENT_NOTIFY_ACK& stRecv, int nTimeout /*= 3000*/)
 {
 	if (false == g_pstConfig->set_comn.run_emulate_mode)
@@ -1910,6 +1965,25 @@ int CPhilhmiLib::Send_C2P_MODE_CHANGE_ACK(STG_PP_C2P_MODE_CHANGE_ACK& stSend, in
 }
 
 int CPhilhmiLib::Send_C2P_EVENT_NOTIFY_ACK(STG_PP_C2P_EVENT_NOTIFY_ACK& stSend, int nTimeout /*= 3000*/)
+{
+	if (false == g_pstConfig->set_comn.run_emulate_mode)
+	{
+		if (IsConnect() == FALSE)
+		{
+			return ePHILHMI_ERR_DISCONNECT;
+		}
+	}
+
+	STG_PP_PACKET_SEND stUnionSend;
+	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
+	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
+	{
+		return ePHILHMI_ERR_OK;
+	}
+
+	return ePHILHMI_ERR_PKT_BUFFER_FULL;
+}
+int CPhilhmiLib::Send_C2P_ALARM_STATUS_ACK(STG_PP_C2P_ALARM_STATUS_ACK& stSend, int nTimeout  /*= 3000*/)
 {
 	if (false == g_pstConfig->set_comn.run_emulate_mode)
 	{

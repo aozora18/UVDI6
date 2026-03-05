@@ -1190,6 +1190,7 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 				//CDlgMesg dlgMesg;
 				//if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
 				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
+				SendPhilLightAlarmNotify(ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR);
 
 				/*소재 측정 에러 발생 확인*/
 				GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_lds_thick_check;

@@ -222,6 +222,7 @@ public:
 	VOID				PhilSendChageMode(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendInitialExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy);
 	VOID				PhilSendSubProcessExecute(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendAlarmStatus(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendEventNotify(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendTimeSync(STG_PP_PACKET_RECV* stRecv);

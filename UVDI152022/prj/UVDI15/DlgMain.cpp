@@ -2580,6 +2580,19 @@ VOID CDlgMain::PhilSendSubProcessExecute(STG_PP_PACKET_RECV* stRecv)
 	uvEng_Philhmi_Send_C2P_SUBPROCESS_EXECUTE_ACK(stSubProcessExecute);
 }
 
+VOID CDlgMain::PhilSendAlarmStatus(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_ALARM_STATUS_ACK		stAlarmStatus;
+	stAlarmStatus.Reset();
+	stAlarmStatus.ulUniqueID = stRecv->st_c2p_alarm_status.ulUniqueID;
+
+	stAlarmStatus.usAlarmCode = ePHILHMI_ERR_OK;
+	stAlarmStatus.bAlarmFlag = 0;
+
+
+	uvEng_Philhmi_Send_C2P_ALARM_STATUS_ACK(stAlarmStatus);
+}
+
 VOID CDlgMain::PhilSendEventStatus(STG_PP_PACKET_RECV* stRecv)
 {
 	STG_PP_C2P_EVENT_STATUS_ACK		stEventStatus;

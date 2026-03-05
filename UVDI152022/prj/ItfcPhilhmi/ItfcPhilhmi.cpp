@@ -251,6 +251,12 @@ extern "C" {
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_P2C_INITIAL_COMPLETE(stSend, stRecv, nTimeout);
 	}
 
+	//Ver1.15.0 버젼 추가
+	API_EXPORT BOOL uvPhilhmi_Send_P2C_LIGHT_ALARM_NOTIFY(STG_PP_P2C_LIGHT_ALARM_NOTIFY& stSend, STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK& stRecv, int nTimeout)
+	{
+		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_P2C_LIGHT_ALARM_NOTIFY(stSend, stRecv, nTimeout);
+	}
+
 	API_EXPORT BOOL uvPhilhmi_Send_P2C_ALARM_OCCUR(STG_PP_P2C_ALARM_OCCUR& stSend, STG_PP_P2C_ALARM_OCCUR_ACK& stRecv, int nTimeout)
 	{
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_P2C_ALARM_OCCUR(stSend, stRecv, nTimeout);
@@ -343,6 +349,12 @@ extern "C" {
 	API_EXPORT BOOL uvPhilhmi_Send_C2P_MODE_CHANGE_ACK(STG_PP_C2P_MODE_CHANGE_ACK& stSend)
 	{
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_MODE_CHANGE_ACK(stSend);
+	}
+
+	//Ver1.15.0 버젼 추가
+	API_EXPORT BOOL uvPhilhmi_Send_C2P_ALARM_STATUS_ACK(STG_PP_C2P_ALARM_STATUS_ACK& stSend)
+	{
+		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_ALARM_STATUS_ACK(stSend);
 	}
 
 	API_EXPORT BOOL uvPhilhmi_Send_C2P_EVENT_NOTIFY_ACK(STG_PP_C2P_EVENT_NOTIFY_ACK& stSend)

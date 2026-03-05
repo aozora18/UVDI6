@@ -158,6 +158,12 @@ extern "C"
 		return uvPhilhmi_Send_P2C_ALARM_OCCUR(stSend, stRecv, nTimeout);
 	}
 
+	//Ver1.15.0 버젼 추가
+	API_EXPORT BOOL uEng_Philhmi_Send_P2C_LIGHT_ALARM_STATUS(STG_PP_P2C_LIGHT_ALARM_NOTIFY& stSend, STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK& stRecv, int nTimeout)
+	{
+		return uvPhilhmi_Send_P2C_LIGHT_ALARM_NOTIFY(stSend, stRecv, nTimeout);
+	}
+
 	API_EXPORT BOOL uvEng_Philhmi_Send_P2C_EVENT_NOTIFY(STG_PP_P2C_EVENT_NOTIFY& stSend, STG_PP_P2C_EVENT_NOTIFY_ACK& stRecv, int nTimeout)
 	{
 		return uvPhilhmi_Send_P2C_EVENT_NOTIFY(stSend, stRecv, nTimeout);
@@ -249,6 +255,12 @@ extern "C"
 	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_MODE_CHANGE_ACK(STG_PP_C2P_MODE_CHANGE_ACK& stSend)
 	{
 		return uvPhilhmi_Send_C2P_MODE_CHANGE_ACK(stSend);
+	}
+
+	//Ver1.15.0 버젼 추가
+	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_ALARM_STATUS_ACK(STG_PP_C2P_ALARM_STATUS_ACK& stSend)
+	{
+		return uvPhilhmi_Send_C2P_ALARM_STATUS_ACK(stSend);
 	}
 
 	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_EVENT_STATUS_ACK(STG_PP_C2P_EVENT_STATUS_ACK& stSend)

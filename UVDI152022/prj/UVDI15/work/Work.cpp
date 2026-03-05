@@ -1637,3 +1637,24 @@ BOOL CWork::GetGlobalMarkMoveXY(UINT16 mark_no, DOUBLE &acam_x, DOUBLE &stage_y)
 
 	return TRUE;
 }
+
+
+/*
+ desc : 동작 시나리오 진행중 발생하는 에러 메시지에 해당되는 알람 코드를 PhilHMI에 LigntAlarm 형식으로 보내기
+		(일반 Alarm 발생시 장비 정지가 되기 때문에 정지에 해당되지 않은 Alarm에 대한 이력을 Host에 보고 하기 위해 )
+ parm : alarm_code	- [unsigned shrot] 알람 코드 
+ retn : 
+*/
+VOID CWork::SendPhilLightAlarmNotify(unsigned short alarm_code)
+{
+	STG_PP_P2C_LIGHT_ALARM_NOTIFY			stP2CLightAlarmNotify;
+	STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK		stLightAlarmNotifyAck;
+
+	stP2CLightAlarmNotify.Reset();
+	stLightAlarmNotifyAck.Reset();
+
+	stP2CLightAlarmNotify.usAlarmCode = alarm_code;
+	stP2CLightAlarmNotify.bAlarmFlag = 0;
+
+	uEng_Philhmi_Send_P2C_LIGHT_ALARM_STATUS(stP2CLightAlarmNotify, stLightAlarmNotifyAck);
+}

@@ -59,6 +59,7 @@ ePHILHMI_C2P_RECIPE_CREATE			= 101,
 	ePHILHMI_C2P_STATUS_VALUE			= 702,
 	ePHILHMI_C2P_MODE_CHANGE			= 703,
 	ePHILHMI_C2P_INITIAL_EXECUTE		= 704,
+	ePHILHMI_C2P_ALARM_STATUS			= 705,
 	ePHILHMI_C2P_EVENT_STATUS			= 710,
 	ePHILHMI_C2P_EVENT_NOTIFY			= 711,	
 	ePHILHMI_C2P_TIME_SYNC				= 712,	
@@ -81,6 +82,7 @@ ePHILHMI_C2P_RECIPE_CREATE			= 101,
 	ePHILHMI_P2C_EC_MODIFY				= 801,
 	ePHILHMI_P2C_INITIAL_COMPLETE		= 802,	
 	ePHILHMI_P2C_ALARM_OCCUR			= 803,	
+	ePHILHMI_P2C_LIGHT_ALARM_NOTIFY		= 804,
 	ePHILHMI_P2C_EVENT_STATUS			= 810,
 	ePHILHMI_P2C_EVENT_NOTIFY			= 811,	
 	ePHILHMI_P2C_INTERRUPT_STOP			= 992,	
@@ -1333,6 +1335,42 @@ typedef struct __st_phil_packet_c2p_c2p_initial_execute_ack__ : public __st_phil
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
+/// ALARM_STATUS (Ver1.15.0 버젼 추가)
+typedef struct __st_phil_packet_c2p_alarm_status__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_ALARM_STATUS;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+
+		usAlarmCode = ePHILHMI_ERR_OK;
+	}
+
+	 unsigned short usAlarmCode;             		
+
+}	STG_PP_C2P_ALARM_STATUS, * LPG_PP_C2P_ALARM_STATUS;
+
+typedef struct __st_phil_packet_c2p_alarm_status_ack__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_ALARM_STATUS;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+
+		usAlarmCode = ePHILHMI_ERR_OK;
+	}
+
+	unsigned short usAlarmCode;
+	bool bAlarmFlag;										 
+
+}	STG_PP_C2P_ALARM_STATUS_ACK, * LPG_PP_C2P_ALARM_STATUS_ACK;
+///////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
 /// EVENT_STATUS
 typedef struct __st_phil_packet_c2p_event_status__ : public __st_phil_packet_header__
 {
@@ -1660,6 +1698,36 @@ typedef struct __st_phil_packet_p2c_alarm_occur_ack__ : public __st_phil_packet_
 }	STG_PP_P2C_ALARM_OCCUR_ACK, * LPG_PP_P2C_ALARM_OCCUR_ACK;
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+/// LIGHT ALARM NOTIFY	(Ver1.15.0 버젼 추가)
+typedef struct __st_phil_packet_p2c_light_alarm_notify__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_LIGHT_ALARM_NOTIFY;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+
+	unsigned short	usAlarmCode;
+	bool			bAlarmFlag;
+
+}	STG_PP_P2C_LIGHT_ALARM_NOTIFY, * LPG_PP_P2C_LIGHT_ALARM_NOTIFY;
+
+typedef struct __st_phil_packet_p2c_light_alarm_notify_ack__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_P2C_LIGHT_ALARM_NOTIFY;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+
+}	STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK, * LPG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK;
+//////////////////////////////////////////////////////////////////////////
+
 // PHILHMI INTERFACE PROTOCOL
 // CONTROL TO PROCESS		PROCESS TO CONTROL
 // ENUM	COMMAND	ENUM	COMMAND
@@ -1706,6 +1774,7 @@ typedef union
 	STG_PP_P2C_EC_MODIFY				st_p2c_ec_modify;
 	STG_PP_P2C_INITIAL_COMPLETE			st_p2c_init_comp;
 	STG_PP_P2C_ALARM_OCCUR				st_p2c_alarm_occur;
+	STG_PP_P2C_LIGHT_ALARM_NOTIFY		st_p2c_light_alarm_notify;			//Ver1.15.0 버젼 추가
 	STG_PP_P2C_EVENT_NOTIFY				st_p2c_event_notify;
 	STG_PP_P2C_INTERRUPT_STOP			st_p2c_interrupt_stop;
 
@@ -1726,6 +1795,7 @@ typedef union
 	STG_PP_C2P_STATUS_VALUE_ACK			st_c2p_ack_status_value;
 	STG_PP_C2P_MODE_CHANGE_ACK			st_c2p_ack_mode_change;
 	STG_PP_C2P_INITIAL_EXECUTE			st_c2p_ack_initial_execute;
+	LPG_PP_C2P_ALARM_STATUS_ACK			st_c2p_ack_alarm_state;			//Ver1.15.0 버젼 추가
 	STG_PP_C2P_EVENT_NOTIFY_ACK			st_c2p_ack_event_notify;
 	STG_PP_C2P_TIME_SYNC_ACK			st_c2p_ack_time_sync;
 	STG_PP_C2P_INTERRUPT_STOP_ACK		st_c2p_ack_interrupt_stop;
@@ -1755,6 +1825,7 @@ typedef union
 	STG_PP_P2C_EC_MODIFY_ACK			st_p2c_ack_ec_modify;
 	STG_PP_P2C_INITIAL_COMPLETE_ACK		st_p2c_ack_init_comp;
 	STG_PP_P2C_ALARM_OCCUR_ACK			st_p2c_ack_alarm_occur;
+	STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK	st_p2c_ack_light_alarm_notify;	//Ver1.15.0 버젼 추가
 	STG_PP_P2C_EVENT_NOTIFY_ACK			st_p2c_ack_event_notify;
 	STG_PP_P2C_INTERRUPT_STOP_ACK		st_p2c_ack_interrupt_stop;
 
@@ -1771,6 +1842,7 @@ typedef union
 	STG_PP_C2P_CHAR_MOVE				st_c2p_char_move;
 	STG_PP_C2P_CHAR_MOVE_COMP			st_c2p_char_move_comp;
 	STG_PP_C2P_INITIAL_EXECUTE			st_c2p_initial_execute;
+	STG_PP_C2P_ALARM_STATUS				st_c2p_alarm_status;			//Ver1.15.0 버젼 추가
 	STG_PP_C2P_PROCESS_EXECUTE			st_c2p_process_execute;
 	STG_PP_C2P_SUBPROCESS_EXECUTE		st_c2p_subprocess_execute;
 	STG_PP_C2P_STATUS_VALUE				st_c2p_status_value;

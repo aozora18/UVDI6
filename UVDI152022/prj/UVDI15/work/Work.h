@@ -152,7 +152,7 @@ protected:
 	BOOL				GetGlobalMarkMoveXY(UINT16 mark_no, DOUBLE &acam_x, DOUBLE &stage_y);
 
 	BOOL				IsTrigPosResetAll();
-
+	VOID				SendPhilLightAlarmNotify(unsigned short alarm_code);
 
 /* 공용 함수 */
 public:

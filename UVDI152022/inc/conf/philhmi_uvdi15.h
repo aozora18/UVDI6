@@ -239,6 +239,7 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_DI_MOTOR_OPTIC_PIC_ERROR		= 60611,	// 모터/광학부/PIC 하드웨어 에러
 	ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS		= 60612,	// 알 수 없는 등록 상태 코드
 	ePHILHMI_ERR_DI_HEAD_OFFSET_NOT_FOUND		= 60613,	// 헤드 오프셋 데이터 없음
+	ePHILHMI_ERR_DI_RECIPE_LOAD_FAILED_WRONG_PARAMETER	= 60614,	// 레시피 로딩실패, 사유는 적용할수없는 파라메터값
 
 };
 

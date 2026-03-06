@@ -340,7 +340,8 @@ VOID CWorkRecipeLoad::SetWorkNext()
 	{
 		/*Philhmi에 Load 실패 신호 보내기*/
 		PhilRecipeLoadComp(0x00);
-
+		/*레시피 로드 실패시 레시피 초기화*/
+		uvEng_JobRecipe_ZeroSelectRecipe();
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work Reicp Load <Error Step It = 0x%02x>", m_u8StepIt);
 		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);

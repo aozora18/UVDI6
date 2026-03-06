@@ -915,7 +915,9 @@ VOID CWorkRecipeLoad::PhilRecipeLoadComp(UINT8 state)
 		stP2CAlarmOccur.Reset();
 		stAlarmOccurAck.Reset();
 
-		stP2CAlarmOccur.usErrorCode = ePHILHMI_ERR_RECIPE_LOAD;
+		/*레시피 로드 실패 알람*/
+		stP2CAlarmOccur.usAlarmCode = ePHILHMI_ERR_RECIPE_LOAD;
+		stP2CAlarmOccur.bAlarmFlag = TRUE;
 
 		uvEng_Philhmi_Send_P2C_ALARM_OCCUR(stP2CAlarmOccur, stAlarmOccurAck);
 

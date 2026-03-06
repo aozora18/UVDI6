@@ -1682,7 +1682,13 @@ typedef struct __st_phil_packet_p2c_alarm_occur__ : public __st_phil_packet_head
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
+
+		usAlarmCode = ePHILHMI_ERR_OK;
+		bAlarmFlag = 0;
 	}
+
+	unsigned short	usAlarmCode;
+	bool			bAlarmFlag;
 
 }	STG_PP_P2C_ALARM_OCCUR, * LPG_PP_P2C_ALARM_OCCUR;
 
@@ -1709,6 +1715,9 @@ typedef struct __st_phil_packet_p2c_light_alarm_notify__ : public __st_phil_pack
 		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
 		ulUniqueID = 0;
 		usErrorCode = ePHILHMI_ERR_OK;
+
+		usAlarmCode = ePHILHMI_ERR_OK;
+		bAlarmFlag = 0;
 	}
 
 	unsigned short	usAlarmCode;

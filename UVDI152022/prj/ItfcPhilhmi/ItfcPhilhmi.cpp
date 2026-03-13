@@ -382,6 +382,40 @@ extern "C" {
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_INTERRUPT_STOP_ACK(stSend);
 	}
 
+	API_EXPORT BOOL uvPhilhmi_Send_Log_Alarm_PhilSend(unsigned char Ecode)
+	{
+		
+		/* Ecode 600000는 경 알람은 Light Alarm State*/
+		if (Ecode < 70000)
+		{
+			STG_PP_P2C_LIGHT_ALARM_NOTIFY			stP2CLightAlarmNotify;
+			STG_PP_P2C_LIGHT_ALARM_NOTIFY_ACK		stLightAlarmNotifyAck;
+
+			stP2CLightAlarmNotify.Reset();
+			stLightAlarmNotifyAck.Reset();
+
+			stP2CLightAlarmNotify.usAlarmCode = Ecode;
+			stP2CLightAlarmNotify.bAlarmFlag = TRUE;
+
+			return ePHILHMI_ERR_OK == g_pPhilhmi->Send_P2C_LIGHT_ALARM_NOTIFY(stP2CLightAlarmNotify, stLightAlarmNotifyAck);
+		}
+		/*Ecode 700000는 중 알람은 Alarm Occur*/
+		else
+		{
+			STG_PP_P2C_ALARM_OCCUR			stP2CAlarmOccur;
+			STG_PP_P2C_ALARM_OCCUR_ACK		stAlarmOccurAck;
+
+			stP2CAlarmOccur.Reset();
+			stAlarmOccurAck.Reset();
+
+
+			stP2CAlarmOccur.usAlarmCode = Ecode;
+			stP2CAlarmOccur.bAlarmFlag = TRUE;
+
+			return ePHILHMI_ERR_OK == g_pPhilhmi->Send_P2C_ALARM_OCCUR(stP2CAlarmOccur, stAlarmOccurAck);
+		}
+	}
+
 #ifdef __cplusplus
 }
 #endif

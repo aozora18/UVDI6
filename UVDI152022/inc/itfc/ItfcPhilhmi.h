@@ -69,6 +69,7 @@ extern "C"
 	API_IMPORT BOOL uvPhilhmi_Send_C2P_EVENT_NOTIFY_ACK(STG_PP_C2P_EVENT_NOTIFY_ACK& stSend);
 	API_IMPORT BOOL uvPhilhmi_Send_C2P_TIME_SYNC_ACK(STG_PP_C2P_TIME_SYNC_ACK& stSend);
 	API_IMPORT BOOL uvPhilhmi_Send_C2P_INTERRUPT_STOP_ACK(STG_PP_C2P_INTERRUPT_STOP_ACK& stSend);
+	API_IMPORT BOOL uvPhilhmi_Send_Log_Alarm_PhilSend(unsigned char Ecode);
 
 #ifdef __cplusplus
 }

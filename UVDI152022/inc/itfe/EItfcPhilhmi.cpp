@@ -283,6 +283,11 @@ extern "C"
 		return uvPhilhmi_Send_C2P_INTERRUPT_STOP_ACK(stSend);
 	}
 
+	API_EXPORT BOOL uvEng_Philhmi_Send_Log_Alarm_PhilSend(unsigned char Ecode)
+	{
+		return uvPhilhmi_Send_Log_Alarm_PhilSend(Ecode);
+	}
+
 
 #ifdef __cplusplus
 }

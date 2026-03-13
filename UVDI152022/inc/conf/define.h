@@ -239,7 +239,7 @@
 #define LOG_ERROR_REPORT(apps, mesg, Ecode)	\
 	do {	\
 		uvLogs_SaveLogs(ENG_EDIC(apps), ENG_LNWE::en_error, mesg, WFILE, WFUNC, WLINE);	\
-		uvPhilhmi_Send_Log_Alarm_PhilSend(unsigned char Ecode); \
+		uvEng_Philhmi_Send_Log_Alarm_PhilSend(Ecode); \
 	} while (0)
 
 #define LOG_ERROR(apps, mesg)	\

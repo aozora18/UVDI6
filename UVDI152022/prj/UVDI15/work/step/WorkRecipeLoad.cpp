@@ -344,8 +344,8 @@ VOID CWorkRecipeLoad::SetWorkNext()
 		uvEng_JobRecipe_ZeroSelectRecipe();
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work Reicp Load <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_WORK_STEP_ERROR);
 		//m_enWorkState = ENG_JWNS::en_comp;
 		m_u8StepIt = 0x00;
 	}
@@ -393,7 +393,8 @@ ENG_JWNS CWorkRecipeLoad::IsRecvJobLists()
 		/* Luria HW Inited 날림. (그냥 무조건 날림) */
 		if (!uvEng_Luria_ReqSetHWInit())
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (uvEng_Luria_ReqSetHWInit)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (uvEng_Luria_ReqSetHWInit)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (uvEng_Luria_ReqSetHWInit)", ePHILHMI_ERR_DI_CMD_TUNE_REF_WRITE);
 			return ENG_JWNS::en_next;
 		}
 		/* 기존 등록된 거버 목록 삭제할 필요 없음 */

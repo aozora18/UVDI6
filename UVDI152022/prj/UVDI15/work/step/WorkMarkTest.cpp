@@ -883,7 +883,8 @@ VOID CWorkMarkTest::SetWorkNextOnthefly2cam()
 	{
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Align Test <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_ALIGN_TWO_STEP_ERROR);
 
 		SaveExpoResult(0x00);
 		

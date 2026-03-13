@@ -809,7 +809,8 @@ void CWorkExpoAlign::SetWorkNextOnthefly2cam()
 
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work Expo Align <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_WORK_EXPO_ALIGN_STEP_ERROR);
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		//m_enWorkState = ENG_JWNS::en_comp;
@@ -1433,8 +1434,8 @@ void CWorkExpoAlign::SetWorkNextStaticCam()
 	if (ENG_JWNS::en_error == m_enWorkState)
 	{
 		swprintf_s(tzMesg, 128, L"Work Expo Align(Static) <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_WORK_EXPO_ALIGN_STEP_ERROR);
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15)
 		SaveExpoResult(0x00);

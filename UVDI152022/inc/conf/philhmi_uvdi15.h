@@ -179,13 +179,13 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_DI_ALIGN_TWO_STEP_ERROR		= 60603,	// Align Two 시퀀스 스텝 에러
 	ePHILHMI_ERR_DI_WORKING_STEP_TIMEOUT		= 60604,	// 작업 스텝 시간 초과 (타임아웃)
 	ePHILHMI_ERR_DI_STEP_REPETITION_EXCEEDED	= 60605,	// 동일 스텝 반복 횟수 초과
-	ePHILHMI_ERR_DI_EXPOSURE_START_POS_ERR		= 60606,	// 노광 시작 위치 부정확
-	ePHILHMI_ERR_DI_SERVICE_SYSTEM_ERROR		= 60607,	// 서비스 시스템 에러 (Code 포함)
-	ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR		= 60608,	// 자재 두께 허용 오차 범위 초과
-	ePHILHMI_ERR_DI_PREFIT_JOB_RUN_FAIL			= 60609,	// Pre-fit 작업 실행 실패
-	ePHILHMI_ERR_DI_EXPOSURE_OP_ERROR			= 60610,	// 노광 동작 중 문제 발생
-	ePHILHMI_ERR_DI_MOTOR_OPTIC_PIC_ERROR		= 60611,	// 모터/광학부/PIC 하드웨어 에러
-	ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS		= 60612,	// 알 수 없는 등록 상태 코드
+	ePHILHMI_ERR_DI_PREFIT_JOB_RUN_FAIL			= 60606,	// Pre-fit 작업 실행 실패
+	ePHILHMI_ERR_DI_EXPOSURE_OP_ERROR			= 60607,	// 노광 동작 중 문제 발생
+	ePHILHMI_ERR_DI_MOTOR_OPTIC_PIC_ERROR		= 60608,	// 모터/광학부/PIC 하드웨어 에러
+	ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS		= 60609,	// 알 수 없는 등록 상태 코드
+	ePHILHMI_ERR_DI_EXPOSURE_START_POS_ERR		= 60610,	// 노광 시작 위치 부정확
+	ePHILHMI_ERR_DI_SERVICE_SYSTEM_ERROR		= 60611,	// 서비스 시스템 에러 (Code 포함)
+	ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR		= 60612,	// 자재 두께 허용 오차 범위 초과
 	ePHILHMI_ERR_DI_HEAD_OFFSET_NOT_FOUND		= 60613,	// 헤드 오프셋 데이터 없음
 	
 

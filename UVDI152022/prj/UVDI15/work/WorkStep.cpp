@@ -108,7 +108,8 @@ ENG_JWNS CWorkStep::IsStepRepeatTimeout(UINT8 back_step, UINT64 time_delay, UINT
 		/* 최대 응답 대기 시간까지 응답이 없으면, 결국 Timeout이 발생됨*/
 		if (m_u8RetryCount++ >= retry_cnt)
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of repetitions of the same step has exceeded");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of repetitions of the same step has exceeded");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The number of repetitions of the same step has exceeded", ePHILHMI_ERR_DI_STEP_REPETITION_EXCEEDED);
 			return ENG_JWNS::en_error;
 		}
 
@@ -1189,8 +1190,9 @@ ENG_JWNS CWorkStep::IsAlignMovedGlobal()
 				swprintf_s(tzMsg, 256, L"Failed to actual material thickness tolerance range\n [Real Thick :%.3f > Material Thick : %.3f + Limit : %.3f]", RealThick, dmater, LimitZPos);
 				//CDlgMesg dlgMesg;
 				//if (IDOK != dlgMesg.MyDoModal(tzMsg, 0x01))
-				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
-				SendPhilLightAlarmNotify(ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR);
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMsg);
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMsg, ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR);
+				//SendPhilLightAlarmNotify(ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR);
 
 				/*소재 측정 에러 발생 확인*/
 				GlobalVariables::GetInstance()->GetAlignMotion().markParams.workErrorType = ENG_WETE::en_lds_thick_check;
@@ -1645,7 +1647,8 @@ ENG_JWNS CWorkStep::IsPrePrinted()
 	/* 현재 준비 상태가 실패되었는지 확인 */
 	if (uvCmn_Luria_IsExposeStateFailed(ENG_LCEP::en_pre_print))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to run the preprint job");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to run the preprint job");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to run the preprint job", ePHILHMI_ERR_DI_PREFIT_JOB_RUN_FAIL);
 		return ENG_JWNS::en_error;
 	}
 	/* 현재 노광 준비 상태가 성공적인 경우 */
@@ -1726,7 +1729,8 @@ ENG_JWNS CWorkStep::IsPrinted()
 	u8State = (UINT8)uvCmn_Luria_GetExposeState();
 	if (0x0f == (u8State & 0x0f))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"There was a problem during the expose operation");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"There was a problem during the expose operation");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"There was a problem during the expose operation", ePHILHMI_ERR_DI_EXPOSURE_OP_ERROR);
 	}
 
 	/* 노광 완료 상태이면 */
@@ -2510,12 +2514,14 @@ ENG_JWNS CWorkStep::IsAlignMarkRegist()
 		{
 			swprintf_s(tzMesg, 512, L"Unknown registration status code (%d)",
 				uvEng_ShMem_GetLuria()->panel.get_registration_status);
-			LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS);
 		}
 		else
 		{
 			swprintf_s(tzMesg, 512, L"An error occurred in the registration status (%s)", ptzMesg);
-			LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_UNKNOWN_REGIS_STATUS);
 		}
 		return ENG_JWNS::en_error;
 	}
@@ -2553,7 +2559,8 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 
 	if (pstRecipe == nullptr || pstRecipeExpo == nullptr || uvEng_GetConfig()->headOffsets.GetOffsets(pstRecipeExpo->headOffset, headOffset) == false)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"headOffset not found.");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"headOffset not found.");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"headOffset not found.", ePHILHMI_ERR_DI_HEAD_OFFSET_NOT_FOUND);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3180,7 +3187,8 @@ ENG_JWNS CWorkStep::SetExposeStartXY(double* startXoffset, double* startYoffset)
 	/* 만약 노광 시작 위치 값이 음수이면, 에러 처리 */
 	if (pStartXY[0] < 0.0f || pStartXY[1] < 0.0f)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The exposure start position is incorrect");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The exposure start position is incorrect");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The exposure start position is incorrect", ePHILHMI_ERR_DI_EXPOSURE_START_POS_ERR);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3276,7 +3284,8 @@ ENG_JWNS CWorkStep::SetLedAmplitude()
 	/* Led Duty Cycle 설정 (각 Phothead x개에 각각 LED 4개씩 모두 한번에 설정 */
 	if (!uvEng_Luria_ReqSetLedAmplitude(uvEng_GetConfig()->luria_svc.ph_count, u16LedPower))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetLedAmplitude)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetLedAmplitude)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetLedAmplitude)", ePHILHMI_ERR_DI_CMD_SET_LED_AMPLITUDE);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3518,7 +3527,8 @@ ENG_JWNS CWorkStep::InitDriveErrorReset()
 		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI(uvEng_GetConfig()->mc2_svc.axis_id[i]));	/* Toggle 값 저장 */
 		if (!uvEng_MC2_SendDevFaultReset(ENG_MMDI(uvEng_GetConfig()->mc2_svc.axis_id[i])))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevFaultReset)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevFaultReset)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevFaultReset)", ePHILHMI_ERR_DI_CMD_DEV_DEFAULT_RESET);
 			ENG_JWNS::en_error;
 		}
 
@@ -3535,7 +3545,8 @@ ENG_JWNS CWorkStep::InitDriveErrorReset()
 		uvCmn_MC2_GetDrvDoneToggled(ENG_MMDI(u8drv_id));	/* Toggle 값 저장 */
 		if (!uvEng_MC2_SendDevFaultReset(ENG_MMDI(u8drv_id)))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevFaultReset)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevFaultReset)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevFaultReset)", ePHILHMI_ERR_DI_CMD_DEV_DEFAULT_RESET);
 			ENG_JWNS::en_error;
 		}
 
@@ -3605,7 +3616,8 @@ ENG_JWNS CWorkStep::DoDriveHoming(ENG_MMDI drv_id)
 #endif
 	if (!uvEng_MC2_SendDevHoming(drv_id))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHoming)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHoming)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHoming)", ePHILHMI_ERR_DI_CMD_DEV_HOMING_ALL);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3638,7 +3650,8 @@ ENG_JWNS CWorkStep::DoDriveHomingAll()
 
 	if (interlocked == true || !uvEng_MC2_SendDevHomingAll() )
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHomingAll)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHomingAll)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevHomingAll)", ePHILHMI_ERR_DI_CMD_DEV_HOMING_ALL);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3944,7 +3957,8 @@ ENG_JWNS CWorkStep::SetACamMovingQuartz()
 	}
 	if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_x, dbXMovePos, dbXMoveSpeed))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.StageX)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.StageX)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.StageX)", ePHILHMI_ERR_DI_CMD_MOVE_STAGE_X);
 		return ENG_JWNS::en_error;
 	}
 	if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, dbYMovePos))
@@ -3953,7 +3967,8 @@ ENG_JWNS CWorkStep::SetACamMovingQuartz()
 	}
 	if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_stage_y, dbYMovePos, dbYMoveSpeed))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.StageY)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.StageY)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.StageY)", ePHILHMI_ERR_DI_CMD_MOVE_STAGE_Y);
 		return ENG_JWNS::en_error;
 	}
 
@@ -4292,7 +4307,8 @@ ENG_JWNS CWorkStep::CheckValidRecipe()
 	{
 		swprintf_s(tzMesg, 128, L"There is no thickness correction info. for recipe [%s]",
 			csCnv.Ansi2Uni(pstRecipe->job_name));
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_RECIPE_NO_THICKNESS_INFO);
 		return ENG_JWNS::en_error;
 	}
 	//if (!pstPhStep)
@@ -4543,7 +4559,8 @@ ENG_JWNS CWorkStep::ResetErrorMC2()
 {
 	if (!uvCmn_MC2_IsConnected())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"MC2 not connected");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"MC2 not connected");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"MC2 not connected", ePHILHMI_ERR_DI_MC2_NOT_CONNECTED);
 		return ENG_JWNS::en_error;
 	}
 
@@ -4552,7 +4569,8 @@ ENG_JWNS CWorkStep::ResetErrorMC2()
 	/* Reset 명령어 송신 */
 	if (!uvEng_MC2_SendDevFaultResetAll())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (FaultResetAll)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (FaultResetAll)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (FaultResetAll)", ePHILHMI_ERR_DI_CMD_FAULT_RESET_ALL);
 		return ENG_JWNS::en_error;
 	}
 

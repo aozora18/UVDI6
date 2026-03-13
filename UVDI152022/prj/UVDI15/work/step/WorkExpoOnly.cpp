@@ -90,7 +90,8 @@ VOID CWorkExpoOnly::DoWork()
 			CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, pStartXY[1]))
 		{
 			m_enWorkState = ENG_JWNS::en_error;
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position", ePHILHMI_ERR_DI_MOVE_EXPOSE_POSITION);
 		}
 		else
 			m_enWorkState = SetExposeReady(FALSE, FALSE, FALSE, m_stExpoLog.expo_count);
@@ -113,7 +114,8 @@ VOID CWorkExpoOnly::DoWork()
 			CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, uvEng_GetConfig()->set_align.table_unloader_xy[0][1]))
 		{
 			m_enWorkState = ENG_JWNS::en_error;
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the expose position");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Interlock error. Failed to move the unload position", ePHILHMI_ERR_DI_MOVE_UNLOAD_POSITION);
 		}
 		else
 

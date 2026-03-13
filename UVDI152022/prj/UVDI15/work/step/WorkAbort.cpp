@@ -117,7 +117,8 @@ ENG_JWNS CWorkAbort::StopPrinting()
 	{
 		if (!uvEng_Luria_ReqSetPrintAbort())
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetPrintAbort)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetPrintAbort)")
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetPrintAbort)", ePHILHMI_ERR_DI_CMD_PRINT_ABORT);
 			return ENG_JWNS::en_error;
 		}
 		if (!uvEng_GetConfig()->luria_svc.use_announcement)
@@ -128,7 +129,8 @@ ENG_JWNS CWorkAbort::StopPrinting()
 			/* Printing Status 정보 요청 */
 			if (0x00 == uvEng_Luria_ReqGetExposureState())
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState)");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState)");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState)", ePHILHMI_ERR_DI_CMD_GET_EXPOSURE_STATE);
 				return ENG_JWNS::en_error;
 			}
 		}
@@ -167,7 +169,8 @@ ENG_JWNS CWorkAbort::IsStopPrinting()
 				/* Printing Status 정보 요청 */
 				if (0x00 == uvEng_Luria_ReqGetExposureState())
 				{
-					LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState)");
+					//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState)");
+					LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetExposureState)", ePHILHMI_ERR_DI_CMD_GET_EXPOSURE_STATE);
 					return ENG_JWNS::en_error;
 				}
 			}

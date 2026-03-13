@@ -149,7 +149,8 @@ VOID CWorkInited::SetWorkNext()
 
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work inited <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_WORK_STEP_ERROR);
 
 		m_u8StepIt = 0x00;
 	}
@@ -284,7 +285,8 @@ ENG_JWNS CWorkInited::IsLuriaValid()
 				   uvEng_ShMem_GetLuria()->system.get_system_status[0],
 				   uvEng_ShMem_GetLuria()->system.get_system_status[1],
 				   uvEng_ShMem_GetLuria()->system.get_system_status[2]);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzError);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzError);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzError, ePHILHMI_ERR_DI_MOTOR_OPTIC_PIC_ERROR);
 
 		return ENG_JWNS::en_wait;
 	}

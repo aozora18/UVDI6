@@ -219,7 +219,8 @@ VOID CWork::SetWorkNext()
 
 		TCHAR tzMesg[128] = { NULL };
 		swprintf_s(tzMesg, 128, L"Work <Error Step It = 0x%02x>", m_u8StepIt);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_WORK_STEP_ERROR);
 
 		m_u8StepIt = 0x00;
 	}
@@ -324,7 +325,8 @@ VOID CWork::CheckWorkTimeout()
 	case ENG_BWOK::en_work_none		:	wcscpy_s(tzJob, 64, L"Unknown.WorkJob");		break;
 	}
 	swprintf_s(tzMesg, 128, L"Working Step Timeout : %s (%d:0x%02x)", tzJob, m_u8StepIt, m_u8StepIt);
-	LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+	//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+	LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_WORKING_STEP_TIMEOUT);
 
 	/* 동작 중지 처리를 위한 플래그 설정 */
 	m_u8StepIt		= 0x00;
@@ -460,12 +462,14 @@ BOOL CWork::IsGerberMarkValidCheck()
 			bSucc = (abs(stPosX[0].mark_x - stPosX[1].mark_x)) > pstSpec->GetACamMinDistH();
 			if (!bSucc)
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Width: The period between marks is smaller than the physical camera period");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Width: The period between marks is smaller than the physical camera period");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Width: The period between marks is smaller than the physical camera period", ePHILHMI_ERR_DI_ALIGN_MARK_WIDTH_PERIOD);
 			}
 			if (bSucc)
 			{
 				bSucc = (abs(stPosY[0].mark_y - stPosY[1].mark_y)) > pstSpec->GetACamMinDistD();
-				if (!bSucc)	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Height: The period between marks is smaller than the physical camera period");
+				//if (!bSucc)	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Height: The period between marks is smaller than the physical camera period");
+				if (!bSucc)	LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Height: The period between marks is smaller than the physical camera period", ePHILHMI_ERR_DI_ALIGN_MARK_HEIGHT_PERIOD);
 			}
 #if 0
 			TRACE(L"pstSpec->GetACamMinDistH() = %.3f, pstSpec->GetACamMinDistD()=%.3f\n",
@@ -552,7 +556,8 @@ BOOL CWork::IsMC2ErrorCheck()
 	{
 		m_u8StepIt	= 0x00;
 		m_enWorkState	= ENG_JWNS::en_error;
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"DNC error occurred in MC2");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"DNC error occurred in MC2");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"DNC error occurred in MC2", ePHILHMI_ERR_DI_MC2_DNC_ERROR);
 		bIsError = TRUE;
 	}
 	/* 임의 모션 드라이브에서 에러가 발생 했는지 여부 */
@@ -560,7 +565,8 @@ BOOL CWork::IsMC2ErrorCheck()
 	{
 		m_u8StepIt	= 0x00;
 		m_enWorkState	= ENG_JWNS::en_error;
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Motion Drive error occurred in MC2");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Motion Drive error occurred in MC2");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Motion Drive error occurred in MC2", ePHILHMI_ERR_DI_MC2_DRIVE_ERROR);
 		bIsError = TRUE;
 	}
 
@@ -603,7 +609,8 @@ BOOL CWork::IsLuriaStatusError()
 		TCHAR tzMesg[128]	= {NULL};
 		swprintf_s(tzMesg, 128, L"An error has occurred in the service system (Code = %u)",
 				   uvCmn_Luria_GetLastErrorStatus());
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_SERVICE_SYSTEM_ERROR);
 		m_u8StepIt	= 0x00;
 		m_enWorkState	= ENG_JWNS::en_error;
 		return TRUE;
@@ -1184,7 +1191,8 @@ INT32 CWork::GetACam1Mark2MotionX(UINT8 mark_no)
 	/* Calibration Thick Data 존재 여부 */
 	if (!pstCaliThick)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"There is no correction data related to material thickness among the recipe properties.");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"There is no correction data related to material thickness among the recipe properties.");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"There is no correction data related to material thickness among the recipe properties.", ePHILHMI_ERR_DI_RECIPE_NO_THICKNESS_DATA);
 		return -1;
 	}
 	i32Mark2ACamX	= (INT32)ROUNDED(pstCaliThick->mark2_acam_x[0] * 10000.0f, 0);	/* Align Camera 1 번 기준 */
@@ -1192,7 +1200,8 @@ INT32 CWork::GetACam1Mark2MotionX(UINT8 mark_no)
 	/* 현재 적재된 거버의 Mark ? 번(Left/Bottom)에 대한 X, Y 좌표 값 가져오기 */
 	if (!uvEng_Luria_GetGlobalMark(mark_no, &stMarkPos))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the location information of global mark");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the location information of global mark");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to get the location information of global mark", ePHILHMI_ERR_DI_ALIGN_MARK_LOC_INFO_FAIL);
 		return -1;
 	}
 

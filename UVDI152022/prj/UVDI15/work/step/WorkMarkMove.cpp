@@ -302,7 +302,8 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 //	GetMovePosGlobalMark(m_u8MarkNo, i32PosACamX, i32PosStageY);
 	if (!GetGlobalMarkMoveXY(m_u8MarkNo, dbPosACamX, dbPosStageY))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get a position to move motion for align mark measurement");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get a position to move motion for align mark measurement");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to get a position to move motion for align mark measurement", ePHILHMI_ERR_DI_ALIGN_MARK_GET_POS_FAIL);
 		return ENG_JWNS::en_error;
 	}
 #if 0	/* 단순 마크 이동할 때는 2D Calibration Data 적용하지 않음 */
@@ -366,12 +367,14 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 	{
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2, dbPosACamX2, dbVeloACamX))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX2)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX2)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX2)", ePHILHMI_ERR_DI_CMD_MOVE_ACAM2);
 			return ENG_JWNS::en_error;
 		}
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, dbPosACamX1, dbVeloACamX))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX1)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX1)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX1)", ePHILHMI_ERR_DI_CMD_MOVE_ACAM1);
 			return ENG_JWNS::en_error;
 		}
 	}
@@ -379,12 +382,14 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 	{
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1, dbPosACamX1, dbVeloACamX))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX1)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX1)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX1)", ePHILHMI_ERR_DI_CMD_MOVE_ACAM1);
 			return ENG_JWNS::en_error;
 		}
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam2, dbPosACamX2, dbVeloACamX))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX2)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX2)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (SendDevAbsMove.ACamX2)", ePHILHMI_ERR_DI_CMD_MOVE_ACAM2);
 			return ENG_JWNS::en_error;
 		}
 	}

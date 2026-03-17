@@ -187,7 +187,8 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_DI_SERVICE_SYSTEM_ERROR		= 60611,	// 서비스 시스템 에러 (Code 포함)
 	ePHILHMI_ERR_DI_THICKNESS_TOLERANCE_ERR		= 60612,	// 자재 두께 허용 오차 범위 초과
 	ePHILHMI_ERR_DI_HEAD_OFFSET_NOT_FOUND		= 60613,	// 헤드 오프셋 데이터 없음
-	
+	ePHILHMI_ERR_DI_RECIPE_LOAD_FAILED_WRONG_PARAMETER = 60614,	// 레시피 로딩실패, 사유는 적용할수없는 파라메터값
+	ePHILHMI_ERR_DI_RECIPE_MISMATCHING			= 60615,	// 
 
 
 	/*70000~ Alarm 처리*/
@@ -240,7 +241,6 @@ enum __en_phiihmi_error_code__
 	ePHILHMI_ERR_DI_GERBER_ALREADY_REGISTERED	= 70407,	// 이미 등록된 거버 파일 존재
 	ePHILHMI_ERR_DI_RECIPE_XML_LOAD_FAIL		= 70408,	// 레시피 XML 파일 로드 실패
 	ePHILHMI_ERR_DI_RECIPE_INVALID				= 70409,	// 유효하지 않은 레시피 선택
-	ePHILHMI_ERR_DI_RECIPE_LOAD_FAILED_WRONG_PARAMETER = 70410,	// 레시피 로딩실패, 사유는 적용할수없는 파라메터값
 	/* VISION & IMAGE (70500 ~) */
 	ePHILHMI_ERR_DI_IMAGE_GRAB_GLOBAL_FAIL		= 70501,	// 글로벌 마크 이미지 획득 실패
 	ePHILHMI_ERR_DI_IMAGE_GRAB_LOCAL_FAIL		= 70502,	// 로컬 마크 이미지 획득 실패

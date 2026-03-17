@@ -2481,12 +2481,15 @@ VOID CDlgMain::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, BOOL is_busy)
 	BOOL bMarked = uvEng_Luria_IsMarkGlobal();
 	if (selJob == nullptr)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed", ePHILHMI_ERR_DI_RECIPE_LOAD_FAILED_WRONG_PARAMETER);
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 	}
 	else if (strcmp(selJob->job_name, m_stExpoLog.recipe_name) != 0)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"execute error! select / execute recipe mismatching!!!!", ePHILHMI_ERR_DI_RECIPE_MISMATCHING);
+
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 	}
 	else if ((bSelect && bLoaded && !is_busy))

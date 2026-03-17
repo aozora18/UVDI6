@@ -357,7 +357,9 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 
 	if (selJob == nullptr)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Load Recipe failed / execute Expose Failed", ePHILHMI_ERR_DI_RECIPE_LOAD_FAILED_WRONG_PARAMETER);
+
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 	}
 	else if (strcmp(selJob->job_name, callerInst->m_stExpoLog.recipe_name) != 0) //선택이 다른경우.
@@ -375,7 +377,8 @@ VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* cal
 			seljob,
 			exeJob);
 
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_RECIPE_MISMATCHING);
 		stProcessExecute.usErrorCode = ePHILHMI_ERR_STATUS_FAILED;
 	}
 	else

@@ -282,7 +282,8 @@ ENG_JWNS CWorkMarkMove::SetMovingAlignMark()
 	if (u8Mark != 4)
 	{
 		swprintf_s(tzMesg, 128, L"The number of mark is incorrect (global = %u)", u8Mark);
-		LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_ALIGN_MARK_COUNT_GLOBAL);
 		return ENG_JWNS::en_error;
 	}
 

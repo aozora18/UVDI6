@@ -206,10 +206,12 @@ ENG_JWNS CWorkStep::SetMovingUnloader()
 	{
 		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_x, uvEng_GetConfig()->set_align.table_unloader_xy[0][0]))
 		{
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock ERROR. failed to move the unload position [Stage_x]");
 			return ENG_JWNS::en_error;
 		}
 		if (CInterLockManager::GetInstance()->CheckMoveInterlock(ENG_MMDI::en_stage_y, uvEng_GetConfig()->set_align.table_unloader_xy[0][1]))
 		{
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Interlock ERROR. failed to move the unload position [Stage_y]");
 			return ENG_JWNS::en_error;
 		}
 #if 1 /* 벡터 이동이 잘 동작하지 않을 때가 있음 */
@@ -514,7 +516,8 @@ ENG_JWNS CWorkStep::GetJobLists(UINT32 time)
 	/* Job List 요청 */
 	if (!uvEng_Luria_ReqGetJobList())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)", ePHILHMI_ERR_DI_CMD_GET_JOB_LIST);
 		return ENG_JWNS::en_error;
 	}
 
@@ -557,7 +560,8 @@ ENG_JWNS CWorkStep::SetJobNameSelecting()
 	/* 현재 레시피의 거버 선택 요청 */
 	if (!uvEng_Luria_ReqSelectedJobName(tzJobName, 0x00))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSelectedJobName)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSelectedJobName)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSelectedJobName)", ePHILHMI_ERR_DI_CMD_SELECT_JOB_NAME);
 		return ENG_JWNS::en_error;
 	}
 
@@ -591,7 +595,8 @@ ENG_JWNS CWorkStep::SetJobNameLoading()
 	/* 송신 설정 */
 	if (!uvEng_Luria_ReqSetLoadSelectedJob())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetLoadSelectedJob)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetLoadSelectedJob)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetLoadSelectedJob)", ePHILHMI_ERR_DI_CMD_SELECT_JOB_NAME);
 		return ENG_JWNS::en_error;
 	}
 	if (!uvEng_GetConfig()->luria_svc.use_announcement)
@@ -690,7 +695,8 @@ ENG_JWNS CWorkStep::SetTrigPosCalcSaved()
 
 	if (u8MarkGlobal && 0x04 != u8MarkGlobal)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of global mark is not 4");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The number of global mark is not 4");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The number of global mark is not 4", ePHILHMI_ERR_DI_ALIGN_MARK_COUNT_GLOBAL);
 		return ENG_JWNS::en_error;
 	}
 
@@ -1086,7 +1092,8 @@ ENG_JWNS CWorkStep::IsAlignMovedInit(function<bool()> callback)
 
 	if (ENG_MMDI::en_axis_none == m_enVectMoveDrv)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to moving the vector (Unknown Vector Drive)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to moving the vector (Unknown Vector Drive)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to moving the vector (Unknown Vector Drive)", ePHILHMI_ERR_DI_UNKNOWN_VECTOR_DRIVE);
 		return ENG_JWNS::en_error;
 	}
 
@@ -1705,6 +1712,8 @@ ENG_JWNS CWorkStep::SetPrinting()
 		}
 	}
 
+	LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, _T("Set Printing"));
+
 	return ENG_JWNS::en_next;
 }
 
@@ -1736,6 +1745,8 @@ ENG_JWNS CWorkStep::IsPrinted()
 	/* 노광 완료 상태이면 */
 	else if (uvCmn_Luria_IsExposeStateSuccess(ENG_LCEP::en_print))
 	{
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, _T("Printing Complete"));
+
 		return ENG_JWNS::en_next;
 	}
 
@@ -1806,7 +1817,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		{
 			if (uvEng_Luria_GetGlobalMark(i, &temp) == false)
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file", ePHILHMI_ERR_DI_GERBER_GLOBAL_MARK_FAIL);
 				return ENG_JWNS::en_error;
 			}
 			else
@@ -1820,7 +1832,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 		{
 			if (uvEng_Luria_GetLocalMark(i - status.globalMarkCnt, &temp) == false)
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the local mark from selected gerber file");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the local mark from selected gerber file");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to get the local mark from selected gerber file", ePHILHMI_ERR_DI_GERBER_LOCAL_MARK_FAIL);
 				return ENG_JWNS::en_error;
 			}
 			else
@@ -1922,7 +1935,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	for (i = 0; i < status.globalMarkCnt; i++)
 	{
 		bSucc = uvEng_Luria_GetGlobalMark(i, &stMarkPos1);
-		if (!bSucc)	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+		if (!bSucc)
+		{
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file", ePHILHMI_ERR_DI_GERBER_GLOBAL_MARK_FAIL);
+		}
 		else		lsOrgMarks.AddTail(stMarkPos1);
 	}
 	/* 원래 거버 좌표 상의 마크 넓이 / 높이 값 임시 저장 */
@@ -1978,7 +1995,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	/* 무조건 Shared Local Zone 사용 안함으로 설정해야 함 */
 	if (uvEng_Luria_ReqSetUseSharedLocalZones(0x00) == false)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)", ePHILHMI_ERR_DI_CMD_SET_LOCAL_ZONE);
 		return ENG_JWNS::en_error;
 	}
 
@@ -2010,7 +2028,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegistforStatic()
 	/* Luria에 변경된 Mark 위치 값 등록 진행 */
 	if (uvEng_Luria_ReqSetRegistPointsAndRun(fidCnt, pstMarks.get()) == false)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)", ePHILHMI_ERR_DI_CMD_SET_REGIS);
 		return ENG_JWNS::en_error;
 	}
 
@@ -2166,7 +2185,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			if (u8MarkG < 1 || uvEng_Camera_GetGrabbedCount() != (checkSum))
 			{
 				//abh1000 Local Test
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to inspect all marks");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to inspect all marks");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to inspect all marks", ePHILHMI_ERR_DI_INSPECT_ALL_MARKS_FAIL);
 				return ENG_JWNS::en_error;
 			}
 		}
@@ -2183,7 +2203,11 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	for (i = 0; bSucc && i < u8MarkG; i++)
 	{
 		bSucc = uvEng_Luria_GetGlobalMark(i, &stMarkPos1);
-		if (!bSucc)	LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+		if (!bSucc)
+		{
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to get the global mark from selected gerber file", ePHILHMI_ERR_DI_GERBER_GLOBAL_MARK_FAIL);
+		}
 		else		lstMarks.AddTail(stMarkPos1);
 
 		swprintf_s(tzMsg, 256, L"Global Luria Mark%d : X = %.4f Y = %.4f", i + 1, stMarkPos1.mark_x, stMarkPos1.mark_y);
@@ -2232,7 +2256,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			{
 				swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (global mark) "
 					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
-				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_IMAGE_GRAB_GLOBAL_FAIL);
 				return ENG_JWNS::en_error;
 			}
 
@@ -2252,7 +2277,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					if (pstSetAlign->markOffsetPtr->Get(motionType, true, lstMarkAt.tgt_id, val) == false)
 					{
 						swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
-						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+						//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+						LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_ALIGN_OFFSET_GLOBAL_FAIL);
 						//bSucc = FALSE;
 					}
 
@@ -2272,7 +2298,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			{
 				swprintf_s(tzMesg, 128, L"The mark image (global) was grabbed, but failed to find a model "
 					L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
-				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_MODEL_FIND_GLOBAL_FAIL);
 			}
 		}
 
@@ -2299,7 +2326,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 				{
 					swprintf_s(tzMesg, 128, L"Failed to get the grabbed image (local mark) "
 						L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
-					LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+					//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+					LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_IMAGE_GRAB_LOCAL_FAIL);
 					return ENG_JWNS::en_error;
 				}
 				else
@@ -2321,7 +2349,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 							if (pstSetAlign->markOffsetPtr->Get(motionType, false, lstMarkAt.tgt_id, val) == false)
 							{
 								swprintf_s(tzMesg, 128, L"Failed to get expo offset  global mark %d", lstMarkAt.org_id);
-								LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+								//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+								LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_ALIGN_OFFSET_LOCAL_FAIL);
 								bSucc = FALSE;
 							}
 
@@ -2342,7 +2371,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					{
 						swprintf_s(tzMesg, 128, L"The mark image (local) was grabbed, but failed to find a model "
 							L"(cam_id=%d,mark_id=%d)", u8CamID, lstMarkAt.org_id);
-						LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+						//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+						LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_MODEL_FIND_LOCAL_FAIL);
 					}
 				}
 			}
@@ -2395,8 +2425,9 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 					L"(1:%d)(2:%d)(3:%d)(4:%d)(5:%d)(6:%d)",
 					u8MarkLen[0], u8MarkLen[1], u8MarkLen[2], u8MarkLen[3],
 					u8MarkLen[4], u8MarkLen[5]);
-				LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
-				reportError = ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE; //<- 20260220 신규추가 
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_ALIGN_MARK_DIST_INVALID);
+				//reportError = ePHILHMI_ERR_STATUS_SUBSTRATE_WARPAGE; //<- 20260220 신규추가 
 			}
 			/* Mark들의 거리 및 간격 값 설정했다고 플래그 값 변경 */
 			pstMarkDiff->SetMarkLenData();
@@ -2405,7 +2436,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 			//if (pstMarkDiff->HorzDiff(0.005) && pstMarkDiff->VertDiff(0.003))
 			if (pstMarkDiff->HorzDiff(pstSetAlign->mark_horz_diff) || pstMarkDiff->VertDiff(pstSetAlign->mark_vert_diff))
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"The distance Horz, Vert Error");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The distance Horz, Vert Error");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The distance Horz, Vert Error", ePHILHMI_ERR_DI_ALIGN_MARK_HV_ERROR);
 				bSucc = FALSE;
 			}
 		}
@@ -2418,7 +2450,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	/* 무조건 Shared Local Zone 사용 안함으로 설정해야 함 */
 	if (!uvEng_Luria_ReqSetUseSharedLocalZones(0x00))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSharedLocalZones)", ePHILHMI_ERR_DI_CMD_SET_LOCAL_ZONE);
 		bSucc = FALSE;
 	}
 
@@ -2446,7 +2479,8 @@ ENG_JWNS CWorkStep::SetAlignMarkRegist()
 	/* Luria에 변경된 Mark 위치 값 등록 진행 */
 	if (!uvEng_Luria_ReqSetRegistPointsAndRun(u8MarkG + u8MarkL, pstMarks))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRegist)", ePHILHMI_ERR_DI_CMD_SET_REGIS);
 		bSucc = FALSE;
 	}
 
@@ -2501,7 +2535,8 @@ ENG_JWNS CWorkStep::IsAlignMarkRegist()
 			/* 현재 Fiducial 등록 상태 값 요청 */
 			if (!uvEng_Luria_ReqGetGetRegistrationStatus())
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetRegistStatus)");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetRegistStatus)");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetRegistStatus)", ePHILHMI_ERR_DI_CMD_GET_REGIS_STATUS);
 				return ENG_JWNS::en_error;
 			}
 		}
@@ -2580,14 +2615,16 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 				pstLuria->ph_z_move_max < m_dbPhZAxisSet[i])
 			{
 				/* Set the error message */
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Optical Z Axis movement is out of range");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Optical Z Axis movement is out of range");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Optical Z Axis movement is out of range", ePHILHMI_ERR_DI_OPTICAL_Z_OUT_OF_RANGE);
 				return ENG_JWNS::en_error;
 			}
 		}
 		/* 한번에 모든 광학계 Z 축 높이 조정 */
 		if (!uvEng_Luria_ReqSetMotorAbsPositionAll(pstLuria->ph_count, m_dbPhZAxisSet))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotorAbsPositionAll)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotorAbsPositionAll)");
+			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotorAbsPositionAll)", ePHILHMI_ERR_DI_CMD_SET_MOTOR_ABS_POS);
 			return ENG_JWNS::en_error;
 		}
 	}
@@ -2607,7 +2644,8 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 				pstMC2->max_dist[i] < m_dbPhZAxisSet[i])
 			{
 				/* Set the error message */
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Optical Z Axis movement is out of range");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Optical Z Axis movement is out of range");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Optical Z Axis movement is out of range", ePHILHMI_ERR_DI_OPTICAL_Z_OUT_OF_RANGE);
 				return ENG_JWNS::en_error;
 			}
 
@@ -2616,7 +2654,8 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 			dbPhVeloZ[i] = pstMC2->max_velo[UINT8(ENG_MMDI::en_axis_ph2)];
 			if (!(uvEng_MC2_SendDevAbsMove(ENG_MMDI(u8drv_id), m_dbPhZAxisSet[i], dbPhVeloZ[i])))
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (set position)");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (set position)");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (set position)", ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_POS);
 				return ENG_JWNS::en_error;
 			}
 		}
@@ -2947,7 +2986,8 @@ ENG_JWNS CWorkStep::IsSetMarkValidAll(UINT8 mode, bool* manualFixed, int* camNum
 				}
 				else //아니다 다음에 하겠다. 
 				{
-					LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
+					//LOG_ERROR(ENG_EDIC::en_uvdi15, L"All found marks are invalid");
+					LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"All found marks are invalid", ePHILHMI_ERR_DI_ALIGN_MARK_ALL_INVALID);
 					bSucc = FALSE;
 				}
 			}
@@ -3041,7 +3081,8 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 	/* 현재 등록하려는 거버가 Luria에 등록되어 있는지 여부 */
 	if (pstJobMgt->IsJobOnlyFinded(pstRecipe->gerber_name))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The gerber file to be registered exists");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The gerber file to be registered exists");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The gerber file to be registered exists", ePHILHMI_ERR_DI_GERBER_ALREADY_REGISTERED);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3056,7 +3097,8 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 
 	if (!uvEng_Luria_ReqAddJobList(csCnv.Ansi2Uni(szGerbFile)))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to regist the gerber file");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to regist the gerber file");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to regist the gerber file", ePHILHMI_ERR_DI_GERBER_REGIST_FAIL);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3064,7 +3106,8 @@ ENG_JWNS CWorkStep::SetGerberRegist()
 	SetSendCmdTime();
 	if (!uvEng_Luria_ReqGetJobList())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)", ePHILHMI_ERR_DI_CMD_GET_JOB_LIST);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3138,7 +3181,8 @@ ENG_JWNS CWorkStep::SetStepDutyFrame()
 		pstExpoRecipe->led_duty_cycle,
 		pstJobRecipe->frame_rate / 1000.0f))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposureFactor)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposureFactor)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposureFactor)", ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_FACTOR);
 		return ENG_JWNS::en_error;
 	}
 
@@ -3202,7 +3246,8 @@ ENG_JWNS CWorkStep::SetExposeStartXY(double* startXoffset, double* startYoffset)
 		startXoffset != nullptr ? pStartXY[0] + *startXoffset : pStartXY[0],
 		startYoffset != nullptr ? pStartXY[1] + *startYoffset : pStartXY[1]))	/* table number is fixed */
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposeStartXY)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposeStartXY)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetExposeStartXY)", ePHILHMI_ERR_DI_CMD_SET_EXPOSURE_XY);
 		return ENG_JWNS::en_error;
 	}
 
@@ -4011,7 +4056,8 @@ ENG_JWNS CWorkStep::SetExposeReady(BOOL in_mark, BOOL detect, BOOL vaccum, UINT3
 	/* 현재 거버가 적재되어 있는지 확인 */
 	if (!uvCmn_Luria_IsJobNameLoaded())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The gerber file did not complete loading");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The gerber file did not complete loading");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The gerber file did not complete loading", ePHILHMI_ERR_DI_GERBER_LOAD_INCOMPLETE);
 		return ENG_JWNS::en_error;
 	}
 	/* 현재 Loading 되어 있는 거버에 Mark가 포함되어 있는지 확인 */
@@ -4255,7 +4301,8 @@ ENG_JWNS CWorkStep::IsGrabbedImageCount(UINT16 count, UINT64 delay, int* camNum)
 			TCHAR tzMesg[128] = { NULL };
 			swprintf_s(tzMesg, 128, L"Timeout waiting for all images to be captured [%d <> %d]",
 				count, u16Grab);
-			LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, tzMesg);
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, tzMesg, ePHILHMI_ERR_DI_IMAGE_CAPTURE_TIMEOUT);
 			return ENG_JWNS::en_error;
 		}
 		return ENG_JWNS::en_wait;
@@ -4345,7 +4392,8 @@ ENG_JWNS CWorkStep::SetSelectedJobIndex(UINT8 index)
 	/* Job Selected 요청 */
 	if (!uvEng_Luria_ReqSetSelectedJobIndex(index))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSelectedJobIndex)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSelectedJobIndex)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSelectedJobIndex)", ePHILHMI_ERR_DI_CMD_SET_SELECT_JOB_INDEX);
 		ENG_JWNS::en_error;
 	}
 
@@ -4435,7 +4483,8 @@ ENG_JWNS CWorkStep::IsDeleteSelectedJobName(UINT8 back_step)
 		/* Job List 요청 */
 		if (m_u8LastJobCount && !uvEng_Luria_ReqGetJobList())
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqGetJobList)", ePHILHMI_ERR_DI_CMD_GET_JOB_LIST);
 			ENG_JWNS::en_error;
 		}
 

@@ -965,13 +965,15 @@ ENG_JWNS CWorkMarkTest::SetHomingACamSide()
 		/* 1번 카메라부터 home */
 	if (!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam1))
 {
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (1) to (left)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (1) to (left)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (1) to (left)", ePHILHMI_ERR_DI_HOME_ALIGN_CAM1_LEFT);
 		return  ENG_JWNS::en_wait;
 	}
 	/* 2번 카메라부터 home */
 	if (!uvEng_MC2_SendDevHoming(ENG_MMDI::en_align_cam2))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (2) to (left)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (2) to (left)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to home the align camera (2) to (left)", ePHILHMI_ERR_DI_HOME_ALIGN_CAM2_LEFT);
 		return  ENG_JWNS::en_wait;
 	}
 	//}

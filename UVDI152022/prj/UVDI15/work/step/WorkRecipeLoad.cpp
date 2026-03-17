@@ -591,7 +591,8 @@ ENG_JWNS CWorkRecipeLoad::SetPhOffset()
 			/* Photohead의 Offset 값 적용하기 위함 (최초는 Photohead Number가 2 값임) */
 			if (!uvEng_Luria_ReqSetSpecPhotoHeadOffset(i + 1, i32OffsetX, i32OffsetY))
 			{
-				LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSpecPhotoHeadOffset)");
+				//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSpecPhotoHeadOffset)");
+				LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSpecPhotoHeadOffset)", ePHILHMI_ERR_DI_CMD_SET_ALL_PHOTOHEADS);
 				return ENG_JWNS::en_error;
 			}
 		}
@@ -704,7 +705,8 @@ ENG_JWNS CWorkRecipeLoad::LoadSelectJobXML()
 
 	if (!uvEng_Luria_LoadSelectJobXML(enType))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to load the xml file for selected recipe");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to load the xml file for selected recipe");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to load the xml file for selected recipe", ePHILHMI_ERR_DI_RECIPE_XML_LOAD_FAIL);
 		return ENG_JWNS::en_error;
 	}
 
@@ -752,7 +754,8 @@ ENG_JWNS CWorkRecipeLoad::IsGerberJobLoaded()
 		/* 약 2 분 정도 대기 했는데도, 완료가 안되면 Fail 처리 */
 		if (m_u8WaitLoaded > 3)
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Timeout waiting for gerber file to complete loading");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Timeout waiting for gerber file to complete loading");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Timeout waiting for gerber file to complete loading", ePHILHMI_ERR_DI_GERBER_LOAD_TIMEOUT);
 			return ENG_JWNS::en_error;
 		}
 	}

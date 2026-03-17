@@ -395,7 +395,8 @@ ENG_JWNS CWorkInited::SetMotionControl()
 										 pstLuriaSvc->max_y_motion_speed,
 										 pstLuriaSvc->x_motion_speed))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionControl)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionControl)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionControl)", ePHILHMI_ERR_DI_CMD_SET_MOTION_CONTROL);
 		return ENG_JWNS::en_error;
 	}
 	return ENG_JWNS::en_next;
@@ -432,7 +433,8 @@ ENG_JWNS CWorkInited::SetMotionType1()
 	u32AccDist	= (UINT32)ROUNDED(pstLuriaSvc->y_acceleration_distance * 1000.0f, 0);
 	if (!uvEng_Luria_ReqSetMotionType1(u32AccDist, pstLuriaSvc->active_table_no))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionType1)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionType1)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetMotionType1)", ePHILHMI_ERR_DI_CMD_SET_MOTION_TYPE);
 		return ENG_JWNS::en_error;
 	}
 	return ENG_JWNS::en_next;
@@ -468,7 +470,8 @@ ENG_JWNS CWorkInited::SetTableSettings()
 	if (!uvEng_Luria_ReqSetTableSettings(0x01, pstLuriaSvc->paralleogram_motion_adjust[0x00],
 										 pstLuriaSvc->table_1_print_direction))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetTableSettings)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetTableSettings)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetTableSettings)", ePHILHMI_ERR_DI_CMD_SET_TABLE_SETTING);
 		return ENG_JWNS::en_error;
 	}
 	/* 송신 작업 진행 : Table Settings - Table Position Limits */
@@ -478,7 +481,8 @@ ENG_JWNS CWorkInited::SetTableSettings()
 											  (INT32)ROUNDED(pstLuriaSvc->table_limit_min_xy[0][0]*1000.0f, 0),
 											  (INT32)ROUNDED(pstLuriaSvc->table_limit_min_xy[0][1]*1000.0f, 0)))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetTablePositionLimit)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetTablePositionLimit)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetTablePositionLimit)", ePHILHMI_ERR_DI_CMD_SET_TABLE_LIMIT);
 		return ENG_JWNS::en_error;
 	}
 	return ENG_JWNS::en_next;
@@ -516,7 +520,8 @@ ENG_JWNS CWorkInited::SetSystemSettings()
 	/* System Settings - Photohead Rotated */
 	if (!uvEng_Luria_ReqSetRotatePhotoheads(pstLuriaSvc->ph_rotate))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRotatePhotoheads)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRotatePhotoheads)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetRotatePhotoheads)", ePHILHMI_ERR_DI_CMD_UPDATE_PHOTOHEADS);
 		return ENG_JWNS::en_error;
 	}
 	/* System Settings - Emulated */
@@ -525,7 +530,8 @@ ENG_JWNS CWorkInited::SetSystemSettings()
 										  pstLuriaSvc->emulate_trigger,
 										  pstLuriaSvc->debug_print_level))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSystemSettings)");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSystemSettings)");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to send the cmd (ReqSetSystemSettings)", ePHILHMI_ERR_DI_CMD_SET_SYSTEM_SETTINGS);
 		return ENG_JWNS::en_error;
 	}
 	return ENG_JWNS::en_next;

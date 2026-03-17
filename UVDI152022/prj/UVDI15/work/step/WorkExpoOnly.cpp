@@ -283,7 +283,8 @@ BOOL CWorkExpoOnly::SetMovingACamSide()
 									  pstMC2->min_dist[UINT8(ENG_MMDI::en_align_cam1)],
 									  pstMC2->max_velo[UINT8(ENG_MMDI::en_align_cam1)]))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (1) to (left)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (1) to (left)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (1) to (left)",ePHILHMI_ERR_DI_MOVE_ALIGN_CAM1_LEFT);
 			return FALSE;
 		}
 		/* 추후 얼라인 마크로 이동할 때, 충돌 발생 때문에, 약 50 mm 여유있게 간격을 두도록 한다. */
@@ -291,7 +292,8 @@ BOOL CWorkExpoOnly::SetMovingACamSide()
 									  pstMC2->min_dist[UINT8(ENG_MMDI::en_align_cam2)]+50.0f,	 /* 너무 붙어 있으면, 추후 이동할 때, 충돌 발생 때문에 ... */
 									  pstMC2->max_velo[UINT8(ENG_MMDI::en_align_cam2)]))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (2) to (left)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (2) to (left)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (2) to (left)", ePHILHMI_ERR_DI_MOVE_ALIGN_CAM2_LEFT);
 			return FALSE;
 		}
 	}
@@ -303,14 +305,16 @@ BOOL CWorkExpoOnly::SetMovingACamSide()
 									  pstMC2->max_dist[UINT8(ENG_MMDI::en_align_cam2)],
 									  pstMC2->max_velo[UINT8(ENG_MMDI::en_align_cam2)]))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (1) to (right)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (1) to (right)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (1) to (right)", ePHILHMI_ERR_DI_MOVE_ALIGN_CAM1_RIGHT);
 			return FALSE;
 		}
 		if (!uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_align_cam1,
 									  pstMC2->max_dist[UINT8(ENG_MMDI::en_align_cam1)]-50.0f,	 /* 너무 붙어 있으면, 추후 이동할 때, 충돌 발생 때문에 ... */
 									  pstMC2->max_velo[UINT8(ENG_MMDI::en_align_cam1)]))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (2) to (right)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (2) to (right)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the align camera (2) to (right)", ePHILHMI_ERR_DI_MOVE_ALIGN_CAM2_RIGHT);
 			return FALSE;
 		}
 	}
@@ -370,7 +374,8 @@ BOOL CWorkExpoOnly::SetMovingPhUpDown()
 		/* 광학계 Z 축 2대 모두 이동 */
 		if (!uvEng_Luria_ReqSetMotorAbsPositionAll(pstLuria->ph_count, dbPhMoveZ))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (min/max)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (min/max)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (min/max)", ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_LIMIT);
 			return FALSE;
 		}
 	}
@@ -400,7 +405,8 @@ BOOL CWorkExpoOnly::SetMovingPhUpDown()
 		if (!(uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_axis_ph1, dbPhMoveZ[0], dbPhVeloZ[0]) &&
 			  uvEng_MC2_SendDevAbsMove(ENG_MMDI::en_axis_ph2, dbPhMoveZ[1], dbPhVeloZ[1])))
 		{
-			LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (min/max)");
+			//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (min/max)");
+			LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Failed to move the photohead z axis (min/max)", ePHILHMI_ERR_DI_MOVE_PHOTOHEAD_Z_LIMIT);
 			return FALSE;
 		}
 	}

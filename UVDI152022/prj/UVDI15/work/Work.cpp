@@ -587,7 +587,8 @@ BOOL CWork::IsSelectedRecipeValid()
 	LPG_RJAF pstRecipe	= uvEng_JobRecipe_GetSelectRecipe(isLocalSelRecipe);
 	if (!pstRecipe || !pstRecipe->IsValid())
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"The selected recipe is not valid");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"The selected recipe is not valid");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"The selected recipe is not valid", ePHILHMI_ERR_DI_RECIPE_INVALID);
 		m_u8StepIt	= 0x00;
 		m_enWorkState	= ENG_JWNS::en_error;
 
@@ -630,7 +631,8 @@ BOOL CWork::IsAlignMarkRegisted() // lk91!! global mark, local mark 체크
 		!uvEng_Camera_IsSetMarkModel(0x00, 0x01, LOCAL_MARK) ||
 		!uvEng_Camera_IsSetMarkModel(0x00, 0x02, LOCAL_MARK))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"No align mark are registered on the camera");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"No align mark are registered on the camera");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"No align mark are registered on the camera", ePHILHMI_ERR_DI_ALIGN_MARK_NO_REGISTERED);
 		m_u8StepIt	= 0x00;
 		m_enWorkState	= ENG_JWNS::en_error;
 		return FALSE;
@@ -661,7 +663,8 @@ INT32 CWork::GetLeftRightBottomMarkPosY(ENG_AMTF mark, UINT8 scan, UINT8 direct)
 	/* 노광 속도에 따른 트리거 발생 위치 값 설정 */
 	if (!pstThickCali)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"no_cali_trig_data [Stage_Y]");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"no_cali_trig_data [Stage_Y]");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"no_cali_trig_data [Stage_Y]", ePHILHMI_ERR_DI_BIG_DATA_STAGE_Y_EMPTY);
 		return -1;
 	}
 	else
@@ -731,7 +734,8 @@ INT32 CWork::GetGlobalMarkMotionPosY(UINT8 mark_no)
 	/* 만약, Trigger Calibration에 저장 (관리)된 데이터가 없다면, 환경 파일에 있는 정보 값 가져오기 */
 	if (!pstThickCali)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"no_cali_trig_data for global mark [Stage_Y]");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"no_cali_trig_data for global mark [Stage_Y]");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"no_cali_trig_data for global mark [Stage_Y]", ePHILHMI_ERR_DI_BIG_DATA_GLOBAL_Y_EMPTY);
 		return -1;
 	}
 	else
@@ -770,7 +774,8 @@ INT32 CWork::GetLocalMarkMotionPosY(UINT8 index)
 
 	if (!pstThickCali)
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"no_cali_trig_data for local mark [Stage_Y]");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"no_cali_trig_data for local mark [Stage_Y]");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"no_cali_trig_data for local mark [Stage_Y]", ePHILHMI_ERR_DI_BIG_DATA_LOCAL_Y_EMPTY);
 		return -1;
 	}
 	else
@@ -1302,7 +1307,8 @@ BOOL CWork::IsRecipeGerberCheck()
 	sprintf_s(szGerbFile, MAX_PATH_LEN, "%s\\%s", rcp->gerber_path, rcp->gerber_name);
 	if (!uvCmn_FindPath(csCnv.Ansi2Uni(szGerbFile)))
 	{
-		LOG_ERROR(ENG_EDIC::en_uvdi15, L"Gerber file does not exist");
+		//LOG_ERROR(ENG_EDIC::en_uvdi15, L"Gerber file does not exist");
+		LOG_ERROR_REPORT(ENG_EDIC::en_uvdi15, L"Gerber file does not exist", ePHILHMI_ERR_DI_GERBER_FILE_NOT_EXIST);
 		return FALSE;
 	}
 

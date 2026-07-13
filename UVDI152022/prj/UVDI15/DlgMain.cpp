@@ -283,6 +283,11 @@ BOOL CDlgMain::OnInitDlg()
 	/*딱 한번만 초기화 필요*/
 	uvEng_GetConfig()->measure_flat.bOnePass = FALSE;
 	GlobalVariables::GetInstance()->SetDlgMain(this);
+
+
+	//CRecipeManager::GetInstance()->BuidRecipUsageList();
+	//CRecipeManager::GetInstance()->ArchiveOldRecipe();
+	CRecipeManager::GetInstance()->StartBackgroundSync();
 	return TRUE;
 }
 
@@ -388,6 +393,8 @@ VOID CDlgMain::OnExitDlg()
 	CIOManager::GetInstance()->Destroy();
 	CLogManager::GetInstance()->Destroy();
 	GlobalVariables::GetInstance()->Destroy();
+
+	CRecipeManager::GetInstance()->StopBackgroundSync();
 
 	/* 기본 감시 스레드 메모리 해제 */
 	if (m_pMainThread)

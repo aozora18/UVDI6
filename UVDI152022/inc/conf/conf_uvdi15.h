@@ -1166,6 +1166,13 @@ typedef struct __st_config_keyence_lds_set_parameter__
 
 }	STG_KLSP, * LPG_KLSP;
 
+typedef struct __st_config_recipe_management_parameter__
+{
+	UINT8	u8UseAutoArchive;
+	UINT16	u16ArchiveLimitDays;
+
+}	STG_RMSP, *LPG_RMSP;
+
 
 /* Engine 관련 정보 */
 typedef struct __st_config_info_engine_all__
@@ -1205,8 +1212,9 @@ typedef struct __st_config_info_engine_all__
 	STG_CSSP			set_strobe_lamp;	// by sysandj : strobe lamp 관련 파라메터
 	STG_KLSP			set_keyence_lds;	// 230919 mhbaek Add keyence lds 관련 파라메터
 	STG_CMAF			measure_flat;		// 230919 mhbaek Add
-	STG_ENVI environmental;
-	STG_CHO headOffsets;
+	STG_ENVI			environmental;
+	STG_CHO				headOffsets;
+	STG_RMSP			recipe_management;	/*Recipe 용량 관리*/
 
 	
 	/*

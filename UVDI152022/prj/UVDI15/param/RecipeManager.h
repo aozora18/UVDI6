@@ -106,6 +106,36 @@ public:
 	int					GetRecipeList(CStringArray& strArrRecipeList);
 	int					GetRecipeCount() { return (int)m_strArrRecipeList.GetCount(); }
 
+	/////////////////////////////////////////////////////////////////////////
+	//레피시 백업 기능
+	std::map<CString, CTime> m_mapGerberLastUsed;
+
+	BOOL				m_bUseAutoArchive;
+	int					m_nArchiveLimiDays;
+	CString				m_strLogFolder;
+	CString				m_strGerberBaseFolder;
+	CString				m_strBackupFolder;
+	CString				m_strRecipeListPath;
+	CString				m_strSameRecipePath;
+	CTime				m_tLastTime;
+
+	VOID				BuidRecipUsageList();
+	VOID				GetGerberPath(CString strGerberName);
+	VOID				GetLastArchiveDay();
+	VOID				ArchiveOldRecipe();
+	VOID				DelectDirectoryOrFile(CString strPath);
+	BOOL				LoadAndUnzipRecipe(CString strGerberPath, CString strGerberName);
+
+	BOOL				StartBackgroundSync();
+	VOID				StopBackgroundSync();
+
+private:
+	static UINT __cdecl ReicpeSyncTreadProc(LPVOID pParam);
+
+	CWinThread*			m_pSyncThread;
+	BOOL				m_bStopThread;
+
+
 protected:
 	CRecipeManager();
 	CRecipeManager(const CRecipeManager &); // Prohibit Copy Constructor

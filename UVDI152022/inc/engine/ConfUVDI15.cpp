@@ -197,6 +197,12 @@ BOOL CConfUvdi15::LoadConfig()
 		return FALSE;
 	}
 
+	if (!LoadConfigReicpeManagement())	/* [RECIPE_MANAGEMENT]	*/
+	{
+		AfxMessageBox(L"Failed to load the config for RECIPE_MANAGEMENT", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 BOOL CConfUvdi15::SaveConfig()
@@ -227,6 +233,7 @@ BOOL CConfUvdi15::SaveConfig()
 
 	if (!SaveConfigStrobeLamp())	return FALSE;
 	//if (!SaveConfigAutoHotAir())	return FALSE;
+	if (!SaveConfigReicpeManagement())	return FALSE;
 
 	return TRUE;
 }
@@ -1810,6 +1817,40 @@ BOOL CConfUvdi15::SaveConfigStrobeLamp()
 		swprintf_s(tzKey, 64, L"STROBE_LAMP[%d]", i);
 		SetConfigUint32(tzKey, m_pstCfg->set_strobe_lamp.u16StrobeValue[i]);
 	}
+
+	return TRUE;
+}
+
+
+/*
+ 설명 : 환경 파일 적재 (Recipe Management)
+ 변수 : None
+ 반환 : TRUE or FALSE
+*/
+BOOL CConfUvdi15::LoadConfigReicpeManagement()
+{
+	/* Subject Name 설정 */
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"RECIPE_MANAGEMENT");
+
+	m_pstCfg->recipe_management.u8UseAutoArchive	= GetConfigUint8(L"USE_AUTO_ARCHIVE");
+	m_pstCfg->recipe_management.u16ArchiveLimitDays = GetConfigUint8(L"ARCHIVE_LIMIT_DAYS");
+
+
+	return TRUE;
+}
+
+/*
+ 설명 : 환경 파일 저장 (Reicpe Management)
+ 변수 : None
+ 반환 : TRUE or FALSE
+*/
+BOOL CConfUvdi15::SaveConfigReicpeManagement()
+{
+	/* Subject Name 설정 */
+	wcscpy_s(m_tzSubj, MAX_SUBJ_STRING, L"RECIPE_MANAGEMENT");
+
+	SetConfigUint32(L"USE_AUTO_ARCHIVE", m_pstCfg->recipe_management.u8UseAutoArchive);
+	SetConfigUint32(L"ARCHIVE_LIMIT_DAYS", m_pstCfg->recipe_management.u16ArchiveLimitDays);
 
 	return TRUE;
 }

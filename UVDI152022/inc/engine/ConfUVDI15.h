@@ -104,5 +104,8 @@ public:
 	BOOL				LoadConfigStrobeLamp();
 	BOOL				SaveConfigStrobeLamp();
 
+	BOOL				LoadConfigReicpeManagement();
+	BOOL				SaveConfigReicpeManagement();
+
 
 };

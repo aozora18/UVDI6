@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "RecipeManager.h"
 #include "../DlgMain.h"
+#include "zip.h"
+#include "unzip.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -20,6 +22,10 @@ CRecipeManager::CRecipeManager()
 	//m_strRecipePath = _T("\\data\\recipe\\");
 	m_strRecipePath.Format(_T("\\%s\\recipe\\"), CUSTOM_DATA_CONFIG);
 	m_hMainWnd = NULL;
+
+	/*레시피 용량 관리 스레드*/
+	m_pSyncThread = NULL;
+	m_bStopThread = FALSE;
 }
 
 
@@ -229,7 +235,6 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE s
 	BOOL bSuccess = uvEng_JobRecipe_SelRecipeOnlyName((PTCHAR)strRecipeName.GetString(), selType == eRECIPE_MODE_SEL_FROM_LOCAL);
 	if (!bSuccess) return FALSE;
 
-	CHAR szJob[MAX_PATH_LEN] = { 0 };
 	CUniToChar csCnv;
 
 	LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeOnlyName((PTCHAR)strRecipeName.GetString());
@@ -239,8 +244,12 @@ BOOL CRecipeManager::SelectRecipe(CString strRecipeName, EN_RECIPE_SELECT_TYPE s
 	LPG_REAF pstExpoRecipe = uvEng_ExpoRecipe_GetRecipeOnlyName(csCnv.Ansi2Uni(pstRecipe->expo_recipe));
 	if (!pstAlignRecipe || !pstExpoRecipe) return FALSE;
 
+	CHAR szJob[MAX_PATH_LEN] = { 0 };
 	sprintf_s(szJob, MAX_PATH_LEN, "%s\\%s", pstRecipe->gerber_path, pstRecipe->gerber_name);
-	if (!uvCmn_FindFile(csCnv.Ansi2Uni(szJob)))
+	CHAR szJobZip[MAX_PATH_LEN] = { 0 };
+	sprintf_s(szJobZip, MAX_PATH_LEN, "%s\\%s.zip", pstRecipe->gerber_path, pstRecipe->gerber_name);
+
+	if (!uvCmn_FindFile(csCnv.Ansi2Uni(szJob)) && !uvCmn_FindFile(csCnv.Ansi2Uni(szJobZip)))
 	{
 		AfxMessageBox(L"The gerber file registered in the recipe does not exist", MB_ICONWARNING);
 		return FALSE;
@@ -1929,4 +1938,534 @@ VOID CRecipeManager::PhilSendSelectRecipe(CString strRecipeName)
 	strcpy_s(stSelect.szRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv.Uni2Ansi(strRecipeName.GetBuffer()));
 
 	uvEng_Philhmi_Send_P2C_RCP_SELECT(stSelect, stSelectAck);
+}
+
+//설명: 날짜별 AlignExpo.csv 파싱 하여 use_recipe 파일 생성
+VOID CRecipeManager::BuidRecipUsageList()
+{
+	//마지막 작업 날짜 확인
+	//GetLastArchiveDay();
+
+	m_mapGerberLastUsed.clear();
+	m_strRecipeListPath.Format(L"%s\\%s\\recipe\\use_recipe.dat", g_tzWorkDir,
+		CUSTOM_DATA_CONFIG);
+
+	CFileFind finder;
+	CTime clastTime;
+
+	CString strSearcPath;
+	strSearcPath.Format(L"%s\\logs\\expo\\*.*", g_tzWorkDir);
+	BOOL bWorking = finder.FindFile(strSearcPath);
+
+	while (bWorking)
+	{
+		bWorking = finder.FindNextFile();
+		if (finder.IsDots() || finder.IsDirectory()) continue;
+
+		CString strFileName = finder.GetFileName();
+		CString strFilePath = finder.GetFilePath();
+
+		// 와일드카드 매칭 우회 필터링
+		if (strFileName.Find(L"AlignExpo.csv") == -1)
+			continue;
+
+		if (strFileName.GetLength() < 10) continue;
+
+		//파일명에서 YYYYY-MM-DD 추출
+		int nYear = _ttoi(strFileName.Mid(0, 4));
+		int nMonth = _ttoi((strFileName.Mid(5, 2)));
+		int nDay = _ttoi((strFileName.Mid(8, 2)));
+
+		//현재 파일 날짜 
+		CTime cLogDay(nYear, nMonth, nDay, 0, 0, 0);
+
+		//현재 날짜 보다 최종 기록 날짜가 작으면 기록 진행
+		//if (cLogDay > m_tLastTime)
+		//{
+			CStdioFile file;
+			CFileException ex;
+			if (file.Open(finder.GetFilePath(), CFile::modeRead | CFile::typeText | CFile::shareDenyNone, &ex))
+			{
+				CString strLine;
+
+				ULONGLONG nFileLength = file.GetLength();
+				if (nFileLength > 0)
+				{
+					char* pBuffer = new char[(size_t)nFileLength + 1];
+					memset(pBuffer, 0, (size_t)nFileLength + 1);
+
+					// 2. 파일 전체 내용을 바이너리 형태로 한 번에 읽어옵니다.
+					file.Read(pBuffer, (UINT)nFileLength);
+
+					// ★ [수정] 원본 파일이 UTF-16 유니코드이므로 변환 없이 직접 맵핑합니다.
+					// 유니코드 파일은 시작 2바이트가 BOM(0xFFFE 또는 0xFEFF) 마크일 수 있으므로 이를 체크합니다.
+					int nStartOffset = 0;
+					if (nFileLength >= 2 && ((unsigned char)pBuffer[0] == 0xFF && (unsigned char)pBuffer[1] == 0xFE))
+					{
+						nStartOffset = 2; // BOM 마크 2바이트 스킵
+					}
+
+					// 바이트 버퍼(char*)를 유니코드 wchar_t* 포인터로 안전하게 지정하여 CString을 생성합니다.
+					wchar_t* pUnicodeData = (wchar_t*)(pBuffer + nStartOffset);
+
+					// 남은 바이트 크기를 유니코드 문자 개수로 계산합니다.
+					int nLengthInChars = ((int)nFileLength - nStartOffset) / sizeof(wchar_t);
+
+					// 크기를 명시하여 CString 객체 생성 (문자열 중간에 NULL이나 공백이 있어도 안전함)
+					CString strFullContent(pUnicodeData, nLengthInChars);
+
+					// 사용이 끝난 임시 바이트 버퍼 해제
+					delete[] pBuffer;
+
+					int nCurPos = 0;
+					CString strLine = strFullContent.Tokenize(_T("\n"), nCurPos);
+
+					if (!strLine.IsEmpty())
+					{
+						strLine = strFullContent.Tokenize(_T("\n"), nCurPos);
+					}
+
+					while (!strLine.IsEmpty())
+					{
+						strLine.Trim();
+						if (strLine.IsEmpty())
+						{
+							strLine = strFullContent.Tokenize(_T("\n"), nCurPos);
+							continue;
+						}
+						CString strTimePart, strGerberName;
+						AfxExtractSubString(strTimePart, strLine, 0, ',');   // 0번째: 시간 (time)
+						AfxExtractSubString(strGerberName, strLine, 3, ','); // 3번째: 거버명 (gerber_name)
+
+						strGerberName.Trim();
+						strTimePart.Trim();
+
+						if (strGerberName.IsEmpty() || strTimePart.GetLength() < 8)
+						{
+							strLine = strFullContent.Tokenize(_T("\n"), nCurPos);
+							continue;
+						}
+
+						// 파일명에서 YYYY-MM-DD 추출
+						int nHour = _ttoi(strTimePart.Mid(0, 2));
+						int nMin = _ttoi(strTimePart.Mid(3, 2));
+						int nSec = _ttoi(strTimePart.Mid(6, 2));
+
+						CTime cLogTime(nYear, nMonth, nDay, nHour, nMin, nSec);
+
+						// 맵 데이터 최신값 누적
+						if (m_mapGerberLastUsed.find(strGerberName) != m_mapGerberLastUsed.end())
+						{
+							if (m_mapGerberLastUsed[strGerberName] < cLogTime)
+							{
+								m_mapGerberLastUsed[strGerberName] = cLogTime;
+								//최종 시간 기록
+								clastTime = cLogTime;
+							}
+
+						}
+						else
+						{
+							m_mapGerberLastUsed[strGerberName] = cLogTime;
+							//최종 시간 기록
+							clastTime = cLogTime;
+						}
+
+						// 다음 줄 가져오기
+						strLine = strFullContent.Tokenize(_T("\n"), nCurPos);
+					}
+				}
+				file.Close();
+			}
+			else
+			{
+				TRACE(L"[File Skip] Open Failed: %s\n", strFileName);
+				continue;
+			}
+		//}
+	}
+	finder.Close();
+
+
+	//use_recipe.dat 저장
+	CStdioFile outputFile;
+	CString strLastArchiveDay;
+	if (outputFile.Open(m_strRecipeListPath, CFile::modeCreate | CFile::modeWrite | CFile::typeText))
+	{
+		
+		outputFile.WriteString(_T("LastUsedDataTime, Path, GerberName\n"));
+		//최종 사용 시간 기록
+		strLastArchiveDay.Format(_T("%s\n"), clastTime.Format(_T("%Y-%m-%d %H:%M:%S")));
+		outputFile.WriteString(strLastArchiveDay);
+
+		for (auto const& [strName, cTime] : m_mapGerberLastUsed)
+		{
+			CString strOutLine;
+			//JobRecipe에서 동일 거버 이름 검색 후 경로 확인
+			GetGerberPath(strName);
+			strOutLine.Format(_T("%s,%s,%s\n"),
+				cTime.Format(_T("%Y-%m-%d %H:%M:%S")), m_strSameRecipePath, strName);
+			outputFile.WriteString(strOutLine);
+		}
+		outputFile.Close();
+	}
+}
+
+VOID CRecipeManager::GetGerberPath(CString strGerberName)
+{
+	CString strJobRecipe, strLine;
+
+	/* Job Recipe Name 정보 얻기 */
+	strJobRecipe.Format(L"%s\\%s\\recipe\\job_recipe.dat", g_tzWorkDir,
+		CUSTOM_DATA_CONFIG);
+
+	CFileFind finder;
+	CStdioFile file;
+
+	BOOL bWorking = finder.FindFile(strJobRecipe);
+
+	if (bWorking)
+	{
+		if (file.Open(strJobRecipe, CFile::modeRead | CFile::typeText))
+		{
+
+			file.ReadString(strLine); 
+
+			while (!strLine.IsEmpty())
+			{
+				CString strJobGerberName, strJobGerberPath;
+				AfxExtractSubString(strJobGerberPath, strLine, 1, ',');   // 1번째: 경로 (Path)
+				AfxExtractSubString(strJobGerberName, strLine, 2, ',');   // 2번째: 경로 (Name)
+				
+				//JobRecpe 이름과 동일한 거버 이름 확인
+				if (strGerberName == strJobGerberName)
+				{
+					m_strSameRecipePath = strJobGerberPath;
+					break;
+				}
+				//동일 거버 이름이 아니면 다음줄 이동
+				else
+				{
+					file.ReadString(strLine);
+				}
+			}
+		}
+	}
+	finder.Close();
+}
+
+VOID CRecipeManager::GetLastArchiveDay()
+{
+	//레시피 이력 관리 파일 
+	m_strRecipeListPath.Format(L"%s\\%s\\recipe\\use_recipe.dat", g_tzWorkDir,
+		CUSTOM_DATA_CONFIG);
+
+	CString strLastArchiveDay;
+	CString strLine;
+	CFileFind finder;
+	CStdioFile file;
+
+	BOOL bWorking = finder.FindFile(m_strRecipeListPath);
+
+	if (bWorking)
+	{
+		if (file.Open(m_strRecipeListPath, CFile::modeRead | CFile::typeText))
+		{
+			file.ReadString(strLine); // 헤더행(GerberName, LastUsedDataTime) 스킵
+			file.ReadString(strLastArchiveDay); // 두번째 헤더행 최종 날짜
+		}
+
+		if (!strLastArchiveDay.IsEmpty())
+		{
+			//최종 날짜와 시간 계산해서 tLastTime에 저장
+			CString strDay, strTime;
+			strDay = strLastArchiveDay.Mid(0, 10);
+			strTime = strLastArchiveDay.Mid(11, 20);
+
+			//YYYY-MM-DD 날짜 추출
+			int nYear = _ttoi(strDay.Mid(0, 4));
+			int nMonth = _ttoi((strDay.Mid(5, 2)));
+			int nDay = _ttoi((strDay.Mid(8, 2)));
+			//HH:MM:SS 시간 추출
+			int nHour = _ttoi(strTime.Mid(0, 2));
+			int nMin = _ttoi(strTime.Mid(3, 2));
+			int nSec = _ttoi(strTime.Mid(6, 2));
+
+			CTime tLastTime(nYear, nMonth, nDay, nHour, nMin, nSec);
+			m_tLastTime = tLastTime;
+		}
+	}
+
+	finder.Close();
+}
+
+
+
+
+//설명: 조건 검색 후 압축 + 기존 폴더 파일 삭제 처리
+VOID CRecipeManager::ArchiveOldRecipe() 
+{
+	//레시피 이력 관리 파일 
+	m_strRecipeListPath.Format(L"%s\\%s\\recipe\\use_recipe.dat", g_tzWorkDir,
+		CUSTOM_DATA_CONFIG);
+
+	CStdioFile file;
+	if (!file.Open(m_strRecipeListPath, CFile::modeRead | CFile::typeText)) return;
+
+	CreateDirectory(m_strBackupFolder, NULL);
+
+	CTime cCurrenTime = CTime::GetCurrentTime();
+	CTimeSpan cLimitSpan(uvEng_GetConfig()->recipe_management.u16ArchiveLimitDays, 0, 0, 0);
+	CTime cDeadlineTime = cCurrenTime - cLimitSpan;
+
+	CString strLine;
+	file.ReadString(strLine);
+	TCHAR tzMesg[128] = { NULL };
+
+	while (file.ReadString(strLine))
+	{
+		if (strLine.IsEmpty()) continue;
+
+		CString strGerberName, strDataTime, strFilePath;
+		AfxExtractSubString(strDataTime, strLine, 0, ',');
+		AfxExtractSubString(strFilePath, strLine, 1, ',');
+		AfxExtractSubString(strGerberName, strLine, 2, ',');
+		strGerberName.Trim();
+		strDataTime.Trim();
+
+		int nYear = _ttoi(strDataTime.Mid(0, 4));
+		int nMonth = _ttoi(strDataTime.Mid(5, 2));
+		int nDay = _ttoi(strDataTime.Mid(8, 2));
+		CTime cLastUsedTime(nYear, nMonth, nDay, 0, 0, 0);
+
+		//고려사항 반영: 설정 기간을 넘긴 경우 진행
+		if (cLastUsedTime < cDeadlineTime)
+		{
+			CString strTargetGerberPath = strFilePath + _T("\\") + strGerberName;
+			CString strZipPath = strFilePath + _T("\\") + strGerberName + _T(".zip");
+
+			//파일 혹은 폴더가 존재하는지 확인
+			if (GetFileAttributes(strZipPath) != INVALID_FILE_ATTRIBUTES)
+			{
+				continue; // 이미 압축된 파일이므로 무한 재압축 대상에서 제외
+			}
+
+			CString strCmd;
+			strCmd.Format(L"tar -C \"%s\" -a -cf \"%s\" \"%s\"", strFilePath, strZipPath, strGerberName);
+
+			STARTUPINFO si = { sizeof(si) };
+			PROCESS_INFORMATION pi;
+			si.dwFlags = STARTF_USESHOWWINDOW;
+			si.wShowWindow = SW_HIDE; //검은참 숨김
+
+			if (CreateProcess(NULL, strCmd.GetBuffer(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+			{
+				WaitForSingleObject(pi.hProcess, INFINITE);
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+				strCmd.ReleaseBuffer();
+
+				//파일 혹은 폴더가 존재하는지 확인
+				if (GetFileAttributes(strTargetGerberPath) != INVALID_FILE_ATTRIBUTES)
+				{
+					swprintf_s(tzMesg, 128, L"[%s] File Compression Complete", strGerberName);
+					LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMesg);
+
+					//압축이 정상 완료 했다면 기존 폴더 삭제
+					DelectDirectoryOrFile(strTargetGerberPath);
+				}
+			}
+		}
+
+	}
+	file.Close();
+}
+
+//설명: 파일 또는 폴더 삭제 함수
+VOID CRecipeManager::DelectDirectoryOrFile(CString strPath)
+{
+
+	if (strPath.IsEmpty()) return;
+	//1. tar 프로세스가 파일 핸들을 완전히 놓을 수 있도록 일시 대기
+	Sleep(150);
+
+	CFileFind finder;
+	//하위 모든 파일 탐색 경로 지정
+	CString strSearchPAth = strPath + _T("\\*.*");
+	BOOL bWorking = finder.FindFile(strSearchPAth);
+
+	while (bWorking)
+	{
+		bWorking = finder.FindNextFile();
+
+		if (finder.IsDots())
+			continue;
+
+		if (finder.IsDirectory())
+		{
+			DelectDirectoryOrFile(finder.GetFilePath());
+		}
+		else
+		{
+			//파일인 경우 읽기전용 속성이 걸려있어도 지울 수 있도록 속성 초기화 후 삭제
+			::SetFileAttributes(finder.GetFilePath(), FILE_ATTRIBUTE_NORMAL);
+			::DeleteFile(finder.GetFilePath());
+		}
+	}
+	finder.Close();
+
+	::SetFileAttributes(strPath, FILE_ATTRIBUTE_NORMAL);
+	if (!::RemoveDirectory(strPath))
+	{
+		CString strCmd;
+		strCmd.Format(L"cmd.exe /c rmdir /s /q \"%s\"", strPath);
+
+		STARTUPINFO si = { sizeof(si) };
+		PROCESS_INFORMATION pi;
+		si.dwFlags = STARTF_USESHOWWINDOW;
+		si.wShowWindow = SW_HIDE;
+
+		if (CreateProcess(NULL, strCmd.GetBuffer(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+		{
+			WaitForSingleObject(pi.hProcess, 1000);
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
+		strCmd.ReleaseBuffer();
+	}
+}
+
+//설명: 해당 파일 압축 해제
+BOOL CRecipeManager::LoadAndUnzipRecipe(CString strGerberPath, CString strGerberName)
+{
+	CString strUnZipGerberPath = strGerberPath + _T("\\") + strGerberName;
+	CString strZipGerberPath = strGerberPath + _T("\\") + strGerberName + _T(".zip");
+	TCHAR tzMesg[128] = { NULL };
+
+	//백업 폴더에 해당 압축 파일이 있는지 확인
+	if (GetFileAttributes(strZipGerberPath) == INVALID_FILE_ATTRIBUTES)
+	{
+		swprintf_s(tzMesg, 128, L"[%s] Can not Open file", strZipGerberPath);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMesg);
+
+		AfxMessageBox(L"Can not Open file", MB_OK);
+		return FALSE;
+	}
+
+	CString strCmd;
+	strCmd.Format(L"tar -xf \"%s\" -C \"%s\"", strZipGerberPath, strGerberPath);
+
+	STARTUPINFO si = { sizeof(si) };
+	PROCESS_INFORMATION pi;
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+
+	BOOL bUnzipSucess = FALSE;
+
+	if (CreateProcess(NULL, strCmd.GetBuffer(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+	{
+		WaitForSingleObject(pi.hProcess, INFINITE);
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		strCmd.ReleaseBuffer();
+	}
+	else
+	{
+		strCmd.ReleaseBuffer();
+	}
+
+	//정상적으로 폴더/파일 복원되었는지 검증 단계
+	if (GetFileAttributes(strUnZipGerberPath) != INVALID_FILE_ATTRIBUTES)
+	{
+		::DeleteFile(strZipGerberPath);
+
+		swprintf_s(tzMesg, 128, L"[%s] Reicpe UnZip Complete", strZipGerberPath);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMesg);
+		
+		AfxMessageBox(L"Reicpe UnZip Complete", MB_OK);
+		return TRUE;
+	}
+	else
+	{
+		swprintf_s(tzMesg, 128, L"[%s] Reicpe UnZip False", strZipGerberPath);
+		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMesg);
+
+		AfxMessageBox(L"Reicpe UnZip False", MB_OK);
+		return FALSE;
+	}
+}
+
+
+BOOL CRecipeManager::StartBackgroundSync()
+{
+	if (m_pSyncThread != NULL)
+		return FALSE;
+
+	m_bStopThread = FALSE;
+
+	m_pSyncThread = AfxBeginThread(CRecipeManager::ReicpeSyncTreadProc, this, THREAD_PRIORITY_BELOW_NORMAL);
+
+	return (m_pSyncThread != NULL);
+}
+VOID CRecipeManager::StopBackgroundSync()
+{
+	if (m_pSyncThread == NULL) return;
+	m_bStopThread = TRUE;
+
+	DWORD dwWait = ::WaitForSingleObject(m_pSyncThread->m_hThread, 3000);
+
+	m_pSyncThread = NULL;
+}
+
+UINT __cdecl CRecipeManager::ReicpeSyncTreadProc(LPVOID pParam)
+{
+	CRecipeManager* pManager = reinterpret_cast<CRecipeManager*>(pParam);
+	if (pManager == NULL) return 0;
+
+	TCHAR tzMesg[128] = { NULL };
+
+	while (!pManager->m_bStopThread)
+	{
+		/*1. 백그라운드에서 안전하게 로그 분석 및 매핑 테이블 빌드*/
+		//pManager->BuidRecipUsageList();
+		/*2. 분석 결과를 바탕으로 기간이 지난 올드레시피 압축 및 소거 진행*/
+		//pManager->ArchiveOldRecipe();
+
+
+		/*현재 시스템의 날짜와 시간 정보 획득*/
+		CTime cCurrentTime = CTime::GetCurrentTime();
+		int nHour		= cCurrentTime.GetHour();			//현재 시간(0~23)
+		int nMin		= cCurrentTime.GetMinute();			//현재 분(0~60)
+		int nDayOfWeek	= cCurrentTime.GetDayOfWeek();		//현재 요일(1:일요일, 2:월요일...7:토요일)
+
+		/*스레드 동작 날짜 및 시간 설정*/
+		BOOL bIsUseHoure	= (nHour >= 2 && nHour < 4);	//2시~4시
+		//BOOL bIsUseDay	= (nDayOfWeek == 1);			//일요일
+		//BOOL bIsUseMin	= (nMin > 53);
+
+		/*설정한 날짜와 시간이 맞다면*/
+		if(bIsUseHoure)
+		{
+			swprintf_s(tzMesg, 128, L"[Background Sync] Entering non-operational/night time - Staring recipe compression(Current: %d o'clock)", nHour);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMesg);
+
+			pManager->ArchiveOldRecipe();
+		}
+		else
+		{
+			swprintf_s(tzMesg, 128, L"[Background Sync] Skippiing recipe cleanup due to Daytime Mass Production Time (Current: %d o'clock)", nHour);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMesg);
+		}
+
+		/*3. 주기적 실행을 위한 대기 루프 3600초==1시간*/
+		for (int i = 0;i < 3600;++i)
+		{
+			if (pManager->m_bStopThread)
+				break;
+			/*1초씩 쪼개서 정지 플래그를 체크*/
+			::Sleep(1000);
+		}
+
+	}
+	return 0;
 }

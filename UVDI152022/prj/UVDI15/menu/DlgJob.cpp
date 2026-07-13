@@ -1288,12 +1288,15 @@ void CDlgJob::OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
 
 	if (pstRecipe)
 	{
-
-		TCHAR tzPath[MAX_PATH_LEN] = { NULL };
 		CUniToChar csCnv1, csCnv2;
+		TCHAR tzPath[MAX_PATH_LEN] = { NULL };
+		TCHAR tzPathZip[MAX_PATH_LEN] = { NULL };
+
 		swprintf_s(tzPath, MAX_PATH_LEN, L"%s\\%s",
 			csCnv1.Ansi2Uni(pstRecipe->gerber_path), csCnv2.Ansi2Uni(pstRecipe->gerber_name));
-		if (!uvCmn_FindPath(tzPath))
+		swprintf_s(tzPathZip, MAX_PATH_LEN, L"%s\\%s.zip",
+			csCnv1.Ansi2Uni(pstRecipe->gerber_path), csCnv2.Ansi2Uni(pstRecipe->gerber_name));
+		if (!uvCmn_FindPath(tzPath) && !uvCmn_FindFile(tzPathZip))
 		{
 			if (ShowYesNoMsg(eQUEST, _T("Failed to find the path of gerber file\nDo you want to delete the recipe?")) == IDYES)
 			{
@@ -1310,6 +1313,28 @@ void CDlgJob::OnClickGridRecipeList(NMHDR* pNotifyStruct, LRESULT* pResult)
 		}
 		else
 		{
+			if (uvCmn_FindFile(tzPathZip))
+			{
+				TCHAR tzMsg[256] = { NULL };
+				swprintf_s(tzMsg, 256, L"%S gerber is compress. Would you like to decompress it?", pstRecipe->gerber_name);
+				CDlgMesg dlgMesg;
+				if (IDOK == dlgMesg.MyDoModal(tzMsg, 0x02))
+				{
+
+					CString strGerberPath, strGerberName;
+
+					strGerberPath.Format(_T("%S"), pstRecipe->gerber_path);
+					strGerberName.Format(_T("%S"), pstRecipe->gerber_name);
+
+
+					CRecipeManager::GetInstance()->LoadAndUnzipRecipe(strGerberPath, strGerberName);
+				}
+				else
+				{
+					return;
+				}
+
+			}
 			//선택되어있는것을 클릭했을때 처리
 			if (m_nSelectRecipe[eRECIPE_MODE_VIEW] == pItem->iRow)
 			{

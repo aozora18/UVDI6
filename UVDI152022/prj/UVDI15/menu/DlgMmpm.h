@@ -59,6 +59,7 @@ class CDlgMmpm : public CMyDialog
 public:
 
 	CDlgMmpm(bool showAll = true, CWnd* parent = NULL);
+	~CDlgMmpm();
 	enum { IDD = IDD_MMPM };
 
 /* 가상 함수 */

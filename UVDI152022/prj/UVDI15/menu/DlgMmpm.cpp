@@ -48,6 +48,11 @@ CDlgMmpm::CDlgMmpm(bool showAll,CWnd* parent /*=NULL*/)
 	this->showAll = showAll;
 }
 
+CDlgMmpm::~CDlgMmpm()
+{
+	//uvCmn_Camera_CloseSetMark(false);
+}
+
 /*
  desc : 윈도 ID 매핑
  parm : dx	- 매핑 객체 ID
@@ -171,6 +176,8 @@ VOID CDlgMmpm::OnExitDlg()
 
 	
 	MemRelease();
+
+	uvCmn_Camera_CloseSetMark(false);
 }
 
 VOID CDlgMmpm::MemRelease()

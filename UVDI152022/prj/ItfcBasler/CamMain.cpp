@@ -99,6 +99,10 @@ CCamMain::~CCamMain()
 	m_stGrab.Release();
 	// Live Mode 임시 저장용 메모리 해제
 	//Free(m_stGrab.grab_data);
+	if (m_stGrab.grab_data) {
+		delete m_stGrab.grab_data;
+		m_stGrab.grab_data = NULL;
+	}
 	/* Gray Index 메모리 해제 */
 	if (m_pHistLevel)	delete m_pHistLevel;
 	if (m_pGrayCount)	delete m_pGrayCount;

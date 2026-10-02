@@ -2008,21 +2008,26 @@ BOOL CMilMain::RegistMod(UINT8 cam_id, PUINT8 img_src, CRect fi_rectArea, CStrin
 }
 
 /* desc: Mil Main 할당 변수 해제 */
-VOID CMilMain::CloseSetMark()
+VOID CMilMain::CloseSetMark(bool mmpm)
 {
 #ifndef _NOT_USE_MIL_
-	//if (m_mDisID_MMPM)
-	//{
-	//	MdispDeselect(m_mDisID_MarkSet, m_mImgDisp_MMPM);
-	//	MdispFree(m_mDisID_MMPM);
-	//	m_mDisID_MMPM = M_NULL;
-	//}
+	if (mmpm)
+	{
+		if (m_mDisID_MMPM)
+		{
+			MdispDeselect(m_mImgDisp_MMPM, m_mImgDisp_MMPM);
+			MdispFree(m_mDisID_MMPM);
+			m_mDisID_MMPM = M_NULL;
+		}
 
-	//if (m_mImgDisp_MMPM)
-	//{
-	//	MbufFree(m_mImgDisp_MMPM);
-	//	m_mImgDisp_MMPM = M_NULL;
-	//}
+		if (m_mImgDisp_MMPM)
+		{
+			MbufFree(m_mImgDisp_MMPM);
+			m_mImgDisp_MMPM = M_NULL;
+		}
+
+		return;
+	}
 
 	if (m_mDisID_MarkSet)
 	{

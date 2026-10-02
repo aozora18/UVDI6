@@ -25,6 +25,8 @@ CDlgConfSetting::CDlgConfSetting(UINT32 id, CWnd* parent)
 CDlgConfSetting::~CDlgConfSetting()
 {
 	DeleteMenu();
+
+	ClearGrdPage();
 }
 
 /*
@@ -147,6 +149,9 @@ VOID CDlgConfSetting::UpdateControl(UINT64 tick, BOOL is_busy)
 */
 VOID CDlgConfSetting::InitCtrl()
 {
+	//재호출 대비 기존에 할당된 페이지 및 파라미터 메모리 전체 해체
+	ClearGrdPage();
+
 	CResizeUI clsResizeUI;
 
 	/* button - normal */
@@ -275,6 +280,28 @@ VOID CDlgConfSetting::InitCtrl()
 
 	UpdateGridParam();
 
+}
+
+void CDlgConfSetting::ClearGrdPage()
+{
+	for (int i = 0;i < m_arrGrdPage.GetCount();i++)
+	{
+		CArrGrdParam* pArrGrdParam = m_arrGrdPage.GetAt(i);
+		if (pArrGrdParam != NULL)
+		{
+			for (int j = 0;j < pArrGrdParam->GetCount();j++)
+			{
+				ST_GRD_PARAM* pParam = pArrGrdParam->GetAt(j);
+				if (pParam != NULL)
+				{
+					delete pParam;
+				}
+			}
+			pArrGrdParam->RemoveAll();
+			delete pArrGrdParam;
+		}
+	}
+	m_arrGrdPage.RemoveAll();
 }
 
 void CDlgConfSetting::UpdateGridParam()

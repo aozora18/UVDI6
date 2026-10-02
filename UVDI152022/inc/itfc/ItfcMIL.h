@@ -485,7 +485,7 @@ API_EXPORT VOID uvMIL_OverlayAddCircleList(int fi_iDispType, int fi_iNo, int fi_
 API_EXPORT VOID uvMIL_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, UINT8 mark_no);
 API_EXPORT VOID uvMIL_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
 API_EXPORT VOID uvMIL_InitMask(UINT8 cam_id);
-API_EXPORT VOID uvMIL_CloseSetMark();
+API_EXPORT VOID uvMIL_CloseSetMark(bool mmpm);
 API_EXPORT VOID uvMIL_MilZoomIn(int fi_iDispType, int cam_id, CRect rc);
 API_EXPORT BOOL uvMIL_MilZoomOut(int fi_iDispType, int cam_id, CRect rc);
 API_EXPORT VOID uvMIL_MilAutoScale(int fi_iDispType, int cam_id);

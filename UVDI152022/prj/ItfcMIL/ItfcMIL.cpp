@@ -2491,9 +2491,9 @@ API_EXPORT VOID uvMIL_CenterFind(int cam_id, int fi_length, int fi_curSmoothness
 }
 
 /* desc: Mil Main 할당 변수 해제 */
-API_EXPORT VOID uvMIL_CloseSetMark()
+API_EXPORT VOID uvMIL_CloseSetMark(bool mmpm)
 {
-	theApp.clMilMain.CloseSetMark();
+	theApp.clMilMain.CloseSetMark(mmpm);
 }
 
 /* desc: Mask 초기화 */

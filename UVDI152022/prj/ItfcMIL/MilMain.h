@@ -251,7 +251,7 @@ public:
 	
 	VOID SetDispMMPM(CWnd* pWnd);
 	VOID InitMask(UINT8 cam_id);
-	VOID CloseSetMark();
+	VOID CloseSetMark(bool mmpm = false);
 	VOID CloseMMPMAutoCenter();
 
 	BOOL RegistMILImg(INT32 cam_id, INT32 width, INT32 height, PUINT8 image);

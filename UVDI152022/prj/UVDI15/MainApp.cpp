@@ -127,6 +127,8 @@ BOOL CMainApp::InitInstance()
 	{
 		delete pShellManager;
 	}
+
+	_CrtSetBreakAlloc(91816); // 출력 창에 찍힌 번호 중 하나 입력
 	
 	return FALSE;
 }

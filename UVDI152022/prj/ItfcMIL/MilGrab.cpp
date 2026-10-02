@@ -69,6 +69,9 @@ CMilGrab::~CMilGrab()
 	{
 		/*if (m_pstGrabResult->grab_data)	::Free(m_pstGrabResult->grab_data);
 		::Free(m_pstGrabResult);*/
+		delete m_pstGrabResult->grab_data;
+		m_pstGrabResult->grab_data = NULL;
+
 		delete m_pstGrabResult;
 		m_pstGrabResult	= NULL;
 	}

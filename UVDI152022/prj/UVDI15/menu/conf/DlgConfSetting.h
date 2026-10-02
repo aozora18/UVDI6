@@ -85,6 +85,7 @@ protected:
 protected:
 
 	VOID				InitCtrl();
+	VOID				ClearGrdPage();
 
 	BOOL				InitObject();
 	VOID				CloseObject();

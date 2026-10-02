@@ -49,6 +49,7 @@ VOID CLedPower::RemoveAll()
 	while (pPos)
 	{
 		pPower	= m_lstRecipe.GetNext(pPos);
+		pPower->Close();
 		if (pPower)	delete pPower;
 	}
 	m_lstRecipe.RemoveAll();

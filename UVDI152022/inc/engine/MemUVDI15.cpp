@@ -524,13 +524,13 @@ CMemVisi::~CMemVisi()
 		delete m_pstMemMap->edge_result;
 		delete m_pstMemMap->line_result;
 
-		for (i=0; i<m_pstConfig->set_cams.acam_count; i++)
+		for (i = 0; i < m_pstConfig->set_cams.acam_count + 1; i++)
 		{
 			delete m_pstMemMap->mark_image[i];
 			delete m_pstMemMap->line_image[i];
 		}
 
-		for (i=0; i<m_pstConfig->set_cams.acam_count; i++)
+		for (i = 0; i < m_pstConfig->set_cams.acam_count + 1; i++)
 		{
 			delete m_pstMemMap->cali_global[i];
 			delete m_pstMemMap->cali_local[i];

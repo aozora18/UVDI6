@@ -564,7 +564,7 @@ API_EXPORT VOID uvEng_Camera_DrawMarkInfo_UseMIL(UINT8 cam_id, UINT8 fi_smooth, 
 API_EXPORT VOID uvEng_Camera_Mask_MarkSet(UINT8 cam_id, CRect rectTmp, CPoint iTmpSizeP, CRect rectFill, int fi_color, bool bMask);
 
 API_EXPORT VOID uvCmn_Camera_InitMask(UINT8 cam_id);
-API_EXPORT VOID uvCmn_Camera_CloseSetMark();
+API_EXPORT VOID uvCmn_Camera_CloseSetMark(bool mmpm);
 
 API_EXPORT VOID uvCmn_Camera_MilZoomIn(int fi_iDispType, int cam_id, CRect rc);
 API_EXPORT BOOL uvCmn_Camera_MilZoomOut(int fi_iDispType, int cam_id, CRect rc);

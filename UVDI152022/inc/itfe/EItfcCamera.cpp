@@ -1036,9 +1036,9 @@ API_EXPORT VOID uvCmn_Camera_InitMask(UINT8 cam_id)
 }
 
 /* desc: Mil Main 할당 변수 해제 */
-API_EXPORT VOID uvCmn_Camera_CloseSetMark()
+API_EXPORT VOID uvCmn_Camera_CloseSetMark(bool mmpm)
 {
-	uvBasler_CloseSetMark();
+	uvBasler_CloseSetMark(mmpm);
 }
 
 /* desc: MARK DISP ID 할당 */

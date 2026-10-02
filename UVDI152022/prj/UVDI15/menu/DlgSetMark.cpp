@@ -245,7 +245,7 @@ void CDlgSetMark::OnBnClickedBtnMarkSave()
 void CDlgSetMark::OnBnClickedBtnMarkExit()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	uvCmn_Camera_CloseSetMark();
+	uvCmn_Camera_CloseSetMark(false);
 
 	CDialogEx::OnOK();
 }

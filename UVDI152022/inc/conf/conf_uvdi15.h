@@ -865,6 +865,7 @@ typedef struct __st_config_file_data_name__
 	TCHAR				trig_cali[MAX_FILE_LEN];
 	TCHAR				thick_cali[MAX_FILE_LEN];
 	TCHAR				correct_y[MAX_FILE_LEN];
+	TCHAR				user_position[MAX_FILE_LEN];
 	TCHAR				staticAcamAlignCali[MAX_FILE_LEN];
 	TCHAR				staticAcamExpoCali[MAX_FILE_LEN];
 	TCHAR				camZmeasure[3][MAX_FILE_LEN];
@@ -1173,6 +1174,24 @@ typedef struct __st_config_recipe_management_parameter__
 
 }	STG_RMSP, *LPG_RMSP;
 
+typedef struct __st_config_user_position_parameter__
+{
+	CString		strName;
+	DOUBLE		dPosX;
+	DOUBLE		dPosY;
+	DOUBLE		dCam1X;
+	DOUBLE		dCam2X;
+
+	VOID	Init()
+	{
+		strName = _T("");
+		dPosX = DEF_IGNORE_POS;
+		dPosY = DEF_IGNORE_POS;
+		dCam1X = DEF_IGNORE_POS;
+		dCam2X = DEF_IGNORE_POS;
+	}
+}	STG_UPTP, *LPG_UPTP ;
+
 
 /* Engine 관련 정보 */
 typedef struct __st_config_info_engine_all__
@@ -1215,6 +1234,7 @@ typedef struct __st_config_info_engine_all__
 	STG_ENVI			environmental;
 	STG_CHO				headOffsets;
 	STG_RMSP			recipe_management;	/*Recipe 용량 관리*/
+	STG_UPTP			user_poition;
 
 	
 	/*

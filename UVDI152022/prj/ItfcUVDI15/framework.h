@@ -75,6 +75,7 @@ DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 #include "../../inc/recipe/CorrectY.h"
 #include "../../inc/recipe/MarkUVDI15.h"
 #include "../../inc/mesg/CodeToStr.h"
+#include "../../inc/recipe/UserPosition.h"
 
 /* Interface Header */
 #include "../../inc/itfc/ItfcCmn.h"

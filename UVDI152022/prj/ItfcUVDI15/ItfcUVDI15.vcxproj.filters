@@ -141,6 +141,12 @@
     <ClCompile Include="..\..\inc\itfe\EItfcKeyenceLDS.cpp">
       <Filter>내부 파일\02.개발 파일\itfe</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\inc\recipe\UserPosition.cpp">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\inc\itfe\EItfcUserPosition.cpp">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -255,6 +261,12 @@
       <Filter>내부 파일\02.개발 파일\itfe</Filter>
     </ClInclude>
     <ClInclude Include="..\..\inc\itfe\EItfcKeyenceLDS.h">
+      <Filter>내부 파일\02.개발 파일\itfe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\recipe\UserPosition.h">
+      <Filter>내부 파일\02.개발 파일\recipe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\inc\itfe\EItfcUserPosition.h">
       <Filter>내부 파일\02.개발 파일\itfe</Filter>
     </ClInclude>
   </ItemGroup>

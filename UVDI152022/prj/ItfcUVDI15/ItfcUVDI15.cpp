@@ -49,6 +49,7 @@ VOID ClosedSharedMemory()
 	if (g_pRecipe)			delete g_pRecipe;
 	if (g_pMark)			delete g_pMark;
 	if (g_pCodeToStr)		delete g_pCodeToStr;
+	if (g_pUserPosition)	delete g_pUserPosition;
 
 	/* Shared Memory Object 제거 */
 	if (g_pMemLuria)		delete g_pMemLuria;
@@ -77,6 +78,7 @@ VOID ClosedSharedMemory()
 	g_pCorrectY		= NULL;
 	g_pMark			= NULL;
 	g_pCodeToStr	= NULL;
+	g_pUserPosition = NULL;
 
 	g_pMemConf		= NULL;
 	g_pMemLuria		= NULL;
@@ -90,6 +92,7 @@ VOID ClosedSharedMemory()
 	g_pMemGentec	= NULL;
 	g_pMemPhilhmi	= NULL;
 	g_pMemStrobeLamp = NULL;
+
 
 	/* 작업 이름 메모리 해제 */
 	if (g_ptzWorkStepName)	delete g_ptzWorkStepName;
@@ -285,6 +288,14 @@ DELIVERY_PRODUCT_ID == CUSTOM_CODE_HDDI6)
 		AfxMessageBox(L"Failed to load the file (thick_cali) for Align Camera", MB_ICONSTOP|MB_TOPMOST);
 		return FALSE;
 	}
+	/*User Position*/
+	g_pUserPosition = new CUserPosition(g_tzWorkDir);
+	ASSERT(g_pUserPosition);
+	if (!g_pUserPosition->LoadFile())
+	{
+		AfxMessageBox(L"Failed to load the file (user_) for Align Camera", MB_ICONSTOP | MB_TOPMOST);
+		return FALSE;
+	}
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15_LLS06)
 	/* Mark Recipe Data */
@@ -460,6 +471,11 @@ BOOL ReloadCaliFile()
 	if (!g_pThickCali->LoadFile())
 	{
 		AfxMessageBox(L"Failed to load the file (thick_cali) for Align Camera", MB_ICONSTOP|MB_TOPMOST);
+		return FALSE;
+	}
+	if (!g_pUserPosition->LoadFile())
+	{
+		AfxMessageBox(L"Failed to load the config file for <user_pos>", MB_ICONSTOP | MB_TOPMOST);
 		return FALSE;
 	}
 

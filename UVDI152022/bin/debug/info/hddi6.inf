@@ -683,7 +683,7 @@ CHECK_QUERY_EXPO        = 0
 USE_VISION_LIBRARY      = 1
 LOAD_RECIPE_HOMING      = 1
 CHECK_HOT_AIR= 0
-RECIPE_NAME= 250807_6um_FEM_Dyn_25_26
+RECIPE_NAME= 6um_Step_Ruler
 
 ;----------------------------------------------------------------------------------------------------
 ; [FILE_NAME]           = 참고로 기본 확장자는 dat 즉, xxx.dat
@@ -713,6 +713,7 @@ FILE_THICK_CALI         	= thick_cali
 FILE_CORRECT_Y         	 = correct_y
 FILE_MARK_RECIPE=
 FILE_MARK_ROI=
+FILE_USER_POSITION		= use_pos
 
 FILE_STATIC_ALIGNCALI_CAM = D:\3.DI Master\UVDI6\UVDI152022\bin\debug\HDDI6_data\xy2d\acam3_cali_Static.dat
 FILE_STATIC_EXPOCALI_CAM = D:\3.DI Master\UVDI6\UVDI152022\bin\debug\HDDI6_data\xy2d\acam3_expocali_static.dat
@@ -1776,3 +1777,8 @@ OFFSET_TYPE = DEFAULT,DFSR,DFR
 OFFSET_DEFAULT = 0,0,0,0,0,0
 OFFSET_DFSR = 0,0,0,0,0,0
 OFFSET_DFR = 0,0,0,0,0,0
+
+
+[RECIPE_MANAGEMENT]
+USE_AUTO_ARCHIVE = 1
+ARCHIVE_LIMIT_DAYS = 30

@@ -13,6 +13,7 @@
 #include "../conf/recipe_uvdi15.h"
 #include "../conf/plc_addr_uvdi15.h"
 
+
 /* Interface File - Normal */
 #include "../itfe/EItfcCamera.h"
 #include "../itfe/EItfcLogs.h"
@@ -33,6 +34,7 @@
 #include "../itfe/EItfcPhStep.h"
 #include "../itfe/EItfcMarkUVDI15.h"
 #include "../itfe/EItfcRcpUVDI15.h"
+#include "../itfe/EItfcUserPosition.h"
 
 
 #ifdef __cplusplus

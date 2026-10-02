@@ -42,6 +42,7 @@ extern CThickCali			*g_pThickCali;
 extern CPhStep				*g_pPhStep;
 extern CCorrectY			*g_pCorrectY;
 extern CCodeToStr			*g_pCodeToStr;
+extern CUserPosition		*g_pUserPosition;
 
 #if (DELIVERY_PRODUCT_ID == CUSTOM_CODE_UVDI15_LLS06)
 extern CRecipeUVDI15		*g_pRecipe;

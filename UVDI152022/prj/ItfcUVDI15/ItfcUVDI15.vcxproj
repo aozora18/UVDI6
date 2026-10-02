@@ -146,6 +146,7 @@
     <ClCompile Include="..\..\inc\itfe\EItfcRcpUVDI15.cpp" />
     <ClCompile Include="..\..\inc\itfe\EItfcStrobeLamp.cpp" />
     <ClCompile Include="..\..\inc\itfe\EItfcThickCali.cpp" />
+    <ClCompile Include="..\..\inc\itfe\EItfcUserPosition.cpp" />
     <ClCompile Include="..\..\inc\mesg\CodeToStr.cpp" />
     <ClCompile Include="..\..\inc\recipe\ACamCali.cpp" />
     <ClCompile Include="..\..\inc\recipe\Base.cpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="..\..\inc\recipe\PhStep.cpp" />
     <ClCompile Include="..\..\inc\recipe\RecipeUVDI15.cpp" />
     <ClCompile Include="..\..\inc\recipe\ThickCali.cpp" />
+    <ClCompile Include="..\..\inc\recipe\UserPosition.cpp" />
     <ClCompile Include="ItfcUVDI15.cpp" />
     <ClCompile Include="MainApp.cpp" />
     <ClCompile Include="pch.cpp">
@@ -187,6 +189,7 @@
     <ClInclude Include="..\..\inc\itfe\EItfcRcpUVDI15.h" />
     <ClInclude Include="..\..\inc\itfe\EItfcStrobeLamp.h" />
     <ClInclude Include="..\..\inc\itfe\EItfcThickCali.h" />
+    <ClInclude Include="..\..\inc\itfe\EItfcUserPosition.h" />
     <ClInclude Include="..\..\inc\mesg\CodeToStr.h" />
     <ClInclude Include="..\..\inc\recipe\ACamCali.h" />
     <ClInclude Include="..\..\inc\recipe\Base.h" />
@@ -196,6 +199,7 @@
     <ClInclude Include="..\..\inc\recipe\PhStep.h" />
     <ClInclude Include="..\..\inc\recipe\RecipeUVDI15.h" />
     <ClInclude Include="..\..\inc\recipe\ThickCali.h" />
+    <ClInclude Include="..\..\inc\recipe\UserPosition.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="pch.h" />

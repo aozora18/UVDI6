@@ -261,6 +261,7 @@ BOOL CConfUvdi15::LoadConfigFileName()
 	GetConfigStr(L"FILE_TRIG_CALI", m_pstCfg->file_dat.trig_cali, MAX_FILE_LEN);
 	GetConfigStr(L"FILE_THICK_CALI", m_pstCfg->file_dat.thick_cali, MAX_FILE_LEN);
 	GetConfigStr(L"FILE_CORRECT_Y", m_pstCfg->file_dat.correct_y, MAX_FILE_LEN);
+	GetConfigStr(L"FILE_USER_POSITION", m_pstCfg->file_dat.user_position, MAX_FILE_LEN);
 
 	GetConfigStr(L"FILE_STATIC_ALIGNCALI_CAM" , m_pstCfg->file_dat.staticAcamAlignCali, MAX_FILE_LEN);
 	GetConfigStr(L"FILE_STATIC_EXPOCALI_CAM" , m_pstCfg->file_dat.staticAcamExpoCali, MAX_FILE_LEN);
@@ -288,6 +289,7 @@ BOOL CConfUvdi15::SaveConfigFileName()
 	SetConfigStr(L"FILE_ACAM_CALI", m_pstCfg->file_dat.acam_cali);
 	SetConfigStr(L"FILE_TRIG_CALI", m_pstCfg->file_dat.trig_cali);
 	SetConfigStr(L"FILE_CORRECT_Y", m_pstCfg->file_dat.correct_y);
+	SetConfigStr(L"FILE_USER_POSITION", m_pstCfg->file_dat.correct_y);
 
 	return TRUE;
 }

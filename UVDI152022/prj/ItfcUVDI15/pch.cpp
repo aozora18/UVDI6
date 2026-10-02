@@ -35,6 +35,7 @@ CACamCali			*g_pACamCali		= NULL;	/* Camera Calibration */
 CThickCali			*g_pThickCali		= NULL;	/* Material Thick Calibration for Align Camera */
 CPhStep				*g_pPhStep			= NULL;	/* Photohead Step Calibration */
 CCorrectY			*g_pCorrectY		= NULL;	/* Photohead Stripe Calibration */
+CUserPosition		*g_pUserPosition	= NULL;	/* User Position Move*/
 
 CCodeToStr			*g_pCodeToStr		= NULL;	/* Error Code -> String (Message) */
 

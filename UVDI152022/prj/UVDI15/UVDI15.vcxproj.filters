@@ -552,6 +552,12 @@
     <ClInclude Include="menu\calb\exposure\DlgStepOffsetCalc.h">
       <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
     </ClInclude>
+    <ClInclude Include="param\unzip.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
+    <ClInclude Include="param\zip.h">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -961,6 +967,12 @@
     </ClCompile>
     <ClCompile Include="menu\calb\exposure\DlgStepOffsetCalc.cpp">
       <Filter>03.메뉴 파일\dlgs\calb\exposure</Filter>
+    </ClCompile>
+    <ClCompile Include="param\unzip.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
+    </ClCompile>
+    <ClCompile Include="param\zip.cpp">
+      <Filter>03.메뉴 파일\param</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

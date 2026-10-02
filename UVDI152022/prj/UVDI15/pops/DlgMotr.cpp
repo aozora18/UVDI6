@@ -50,6 +50,7 @@ CDlgMotr::CDlgMotr(CWnd* pParent /*=NULL*/)
 	m_bMoveType = eCELL_TAB_ABSOLUTE_MOVE;
 	m_dSetSpeed = 0.;
 	m_dSetPosition = 0.;
+	m_nSelUserPos = 1;
 }
 
 /*
@@ -97,6 +98,7 @@ BEGIN_MESSAGE_MAP(CDlgMotr, CMyDialog)
 	ON_WM_SYSCOMMAND()
 	ON_COMMAND_RANGE(IDC_BTN_PLUS, IDC_BTN_PLUS + eBTN_MAX, OnClickButtonEvent)
 	ON_NOTIFY_RANGE(NM_CLICK, IDC_GRD_MOTOR, IDC_GRD_MOTOR + eGRD_MAX, OnGrdClickedEvent)
+	ON_NOTIFY_RANGE(NM_DBLCLK, IDC_GRD_MOTOR, IDC_GRD_MOTOR+ eGRD_MAX, OnGrdDblClickedEvent)
 END_MESSAGE_MAP()
 
 /*
@@ -141,6 +143,14 @@ BOOL CDlgMotr::OnInitDlg()
 	InitOpInputGrid();
 	InitControlGrid();
 
+	/*유저 지정 위치값 읽기*/
+	LoadUserPosition();
+	InitUserPosGrid();
+
+	/*User Position 기능 숨기긱 적용*/
+	//ShowUserPositionUI(FALSE);
+	ShowUserPositionUI(TRUE);
+
 	return TRUE;
 }
 
@@ -169,7 +179,8 @@ VOID CDlgMotr::CreateControl()
 
 	LOGFONT	lfBold = GetLogFont(28, TRUE);	/* 폰트 생성 */
 
-	CString strArrCaption[eBTN_MAX] = { _T("+"), _T("-"), _T("STOP") };	/* 버튼에 사용될 문자 */
+	CString strArrCaption[eBTN_MAX] = { _T("+"), _T("-"), _T("STOP"),
+		_T("Name"), _T("Use Position2"), _T("Get Pos"), _T("Move Pos"), _T("Save Name ") };	/* 버튼에 사용될 문자 */
 
 	// 전체 작업 영역을 가져온다.
 	GetClientRect(rctDlgSize);
@@ -199,11 +210,13 @@ VOID CDlgMotr::CreateControl()
 		m_sttTitle[nTitleNum].SetTextColor(DEF_COLOR_BTN_MENU_NORMAL_TEXT);
 	}
 
+	/*상단 영역 좌표 계산*/
+
 	// Motor 항목 좌표 값
 	rctGrdSize[eGRD_MOTOR].left = rctDlgSize.left + 1;
 	rctGrdSize[eGRD_MOTOR].top = rctTitleSize[eTITLE_MOTOR].bottom;
 	rctGrdSize[eGRD_MOTOR].right = rctTitleSize[eTITLE_CONTROL].left;
-	rctGrdSize[eGRD_MOTOR].bottom = rctDlgSize.bottom;
+	rctGrdSize[eGRD_MOTOR].bottom = rctTitleSize[eTITLE_USER_POSITION].top;
 
 	// Control 항목 좌표 값
 	rctGrdSize[eGRD_CONTROL].left = rctTitleSize[eTITLE_CONTROL].left;
@@ -212,7 +225,7 @@ VOID CDlgMotr::CreateControl()
 	rctGrdSize[eGRD_CONTROL].bottom = rctTitleSize[eTITLE_OPERATION].top;
 
 	// Operation 항목 좌표 값
-	lBottomBlockSize = (rctDlgSize.bottom - rctTitleSize[eTITLE_OPERATION].bottom) / 5;
+	lBottomBlockSize = (rctTitleSize[eTITLE_USER_POSITION].top - rctTitleSize[eTITLE_OPERATION].bottom) / 5;
 
 	rctGrdSize[eGRD_OPERATION_TAB].left = rctTitleSize[eTITLE_CONTROL].left;
 	rctGrdSize[eGRD_OPERATION_TAB].top = rctTitleSize[eTITLE_OPERATION].bottom;
@@ -223,6 +236,19 @@ VOID CDlgMotr::CreateControl()
 	rctGrdSize[eGRD_OPERATION_INPUT].top = rctGrdSize[eGRD_OPERATION_TAB].bottom;
 	rctGrdSize[eGRD_OPERATION_INPUT].right = rctDlgSize.right - 1;
 	rctGrdSize[eGRD_OPERATION_INPUT].bottom = rctGrdSize[eGRD_OPERATION_INPUT].top + (lBottomBlockSize * 2);
+
+	/*User Position 기능*/
+	CRect rctUserPosArea;
+	rctUserPosArea.left = rctDlgSize.left + 1;
+	rctUserPosArea.top = rctTitleSize[eTITLE_USER_POSITION].bottom;
+	rctUserPosArea.right = rctDlgSize.right - 1;
+	rctUserPosArea.bottom = rctDlgSize.bottom - 1;
+
+	//Grid 좌표(하단 영역의 상단 60% 차지)
+	rctGrdSize[eGRD_USER_POS].left = rctUserPosArea.left;
+	rctGrdSize[eGRD_USER_POS].top = rctUserPosArea.top;
+	rctGrdSize[eGRD_USER_POS].right = rctUserPosArea.right;
+	rctGrdSize[eGRD_USER_POS].bottom = rctUserPosArea.top + (rctUserPosArea.Height() * 0.8);
 
 	// Grid를 생성한다.
 	for (int nGrdNum = 0; nGrdNum < eGRD_MAX; nGrdNum++)
@@ -247,7 +273,33 @@ VOID CDlgMotr::CreateControl()
 	rctBtnSize[eBTN_STOP].left = rctTitleSize[eTITLE_CONTROL].left;
 	rctBtnSize[eBTN_STOP].top = rctBtnSize[eBTN_PLUS].top + lBottomBlockSize;
 	rctBtnSize[eBTN_STOP].right = rctDlgSize.right - 1;
-	rctBtnSize[eBTN_STOP].bottom = rctDlgSize.bottom - 1;
+	rctBtnSize[eBTN_STOP].bottom = rctTitleSize[eTITLE_USER_POSITION].top;
+
+	//하단 버튼 영역 좌표 계산
+	CRect rctUposBtnArea;
+	rctUposBtnArea.left = rctUserPosArea.left;
+	rctUposBtnArea.top = rctGrdSize[eGRD_USER_POS].bottom;
+	rctUposBtnArea.right = rctUserPosArea.right;
+	rctUposBtnArea.bottom = rctUserPosArea.bottom;
+
+	int nBtnHeight = rctUposBtnArea.Height();
+	int nBtnWidth = rctUposBtnArea.Width() / 5;
+
+	//Name 버튼 및 텍스트 버튼 (왼쪽)
+	rctBtnSize[eBTN_UPOS_NAME].SetRect(rctUposBtnArea.left, rctUposBtnArea.top,
+		nBtnWidth,
+		rctUposBtnArea.top + nBtnHeight);
+	rctBtnSize[eBTN_UPOS_DISP].SetRect(rctBtnSize[eBTN_UPOS_NAME].right, rctUposBtnArea.top,
+		rctBtnSize[eBTN_UPOS_NAME].right + (nBtnWidth * 2),
+		rctUposBtnArea.top + nBtnHeight);
+
+	// 우측 Set/Get/Save 버튼
+	rctBtnSize[eBTN_UPOS_GETPOS].SetRect(rctUposBtnArea.right - (nBtnWidth * 2),
+		rctUposBtnArea.top, rctUposBtnArea.right - nBtnWidth, rctUposBtnArea.top + nBtnHeight/2);
+	rctBtnSize[eBTN_UPOS_MOVE].SetRect(rctBtnSize[eBTN_UPOS_GETPOS].right, rctUposBtnArea.top,
+		rctUposBtnArea.right, rctUposBtnArea.top + nBtnHeight/2);
+	rctBtnSize[eBTN_UPOS_SAVE].SetRect(rctBtnSize[eBTN_UPOS_GETPOS].left, rctUposBtnArea.top + nBtnHeight / 2,
+		rctUposBtnArea.right, rctUposBtnArea.top + nBtnHeight);
 
 	// 버튼을 생성한다.
 	for (int nBtnNum = 0; nBtnNum < eBTN_MAX; nBtnNum++)
@@ -256,12 +308,41 @@ VOID CDlgMotr::CreateControl()
 		ASSERT(m_pButton[nBtnNum]);
 
 		m_pButton[nBtnNum]->Create(strArrCaption[nBtnNum], WS_BORDER | WS_VISIBLE, rctBtnSize[nBtnNum], this, IDC_BTN_PLUS + nBtnNum);
-
 		m_pButton[nBtnNum]->SetLogFont(lfBold);
-		m_pButton[nBtnNum]->SetBgColor(DEF_COLOR_BTN_PAGE_NORMAL);
-		m_pButton[nBtnNum]->SetTextColor(DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+
+		if (nBtnNum == eBTN_UPOS_DISP)
+		{
+			m_pButton[nBtnNum]->SetBgColor(WHITE_);
+			m_pButton[nBtnNum]->SetTextColor(BLACK_);
+		}
+		else
+		{
+			m_pButton[nBtnNum]->SetBgColor(DEF_COLOR_BTN_PAGE_NORMAL);
+			m_pButton[nBtnNum]->SetTextColor(DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+		}
+
 		m_pButton[nBtnNum]->Invalidate(TRUE);
 	}
+
+	////Button 속성 적용 
+	//CString strUposCaption[] = { _T("Name"),_T("Use Position2"),_T("Set Pos"), _T("Get Pos"), _T("Save Pos") };
+	//int nCaptionIdx = 0;
+	//for (int nBtnNum = eBTN_UPOS_NAME;nBtnNum <= eBTN_UPOS_SAVE;nBtnNum++)
+	//{
+	//	m_pButton[nBtnNum]->SetWindowText(strUposCaption[nCaptionIdx++]);
+
+	//	if (nBtnNum == eBTN_UPOS_DISP)
+	//	{
+	//		m_pButton[nBtnNum]->SetBgColor(WHITE_);		//텍스트 표시용은 하얀색 배경
+	//		m_pButton[nBtnNum]->SetTextColor(BLACK_);
+	//	} 
+	//	else
+	//	{
+	//		m_pButton[nBtnNum]->SetBgColor(DEF_COLOR_BTN_PAGE_NORMAL);
+	//		m_pButton[nBtnNum]->SetTextColor(DEF_COLOR_BTN_MENU_NORMAL_TEXT);
+	//	}
+	//	m_pButton[nBtnNum]->Invalidate(TRUE);
+	//}
 }
 
 /*
@@ -333,7 +414,7 @@ VOID CDlgMotr::InitMotorGrid()
 	LOGFONT	lfFont = GetLogFont(20, TRUE);	/* 폰트 생성 */
 
 	double dCellRatio[eCELL_MOTOR_MAX] = { 0.1, 0.3, 0.45, 0.15 };	/* 그리드 비율 */
-	int nHeightSize = 40;	/* 셀 높이 */
+	int nHeightSize = 30;	/* 셀 높이 */
 	int	nWidthDiffer = 0;	/* 셀 너비 오차값 */
 
 	CString strUnit = _T("mm");			/* 단위 문자 */
@@ -543,6 +624,75 @@ VOID CDlgMotr::InitOpInputGrid()
 		}
 	}
 }
+VOID CDlgMotr::InitUserPosGrid()
+{
+	CRect rctSize;
+	LOGFONT lfFont = GetLogFont(20, TRUE);
+	double dCellRation[eCELL_UPOS_MAX] = { 0.28, 0.18, 0.18, 0.18, 0.18 };
+	int nHeightSize = 30;
+	int nWidthDiffer = 0;
+
+	CString strHeader[eCELL_UPOS_MAX] = { _T("Name"), _T("Pos X"), _T("Pos Y"),_T("Cam1X"),_T("Cam2X") };
+	UINT nCenterAlignText = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS;
+
+	m_pGrid[eGRD_USER_POS]->GetClientRect(rctSize);
+	m_pGrid[eGRD_USER_POS]->SetColumnResize(FALSE);
+	m_pGrid[eGRD_USER_POS]->SetRowResize(FALSE);
+	m_pGrid[eGRD_USER_POS]->SetEditable(FALSE);
+	m_pGrid[eGRD_USER_POS]->EnableSelection(FALSE);
+	m_pGrid[eGRD_USER_POS]->ModifyStyle(WS_HSCROLL, 0);
+
+	m_pGrid[eGRD_USER_POS]->SetGridLineColor(BLACK_);
+	m_pGrid[eGRD_USER_POS]->SetTextColor(BLACK_);
+
+	m_pGrid[eGRD_USER_POS]->DeleteAllItems();
+
+	int nRowCount = MAX_USER_POS + 1;
+	m_pGrid[eGRD_USER_POS]->SetColumnCount(eCELL_UPOS_MAX);
+	m_pGrid[eGRD_USER_POS]->SetRowCount(nRowCount);
+	m_pGrid[eGRD_USER_POS]->SetFixedRowCount(1);
+
+	if (rctSize.Height() - 1 < nHeightSize * nRowCount)
+	{
+		nWidthDiffer = ::GetSystemMetrics(SM_CXVSCROLL);
+	}
+	for (int nCol = 0;nCol < eCELL_UPOS_MAX; nCol++)
+	{
+		m_pGrid[eGRD_USER_POS]->SetColumnWidth(nCol, (int)(rctSize.Width() - nWidthDiffer)*dCellRation[nCol]);
+
+		for (int nRow = 0;nRow < nRowCount;nRow++)
+		{
+			m_pGrid[eGRD_USER_POS]->SetRowHeight(nRow, nHeightSize);
+			m_pGrid[eGRD_USER_POS]->SetItemFormat(nRow, nCol, nCenterAlignText);
+			m_pGrid[eGRD_USER_POS]->SetItemFont(nRow, nCol, &lfFont);
+
+			if (nRow == 0)
+			{
+				m_pGrid[eGRD_USER_POS]->SetItemText(nRow, nCol, strHeader[nCol]);
+				m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, RGB(91, 155, 231));
+				m_pGrid[eGRD_USER_POS]->SetItemFgColour(nRow, nCol, WHITE_);
+			}
+			else
+			{
+				//데이터 행 기본 디자인
+				if (eCELL_UPOS_NAME == nCol)
+				{
+					CString strName;
+					strName.Format(_T("User Position%d"),nRow);
+					m_pGrid[eGRD_USER_POS]->SetItemText(nRow, nCol, strName);
+					m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, RGB(242, 242, 242));
+				}
+				else
+				{
+					m_pGrid[eGRD_USER_POS]->SetItemText(nRow, nCol, _T("-"));
+					m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, WHITE_);
+				}
+			}
+		}
+
+	}
+}
+
 #pragma endregion
 
 /*
@@ -921,7 +1071,7 @@ VOID CDlgMotr::UpdateMotorStatus()
 		m_pGrid[eGRD_MOTOR]->SetItemText(nRow, eCELL_MOTOR_POS_VALUE, strPosition);
 	}
 
-
+	UpdataUserPosGrid();
 	// 화면 갱신
 	m_pGrid[eGRD_MOTOR]->Refresh();
 }
@@ -957,6 +1107,42 @@ void CDlgMotr::OnClickButtonEvent(UINT ID)
 			ajinInst.StopMotor(0, true);
 	}
 	break;
+	case eBTN_UPOS_DISP:
+	{
+		if (m_nSelUserPos<1 || m_nSelUserPos>MAX_USER_POS)
+		{
+			AfxMessageBox(_T("변경할 행을 리스트에서 먼저 선택해 주세요."));
+			return;
+		}
+		//문자열 입력 키보드 
+		CDlgKBDT dlgKeyPad;
+		TCHAR tzText[RECIPE_NAME_LENGTH] = { NULL };
+		CString strNewName;
+		if (IDOK == dlgKeyPad.MyDoModal(RECIPE_NAME_LENGTH))
+		{
+			//CString strNewName = dlgKeyPad.GetValusString();
+			dlgKeyPad.GetText(tzText, RECIPE_NAME_LENGTH);
+			strNewName.Format(_T("%s"), tzText);
+
+			m_stUserPos[m_nSelUserPos - 1].strName = strNewName;
+			m_pButton[eBTN_UPOS_DISP]->SetWindowText(strNewName);
+			m_pButton[eBTN_UPOS_DISP]->Invalidate(TRUE);
+
+			m_pGrid[eGRD_USER_POS]->SetItemText(m_nSelUserPos, eCELL_UPOS_NAME, strNewName);
+			m_pGrid[eGRD_USER_POS]->Refresh();
+		}
+
+	}
+		break;
+	case eBTN_UPOS_GETPOS:
+		GetPosUserPosition();
+		break;
+	case eBTN_UPOS_MOVE:
+		MovePosUserPosition();
+		break;
+	case eBTN_UPOS_SAVE:
+		SaveUserPosition();
+		break;
 
 	default:
 		break;
@@ -972,6 +1158,7 @@ void CDlgMotr::OnGrdClickedEvent(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult
 {
 	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
 	int nCommand = ID - IDC_GRD_MOTOR;
+	CString strSelName;
 	
 	if (pItem == nullptr || pItem->iRow == -1 || pItem->iColumn == -1)
 		return;
@@ -990,10 +1177,63 @@ void CDlgMotr::OnGrdClickedEvent(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult
 	case eGRD_OPERATION_INPUT:
 		InputParameter(pItem->iRow);
 		break;
+	case eGRD_USER_POS:
+		if (pItem->iRow > 0)
+		{
+			UserPosSelect(pItem->iRow);
+
+			strSelName = m_pGrid[eGRD_USER_POS]->GetItemText(pItem->iRow, eCELL_UPOS_NAME);
+			m_pButton[eBTN_UPOS_DISP]->SetWindowText(strSelName);
+			m_pButton[eBTN_UPOS_DISP]->Invalidate();
+		}
+		break;
 	default:
 		break;
 	}
 }
+
+/*
+ desc : 그리드의 더블 클릭 이벤트를 처리한다.
+ parm : 그리드 리소스 ID, 이벤트가 발생된 셀 정보, 결과
+ retn : None
+*/
+void CDlgMotr::OnGrdDblClickedEvent(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult)
+{
+	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
+	int nCommand = ID - IDC_GRD_MOTOR;
+
+	if (pItem == nullptr || pItem->iRow <= 0 || pItem->iColumn == -1)
+		return;
+
+	switch (nCommand)
+	{
+	case eGRD_USER_POS:
+	{
+		//더블 클릭한 열(Column)이 좌표인지 확인
+		if (pItem->iColumn >= eCELL_UPOS_POSX && pItem->iColumn <= eCELL_UPOS_CAM2X)
+		{
+			int nIdx = pItem->iRow - 1;
+
+			//클릭한 위치의 좌표 데이터를 DEF_IGNORE_POS(-1.0)으로 변경
+			switch (pItem->iColumn)
+			{
+			case eCELL_UPOS_POSX: m_stUserPos[nIdx].dPosX = DEF_IGNORE_POS; break;
+			case eCELL_UPOS_POSY: m_stUserPos[nIdx].dPosY = DEF_IGNORE_POS; break;
+			case eCELL_UPOS_CAM1X: m_stUserPos[nIdx].dCam1X = DEF_IGNORE_POS; break;
+			case eCELL_UPOS_CAM2X: m_stUserPos[nIdx].dCam2X = DEF_IGNORE_POS; break;
+
+			}
+			UpdataUserPosGrid();
+		}
+	}
+		break;
+	defaule:
+		break;
+	
+	}
+	*pResult = 0;
+}
+
 
 /*
  desc : 일정 시간마다 동작을 수행한다.
@@ -1093,4 +1333,276 @@ int CDlgMotr::ShowMultiSelectMsg(EN_MSG_BOX_TYPE mType, CString strTitle, CStrin
 	int nResult = (int)taskDlg.DoModal();
 
 	return nResult - 201;
+}
+
+
+VOID CDlgMotr::UpdataUserPosGrid()
+{
+	CString strTemp;
+
+	//double 값 아치 비교 람다 함수(0.0001 이상 차이나면 변경된 것으로 간주)
+	auto IsModified = [](double a, double b)->bool {
+		return(a > b ? a - b : b - a) > 0.0001;
+		};
+
+	for (int i = 0;i < MAX_USER_POS;i++)
+	{
+		int nRow = i + 1;
+		//Name 텍스트 반영
+		m_pGrid[eGRD_USER_POS]->SetItemText(nRow, eCELL_UPOS_NAME, m_stUserPos[i].strName);
+
+		auto SetGridText = [&](int nCol, double dVal) {
+			if (dVal < 0.0) {
+				m_pGrid[eGRD_USER_POS]->SetItemText(nRow, nCol, _T("-"));
+			}
+			else {
+				strTemp.Format(_T("%.4f"), dVal);
+				m_pGrid[eGRD_USER_POS]->SetItemText(nRow, nCol, strTemp);
+			}
+		};
+
+		SetGridText(eCELL_UPOS_POSX, m_stUserPos[i].dPosX);
+		SetGridText(eCELL_UPOS_POSY, m_stUserPos[i].dPosY);
+		SetGridText(eCELL_UPOS_CAM1X, m_stUserPos[i].dCam1X);
+		SetGridText(eCELL_UPOS_CAM2X, m_stUserPos[i].dCam2X);
+
+
+		//if (nRow == m_nSelUserPos)
+		//{
+		//	for (int nCol = 0;nCol < eCELL_UPOS_MAX;nCol++)
+		//	{
+		//		m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, RGB(0, 112, 192));
+		//		m_pGrid[eGRD_USER_POS]->SetItemFgColour(nRow, nCol, WHITE_);
+		//	}
+		//}
+		//else
+		//{
+		//	for (int nCol = 0;nCol < eCELL_UPOS_MAX;nCol++)
+		//	{
+		//		if (nCol == eCELL_UPOS_NAME) {
+		//			m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, RGB(242, 242, 242));
+		//		}
+		//		else{
+		//			m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, WHITE_);
+		//		}
+		//		m_pGrid[eGRD_USER_POS]->SetItemFgColour(nRow, nCol, BLACK_);
+		//	}
+		//}
+
+		// 각 셀마다 변경(Dirty) 상태를 파악하여 색상 적용
+		for (int nCol = 0; nCol < eCELL_UPOS_MAX; nCol++)
+		{
+			bool bIsChanged = false; // 변경 여부 플래그
+
+			// 현재 셀의 데이터가 원본 백업본과 다른지 검사
+			switch (nCol)
+			{
+			case eCELL_UPOS_NAME:  bIsChanged = (m_stUserPos[i].strName != m_stSaveUserPos[i].strName); break;
+			case eCELL_UPOS_POSX:  bIsChanged = IsModified(m_stUserPos[i].dPosX, m_stSaveUserPos[i].dPosX); break;
+			case eCELL_UPOS_POSY:  bIsChanged = IsModified(m_stUserPos[i].dPosY, m_stSaveUserPos[i].dPosY); break;
+			case eCELL_UPOS_CAM1X: bIsChanged = IsModified(m_stUserPos[i].dCam1X, m_stSaveUserPos[i].dCam1X); break;
+			case eCELL_UPOS_CAM2X: bIsChanged = IsModified(m_stUserPos[i].dCam2X, m_stSaveUserPos[i].dCam2X); break;
+			}
+
+			// 배경 및 텍스트 색상 결정
+			COLORREF clrBg, clrText;
+			if (nRow == m_nSelUserPos)
+			{
+				// 선택된 행 (파란색 배경)
+				clrBg = RGB(0, 112, 192);
+				clrText = bIsChanged ? RGB(255, 255, 0) : WHITE_; // 변경 시 노란색, 아니면 흰색
+			}
+			else
+			{
+				// 선택되지 않은 행
+				clrBg = (nCol == eCELL_UPOS_NAME) ? RGB(242, 242, 242) : WHITE_;
+				clrText = bIsChanged ? RGB(255, 0, 0) : BLACK_; // 변경 시 빨간색, 아니면 검은색
+			}
+
+			m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, clrBg);
+			m_pGrid[eGRD_USER_POS]->SetItemFgColour(nRow, nCol, clrText);
+		}
+	}
+	m_pGrid[eGRD_USER_POS]->Refresh();
+}
+
+VOID CDlgMotr::LoadUserPosition()
+{
+	uvEng_UserPosition_LoadFile();
+
+	for (int i = 0; i < MAX_USER_POS;i++)
+	{
+		LPG_UPTP pData = uvEng_UserPosition_GetUserPosData(i);
+
+		if (pData != NULL)
+		{
+			m_stUserPos[i].strName = pData->strName;
+			m_stUserPos[i].dPosX = pData->dPosX;
+			m_stUserPos[i].dPosY = pData->dPosY;
+			m_stUserPos[i].dCam1X = pData->dCam1X;
+			m_stUserPos[i].dCam2X = pData->dCam2X;
+		}
+		else
+		{
+			m_stUserPos[i].strName.Format(_T("User Position%d"), i + 1);
+			m_stUserPos[i].dPosX = DEF_IGNORE_POS;
+			m_stUserPos[i].dPosY = DEF_IGNORE_POS;
+			m_stUserPos[i].dCam1X = DEF_IGNORE_POS;
+			m_stUserPos[i].dCam2X = DEF_IGNORE_POS;
+		}
+		//로드된 데이터를 백업 배열에도 복사(변경 사항 비교)
+		m_stSaveUserPos[i].strName = m_stUserPos[i].strName;
+		m_stSaveUserPos[i].dPosX = m_stUserPos[i].dPosX;
+		m_stSaveUserPos[i].dPosY = m_stUserPos[i].dPosY;
+		m_stSaveUserPos[i].dCam1X = m_stUserPos[i].dCam1X;
+		m_stSaveUserPos[i].dCam2X = m_stUserPos[i].dCam2X;
+	}
+}
+
+VOID CDlgMotr::SaveUserPosition()
+{
+	for (int i = 0;i < MAX_USER_POS;i++)
+	{
+		//LPG_UPTP pData = uvEng_UserPosition_GetUserPosData(i);
+
+		for (int i = 0;i < MAX_USER_POS;i++)
+		{
+			uvEng_UserPosition_SetUserPosData(
+				i,
+				(LPCTSTR)m_stUserPos[i].strName,
+				m_stUserPos[i].dPosX,
+				m_stUserPos[i].dPosY,
+				m_stUserPos[i].dCam1X,
+				m_stUserPos[i].dCam2X
+			);
+		}
+	}
+	//엔진 API를 호출하여 메모리 데이터를 파일에 저장
+	if (uvEng_UserPosition_SaveFile())
+	{
+		//저장이 성공하면 현재 데이터를 원본 데이터로 덮어씌움
+		for (int i = 0; i < MAX_USER_POS; i++)
+		{
+			m_stSaveUserPos[i].strName = m_stUserPos[i].strName;
+			m_stSaveUserPos[i].dPosX = m_stUserPos[i].dPosX;
+			m_stSaveUserPos[i].dPosY = m_stUserPos[i].dPosY;
+			m_stSaveUserPos[i].dCam1X = m_stUserPos[i].dCam1X;
+			m_stSaveUserPos[i].dCam2X = m_stUserPos[i].dCam2X;
+		}
+
+		//색상을 원래대로 되돌리기 위해 
+		UpdataUserPosGrid();
+		AfxMessageBox(_T("User Position 데이터가 성공적으로 저장되었습니다"));
+	}
+	else
+	{
+		AfxMessageBox(_T("파일 저장에 실패했습니다"),MB_ICONERROR);
+	}
+}
+
+VOID CDlgMotr::UserPosSelect(int nRow)
+{
+	if (nRow <= 0 || nRow == m_nSelUserPos) return;
+
+	if (m_nSelUserPos > 0 && m_nSelUserPos <= MAX_USER_POS)
+	{
+		for (int nCol = 0;nCol < eCELL_UPOS_MAX;nCol++)
+		{
+			if (nCol == eCELL_UPOS_NAME) {
+				m_pGrid[eGRD_USER_POS]->SetItemBkColour(m_nSelUserPos, nCol, RGB(242, 242, 242));
+			}
+			else{
+				m_pGrid[eGRD_USER_POS]->SetItemBkColour(m_nSelUserPos, nCol, WHITE_);
+			}
+			m_pGrid[eGRD_USER_POS]->SetItemFgColour(m_nSelUserPos, nCol, BLACK_);
+		}
+	}
+	for (int nCol = 0;nCol < eCELL_UPOS_MAX; nCol++)
+	{
+		m_pGrid[eGRD_USER_POS]->SetItemBkColour(nRow, nCol, RGB(0, 112, 192));
+		m_pGrid[eGRD_USER_POS]->SetItemFgColour(nRow, nCol, WHITE_);
+	}
+
+	m_nSelUserPos = nRow;
+	m_pGrid[eGRD_USER_POS]->Refresh();
+}
+
+VOID CDlgMotr::GetPosUserPosition()
+{
+	if (m_nSelUserPos<1 || m_nSelUserPos>MAX_USER_POS)
+	{
+		AfxMessageBox(_T("리스트에서 위치를 저장할 핼을먼저 선택해 주세요."));
+	}
+
+	int nIdx = m_nSelUserPos - 1;
+
+	//현재 장비의 절대 좌표 읽어오기
+	m_stUserPos[nIdx].dPosX = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_x);
+	m_stUserPos[nIdx].dPosY = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_stage_y);
+	m_stUserPos[nIdx].dCam1X = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_axis_acam1);
+	m_stUserPos[nIdx].dCam2X = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI::en_axis_acam2);
+
+	//갤싱된 데이터를 화면에 다시 그리기
+	UpdataUserPosGrid();
+}
+
+VOID CDlgMotr::MovePosUserPosition()
+{
+	if (m_nSelUserPos<1 || m_nSelUserPos>MAX_USER_POS) return;
+	if (m_nSelUserPos <= 0.0) return;
+
+	int nIdx = m_nSelUserPos - 1;
+
+	if (m_stUserPos[nIdx].dPosX >= 0.0) {
+		MoveStart(ENG_MMDI::en_stage_x, m_stUserPos[nIdx].dPosX, m_dSetSpeed, FALSE);
+	}
+	if (m_stUserPos[nIdx].dPosY >= 0.0) {
+		MoveStart(ENG_MMDI::en_stage_y, m_stUserPos[nIdx].dPosY, m_dSetSpeed, FALSE);
+	}
+	if (m_stUserPos[nIdx].dCam1X >= 0.0) {
+		MoveStart(ENG_MMDI::en_axis_acam1, m_stUserPos[nIdx].dCam1X, m_dSetSpeed, FALSE);
+	}
+	if (m_stUserPos[nIdx].dCam2X >= 0.0) {
+		MoveStart(ENG_MMDI::en_axis_acam2, m_stUserPos[nIdx].dCam2X, m_dSetSpeed, FALSE);
+	}
+}
+
+/*
+ desc : User Position 관련 UI(타이틀, 그리드, 버튼)를 화면에서 숨기거나 표시한다.
+ parm : bShow - TRUE(표시) / FALSE(숨김 및 창 크기 축소)
+ retn : None
+*/
+VOID CDlgMotr::ShowUserPositionUI(BOOL bShow)
+{
+	int nCmdShow = bShow ? SW_SHOW : SW_HIDE;
+
+	//User Positin 타이틀 바 숨기기
+	m_sttTitle[eTITLE_USER_POSITION].ShowWindow(nCmdShow);
+
+	//User Position 그리드 숨기기
+	if (m_pGrid[eGRD_USER_POS])
+	{
+		m_pGrid[eGRD_USER_POS]->ShowWindow(nCmdShow);
+	}
+
+	//하단 버튼들 숨기기
+	for (int i = eBTN_UPOS_NAME;i <= eBTN_UPOS_SAVE;i++)
+	{
+		if (m_pButton[i])
+		{
+			m_pButton[i]->ShowWindow(nCmdShow);
+		}
+	}
+
+	//숨김(FALSE) 처리 시, 밑에 남는 빈 공간을 잘라내어 다어얼로그 크기를 줄입
+	if (bShow == FALSE)
+	{
+		CRect rctDlg, rctTitle;
+		GetWindowRect(rctDlg);
+
+		m_sttTitle[eTITLE_USER_POSITION].GetWindowRect(rctTitle);
+
+		rctDlg.bottom = rctTitle.top;
+		MoveWindow(rctDlg);
+	}
 }

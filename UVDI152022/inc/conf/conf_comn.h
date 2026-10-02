@@ -39,6 +39,8 @@
 #define	MAX_MC2_DRIVE					8		/* MC2에 설치 가능한 최대 드라이브 개수 */
 #define MAX_ALIGN_CAMERA				8		/* 설치 가능한 얼라인 카메라 최대 개수 (현재는 2개지만, 이 값은 8로 무조건 고정. 구조체 정렬 때문에. !!!) */
 #define MAX_SCAN_MARK_COUNT				16		/* Local Mark 한 번 스캔할 때, 최대 검색될 수 있는 마크 개수 */
+#define MAX_USER_POS					15		/* 유저 지정 위치 사용 리스트 개수*/
+#define DEF_IGNORE_POS					-1.0	//움직이지 않는 모터 축에는 값은 -1로 하고 UI에는 '-'로 표시
 
 #define	WORK_NAME_LEN					128
 #define	STEP_NAME_LEN					128

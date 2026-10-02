@@ -7,8 +7,10 @@
 #include "../../../inc/comn/MyDialog.h"
 #include "../../../inc/grid/GridCtrl.h"
 #include "../../../inc/kybd/DlgKBDN.h"
+#include"../../../inc/kybd/dlgKBDT.h"
 
 using namespace std;
+
 
 class CDlgMotr : public CMyDialog
 {
@@ -26,6 +28,7 @@ public:
 		eTITLE_MOTOR = 0,
 		eTITLE_CONTROL,
 		eTITLE_OPERATION,
+		eTITLE_USER_POSITION,
 		eTITLE_MAX
 	};
 
@@ -36,6 +39,7 @@ public:
 		eGRD_CONTROL,					// Motor의 초기화, 에러 리셋을 수행한다.
 		eGRD_OPERATION_TAB,				// Motor 이동 시 이동 방식을 선택한다.
 		eGRD_OPERATION_INPUT,			// Motor 이동 동작의 기본 입력값(위치, 속도)을 입력받는다.
+		eGRD_USER_POS,					// 유저 표지션 그리드
 		eGRD_MAX
 	};
 
@@ -79,12 +83,26 @@ public:
 		eCELL_INPUT_COL_MAX
 	};
 
+	enum EnCellUpos{
+		eCELL_UPOS_NAME = 0,
+		eCELL_UPOS_POSX,
+		eCELL_UPOS_POSY,
+		eCELL_UPOS_CAM1X,
+		eCELL_UPOS_CAM2X,
+		eCELL_UPOS_MAX
+	};
+
 	/* 동작 버튼명 정의 */
 	enum EnMoveButton
 	{
 		eBTN_PLUS = 0,					// + 방향으로 이동 명령
 		eBTN_MINUS,						// - 방향으로 이동 명령
 		eBTN_STOP,						// 정지 명령
+		eBTN_UPOS_NAME,					// "Use Position" 텍스트를 보ㅕㅇ줄 용도
+		eBTN_UPOS_DISP,
+		eBTN_UPOS_GETPOS,
+		eBTN_UPOS_MOVE,
+		eBTN_UPOS_SAVE,
 		eBTN_MAX
 	};
 
@@ -149,6 +167,10 @@ protected:
 	double				m_dSetSpeed;			/* 동작 시 사용될 설정 속도 */
 	double				m_dSetPosition;			/* 동작 시 사용될 설정 위치 */
 
+	STG_UPTP			m_stUserPos[MAX_USER_POS];
+	STG_UPTP			m_stSaveUserPos[MAX_USER_POS];	/*원본 상태 기억 백업 배열*/
+	int					m_nSelUserPos;
+
 /* 로컬 함수 */
 protected:
 
@@ -159,6 +181,7 @@ protected:
 	VOID				InitControlGrid();
 	VOID				InitOpTabGrid();
 	VOID				InitOpInputGrid();
+	VOID				InitUserPosGrid();
 
 	VOID				ChangeMoveTpye(UINT8 u8Type);
 	VOID				InputParameter(UINT8 u8Sel);
@@ -172,6 +195,14 @@ public:
 	VOID				MoveStart(ENG_MMDI drv_id, double dPosition, double dSpeed, BOOL bIsRel = FALSE);
 	LOGFONT				GetLogFont(int nSize, BOOL bIsBold);
 
+	VOID				GetPosUserPosition();
+	VOID				MovePosUserPosition();
+	VOID				LoadUserPosition();
+	VOID				SaveUserPosition();
+	VOID				UpdataUserPosGrid();
+	VOID				UserPosSelect(int nRow);
+	VOID				ShowUserPositionUI(BOOL bShow);
+
 /* 메시지 함수 */
 protected:
 
@@ -181,6 +212,7 @@ protected:
 	
 	afx_msg void OnClickButtonEvent(UINT ID);
 	afx_msg void OnGrdClickedEvent(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult);
+	afx_msg void OnGrdDblClickedEvent(UINT ID, NMHDR* pNotifyStruct, LRESULT* pResult);
 
 
 /* 메시지 맵 */

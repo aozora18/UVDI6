@@ -243,12 +243,6 @@ VOID CRecvPhil::PhilSendListRecipe(STG_PP_PACKET_RECV* stRecv)
 		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeIndex(i);
 		/*레시피 리스트 작성*/
 		strcpy_s(stStatus.szArrRecipeName[i], DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(pstRecipe->job_name));
-
-		//if (m_pDlgMenu && m_pDlgMenu->GetDlgID() == ENG_CMDI::en_menu_philhmi)
-		//{
-		//	swprintf_s(szTemp, 512, L"Reicpe Name(%d) : %s", i, strRecipe.GetString());
-		//	((CDlgPhilhmi*)m_pDlgMenu)->AddListBox(szTemp);
-		//}
 	}
 	/*Philhmil에 Reicpe list 전송*/
 	uvEng_Philhmi_Send_C2P_RCP_LIST_ACK(stStatus);
@@ -299,6 +293,62 @@ VOID CRecvPhil::PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv)
 
 	uvEng_Philhmi_Send_C2P_RCP_INFO_ACK(stInfoSend);
 }
+
+
+VOID CRecvPhil::PhilSendGlassScrap(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_GLASS_SCRAP_ACK	stStatus;
+	stStatus.Reset();
+	stStatus.ulUniqueID = stRecv->st_c2p_rcp_list.ulUniqueID;
+
+	/*Philhmil에 Reicpe list 전송*/
+	uvEng_Philhmi_Send_C2P_GLASS_SCRAP_ACK(stStatus);
+}
+
+VOID CRecvPhil::PhilSendReadyRecipeListEX(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_READY_RCP_LIST_EX_ACK	stStatus;
+	stStatus.Reset();
+	stStatus.ulUniqueID = stRecv->st_c2p_rcp_list.ulUniqueID;
+
+	stStatus.usRecicpeTotalCount;
+	stStatus.usRecipePageTotalCount = 1;
+
+	/*Philhmil에 Reicpe list 전송*/
+	uvEng_Philhmi_Send_C2P_READY_RCP_LIST_EX_ACK(stStatus);
+}
+
+VOID CRecvPhil::PhilSendRecipeListEX(STG_PP_PACKET_RECV* stRecv)
+{
+	STG_PP_C2P_RCP_LIST_EX_ACK	stStatus;
+	stStatus.Reset();
+	stStatus.ulUniqueID = stRecv->st_c2p_rcp_list.ulUniqueID;
+
+	int nCount;
+	CUniToChar csCnv1;
+	/*저장된 레시피 갯수*/
+	nCount = uvEng_JobRecipe_GetCount();
+	stStatus.usCount = nCount;
+
+	LPG_RJAF hostRcp = uvEng_JobRecipe_GetSelectRecipe(false);
+
+	if (hostRcp)
+		strcpy_s(stStatus.szSelectedRecipeName, DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(hostRcp->job_name));
+
+	for (int i = 0; i < nCount; i++)
+	{
+		LPG_RJAF pstRecipe = uvEng_JobRecipe_GetRecipeIndex(i);
+		/*레시피 리스트 작성*/
+		strcpy_s(stStatus.szArrRecipeName[i], DEF_MAX_RECIPE_NAME_LENGTH, csCnv1.Ansi2UTF(pstRecipe->job_name));
+	}
+
+	stStatus.usCurPage;
+	stStatus.usTotalPage = 1;
+
+	/*Philhmil에 Reicpe list 전송*/
+	uvEng_Philhmi_Send_C2P_RCP_LIST_EX_ACK(stStatus);
+}
+
 
 VOID CRecvPhil::PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy)
 {

@@ -858,6 +858,15 @@ LRESULT CDlgMain::OnMsgMainPHILHMI(WPARAM wparam, LPARAM lparam)
 	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_INFORMATION:
 		CRecvPhil::GetInstance()->PhilSendInfoRecipe(pstPhil);
 		break;
+	case (int)ENG_PHPC::ePHILHMI_C2P_GLASS_SCRAP:
+		CRecvPhil::GetInstance()->PhilSendGlassScrap(pstPhil);
+		break;
+	case (int)ENG_PHPC::ePHILHMI_C2P_READY_RECIPE_LIST_EX:
+		CRecvPhil::GetInstance()->PhilSendReadyRecipeListEX(pstPhil);
+		break;
+	case (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST_EX:
+		CRecvPhil::GetInstance()->PhilSendRecipeListEX(pstPhil);
+		break;
 
 	case (int)ENG_PHPC::ePHILHMI_C2P_ABS_MOVE:
 

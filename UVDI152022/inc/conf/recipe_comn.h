@@ -14,7 +14,7 @@
 #define MAX_GLOBAL_MARK_DIST_CHECK_COUNT		6			/* Align 인식 후 Global Mark 간의 최대 허용 오차 한계 측정(검사) 개수 */
 #define LED_POWER_NAME_LENGTH					128
 #define MAX_EXPOSE_THICK_SIZE					12.0f		/* DI 노광기가 지원하는 소재 최대 두께 값 (단위: mm) */
-#define MAX_REGIST_RECIPE_COUNT					256			/* 최대 등록 가능한 Recipe 기본 정보 개수  */
+#define MAX_REGIST_RECIPE_COUNT					200			/* 최대 등록 가능한 Recipe 기본 정보 개수  */
 #define MAX_CORRECT_Y_COUNT						200			/* Stripe 간의 단차 등록할 최대 개수 (Maching Config -> YcorrectionTable) */
 
 /* --------------------------------------------------------------------------------------------- */

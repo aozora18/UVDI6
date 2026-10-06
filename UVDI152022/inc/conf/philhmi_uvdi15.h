@@ -47,6 +47,9 @@ ePHILHMI_C2P_RECIPE_CREATE			= 101,
 	ePHILHMI_C2P_RECIPE_SELECT				,	
 	ePHILHMI_C2P_RECIPE_LIST				,	
 	ePHILHMI_C2P_RECIPE_INFORMATION			,
+	ePHILHMI_C2P_GLASS_SCRAP				,
+	ePHILHMI_C2P_READY_RECIPE_LIST_EX		,
+	ePHILHMI_C2P_RECIPE_LIST_EX				,
 	ePHILHMI_C2P_ABS_MOVE				= 313,	
 	ePHILHMI_C2P_ABS_MOVE_COMPLETE		= 314,	
 	ePHILHMI_C2P_REL_MOVE				= 315,	
@@ -580,6 +583,116 @@ typedef struct __st_phil_packet_p2c_recipe_delete_ack__ : public __st_phil_packe
 
 }	STG_PP_P2C_RCP_DELETE_ACK, * LPG_PP_P2C_RCP_DELETE_ACK;
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+///  C2P GLASS SCRAP
+typedef struct __st_phil_packet_c2p_glass_scrap__ :public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_GLASS_SCRAP;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+
+		memset(szGlassID, 0, sizeof(szGlassID));
+	}
+
+	char szGlassID[DEF_MAX_GLASS_NAME_LENGTH];			//Glass ID는 최대 40자
+
+} STG_PP_C2P_GLASS_SCRAP, * LPG_PP_GLASS_SCRAP;
+
+typedef struct __st_phil_packet_c2p_glass_scrap_ack__ :public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_GLASS_SCRAP;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+} STG_PP_C2P_GLASS_SCRAP_ACK, * LPG_PP_C2P_GLASS_SCRAP_ACK;
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+/// C2P READY RECIPE LIST EX
+typedef struct __st_phil_packet_c2p_ready_recipe_list_ex__ : public __st_phil_packet_header__
+{
+
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_READY_RECIPE_LIST_EX;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+
+}	STG_PP_C2P_READY_RCP_LIST_EX, * LPG_PP_C2P_READY_RCP_LIST_EX;
+
+typedef struct __st_phil_packet_c2p_ready_recipe_list_ex_ack__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_READY_RECIPE_LIST_EX;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+
+
+		usRecicpeTotalCount = 0;
+		usRecipePageTotalCount = 0;
+	}
+
+	unsigned short	usRecicpeTotalCount;
+	unsigned short	usRecipePageTotalCount;
+
+}	STG_PP_C2P_READY_RCP_LIST_EX_ACK, * LPG_PP_C2P_READY_RCP_LIST_EX_ACK;
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+/// C2P RECIPE LIST EX
+typedef struct __st_phil_packet_c2p_recipe_list_ex__ : public __st_phil_packet_header__
+{
+
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST_EX;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+	}
+
+	unsigned short usTargePage;			//Target Page
+
+}	STG_PP_C2P_RCP_LIST_EX, * LPG_PP_C2P_RCP_LIST_EX;
+
+typedef struct __st_phil_packet_c2p_recipe_list_ex_ack__ : public __st_phil_packet_header__
+{
+	void Reset()
+	{
+		nCommand = (int)ENG_PHPC::ePHILHMI_C2P_RECIPE_LIST_EX;
+		ulDataLen = sizeof(*this) - sizeof(__st_phil_packet_header__);
+		ulUniqueID = 0;
+		usErrorCode = ePHILHMI_ERR_OK;
+
+		usCount = 0;
+		usCurPage = 0;
+		usTotalPage = 0;
+		memset(szSelectedRecipeName, 0, sizeof(char) * DEF_MAX_RECIPE_NAME_LENGTH);
+		memset(szArrRecipeName, 0, sizeof(char) * DEF_MAX_RECIPE_COUNT * DEF_MAX_RECIPE_NAME_LENGTH);
+	}
+
+	unsigned short	usCount;						// Recipe 개수		
+	char			szSelectedRecipeName[DEF_MAX_RECIPE_NAME_LENGTH];
+	char			szArrRecipeName[DEF_MAX_RECIPE_COUNT][DEF_MAX_RECIPE_NAME_LENGTH];		// Recipe 명은 최대 40자, 200개로 제한		
+	unsigned short	usCurPage;
+	unsigned short	usTotalPage;
+
+
+}	STG_PP_C2P_RCP_LIST_EX_ACK, * LPG_PP_C2P_RCP_LIST_EX_ACK;
+//////////////////////////////////////////////////////////////////////////
+
 
 typedef struct __st_phil_packet_c2p_recipe_modify__ : public __st_phil_packet_header__
 {
@@ -1805,6 +1918,9 @@ typedef union
 	STG_PP_C2P_RCP_SELECT_ACK			st_c2p_ack_rcp_select;
 	STG_PP_C2P_RCP_INFO_ACK				st_c2p_ack_rcp_info;
 	STG_PP_C2P_RCP_LIST_ACK				st_c2p_ack_rcp_list;
+	STG_PP_C2P_GLASS_SCRAP_ACK			st_c2p_ack_glass_scrap;				//Ver 1.16.0 버젼 추가
+	STG_PP_C2P_READY_RCP_LIST_EX_ACK	st_c2p_ack_ready_rcp_list_ex;		//Ver 1.16.0 버젼 추가
+	STG_PP_C2P_RCP_LIST_EX_ACK			st_c2p_ack_rcp_list_ex;				//Ver 1.16.0 버젼 추가
 	STG_PP_C2P_ABS_MOVE_ACK				st_c2p_ack_abs_move;
 	STG_PP_C2P_ABS_MOVE_COMP_ACK		st_c2p_ack_abs_move_comp;
 	STG_PP_C2P_REL_MOVE_ACK				st_c2p_ack_rel_move;
@@ -1856,6 +1972,9 @@ typedef union
 	STG_PP_C2P_RCP_SELECT				st_c2p_rcp_select;
 	STG_PP_C2P_RCP_INFO					st_c2p_rcp_info;
 	STG_PP_C2P_RCP_LIST					st_c2p_rcp_list;
+	STG_PP_C2P_GLASS_SCRAP				st_c2p_glass_scrap;
+	STG_PP_C2P_READY_RCP_LIST_EX		st_c2p_ready_rcp_list_ex;
+	STG_PP_C2P_RCP_LIST_EX				st_c2p_rcp_list_ex;
 	STG_PP_C2P_ABS_MOVE					st_c2p_abs_move;
 	STG_PP_C2P_ABS_MOVE_COMP			st_c2p_abs_move_comp;
 	STG_PP_C2P_REL_MOVE					st_c2p_rel_move;

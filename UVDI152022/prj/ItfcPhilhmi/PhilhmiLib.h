@@ -115,6 +115,9 @@ public:
 	int Send_C2P_RCP_SELECT_ACK(STG_PP_C2P_RCP_SELECT_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_RCP_INFO_ACK(STG_PP_C2P_RCP_INFO_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_RCP_LIST_ACK(STG_PP_C2P_RCP_LIST_ACK& stSend, int nTimeout = 10000);
+	int Send_C2P_GLASS_SCRAP_ACK(STG_PP_C2P_GLASS_SCRAP_ACK& stSend, int nTimeout = 10000);
+	int Send_C2P_READY_RCP_LIST_EX_ACK(STG_PP_C2P_READY_RCP_LIST_EX_ACK& stSend, int nTimeout = 10000);
+	int Send_C2P_RCP_LIST_EX_ACK(STG_PP_C2P_RCP_LIST_EX_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_ABS_MOVE_ACK(STG_PP_C2P_ABS_MOVE_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_ABS_MOVE_COMP_ACK(STG_PP_C2P_ABS_MOVE_COMP_ACK& stSend, int nTimeout = 10000);
 	int Send_C2P_REL_MOVE_ACK(STG_PP_C2P_REL_MOVE_ACK& stSend, int nTimeout = 10000);

@@ -1744,6 +1744,66 @@ int CPhilhmiLib::Send_C2P_RCP_MODIFY_ACK(STG_PP_C2P_RCP_MODIFY_ACK& stSend, int 
 	return ePHILHMI_ERR_PKT_BUFFER_FULL;
 }
 
+int CPhilhmiLib::Send_C2P_GLASS_SCRAP_ACK(STG_PP_C2P_GLASS_SCRAP_ACK& stSend, int nTimeout /*= 3000*/)
+{
+	if (false == g_pstConfig->set_comn.run_emulate_mode)
+	{
+		if (IsConnect() == FALSE)
+		{
+			return ePHILHMI_ERR_DISCONNECT;
+		}
+	}
+
+	STG_PP_PACKET_SEND stUnionSend;
+	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
+	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
+	{
+		return ePHILHMI_ERR_OK;
+	}
+
+	return ePHILHMI_ERR_PKT_BUFFER_FULL;
+}
+
+int CPhilhmiLib::Send_C2P_READY_RCP_LIST_EX_ACK(STG_PP_C2P_READY_RCP_LIST_EX_ACK& stSend, int nTimeout /*= 3000*/)
+{
+	if (false == g_pstConfig->set_comn.run_emulate_mode)
+	{
+		if (IsConnect() == FALSE)
+		{
+			return ePHILHMI_ERR_DISCONNECT;
+		}
+	}
+
+	STG_PP_PACKET_SEND stUnionSend;
+	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
+	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
+	{
+		return ePHILHMI_ERR_OK;
+	}
+
+	return ePHILHMI_ERR_PKT_BUFFER_FULL;
+}
+
+int CPhilhmiLib::Send_C2P_RCP_LIST_EX_ACK(STG_PP_C2P_RCP_LIST_EX_ACK& stSend, int nTimeout /*= 3000*/)
+{
+	if (false == g_pstConfig->set_comn.run_emulate_mode)
+	{
+		if (IsConnect() == FALSE)
+		{
+			return ePHILHMI_ERR_DISCONNECT;
+		}
+	}
+
+	STG_PP_PACKET_SEND stUnionSend;
+	memcpy(stUnionSend.stData, &stSend, sizeof(stSend));
+	if (SendData(stUnionSend, stSend.ulDataLen + sizeof(STG_PPH), nTimeout))
+	{
+		return ePHILHMI_ERR_OK;
+	}
+
+	return ePHILHMI_ERR_PKT_BUFFER_FULL;
+}
+
 int CPhilhmiLib::Send_C2P_ABS_MOVE_ACK(STG_PP_C2P_ABS_MOVE_ACK& stSend, int nTimeout /*= 3000*/)
 {
 	if (false == g_pstConfig->set_comn.run_emulate_mode)

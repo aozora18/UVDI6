@@ -199,6 +199,21 @@ extern "C"
 		return uvPhilhmi_Send_C2P_RCP_LIST_ACK(stSend);
 	}
 
+	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_GLASS_SCRAP_ACK(STG_PP_C2P_GLASS_SCRAP_ACK& stSend)
+	{
+		return uvPhilhmi_Send_C2P_GLASS_SCRAP_ACK(stSend);
+	}
+
+	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_READY_RCP_LIST_EX_ACK(STG_PP_C2P_READY_RCP_LIST_EX_ACK& stSend)
+	{
+		return uvPhilhmi_Send_C2P_READY_RCP_LIST_EX_ACK(stSend);
+	}
+
+	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_RCP_LIST_EX_ACK(STG_PP_C2P_RCP_LIST_EX_ACK& stSend)
+	{
+		return uvPhilhmi_Send_C2P_RCP_LIST_EX_ACK(stSend);
+	}
+
 	API_EXPORT BOOL uvEng_Philhmi_Send_C2P_RCP_INFO_ACK(STG_PP_C2P_RCP_INFO_ACK& stSend)
 	{
 		return uvPhilhmi_Send_C2P_RCP_INFO_ACK(stSend);

@@ -18,9 +18,12 @@ public:
 	VOID				PhilSendDelectRecipe(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendModifyRecipe(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendSelectRecipe(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy);
-	bool SelectRecipePender(CString strRecipe, CDlgMain* callerInst);
+	bool				SelectRecipePender(CString strRecipe, CDlgMain* callerInst);
 	VOID				PhilSendListRecipe(STG_PP_PACKET_RECV* stRecv);
 	VOID				PhilSendInfoRecipe(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendGlassScrap(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendReadyRecipeListEX(STG_PP_PACKET_RECV* stRecv);
+	VOID				PhilSendRecipeListEX(STG_PP_PACKET_RECV* stRecv);
 
 	VOID				PhilSendProcessExecute(STG_PP_PACKET_RECV* stRecv, CDlgMain* callerInst, BOOL is_busy);
 	VOID				PhilSendStatusValue(STG_PP_PACKET_RECV* stRecv);

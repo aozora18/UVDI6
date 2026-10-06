@@ -301,6 +301,21 @@ extern "C" {
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_RCP_LIST_ACK(stSend);
 	}
 
+	API_EXPORT BOOL  uvPhilhmi_Send_C2P_GLASS_SCRAP_ACK(STG_PP_C2P_GLASS_SCRAP_ACK& stSend)
+	{
+		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_GLASS_SCRAP_ACK(stSend);
+	}
+
+	API_EXPORT BOOL uvPhilhmi_Send_C2P_READY_RCP_LIST_EX_ACK(STG_PP_C2P_READY_RCP_LIST_EX_ACK& stSend)
+	{
+		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_READY_RCP_LIST_EX_ACK(stSend);
+	}
+
+	API_EXPORT BOOL uvPhilhmi_Send_C2P_RCP_LIST_EX_ACK(STG_PP_C2P_RCP_LIST_EX_ACK& stSend)
+	{
+		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_RCP_LIST_EX_ACK(stSend);
+	}
+
 	API_EXPORT BOOL uvPhilhmi_Send_C2P_ABS_MOVE_ACK(STG_PP_C2P_ABS_MOVE_ACK& stSend)
 	{
 		return ePHILHMI_ERR_OK == g_pPhilhmi->Send_C2P_ABS_MOVE_ACK(stSend);

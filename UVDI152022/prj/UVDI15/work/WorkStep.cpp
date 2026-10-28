@@ -1745,6 +1745,17 @@ ENG_JWNS CWorkStep::IsPrinted()
 	/* 노광 완료 상태이면 */
 	else if (uvCmn_Luria_IsExposeStateSuccess(ENG_LCEP::en_print))
 	{
+		/*노광 완료 후 포토헤드 Z축의 높이가 노광전과 차이가 있는지 확인용 로그*/
+		TCHAR tzMsg[256] = { NULL };
+		double dbPhNowZ;
+		for (int i = 0x00; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
+		{
+			//swprintf_s(tzMsg, 256, L"Ph%d Z Axis : %.4f", i + 1, m_dbPhZAxisSet[i]);
+			dbPhNowZ = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI(0x06 + i));
+			swprintf_s(tzMsg, 256, L"Ph%d Z Axis : %.4f", i + 1, dbPhNowZ);
+			LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
+		}
+
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, _T("Printing Complete"));
 
 		return ENG_JWNS::en_next;
@@ -2659,7 +2670,6 @@ ENG_JWNS CWorkStep::SetPhZAxisMovingAll()
 				return ENG_JWNS::en_error;
 			}
 		}
-
 	}
 	/* 현재 위치 정보를 요청하지 않았지만, 요청 했다고 해야 함. (왜냐! 모터 이동 후 바로 도착하지 않으므로) */
 	SetSendCmdTime();
@@ -2721,7 +2731,9 @@ ENG_JWNS CWorkStep::IsPhZAxisMovedAll()
 	TCHAR tzMsg[256] = { NULL };
 	for (i = 0x00; i < uvEng_GetConfig()->luria_svc.ph_count; i++)
 	{
-		swprintf_s(tzMsg, 256, L"Ph%d Z Axis : %.4f", i + 1, m_dbPhZAxisSet[i]);
+		//swprintf_s(tzMsg, 256, L"Ph%d Z Axis : %.4f", i + 1, m_dbPhZAxisSet[i]);
+		dbPhNowZ = uvCmn_MC2_GetDrvAbsPos(ENG_MMDI(0x06 + i));
+		swprintf_s(tzMsg, 256, L"Ph%d Z Axis : %.4f", i + 1, dbPhNowZ);
 		LOG_SAVED(ENG_EDIC::en_uvdi15, ENG_LNWE::en_job_work, tzMsg);
 	}
 
